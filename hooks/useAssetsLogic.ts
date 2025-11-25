@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { AssetNode } from '../types';
-import { getAssets, saveAssets, generateId } from '../services/storageService';
+import { generateId } from '../services/storageService';
+import { useRcaContext } from '../context/RcaContext';
 
 export const useAssetsLogic = () => {
-  const [assets, setAssets] = useState<AssetNode[]>([]);
+  const { assets, updateAssets } = useRcaContext();
   const [selectedNode, setSelectedNode] = useState<AssetNode | null>(null);
   const [parentNode, setParentNode] = useState<AssetNode | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -11,15 +13,6 @@ export const useAssetsLogic = () => {
   // Form State
   const [nodeName, setNodeName] = useState('');
   const [nodeType, setNodeType] = useState<'AREA' | 'EQUIPMENT' | 'SUBGROUP'>('AREA');
-
-  useEffect(() => {
-    setAssets(getAssets());
-  }, []);
-
-  const saveToStorage = (newAssets: AssetNode[]) => {
-    setAssets(newAssets);
-    saveAssets(newAssets);
-  };
 
   const handleDelete = (nodeToDelete: AssetNode) => {
     if (!confirm(`Are you sure you want to delete ${nodeToDelete.name}?`)) return;
@@ -31,7 +24,7 @@ export const useAssetsLogic = () => {
       }));
     };
 
-    saveToStorage(deleteNodeRecursive(assets));
+    updateAssets(deleteNodeRecursive(assets));
     setSelectedNode(null);
     setIsEditing(false);
   };
@@ -51,7 +44,7 @@ export const useAssetsLogic = () => {
       });
     };
 
-    saveToStorage(updateNodeRecursive(assets));
+    updateAssets(updateNodeRecursive(assets));
     setIsEditing(false);
     setSelectedNode({...selectedNode, name: nodeName});
   };
@@ -74,7 +67,7 @@ export const useAssetsLogic = () => {
     };
 
     if (!selectedNode) {
-      saveToStorage([...assets, newNode]);
+      updateAssets([...assets, newNode]);
     } else {
       const addRecursive = (nodes: AssetNode[]): AssetNode[] => {
         return nodes.map(n => {
@@ -87,7 +80,7 @@ export const useAssetsLogic = () => {
           return n;
         });
       };
-      saveToStorage(addRecursive(assets));
+      updateAssets(addRecursive(assets));
     }
     
     setNodeName('');

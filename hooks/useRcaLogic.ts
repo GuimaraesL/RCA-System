@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { RcaRecord, AssetNode, TaxonomyConfig, IshikawaDiagram } from '../types';
-import { getAssets, getTaxonomy, saveRecord, getStandardPrecisionItems, getStandardHraStruct, generateId } from '../services/storageService';
+import { RcaRecord, AssetNode, IshikawaDiagram } from '../types';
+import { getStandardPrecisionItems, getStandardHraStruct, generateId } from '../services/storageService';
 import { analyzeFailure } from '../services/geminiService';
+import { useRcaContext } from '../context/RcaContext';
 
 const emptyIshikawa: IshikawaDiagram = {
     machine: [], method: [], material: [], manpower: [], measurement: [], environment: []
@@ -72,26 +73,17 @@ const findAssetPath = (nodes: AssetNode[], targetId: string): AssetNode[] | null
 };
 
 export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: () => void) => {
+  const { assets, taxonomy, updateRecord, addRecord } = useRcaContext();
   const [step, setStep] = useState(1);
-  const [assets, setAssets] = useState<AssetNode[]>([]);
-  const [taxonomy, setTaxonomy] = useState<TaxonomyConfig>({
-      analysisTypes: [], analysisStatuses: [], specialties: [], failureModes: [], failureCategories: [], componentTypes: [], rootCauseMs: []
-  });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   const [formData, setFormData] = useState<RcaRecord>(existingRecord || createDefaultRecord());
 
   useEffect(() => {
-    const freshAssets = getAssets();
-    setAssets(freshAssets);
-    
-    const tax = getTaxonomy();
-    setTaxonomy(tax);
-
     if (!existingRecord) {
         const newRec = createDefaultRecord();
-        if (tax.analysisTypes.length > 0) newRec.analysis_type = tax.analysisTypes[0].id;
-        if (tax.analysisStatuses.length > 0) newRec.status = tax.analysisStatuses[0].id;
+        if (taxonomy.analysisTypes.length > 0) newRec.analysis_type = taxonomy.analysisTypes[0].id;
+        if (taxonomy.analysisStatuses.length > 0) newRec.status = taxonomy.analysisStatuses[0].id;
         setFormData(newRec);
     } else {
         // --- Migration Logic ---
@@ -166,7 +158,7 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
   ]);
 
   const refreshAssets = () => {
-      setAssets(getAssets());
+      // Context handles asset syncing automatically, no manual fetch needed here usually
   };
 
   const handleAssetSelect = (asset: AssetNode) => {
@@ -207,7 +199,11 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
   };
 
   const handleSave = () => {
-    saveRecord(formData);
+    if (existingRecord) {
+        updateRecord(formData);
+    } else {
+        addRecord(formData);
+    }
     onSaveCallback();
   };
 

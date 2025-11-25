@@ -1,17 +1,19 @@
-import React, { useState, useMemo, useEffect } from 'react';
+
+import React, { useMemo } from 'react';
 import { RcaRecord, AssetNode, TaxonomyConfig } from '../types';
-import { getAssets, getTaxonomy } from '../services/storageService';
 import { Plus, FileText } from 'lucide-react';
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
+import { useRcaContext } from '../context/RcaContext';
 
 interface AnalysesViewProps {
-  records: RcaRecord[];
   onNew: () => void;
   onEdit: (rec: RcaRecord) => void;
 }
 
-export const AnalysesView: React.FC<AnalysesViewProps> = ({ records, onNew, onEdit }) => {
+export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => {
+  const { records, assets, taxonomy } = useRcaContext();
+
   // --- Persistent Filter State ---
   const defaultFilters: FilterState = {
       searchTerm: '',
@@ -27,15 +29,6 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ records, onNew, onEd
       defaultFilters,
       true
   );
-
-  // --- Data Loading ---
-  const [assets, setAssets] = useState<AssetNode[]>([]);
-  const [taxonomy, setTaxonomy] = useState<TaxonomyConfig | null>(null);
-
-  useEffect(() => {
-    setAssets(getAssets());
-    setTaxonomy(getTaxonomy());
-  }, []);
 
   // --- Helpers for Display ---
   const getName = (type: keyof TaxonomyConfig, id: string) => {

@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { ActionRecord, RcaRecord } from '../types';
-import { getActions, getRecords, saveAction, deleteAction, generateId } from '../services/storageService';
+import { ActionRecord } from '../types';
+import { generateId } from '../services/storageService';
+import { useRcaContext } from '../context/RcaContext';
 
 // ViewModel includes resolved RCA name and context IDs for filtering
 export interface ActionViewModel extends ActionRecord {
@@ -12,16 +13,14 @@ export interface ActionViewModel extends ActionRecord {
 }
 
 export const useActionsLogic = () => {
+  const { actions: rawActions, records, addAction, updateAction, deleteAction } = useRcaContext();
   const [actions, setActions] = useState<ActionViewModel[]>([]);
   const [rcaList, setRcaList] = useState<{id: string, title: string}[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAction, setEditingAction] = useState<ActionRecord | null>(null);
 
   // Load data and resolve relationships (ID -> Name)
-  const refreshData = () => {
-    const rawActions = getActions();
-    const records = getRecords();
-    
+  useEffect(() => {
     // Map RCA ID to Title for dropdown
     setRcaList(records.map(r => ({ id: r.id, title: r.what })));
 
@@ -38,16 +37,17 @@ export const useActionsLogic = () => {
     });
 
     setActions(resolvedActions);
-  };
-
-  useEffect(() => {
-    refreshData();
-  }, []);
+  }, [rawActions, records]);
 
   const handleSave = (action: ActionRecord) => {
     if (!action.id) action.id = generateId('ACT');
-    saveAction(action);
-    refreshData();
+    
+    if (editingAction) {
+        updateAction(action);
+    } else {
+        addAction(action);
+    }
+    
     setIsModalOpen(false);
     setEditingAction(null);
   };
@@ -55,7 +55,6 @@ export const useActionsLogic = () => {
   const handleDelete = (id: string) => {
     if (confirm('Delete this action plan?')) {
       deleteAction(id);
-      refreshData();
     }
   };
 

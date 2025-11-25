@@ -1,10 +1,12 @@
 
 import { useState, useEffect } from 'react';
 import { TaxonomyConfig, TaxonomyItem } from '../types';
-import { getTaxonomy, saveTaxonomy, generateId } from '../services/storageService';
+import { generateId } from '../services/storageService';
+import { useRcaContext } from '../context/RcaContext';
 
 export const useSettingsLogic = () => {
-  const [taxonomy, setTaxonomy] = useState<TaxonomyConfig>({
+  const { taxonomy, updateTaxonomy } = useRcaContext();
+  const [localTaxonomy, setLocalTaxonomy] = useState<TaxonomyConfig>({
     analysisTypes: [],
     analysisStatuses: [],
     specialties: [],
@@ -15,23 +17,21 @@ export const useSettingsLogic = () => {
   });
 
   useEffect(() => {
-    const loaded = getTaxonomy();
-    // Ensure all arrays exist even if local storage has legacy data
-    setTaxonomy(prev => ({
-      analysisTypes: loaded.analysisTypes || [],
-      analysisStatuses: loaded.analysisStatuses || [],
-      specialties: loaded.specialties || [],
-      failureModes: loaded.failureModes || [],
-      failureCategories: loaded.failureCategories || [],
-      componentTypes: loaded.componentTypes || [],
-      rootCauseMs: loaded.rootCauseMs || []
-    }));
-  }, []);
+    // Ensure all arrays exist even if context data is potentially partial (unlikely, but safe)
+    setLocalTaxonomy({
+      analysisTypes: taxonomy.analysisTypes || [],
+      analysisStatuses: taxonomy.analysisStatuses || [],
+      specialties: taxonomy.specialties || [],
+      failureModes: taxonomy.failureModes || [],
+      failureCategories: taxonomy.failureCategories || [],
+      componentTypes: taxonomy.componentTypes || [],
+      rootCauseMs: taxonomy.rootCauseMs || []
+    });
+  }, [taxonomy]);
 
   const handleUpdate = (field: keyof TaxonomyConfig, newItems: TaxonomyItem[]) => {
     const newTaxonomy = { ...taxonomy, [field]: newItems };
-    setTaxonomy(newTaxonomy);
-    saveTaxonomy(newTaxonomy);
+    updateTaxonomy(newTaxonomy);
   };
 
   const addItem = (field: keyof TaxonomyConfig, name: string) => {
@@ -53,7 +53,7 @@ export const useSettingsLogic = () => {
   };
 
   return {
-    taxonomy,
+    taxonomy: localTaxonomy,
     addItem,
     removeItem,
     updateItem

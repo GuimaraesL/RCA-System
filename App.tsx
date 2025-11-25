@@ -1,8 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, FileText, Database, Settings, Upload, AlertTriangle, List, CheckSquare } from 'lucide-react';
+import React, { useState } from 'react';
+import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare } from 'lucide-react';
 import { RcaRecord } from './types';
-import { getRecords } from './services/storageService';
 import { RcaEditor } from './components/RcaEditor';
 import { AssetsManager } from './components/AssetsManager';
 import { Dashboard } from './components/Dashboard';
@@ -10,21 +9,19 @@ import { AnalysesView } from './components/AnalysesView';
 import { ActionsView } from './components/ActionsView';
 import { SettingsView } from './components/SettingsView';
 import { MigrationView } from './components/MigrationView';
+import { RcaProvider, useRcaContext } from './context/RcaContext';
 
-export default function App() {
+const AppContent: React.FC = () => {
   const [view, setView] = useState<'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'ASSETS' | 'SETTINGS' | 'MIGRATION'>('DASHBOARD');
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<RcaRecord | null>(null);
-  const [records, setRecords] = useState<RcaRecord[]>([]);
+  
+  const { refreshAll } = useRcaContext();
 
-  useEffect(() => {
-    setRecords(getRecords());
-  }, []);
-
-  const refreshData = () => {
-    setRecords(getRecords());
-    setIsEditorOpen(false);
-    setEditingRecord(null);
+  const handleCloseEditor = () => {
+      setIsEditorOpen(false);
+      setEditingRecord(null);
+      refreshAll(); // Ensure Dashboard reflects changes immediately
   };
 
   const openNew = () => {
@@ -88,7 +85,7 @@ export default function App() {
             </button>
         </nav>
         <div className="p-6 border-t border-slate-800 text-xs text-slate-500">
-            v17.1 Integrated<br/>
+            v17.2 Context API<br/>
             Running on React 18
         </div>
       </aside>
@@ -100,18 +97,18 @@ export default function App() {
                <div className="flex-1 p-6 overflow-hidden">
                 <RcaEditor 
                     existingRecord={editingRecord} 
-                    onClose={() => setIsEditorOpen(false)} 
-                    onSave={refreshData}
+                    onClose={handleCloseEditor} 
+                    onSave={handleCloseEditor}
                 />
                </div>
             </div>
         ) : (
             <div className="flex-1 overflow-auto bg-slate-50/50">
                 {view === 'DASHBOARD' && (
-                    <Dashboard records={records} />
+                    <Dashboard />
                 )}
                 {view === 'ANALYSES' && (
-                    <AnalysesView records={records} onNew={openNew} onEdit={openEdit} />
+                    <AnalysesView onNew={openNew} onEdit={openEdit} />
                 )}
                 {view === 'ACTIONS' && (
                     <ActionsView />
@@ -130,4 +127,12 @@ export default function App() {
       </main>
     </div>
   );
+};
+
+export default function App() {
+    return (
+        <RcaProvider>
+            <AppContent />
+        </RcaProvider>
+    );
 }

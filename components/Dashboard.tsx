@@ -1,19 +1,14 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { RcaRecord, AssetNode, TaxonomyConfig } from '../types';
-import { getAssets, getTaxonomy, getActions } from '../services/storageService';
+
+import React, { useMemo } from 'react';
+import { AssetNode } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { TrendingUp, Clock, AlertCircle, DollarSign } from 'lucide-react';
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
+import { useRcaContext } from '../context/RcaContext';
 
-interface DashboardProps {
-    records: RcaRecord[];
-}
-
-export const Dashboard: React.FC<DashboardProps> = ({ records }) => {
-  const [assets, setAssets] = useState<AssetNode[]>([]);
-  const [taxonomy, setTaxonomy] = useState<TaxonomyConfig | null>(null);
-  const [allSystemActions, setAllSystemActions] = useState<any[]>([]);
+export const Dashboard: React.FC = () => {
+  const { records, assets, actions: allSystemActions, taxonomy } = useRcaContext();
   
   // --- Persistent Filter State ---
   const defaultFilters: FilterState = {
@@ -30,12 +25,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ records }) => {
       defaultFilters,
       false // Default closed for dashboard
   );
-
-  useEffect(() => {
-    setAssets(getAssets());
-    setTaxonomy(getTaxonomy());
-    setAllSystemActions(getActions());
-  }, [records]);
 
   // --- Helpers ---
   const getStatusName = (id: string) => {
@@ -98,8 +87,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ records }) => {
     return areas;
   }, [assets]);
 
-  const availableCategories = taxonomy?.failureCategories || [];
-  const availableStatuses = taxonomy?.analysisStatuses || [];
+  const availableCategories = taxonomy.failureCategories || [];
+  const availableStatuses = taxonomy.analysisStatuses || [];
 
   // --- KPI Calculations (Based on Filtered Data) ---
   const totalCost = filteredRecords.reduce((acc, r) => acc + (r.financial_impact || 0), 0);
