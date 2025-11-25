@@ -1,0 +1,5 @@
+{
+  "name": "Global RCA System",
+  "description": "Enterprise-grade Root Cause Analysis system with Asset Hierarchy integration, JSON migration capabilities, and Generative AI insights for failure analysis.",
+  "requestFramePermissions": []
+}

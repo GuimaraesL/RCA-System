@@ -1,0 +1,241 @@
+
+import { AssetNode, RcaRecord, MigrationData, PrecisionChecklistItem, TaxonomyConfig, TaxonomyItem } from "../types";
+
+const STORAGE_KEY_ASSETS = 'rca_assets';
+const STORAGE_KEY_RECORDS = 'rca_records';
+const STORAGE_KEY_TAXONOMY = 'rca_taxonomy';
+
+// Helper for Auto-ID Generation
+export const generateId = (prefix: string = 'GEN'): string => {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  return `${prefix}-${timestamp}-${random}`;
+};
+
+// Initial Mock Data
+const INITIAL_ASSETS: AssetNode[] = [
+  {
+    id: 'AREA-INIT-01', name: 'Plant A - Manufacturing', type: 'AREA', children: [
+      { id: 'EQP-INIT-01', name: 'Rolling Oil System', type: 'EQUIPMENT', children: [
+        { id: 'SG-INIT-01', name: 'Auxiliary Equipment', type: 'SUBGROUP', parentId: 'EQP-INIT-01' }
+      ], parentId: 'AREA-INIT-01' }
+    ]
+  },
+  {
+    id: 'AREA-INIT-02', name: 'Plant B - Packaging', type: 'AREA', children: [
+      { id: 'EQP-INIT-02', name: 'Robotic Arm Kuka', type: 'EQUIPMENT', parentId: 'AREA-INIT-02' }
+    ]
+  }
+];
+
+// Helper to create initial taxonomy items
+const taxItem = (id: string, name: string): TaxonomyItem => ({ id, name });
+
+const INITIAL_TAXONOMY: TaxonomyConfig = {
+  analysisTypes: [
+    taxItem('TYPE-01', "Mini RCA"),
+    taxItem('TYPE-02', "RCA Completo"),
+    taxItem('TYPE-03', "A3 Melhoria")
+  ],
+  analysisStatuses: [
+    taxItem('STATUS-01', "Em Aberto"),
+    taxItem('STATUS-02', "Em Andamento"),
+    taxItem('STATUS-03', "Aguardando Aprovação"),
+    taxItem('STATUS-04', "Cancelada"),
+    taxItem('STATUS-DONE', "Concluída") // System managed ID
+  ],
+  specialties: [
+    taxItem('SPEC-01', "Mecânica"),
+    taxItem('SPEC-02', "Elétrica"),
+    taxItem('SPEC-03', "Instrumentação"),
+    taxItem('SPEC-04', "Operação"),
+    taxItem('SPEC-05', "Hidráulica"),
+    taxItem('SPEC-06', "Automação")
+  ],
+  failureModes: [
+    taxItem('FM-01', "Desacoplado"),
+    taxItem('FM-02', "Curto-circuito"),
+    taxItem('FM-03', "Desgaste Prematuro"),
+    taxItem('FM-04', "Fadiga"),
+    taxItem('FM-05', "Sobreaquecimento"),
+    taxItem('FM-06', "Vibração Excessiva"),
+    taxItem('FM-07', "Vazamento"),
+    taxItem('FM-08', "Travamento"),
+    taxItem('FM-09', "Ruído Anormal"),
+    taxItem('FM-10', "Indicação Falsa")
+  ],
+  failureCategories: [
+    taxItem('FC-01', "Erro de Montagem"),
+    taxItem('FC-02', "Fim de Vida Útil"),
+    taxItem('FC-03', "Falha Operacional"),
+    taxItem('FC-04', "Defeito de Fabricação"),
+    taxItem('FC-05', "Falta de Lubrificação"),
+    taxItem('FC-06', "Sobrecarga")
+  ],
+  componentTypes: [
+    taxItem('COMP-01', "Rolamento"),
+    taxItem('COMP-02', "Motor"),
+    taxItem('COMP-03', "Bomba"),
+    taxItem('COMP-04', "Válvula"),
+    taxItem('COMP-05', "Sensor"),
+    taxItem('COMP-06', "Cilindro"),
+    taxItem('COMP-07', "Correia"),
+    taxItem('COMP-08', "Redutor"),
+    taxItem('COMP-09', "Acoplamento"),
+    taxItem('COMP-10', "Drive")
+  ]
+};
+
+const STANDARD_PRECISION_ITEMS: PrecisionChecklistItem[] = [
+  { id: 1, activity: "Área está limpa e arrumada", status: "NOT_APPLICABLE" },
+  { id: 2, activity: "Os ajustes e tolerâncias estão corretos", status: "NOT_APPLICABLE" },
+  { id: 3, activity: "A lubrificação é limpa, livre de contaminantes, qte correta", status: "NOT_APPLICABLE" },
+  { id: 4, activity: "A correia tem tensão e alinhamento corretos", status: "NOT_APPLICABLE" },
+  { id: 5, activity: "Cargas estão suportadas corretamente (rigidez/suportes)?", status: "NOT_APPLICABLE" },
+  { id: 6, activity: "Componentes (eixos, motores, bombas) estão alinhados?", status: "NOT_APPLICABLE" },
+  { id: 7, activity: "Componentes rotativos estão balanceados", status: "NOT_APPLICABLE" },
+  { id: 8, activity: "Torques e Tensões estão corretos?", status: "NOT_APPLICABLE" },
+  { id: 9, activity: "O plano de ação altera instalações existentes / MOC?", status: "NOT_APPLICABLE" },
+  { id: 10, activity: "As ações atacam a causa raiz / inclui contenção/detecção?", status: "NOT_APPLICABLE" }
+];
+
+export const getStandardPrecisionItems = () => JSON.parse(JSON.stringify(STANDARD_PRECISION_ITEMS));
+
+const INITIAL_RECORDS: RcaRecord[] = [
+  {
+    id: 'RCA-EXAMPLE-01',
+    version: '16.0',
+    analysis_date: '2025-08-25',
+    analysis_duration_minutes: 45,
+    analysis_type: 'TYPE-01', // Mini RCA
+    status: 'STATUS-DONE', // Concluída
+    participants: 'Ademir, Lucas, Paulo e Lourival',
+    facilitator: 'Felipe Moraes',
+    
+    failure_date: '2025-08-25',
+    failure_time: '13:02',
+    downtime_minutes: 108,
+    financial_impact: 106826.40,
+    os_number: 'OS-9982',
+
+    area_id: 'AREA-INIT-01',
+    equipment_id: 'EQP-INIT-01',
+    subgroup_id: 'SG-INIT-01',
+    component_type: 'COMP-10', // Drive
+    asset_name_display: 'Rolling Oil System',
+
+    specialty_id: 'SPEC-02', // Elétrica
+    failure_mode_id: 'FM-10', // Indicação Falsa
+    failure_category_id: 'FC-02', // Fim de Vida Útil
+
+    who: 'Turno',
+    what: 'Falha no drive da bomba principal do rolling oil',
+    when: 'Durante operação normal',
+    where_description: 'Sala de Drives',
+    problem_description: 'Parada de 108 minutos no CM3 devido Falha no drive da bomba principal do rolling oil causando normal stop',
+    potential_impacts: 'Downtime. Não houve desvio de qualidade.',
+    
+    five_whys: [
+      { id: '1', why_question: 'Laminador parado', answer: 'Falha no sistema rolling oil' },
+      { id: '2', why_question: 'Falha no sistema rolling oil', answer: 'Falha no drive da bomba principal' },
+      { id: '3', why_question: 'Falha no drive', answer: 'Sinal de alarme de temperatura do drive' },
+      { id: '4', why_question: 'Por que alarme?', answer: 'Componente interno danificado' },
+      { id: '5', why_question: 'Por que danificou?', answer: 'Fim de vida útil' }
+    ],
+    
+    ishikawa: {
+      method: [],
+      machine: ['Componente interno danificado', 'Ventilação obstruída'],
+      material: ['Fim de vida útil'],
+      manpower: [],
+      measurement: [],
+      environment: []
+    },
+
+    root_cause: 'Fim de vida útil do componente eletrônico do drive.',
+
+    precision_maintenance: STANDARD_PRECISION_ITEMS.map(i => i.id === 1 ? {...i, status: "EXECUTED"} : i),
+
+    containment_actions: [
+      { id: 'ACT-C-01', action: 'Troca do drive reserva', responsible: 'Turno', date: '2025-08-25', status: 'Concluído' }
+    ],
+    corrective_actions: [
+      { id: 'ACT-A-01', action: 'Reparar o drive de acionamento da bomba principal', responsible: 'Ademir Alves', date: '2025-11-15', status: '2', moc_number: '' }
+    ],
+    lessons_learned: ['Monitorar temperatura dos drives antigos com maior frequência']
+  }
+];
+
+export const getAssets = (): AssetNode[] => {
+  const stored = localStorage.getItem(STORAGE_KEY_ASSETS);
+  if (!stored) {
+    localStorage.setItem(STORAGE_KEY_ASSETS, JSON.stringify(INITIAL_ASSETS));
+    return INITIAL_ASSETS;
+  }
+  return JSON.parse(stored);
+};
+
+export const saveAssets = (assets: AssetNode[]): void => {
+  localStorage.setItem(STORAGE_KEY_ASSETS, JSON.stringify(assets));
+};
+
+export const getTaxonomy = (): TaxonomyConfig => {
+  const stored = localStorage.getItem(STORAGE_KEY_TAXONOMY);
+  if (!stored) {
+    localStorage.setItem(STORAGE_KEY_TAXONOMY, JSON.stringify(INITIAL_TAXONOMY));
+    return INITIAL_TAXONOMY;
+  }
+  return JSON.parse(stored);
+};
+
+export const saveTaxonomy = (taxonomy: TaxonomyConfig): void => {
+  localStorage.setItem(STORAGE_KEY_TAXONOMY, JSON.stringify(taxonomy));
+};
+
+export const getRecords = (): RcaRecord[] => {
+  const stored = localStorage.getItem(STORAGE_KEY_RECORDS);
+  if (!stored) {
+    localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(INITIAL_RECORDS));
+    return INITIAL_RECORDS;
+  }
+  return JSON.parse(stored);
+};
+
+export const saveRecord = (record: RcaRecord): void => {
+  const records = getRecords();
+  const index = records.findIndex(r => r.id === record.id);
+  if (index >= 0) {
+    records[index] = record;
+  } else {
+    records.push(record);
+  }
+  localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+};
+
+export const importData = (jsonContent: string): { success: boolean, message: string } => {
+  try {
+    const data: MigrationData = JSON.parse(jsonContent);
+    if (!Array.isArray(data.assets) || !Array.isArray(data.records)) {
+      return { success: false, message: "Invalid JSON Schema: Missing assets or records arrays." };
+    }
+    localStorage.setItem(STORAGE_KEY_ASSETS, JSON.stringify(data.assets));
+    localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(data.records));
+    if (data.taxonomy) {
+      localStorage.setItem(STORAGE_KEY_TAXONOMY, JSON.stringify(data.taxonomy));
+    }
+    return { success: true, message: `Imported ${data.assets.length} asset roots, ${data.records.length} records and taxonomy.` };
+  } catch (e) {
+    return { success: false, message: "JSON Parse Error" };
+  }
+};
+
+export const exportData = (): string => {
+  const data: MigrationData = {
+    version: '17.0',
+    exportedAt: new Date().toISOString(),
+    assets: getAssets(),
+    records: getRecords(),
+    taxonomy: getTaxonomy()
+  };
+  return JSON.stringify(data, null, 2);
+};
