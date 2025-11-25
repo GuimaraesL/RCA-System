@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { RcaRecord, AssetNode, TaxonomyConfig, IshikawaDiagram } from '../types';
-import { getAssets, getTaxonomy, saveRecord, getStandardPrecisionItems, generateId } from '../services/storageService';
+import { getAssets, getTaxonomy, saveRecord, getStandardPrecisionItems, getStandardHraStruct, generateId } from '../services/storageService';
 import { analyzeFailure } from '../services/geminiService';
 
 const emptyIshikawa: IshikawaDiagram = {
@@ -49,9 +50,12 @@ const createDefaultRecord = (): RcaRecord => ({
         { id: '5', why_question: '', answer: '' }
     ],
     ishikawa: emptyIshikawa,
-    root_cause: '',
+    
+    root_causes: [],
 
     precision_maintenance: getStandardPrecisionItems(),
+    
+    human_reliability: getStandardHraStruct(),
 
     containment_actions: [],
     lessons_learned: []
@@ -73,7 +77,7 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
   const [step, setStep] = useState(1);
   const [assets, setAssets] = useState<AssetNode[]>([]);
   const [taxonomy, setTaxonomy] = useState<TaxonomyConfig>({
-      analysisTypes: [], analysisStatuses: [], specialties: [], failureModes: [], failureCategories: [], componentTypes: []
+      analysisTypes: [], analysisStatuses: [], specialties: [], failureModes: [], failureCategories: [], componentTypes: [], rootCauseMs: []
   });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
@@ -94,7 +98,29 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         if (tax.analysisStatuses.length > 0) newRec.status = tax.analysisStatuses[0].id;
         setFormData(newRec);
     } else {
-        setFormData(existingRecord);
+        // --- Migration Logic for Legacy Fields ---
+        let migratedRecord = { ...existingRecord };
+
+        // Ensure root_causes array exists
+        if (!migratedRecord.root_causes) {
+             migratedRecord.root_causes = [];
+             // If legacy fields exist, migrate them to the first array item
+             const legacyRecord = existingRecord as any;
+             if (legacyRecord.root_cause && legacyRecord.root_cause_m_id) {
+                 migratedRecord.root_causes.push({
+                     id: generateId('RC'),
+                     cause: legacyRecord.root_cause,
+                     root_cause_m_id: legacyRecord.root_cause_m_id
+                 });
+             }
+        }
+
+        // Ensure HRA struct exists
+        if (!migratedRecord.human_reliability) {
+            migratedRecord.human_reliability = getStandardHraStruct();
+        }
+
+        setFormData(migratedRecord);
     }
   }, [existingRecord]);
 
@@ -104,12 +130,14 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         formData.analysis_type,
         formData.what,
         formData.problem_description,
-        formData.root_cause,
         formData.participants,
         formData.asset_name_display
     ];
     
-    const isComplete = requiredFields.every(field => field && field.trim().length > 0);
+    const basicFieldsComplete = requiredFields.every(field => field && field.trim().length > 0);
+    const hasRootCause = formData.root_causes && formData.root_causes.length > 0;
+    
+    const isComplete = basicFieldsComplete && hasRootCause;
 
     const doneStatusItem = taxonomy.analysisStatuses.find(s => s.name === 'Concluída');
     const doneStatusId = doneStatusItem ? doneStatusItem.id : 'Concluída';
@@ -129,7 +157,7 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
     formData.analysis_type, 
     formData.what, 
     formData.problem_description, 
-    formData.root_cause, 
+    formData.root_causes,
     formData.participants,
     formData.asset_name_display,
     formData.status,

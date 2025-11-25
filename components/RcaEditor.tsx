@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
-import { RcaRecord, IshikawaDiagram, PrecisionStatus, ActionRecord } from '../types';
+import { RcaRecord, IshikawaDiagram, PrecisionStatus, ActionRecord, HraConclusion } from '../types';
 import { AssetSelector } from './AssetSelector';
 import { generateId, getActionsByRca, saveAction, deleteAction } from '../services/storageService';
-import { Save, Wand2, ArrowLeft, Loader2, Plus, Trash2, CheckSquare, Square, XSquare, RefreshCw, AlertTriangle, Lock, Edit2 } from 'lucide-react';
+import { Save, Wand2, ArrowLeft, Loader2, Plus, Trash2, CheckSquare, Square, XSquare, RefreshCw, AlertTriangle, Lock, Edit2, UserCheck, MessageSquare } from 'lucide-react';
 import { useRcaLogic } from '../hooks/useRcaLogic';
 import { ActionModal } from './ActionModal';
 
@@ -49,11 +50,27 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
       setFormData(prev => ({ ...prev, five_whys: newWhys }));
   };
 
-  const updatePrecision = (id: number, status: PrecisionStatus) => {
+  const updatePrecision = (id: number, field: 'status' | 'comment', value: any) => {
       const newItems = formData.precision_maintenance.map(item => 
-          item.id === id ? { ...item, status } : item
+          item.id === id ? { ...item, [field]: value } : item
       );
       setFormData(prev => ({ ...prev, precision_maintenance: newItems }));
+  };
+
+  const updateHraQuestion = (id: string, field: 'answer' | 'comment', value: any) => {
+      if (!formData.human_reliability) return;
+      const newQuestions = formData.human_reliability.questions.map(q => 
+          q.id === id ? { ...q, [field]: value } : q
+      );
+      setFormData(prev => ({ ...prev, human_reliability: { ...prev.human_reliability!, questions: newQuestions } }));
+  };
+
+  const updateHraConclusion = (id: string, field: 'selected' | 'description', value: any) => {
+     if (!formData.human_reliability) return;
+     const newConclusions = formData.human_reliability.conclusions.map(c => 
+         c.id === id ? { ...c, [field]: value } : c
+     );
+     setFormData(prev => ({ ...prev, human_reliability: { ...prev.human_reliability!, conclusions: newConclusions } }));
   };
 
   // Action Handlers
@@ -81,11 +98,40 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
       setIsActionModalOpen(false);
   };
 
+  // Root Cause Handlers (Multi-Row)
+  const addRootCause = () => {
+      setFormData(prev => ({
+          ...prev,
+          root_causes: [...(prev.root_causes || []), { id: generateId('RC'), root_cause_m_id: '', cause: '' }]
+      }));
+  };
+
+  const removeRootCause = (idx: number) => {
+      const newList = [...formData.root_causes];
+      newList.splice(idx, 1);
+      setFormData(prev => ({ ...prev, root_causes: newList }));
+  };
+
+  const updateRootCause = (idx: number, field: 'root_cause_m_id' | 'cause', value: string) => {
+      const newList = [...formData.root_causes];
+      newList[idx] = { ...newList[idx], [field]: value };
+      setFormData(prev => ({ ...prev, root_causes: newList }));
+  };
+
   const isCompletedStatus = () => {
       const doneStatus = taxonomy.analysisStatuses.find(s => s.name === 'Concluída');
       return doneStatus && formData.status === doneStatus.id;
   };
   const isCompleted = isCompletedStatus();
+
+  // Logic to show Step 6 (Human Reliability)
+  // Check against ID for Method and Manpower in ANY of the root causes
+  const manpowerId = taxonomy.rootCauseMs.find(m => m.name === 'Mão de Obra')?.id;
+  const methodId = taxonomy.rootCauseMs.find(m => m.name === 'Método')?.id;
+
+  const showHra = formData.root_causes && formData.root_causes.some(rc => 
+      (rc.root_cause_m_id === manpowerId || rc.root_cause_m_id === methodId) && !!rc.root_cause_m_id
+  );
 
   return (
     <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-full w-full max-w-7xl mx-auto relative">
@@ -133,18 +179,28 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
       </div>
 
       {/* Steps Indicator */}
-      <div className="px-6 py-0 bg-slate-50 border-b border-slate-100 grid grid-cols-5">
+      <div className="px-6 py-0 bg-slate-50 border-b border-slate-100 flex overflow-x-auto">
         {['1. Definition', '2. Problem', '3. Investigation', '4. Precision', '5. Actions'].map((label, idx) => (
             <button 
                 key={label}
                 onClick={() => setStep(idx + 1)}
-                className={`text-sm font-medium py-3 border-b-2 transition-colors text-center ${
+                className={`text-sm font-medium py-3 px-6 border-b-2 transition-colors text-center whitespace-nowrap ${
                     step === idx + 1 ? 'border-blue-600 text-blue-700 bg-blue-50/50' : 'border-transparent text-slate-400 hover:text-slate-600'
                 }`}
             >
                 {label}
             </button>
         ))}
+        {showHra && (
+            <button 
+                onClick={() => setStep(6)}
+                className={`text-sm font-medium py-3 px-6 border-b-2 transition-colors text-center whitespace-nowrap flex items-center gap-2 ${
+                    step === 6 ? 'border-indigo-600 text-indigo-700 bg-indigo-50/50' : 'border-transparent text-indigo-400 hover:text-indigo-600'
+                }`}
+            >
+                <UserCheck size={14} /> 6. Human Reliability
+            </button>
+        )}
       </div>
 
       {/* Content */}
@@ -331,8 +387,10 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                     </div>
                     <div className="grid grid-cols-3 gap-6">
                         {(Object.keys(formData.ishikawa) as Array<keyof IshikawaDiagram>).map((category) => (
-                            <div key={category} className="bg-slate-50 p-4 rounded border border-slate-200">
-                                <h4 className="text-xs font-bold text-slate-500 uppercase mb-2 text-center">{category}</h4>
+                            <div key={category} className={`bg-slate-50 p-4 rounded border ${((category === 'method' || category === 'manpower') && formData.ishikawa[category].length > 0) ? 'border-indigo-200 bg-indigo-50/30' : 'border-slate-200'}`}>
+                                <h4 className="text-xs font-bold text-slate-500 uppercase mb-2 text-center flex items-center justify-center gap-1">
+                                    {category} 
+                                </h4>
                                 <ul className="space-y-2 min-h-[100px]">
                                     {formData.ishikawa[category].map((item, i) => (
                                         <li key={i} className="text-sm bg-white p-2 rounded border border-slate-200 shadow-sm flex justify-between group">
@@ -349,35 +407,93 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                     </div>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 border-l-4 border-l-green-500">
-                     <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2">5. Causa Raiz Validada <span className="text-red-500">*</span></h3>
-                     <textarea className="w-full border p-3 rounded text-base text-slate-800 font-medium" value={formData.root_cause} onChange={e => setFormData(prev => ({...prev, root_cause: e.target.value}))} placeholder="Conclusion of investigation..." />
+                     <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">5. Causa Raiz Validada (Root Causes) <span className="text-red-500">*</span></h3>
+                        <button onClick={addRootCause} className="text-xs bg-green-50 text-green-700 hover:bg-green-100 px-3 py-1 rounded font-bold flex items-center gap-1"><Plus size={14}/> ADD ROOT CAUSE</button>
+                     </div>
+                     
+                     <div className="space-y-3">
+                        {formData.root_causes.length === 0 && <p className="text-sm text-slate-400 italic text-center p-4">No root causes defined. Click "Add Root Cause".</p>}
+                        
+                        {formData.root_causes.map((rc, idx) => (
+                            <div key={rc.id} className="grid grid-cols-12 gap-4 items-start bg-slate-50 p-3 rounded-lg border border-slate-100 group">
+                                <div className="col-span-3">
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">M Category</label>
+                                    <select 
+                                        className="w-full border p-2 rounded text-sm bg-white"
+                                        value={rc.root_cause_m_id}
+                                        onChange={e => updateRootCause(idx, 'root_cause_m_id', e.target.value)}
+                                    >
+                                        <option value="">Select M...</option>
+                                        {taxonomy.rootCauseMs.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                                    </select>
+                                </div>
+                                <div className="col-span-8">
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Specific Root Cause Description</label>
+                                    <input 
+                                        type="text" 
+                                        className="w-full border p-2 rounded text-sm text-slate-800 font-medium" 
+                                        value={rc.cause} 
+                                        onChange={e => updateRootCause(idx, 'cause', e.target.value)} 
+                                        placeholder="Conclusion of investigation..." 
+                                    />
+                                </div>
+                                <div className="col-span-1 flex justify-center pt-6">
+                                    <button onClick={() => removeRootCause(idx)} className="text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
+                                </div>
+                            </div>
+                        ))}
+                     </div>
+                     
+                     {showHra && (
+                        <div className="mt-4 p-3 bg-indigo-50 text-indigo-700 text-xs rounded border border-indigo-100 flex items-center gap-2 animate-in fade-in">
+                            <UserCheck size={14} />
+                            <span>One or more Root Causes identified as <strong>Method</strong> or <strong>Manpower</strong>. The <strong>Human Reliability Analysis</strong> tab (Step 6) is now available.</span>
+                        </div>
+                    )}
                 </div>
             </div>
         )}
 
         {/* STEP 4: PRECISION */}
         {step === 4 && (
-            <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <div className="flex items-center gap-3 mb-6 border-b pb-4">
                         <div className="bg-amber-100 p-2 rounded text-amber-600"><CheckSquare size={24}/></div>
                         <div>
                             <h3 className="text-lg font-bold text-slate-900">3. Manutenção de Precisão</h3>
-                            <p className="text-sm text-slate-500">Check list de verificação para restaurar a condição básica.</p>
+                            <p className="text-sm text-slate-500">Check list de verificação para restaurar a condição básica. <span className="italic">A ser revisada durante a reunião diária de manutenção.</span></p>
                         </div>
                     </div>
                     <table className="w-full text-sm text-left">
                         <thead>
-                            <tr className="bg-slate-50 text-slate-500 border-b"><th className="p-3 w-10 text-center">#</th><th className="p-3">Atividade</th><th className="p-3 w-32 text-center">Executado</th><th className="p-3 w-32 text-center">Não Exec.</th><th className="p-3 w-32 text-center">N/A</th></tr>
+                            <tr className="bg-slate-50 text-slate-500 border-b">
+                                <th className="p-3 w-10 text-center">#</th>
+                                <th className="p-3 w-1/3">Atividade</th>
+                                <th className="p-3 w-24 text-center">Executado</th>
+                                <th className="p-3 w-24 text-center">Não Exec.</th>
+                                <th className="p-3 w-24 text-center">N/A</th>
+                                <th className="p-3">Comentário</th>
+                            </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {formData.precision_maintenance.map((item) => (
                                 <tr key={item.id} className="hover:bg-slate-50">
                                     <td className="p-3 text-center text-slate-400">{item.id}</td>
                                     <td className="p-3 font-medium text-slate-700">{item.activity}</td>
-                                    <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'EXECUTED')} className={`p-1 rounded ${item.status === 'EXECUTED' ? 'text-green-600' : 'text-slate-300'}`}>{item.status === 'EXECUTED' ? <CheckSquare /> : <Square />}</button></td>
-                                    <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'NOT_EXECUTED')} className={`p-1 rounded ${item.status === 'NOT_EXECUTED' ? 'text-red-500' : 'text-slate-300'}`}>{item.status === 'NOT_EXECUTED' ? <XSquare /> : <Square />}</button></td>
-                                    <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'NOT_APPLICABLE')} className={`p-1 rounded ${item.status === 'NOT_APPLICABLE' ? 'text-slate-500' : 'text-slate-300'}`}>{item.status === 'NOT_APPLICABLE' ? <CheckSquare /> : <Square />}</button></td>
+                                    <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'status', 'EXECUTED')} className={`p-1 rounded ${item.status === 'EXECUTED' ? 'text-green-600 bg-green-50' : 'text-slate-300'}`}>{item.status === 'EXECUTED' ? <CheckSquare size={18} /> : <Square size={18} />}</button></td>
+                                    <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'status', 'NOT_EXECUTED')} className={`p-1 rounded ${item.status === 'NOT_EXECUTED' ? 'text-red-500 bg-red-50' : 'text-slate-300'}`}>{item.status === 'NOT_EXECUTED' ? <XSquare size={18} /> : <Square size={18} />}</button></td>
+                                    <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'status', 'NOT_APPLICABLE')} className={`p-1 rounded ${item.status === 'NOT_APPLICABLE' ? 'text-slate-500 bg-slate-100' : 'text-slate-300'}`}>{item.status === 'NOT_APPLICABLE' ? <CheckSquare size={18} /> : <Square size={18} />}</button></td>
+                                    <td className="p-3">
+                                        <input 
+                                            type="text" 
+                                            className="w-full border-b border-slate-200 focus:border-blue-500 outline-none bg-transparent text-xs py-1" 
+                                            placeholder="Add comment..." 
+                                            value={item.comment || ''} 
+                                            onChange={(e) => updatePrecision(item.id, 'comment', e.target.value)}
+                                        />
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -386,10 +502,10 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
             </div>
         )}
 
-        {/* STEP 5: ACTIONS (UPDATED) */}
+        {/* STEP 5: ACTIONS */}
         {step === 5 && (
             <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                {/* Containment (Still editable as part of RCA record) */}
+                {/* Containment */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <div className="flex justify-between items-center mb-4 border-b pb-2">
                          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">2. Ação de Contenção (Imediata)</h3>
@@ -416,7 +532,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                     {formData.containment_actions.length === 0 && <p className="text-xs text-slate-400 italic">No containment actions recorded.</p>}
                 </div>
 
-                {/* Corrective (READ ONLY / SYSTEM LINKED) */}
+                {/* Corrective */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 relative">
                      {/* BOX LEGEND */}
                      <div className="absolute top-4 right-6 flex gap-2 text-[10px] font-bold text-slate-500 border border-slate-200 rounded p-1.5 bg-slate-50">
@@ -468,10 +584,6 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                             </tbody>
                         </table>
                     </div>
-                    <div className="mt-4 p-3 bg-blue-50 text-blue-700 text-xs rounded border border-blue-100 flex items-center gap-2">
-                        <AlertTriangle size={14} />
-                        Actions created here are automatically linked to this RCA ID ({formData.id}) and synced with the Action Plans tab.
-                    </div>
                 </div>
 
                  {/* Lessons */}
@@ -491,6 +603,116 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                         </div>
                     ))}
                  </div>
+            </div>
+        )}
+
+        {/* STEP 6: HUMAN RELIABILITY ANALYSIS */}
+        {step === 6 && formData.human_reliability && (
+            <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-lg flex gap-3 text-indigo-700 text-sm">
+                    <UserCheck size={20} className="mt-0.5" />
+                    <div>
+                        <strong>Human Reliability Analysis (HRA)</strong>
+                        <p>Explore losses related to "Method" and "Manpower" to identify potential human errors.</p>
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <div className="grid grid-cols-4 gap-6 mb-6 text-sm text-slate-600 border-b pb-4">
+                        <div><span className="block text-xs text-slate-400 uppercase">RCA ID</span>{formData.id}</div>
+                        <div><span className="block text-xs text-slate-400 uppercase">Responsible</span>{formData.facilitator || '-'}</div>
+                        <div><span className="block text-xs text-slate-400 uppercase">Asset</span>{formData.asset_name_display || '-'}</div>
+                        <div><span className="block text-xs text-slate-400 uppercase">Date</span>{formData.analysis_date}</div>
+                    </div>
+
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Questionnaire</h3>
+                    <table className="w-full text-sm text-left">
+                        <thead>
+                            <tr className="bg-slate-50 text-slate-500 border-b">
+                                <th className="p-3 w-16">ID</th>
+                                <th className="p-3">Question</th>
+                                <th className="p-3 w-24 text-center">Yes</th>
+                                <th className="p-3 w-24 text-center">No</th>
+                                <th className="p-3 w-1/3">Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {formData.human_reliability.questions.map(q => (
+                                <tr key={q.id} className="hover:bg-slate-50">
+                                    <td className="p-3 font-mono text-xs text-slate-400">{q.id}</td>
+                                    <td className="p-3">
+                                        <div className="text-xs text-slate-400 mb-1 font-bold uppercase">{q.category}</div>
+                                        {q.question}
+                                    </td>
+                                    <td className="p-3 text-center"><button onClick={() => updateHraQuestion(q.id, 'answer', 'YES')} className={`p-1 rounded ${q.answer === 'YES' ? 'text-green-600 bg-green-50' : 'text-slate-300'}`}>{q.answer === 'YES' ? <CheckSquare size={18} /> : <Square size={18} />}</button></td>
+                                    <td className="p-3 text-center"><button onClick={() => updateHraQuestion(q.id, 'answer', 'NO')} className={`p-1 rounded ${q.answer === 'NO' ? 'text-red-500 bg-red-50' : 'text-slate-300'}`}>{q.answer === 'NO' ? <XSquare size={18} /> : <Square size={18} />}</button></td>
+                                    <td className="p-3">
+                                        <input type="text" className="w-full border-b border-slate-200 focus:border-indigo-500 outline-none bg-transparent text-xs py-1" placeholder="Add comment..." value={q.comment} onChange={e => updateHraQuestion(q.id, 'comment', e.target.value)} />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">8. Conclusion (Possible Causes)</h3>
+                    <p className="text-sm text-slate-500 mb-6">Considering all analyses A3 made so far and the human reliability analysis, which of the items below are considered possible causes related to the human factor?</p>
+                    
+                    <div className="space-y-4">
+                        {formData.human_reliability.conclusions.map(c => (
+                            <div key={c.id} className={`p-4 rounded border ${c.selected ? 'border-indigo-300 bg-indigo-50/20' : 'border-slate-200'}`}>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <button onClick={() => updateHraConclusion(c.id, 'selected', !c.selected)} className={c.selected ? 'text-indigo-600' : 'text-slate-300'}>
+                                        {c.selected ? <CheckSquare size={20} /> : <Square size={20} />}
+                                    </button>
+                                    <span className={`font-bold text-sm ${c.selected ? 'text-indigo-800' : 'text-slate-700'}`}>{c.label}</span>
+                                </div>
+                                {c.selected && (
+                                    <div className="pl-8 animate-in fade-in slide-in-from-top-1">
+                                        <textarea 
+                                            placeholder="Descreva brevemente..." 
+                                            className="w-full border p-2 rounded text-sm h-16"
+                                            value={c.description}
+                                            onChange={e => updateHraConclusion(c.id, 'description', e.target.value)}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">7.1 Validation</h3>
+                    <div className="flex items-start gap-4">
+                        <div className="flex-1">
+                            <label className="block text-xs font-medium text-slate-500 mb-1">O coordenador da máquina valida a análise realizada?</label>
+                            <div className="flex gap-4 mt-2">
+                                <button 
+                                    onClick={() => setFormData(prev => ({...prev, human_reliability: {...prev.human_reliability!, validation: {...prev.human_reliability!.validation, isValidated: 'YES'}} }))} 
+                                    className={`flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium ${formData.human_reliability.validation.isValidated === 'YES' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-white border-slate-300 text-slate-600'}`}
+                                >
+                                    <CheckSquare size={16}/> YES
+                                </button>
+                                <button 
+                                    onClick={() => setFormData(prev => ({...prev, human_reliability: {...prev.human_reliability!, validation: {...prev.human_reliability!.validation, isValidated: 'NO'}} }))}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium ${formData.human_reliability.validation.isValidated === 'NO' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-slate-300 text-slate-600'}`}
+                                >
+                                    <XSquare size={16}/> NO
+                                </button>
+                            </div>
+                        </div>
+                        <div className="flex-[2]">
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Comentários do Coordenador</label>
+                            <textarea 
+                                className="w-full border p-2 rounded text-sm h-20" 
+                                value={formData.human_reliability.validation.comment}
+                                onChange={e => setFormData(prev => ({...prev, human_reliability: {...prev.human_reliability!, validation: {...prev.human_reliability!.validation, comment: e.target.value}} }))}
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
         )}
 

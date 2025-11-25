@@ -110,6 +110,7 @@ export const SettingsView: React.FC = () => {
         <ListManager title="Specialties" field="specialties" items={taxonomy.specialties} />
         <ListManager title="Failure Modes" field="failureModes" items={taxonomy.failureModes} />
         <ListManager title="Failure Categories" field="failureCategories" items={taxonomy.failureCategories} />
+        <ListManager title="Root Cause Ms (6M)" field="rootCauseMs" items={taxonomy.rootCauseMs} />
       </div>
     </div>
   );

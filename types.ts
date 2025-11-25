@@ -28,6 +28,7 @@ export interface TaxonomyConfig {
   failureModes: TaxonomyItem[];
   failureCategories: TaxonomyItem[];
   componentTypes: TaxonomyItem[];
+  rootCauseMs: TaxonomyItem[]; // New: 6M Categories
 }
 
 // 6. Investigação types
@@ -53,6 +54,7 @@ export interface PrecisionChecklistItem {
   id: number;
   activity: string;
   status: PrecisionStatus;
+  comment?: string; // Added comment field
 }
 
 // 8. Planos e Lições types
@@ -75,6 +77,37 @@ export interface ActionRecord {
   date: string; // YYYY-MM-DD
   status: ActionStatus;
   moc_number?: string;
+}
+
+// Human Reliability Analysis Types
+export interface HraQuestion {
+  id: string;
+  category: string;
+  question: string;
+  answer: 'YES' | 'NO' | '';
+  comment: string;
+}
+
+export interface HraConclusion {
+  id: string;
+  label: string;
+  selected: boolean;
+  description: string;
+}
+
+export interface HumanReliabilityAnalysis {
+  questions: HraQuestion[];
+  conclusions: HraConclusion[];
+  validation: {
+    isValidated: 'YES' | 'NO' | '';
+    comment: string;
+  };
+}
+
+export interface RootCauseItem {
+  id: string;
+  root_cause_m_id: string;
+  cause: string;
 }
 
 export interface RcaRecord {
@@ -120,12 +153,16 @@ export interface RcaRecord {
   // 6. Investigação
   five_whys: FiveWhy[];
   ishikawa: IshikawaDiagram;
-  root_cause: string;
+  
+  root_causes: RootCauseItem[]; // Array of Root Causes
 
   // 7. Manutenção de Precisão
   precision_maintenance: PrecisionChecklistItem[];
 
-  // 8. Planos e Lições
+  // 8. Human Reliability Analysis (Conditional)
+  human_reliability?: HumanReliabilityAnalysis;
+
+  // 9. Planos e Lições
   containment_actions: ContainmentAction[];
   // corrective_actions removed -> Now stored in ActionRecord[]
   lessons_learned: string[];

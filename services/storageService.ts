@@ -1,5 +1,5 @@
 
-import { AssetNode, RcaRecord, ActionRecord, MigrationData, PrecisionChecklistItem, TaxonomyConfig, TaxonomyItem } from "../types";
+import { AssetNode, RcaRecord, ActionRecord, MigrationData, PrecisionChecklistItem, TaxonomyConfig, TaxonomyItem, HumanReliabilityAnalysis, HraQuestion, HraConclusion } from "../types";
 
 const STORAGE_KEY_ASSETS = 'rca_assets';
 const STORAGE_KEY_RECORDS = 'rca_records';
@@ -84,23 +84,61 @@ const INITIAL_TAXONOMY: TaxonomyConfig = {
     taxItem('COMP-08', "Redutor"),
     taxItem('COMP-09', "Acoplamento"),
     taxItem('COMP-10', "Drive")
+  ],
+  rootCauseMs: [
+    taxItem('M-01', "Meio Ambiente"),
+    taxItem('M-02', "Máquina"),
+    taxItem('M-03', "Mão de Obra"),
+    taxItem('M-04', "Sistema de Medição"),
+    taxItem('M-05', "Método"),
+    taxItem('M-06', "Material")
   ]
 };
 
 const STANDARD_PRECISION_ITEMS: PrecisionChecklistItem[] = [
-  { id: 1, activity: "Área está limpa e arrumada", status: "NOT_APPLICABLE" },
-  { id: 2, activity: "Os ajustes e tolerâncias estão corretos", status: "NOT_APPLICABLE" },
-  { id: 3, activity: "A lubrificação é limpa, livre de contaminantes, qte correta", status: "NOT_APPLICABLE" },
-  { id: 4, activity: "A correia tem tensão e alinhamento corretos", status: "NOT_APPLICABLE" },
-  { id: 5, activity: "Cargas estão suportadas corretamente (rigidez/suportes)?", status: "NOT_APPLICABLE" },
-  { id: 6, activity: "Componentes (eixos, motores, bombas) estão alinhados?", status: "NOT_APPLICABLE" },
-  { id: 7, activity: "Componentes rotativos estão balanceados", status: "NOT_APPLICABLE" },
-  { id: 8, activity: "Torques e Tensões estão corretos?", status: "NOT_APPLICABLE" },
-  { id: 9, activity: "O plano de ação altera instalações existentes / MOC?", status: "NOT_APPLICABLE" },
-  { id: 10, activity: "As ações atacam a causa raiz / inclui contenção/detecção?", status: "NOT_APPLICABLE" }
+  { id: 1, activity: "Área está limpa e arrumada", status: "NOT_APPLICABLE", comment: "" },
+  { id: 2, activity: "Os ajustes e tolerâncias estão corretos", status: "NOT_APPLICABLE", comment: "" },
+  { id: 3, activity: "A lubrificação é limpa, livre de contaminantes, com a quantidade e qualidade adequadas", status: "NOT_APPLICABLE", comment: "" },
+  { id: 4, activity: "A correia tem tensão e alinhamento corretos", status: "NOT_APPLICABLE", comment: "" },
+  { id: 5, activity: "Cargas estão suportadas corretamente com montagens rígidas e suportes", status: "NOT_APPLICABLE", comment: "" },
+  { id: 6, activity: "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão devidamente alinhados", status: "NOT_APPLICABLE", comment: "" },
+  { id: 7, activity: "Componentes rotativos estão balanceados", status: "NOT_APPLICABLE", comment: "" },
+  { id: 8, activity: "Torques e Tensões estão corretos, utilizando torquímetros apropriados", status: "NOT_APPLICABLE", comment: "" },
+  { id: 9, activity: "Utilizados somente peças de acordo com a especificação para o equipamento (no BOM)", status: "NOT_APPLICABLE", comment: "" },
+  { id: 10, activity: "Teste Funcional executado", status: "NOT_APPLICABLE", comment: "" },
+  { id: 11, activity: "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)", status: "NOT_APPLICABLE", comment: "" }
 ];
 
 export const getStandardPrecisionItems = () => JSON.parse(JSON.stringify(STANDARD_PRECISION_ITEMS));
+
+const STANDARD_HRA_QUESTIONS: HraQuestion[] = [
+  { id: "1.1", category: "1. Procedimentos e Comunicação", question: "Os procedimentos são precisos e revisados?", answer: "", comment: "" },
+  { id: "1.3", category: "1. Procedimentos e Comunicação", question: "Os procedimentos estão alinhados com as práticas reais?", answer: "", comment: "" },
+  { id: "1.4", category: "1. Procedimentos e Comunicação", question: "Há comunicação apropriada de métodos de compartilhamento e escalonamento?", answer: "", comment: "" },
+  { id: "2.1", category: "2. Treinamentos, materiais e sua eficiência", question: "Os materiais de treinamento refletem as informações e conhecimentos necessários?", answer: "", comment: "" },
+  { id: "2.2", category: "2. Treinamentos, materiais e sua eficiência", question: "Os conhecimentos e habilidades são adquiridos segundo as rotinas?", answer: "", comment: "" },
+  { id: "3.1", category: "3. Impactos externos (físicos e cognitivos)", question: "Todos os fatores externos como estresse, altos ruídos, calor/frio, vibração, atividades complexas, etc. estão sob controle?", answer: "", comment: "" },
+  { id: "4.1", category: "4. Trabalho rotineiro e monótono", question: "Há flexibilidade de treinamentos cruzados disponíveis para os profissionais?", answer: "", comment: "" },
+  { id: "4.2", category: "4. Trabalho rotineiro e monótono", question: "Os funcionários compreendem o valor e o impacto de seu trabalho?", answer: "", comment: "" },
+  { id: "5.1", category: "5. Organização do ambiente e dos processos", question: "As condições de trabalho como: localização e acesso às ferramentas/equipamentos, sequência ideal de tarefas e padrões foram satisfeitas?", answer: "", comment: "" },
+  { id: "6.1", category: "6. Medidas contra falhas", question: "Existem medidas para ajudar a identificar erros potenciais durante tarefas críticas, atividades ou eventos não rotineiros?", answer: "", comment: "" },
+  { id: "6.2", category: "6. Medidas contra falhas", question: "Os executantes estavam focados na atividade de forma que não ocorresse erro por falta de atenção?", answer: "", comment: "" }
+];
+
+const STANDARD_HRA_CONCLUSIONS: HraConclusion[] = [
+  { id: "procedures", label: "Procedimentos e Comunicação", selected: false, description: "" },
+  { id: "training", label: "Treinamentos, materiais e sua eficiência", selected: false, description: "" },
+  { id: "external", label: "Impactos externos (físicos e cognitivos)", selected: false, description: "" },
+  { id: "routine", label: "Trabalho rotineiro e monótono", selected: false, description: "" },
+  { id: "organization", label: "Organização do ambiente e dos processos", selected: false, description: "" },
+  { id: "measures", label: "Medidas contra falhas", selected: false, description: "" }
+];
+
+export const getStandardHraStruct = (): HumanReliabilityAnalysis => ({
+  questions: JSON.parse(JSON.stringify(STANDARD_HRA_QUESTIONS)),
+  conclusions: JSON.parse(JSON.stringify(STANDARD_HRA_CONCLUSIONS)),
+  validation: { isValidated: "", comment: "" }
+});
 
 const INITIAL_RECORDS: RcaRecord[] = [
   {
@@ -153,9 +191,13 @@ const INITIAL_RECORDS: RcaRecord[] = [
       environment: []
     },
 
-    root_cause: 'Fim de vida útil do componente eletrônico do drive.',
+    root_causes: [
+      { id: 'RC-01', root_cause_m_id: 'M-06', cause: 'Fim de vida útil do componente eletrônico do drive.' }
+    ],
 
     precision_maintenance: STANDARD_PRECISION_ITEMS.map(i => i.id === 1 ? {...i, status: "EXECUTED"} : i),
+    
+    human_reliability: getStandardHraStruct(),
 
     containment_actions: [
       { id: 'ACT-C-01', action: 'Troca do drive reserva', responsible: 'Turno', date: '2025-08-25', status: 'Concluído' }

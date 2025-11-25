@@ -42,8 +42,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     filters, 
     onFilterChange, 
     onReset, 
-    config = {}, 
-    options = {},
+    config, 
+    options,
     isOpen,
     onToggle,
     totalResults
@@ -57,7 +57,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         showCategory = false,
         searchPlaceholder = "Search...",
         dateLabel = "Date Range"
-    } = config;
+    } = config || {};
+
+    const {
+        statuses = [],
+        areas = [],
+        categories = []
+    } = options || {};
 
     const handleChange = (key: keyof FilterState, value: string) => {
         onFilterChange({ ...filters, [key]: value });
@@ -154,7 +160,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                         onChange={e => handleChange('status', e.target.value)}
                                     >
                                         <option value="ALL">All Statuses</option>
-                                        {options.statuses?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                        {statuses.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                     </select>
                                 </div>
                             )}
@@ -169,7 +175,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                         onChange={e => handleChange('area', e.target.value)}
                                     >
                                         <option value="ALL">All Areas</option>
-                                        {options.areas?.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                                        {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                                     </select>
                                 </div>
                             )}
@@ -184,7 +190,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                         onChange={e => handleChange('category', e.target.value)}
                                     >
                                         <option value="ALL">All Categories</option>
-                                        {options.categories?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                     </select>
                                 </div>
                             )}
