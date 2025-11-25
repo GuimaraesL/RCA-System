@@ -1,10 +1,10 @@
-
 import React, { useEffect, useState, useMemo } from 'react';
 import { RcaRecord, AssetNode, TaxonomyConfig } from '../types';
 import { getAssets, getTaxonomy, getActions } from '../services/storageService';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { TrendingUp, Clock, AlertCircle, DollarSign } from 'lucide-react';
 import { FilterBar, FilterState } from './FilterBar';
+import { useFilterPersistence } from '../hooks/useFilterPersistence';
 
 interface DashboardProps {
     records: RcaRecord[];
@@ -15,16 +15,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ records }) => {
   const [taxonomy, setTaxonomy] = useState<TaxonomyConfig | null>(null);
   const [allSystemActions, setAllSystemActions] = useState<any[]>([]);
   
-  // Filter State
-  const [showFilters, setShowFilters] = useState(false); // Collapsed by default on Dashboard
-  const [filters, setFilters] = useState<FilterState>({
+  // --- Persistent Filter State ---
+  const defaultFilters: FilterState = {
       searchTerm: '',
       dateStart: '',
       dateEnd: '',
       status: 'ALL',
       area: 'ALL',
       category: 'ALL'
-  });
+  };
+
+  const { showFilters, setShowFilters, filters, setFilters, handleReset } = useFilterPersistence(
+      'rca_dashboard', 
+      defaultFilters,
+      false // Default closed for dashboard
+  );
 
   useEffect(() => {
     setAssets(getAssets());
@@ -96,10 +101,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ records }) => {
   const availableCategories = taxonomy?.failureCategories || [];
   const availableStatuses = taxonomy?.analysisStatuses || [];
 
-  const handleReset = () => {
-    setFilters({ searchTerm: '', dateStart: '', dateEnd: '', status: 'ALL', area: 'ALL', category: 'ALL' });
-  };
-
   // --- KPI Calculations (Based on Filtered Data) ---
   const totalCost = filteredRecords.reduce((acc, r) => acc + (r.financial_impact || 0), 0);
   const totalDowntime = filteredRecords.reduce((acc, r) => acc + (r.downtime_minutes || 0), 0);
@@ -167,7 +168,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ records }) => {
           onToggle={() => setShowFilters(!showFilters)}
           filters={filters}
           onFilterChange={setFilters}
-          onReset={handleReset}
+          onReset={() => handleReset(defaultFilters)}
           totalResults={filteredRecords.length}
           config={{
               showSearch: true,
@@ -189,7 +190,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ records }) => {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
             <div className="flex items-start justify-between">
                 <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">Total Impact</div>
-                <div className="p-2 bg-red-50 text-red-600 rounded-lg"><DollarSign size={20}/></div>
+                <div className="p-2 bg-red-50 text-red-600 rounded-lg min-w-0"><DollarSign size={20}/></div>
             </div>
             <div className="text-2xl font-bold text-slate-800 mt-2">
                 ${totalCost.toLocaleString('en-US', { maximumFractionDigits: 0 })}
@@ -198,21 +199,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ records }) => {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
             <div className="flex items-start justify-between">
                 <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">Total Downtime</div>
-                <div className="p-2 bg-amber-50 text-amber-600 rounded-lg"><Clock size={20}/></div>
+                <div className="p-2 bg-amber-50 text-amber-600 rounded-lg min-w-0"><Clock size={20}/></div>
             </div>
             <div className="text-2xl font-bold text-slate-800 mt-2">{totalDowntime} <span className="text-sm font-normal text-slate-400">min</span></div>
         </div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
              <div className="flex items-start justify-between">
                 <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">Open Actions (Linked)</div>
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><AlertCircle size={20}/></div>
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg min-w-0"><AlertCircle size={20}/></div>
             </div>
             <div className="text-2xl font-bold text-slate-800 mt-2">{openActionCount}</div>
         </div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
             <div className="flex items-start justify-between">
                 <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">Active Analyses</div>
-                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><TrendingUp size={20}/></div>
+                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg min-w-0"><TrendingUp size={20}/></div>
             </div>
             <div className="text-2xl font-bold text-slate-800 mt-2">{activeAnalyses}</div>
         </div>
@@ -220,9 +221,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ records }) => {
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 min-w-0">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 min-w-0 flex flex-col">
             <h3 className="font-bold text-slate-700 mb-6">Financial Impact by Area (Top 5)</h3>
-            <div className="w-full min-w-0" style={{ height: '300px' }}>
+            <div className="w-full flex-1 min-h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={costChartData} margin={{bottom: 20, right: 20, left: 20}}>
                         <XAxis dataKey="name" tick={{fontSize: 10}} interval={0} angle={-15} textAnchor="end" height={60} />
@@ -233,9 +234,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ records }) => {
                 </ResponsiveContainer>
             </div>
         </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 min-w-0">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 min-w-0 flex flex-col">
             <h3 className="font-bold text-slate-700 mb-6">Analysis Status Distribution</h3>
-            <div className="w-full min-w-0" style={{ height: '300px' }}>
+            <div className="w-full flex-1 min-h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie data={statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
@@ -253,9 +254,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ records }) => {
 
        {/* Charts Row 2 */}
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 min-w-0">
+         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 min-w-0 flex flex-col">
             <h3 className="font-bold text-slate-700 mb-6">Top Failure Modes</h3>
-            <div className="w-full min-w-0" style={{ height: '300px' }}>
+            <div className="w-full flex-1 min-h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={failureModeData} layout="vertical" margin={{left: 10, right: 30}}>
                         <XAxis type="number" hide />

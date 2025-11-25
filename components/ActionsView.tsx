@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useActionsLogic } from '../hooks/useActionsLogic';
 import { ActionStatus, AssetNode, TaxonomyConfig } from '../types';
@@ -6,6 +5,7 @@ import { getAssets, getTaxonomy } from '../services/storageService';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { ActionModal } from './ActionModal';
 import { FilterBar, FilterState } from './FilterBar';
+import { useFilterPersistence } from '../hooks/useFilterPersistence';
 
 export const ActionsView: React.FC = () => {
   const { actions, rcaList, isModalOpen, setIsModalOpen, editingAction, openNew, openEdit, handleSave, handleDelete } = useActionsLogic();
@@ -19,16 +19,21 @@ export const ActionsView: React.FC = () => {
     setTaxonomy(getTaxonomy());
   }, []);
 
-  // --- Filter State ---
-  const [showFilters, setShowFilters] = useState(true);
-  const [filters, setFilters] = useState<FilterState>({
+  // --- Persistent Filter State ---
+  const defaultFilters: FilterState = {
       searchTerm: '',
       dateStart: '',
       dateEnd: '',
       status: 'ALL',
       area: 'ALL',
       category: 'ALL'
-  });
+  };
+
+  const { showFilters, setShowFilters, filters, setFilters, handleReset } = useFilterPersistence(
+      'rca_actions_view', 
+      defaultFilters,
+      true
+  );
 
   // --- Derived Filter Lists ---
   const availableAreas = useMemo(() => {
@@ -92,20 +97,9 @@ export const ActionsView: React.FC = () => {
     }
   };
 
-  const handleReset = () => {
-    setFilters({
-        searchTerm: '',
-        dateStart: '',
-        dateEnd: '',
-        status: 'ALL',
-        area: 'ALL',
-        category: 'ALL'
-    });
-  };
-
   return (
     <div className="p-8 max-w-7xl mx-auto h-full flex flex-col">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 flex-shrink-0">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Action Plans</h1>
           <p className="text-slate-500 mt-1">Manage corrective actions linked to Root Cause Analyses.</p>
@@ -120,14 +114,14 @@ export const ActionsView: React.FC = () => {
           onToggle={() => setShowFilters(!showFilters)}
           filters={filters}
           onFilterChange={setFilters}
-          onReset={handleReset}
+          onReset={() => handleReset(defaultFilters)}
           totalResults={filteredActions.length}
           config={{
               showSearch: true,
               showDate: true,
               showStatus: true,
-              showArea: true,     // Enabled Area filtering
-              showCategory: true, // Enabled Category filtering
+              showArea: true,     
+              showCategory: true, 
               searchPlaceholder: "Search by action, responsible, or RCA...",
               dateLabel: "Due Date Range"
           }}
@@ -139,10 +133,10 @@ export const ActionsView: React.FC = () => {
       />
 
       {/* Data Grid */}
-      <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+      <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
          <div className="overflow-auto flex-1 custom-scrollbar">
             <table className="w-full text-left text-sm text-slate-600">
-               <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0">
+               <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 bg-slate-50">
                   <tr>
                      <th className="px-6 py-3">Status (Box)</th>
                      <th className="px-6 py-3">Action Description</th>

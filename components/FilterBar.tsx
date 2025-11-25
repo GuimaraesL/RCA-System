@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Search, Filter, RefreshCw, ChevronUp, ChevronDown } from 'lucide-react';
 
@@ -65,7 +64,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     };
 
     return (
-        <div className="mb-6">
+        <div className="mb-6 flex-shrink-0">
             {/* Toolbar Trigger */}
             <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
@@ -88,10 +87,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 )}
             </div>
 
-            {/* Filter Panel */}
-            <div className={`bg-white rounded-xl shadow-sm border border-slate-200 transition-all duration-300 overflow-hidden ${isOpen ? 'opacity-100 translate-y-0' : 'h-0 opacity-0 -translate-y-2 border-0'}`}>
-                {isOpen && (
-                    <div className="p-6 animate-in fade-in slide-in-from-top-2">
+            {/* Filter Panel Container */}
+            <div className={`bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2 border-0'}`}>
+                {/* 
+                   Inner Scroll Container: 
+                   - max-h-[60vh]: Prevents the filter from taking more than 60% of viewport height.
+                   - overflow-y-auto: Enables internal scrolling if content exceeds max-height.
+                */}
+                <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+                    <div className="p-6">
                         <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-2">
                             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wide">Filter Criteria</h3>
                             <button onClick={onReset} className="text-xs text-slate-500 hover:text-red-500 flex items-center gap-1 transition-colors">
@@ -99,7 +103,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                             </button>
                         </div>
                         
-                        {/* Layout: Grid 12 Columns for better control */}
+                        {/* Layout: Grid 12 Columns */}
                         <div className="grid grid-cols-12 gap-6">
                             {/* Search: 4/12 */}
                             {showSearch && (
@@ -140,7 +144,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                 </div>
                             )}
 
-                            {/* Status: 4/12 (or 2/12 on very large screens if desired, keeping balanced at 4) */}
+                            {/* Status: 4/12 */}
                             {showStatus && (
                                 <div className="col-span-12 md:col-span-6 lg:col-span-4">
                                     <label className="block text-xs font-medium text-slate-500 mb-1.5">Status</label>
@@ -186,7 +190,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                             )}
                         </div>
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );

@@ -1,9 +1,9 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { RcaRecord, AssetNode, TaxonomyConfig } from '../types';
 import { getAssets, getTaxonomy } from '../services/storageService';
 import { Plus, FileText } from 'lucide-react';
 import { FilterBar, FilterState } from './FilterBar';
+import { useFilterPersistence } from '../hooks/useFilterPersistence';
 
 interface AnalysesViewProps {
   records: RcaRecord[];
@@ -12,16 +12,21 @@ interface AnalysesViewProps {
 }
 
 export const AnalysesView: React.FC<AnalysesViewProps> = ({ records, onNew, onEdit }) => {
-  // --- Filter State ---
-  const [showFilters, setShowFilters] = useState(true);
-  const [filters, setFilters] = useState<FilterState>({
+  // --- Persistent Filter State ---
+  const defaultFilters: FilterState = {
       searchTerm: '',
       dateStart: '',
       dateEnd: '',
       status: 'ALL',
       area: 'ALL',
       category: 'ALL'
-  });
+  };
+
+  const { showFilters, setShowFilters, filters, setFilters, handleReset } = useFilterPersistence(
+      'rca_analyses_view', 
+      defaultFilters,
+      true
+  );
 
   // --- Data Loading ---
   const [assets, setAssets] = useState<AssetNode[]>([]);
@@ -89,21 +94,10 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ records, onNew, onEd
     });
   }, [records, filters]);
 
-  const handleReset = () => {
-      setFilters({
-          searchTerm: '',
-          dateStart: '',
-          dateEnd: '',
-          status: 'ALL',
-          area: 'ALL',
-          category: 'ALL'
-      });
-  };
-
   return (
     <div className="p-8 max-w-7xl mx-auto h-full flex flex-col">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 flex-shrink-0">
         <div>
             <h1 className="text-3xl font-bold text-slate-900">Failure Analyses</h1>
             <p className="text-slate-500 mt-1">Manage, search, and edit reliability records.</p>
@@ -121,7 +115,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ records, onNew, onEd
           onToggle={() => setShowFilters(!showFilters)}
           filters={filters}
           onFilterChange={setFilters}
-          onReset={handleReset}
+          onReset={() => handleReset(defaultFilters)}
           totalResults={filteredRecords.length}
           config={{
               showSearch: true,
@@ -140,7 +134,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ records, onNew, onEd
       />
 
       {/* Data Table */}
-      <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+      <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
         <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
             <table className="w-full text-left text-sm text-slate-600">
                 <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 z-10">

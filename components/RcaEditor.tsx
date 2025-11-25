@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { RcaRecord, IshikawaDiagram, PrecisionStatus, ActionRecord } from '../types';
 import { AssetSelector } from './AssetSelector';
@@ -159,15 +158,20 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                     <div className="grid grid-cols-2 gap-8">
                         <div>
                              <div className="flex justify-between items-end mb-1">
-                                <label className="block text-xs font-medium text-slate-500">Asset Selector <span className="text-red-500">*</span></label>
+                                <label className="block text-xs font-medium text-slate-500">Asset Selector (Select Subgroup) <span className="text-red-500">*</span></label>
                                 <span className="text-[10px] text-blue-500 cursor-pointer" onClick={refreshAssets} title="Refresh Assets"><RefreshCw size={10}/> Refresh</span>
                              </div>
                              <div className="border rounded h-48 overflow-auto mb-2 bg-slate-50">
-                                <AssetSelector assets={assets} onSelect={handleAssetSelect} selectedAssetId={formData.equipment_id || formData.subgroup_id} />
+                                <AssetSelector 
+                                    assets={assets} 
+                                    onSelect={handleAssetSelect} 
+                                    selectedAssetId={formData.subgroup_id}
+                                    selectableTypes={['SUBGROUP']} 
+                                />
                              </div>
                              <div className="grid grid-cols-2 gap-2 text-sm">
-                                <div><span className="text-slate-400 block text-xs">Equipment ID</span>{formData.equipment_id || '-'}</div>
-                                <div><span className="text-slate-400 block text-xs">Subgroup ID</span>{formData.subgroup_id || '-'}</div>
+                                <div><span className="text-slate-400 block text-xs">Equipment ID (Auto)</span>{formData.equipment_id || '-'}</div>
+                                <div><span className="text-slate-400 block text-xs">Subgroup ID (Selected)</span>{formData.subgroup_id || '-'}</div>
                              </div>
                         </div>
                         <div className="space-y-4">

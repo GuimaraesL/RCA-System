@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { RcaRecord, AssetNode, TaxonomyConfig, IshikawaDiagram } from '../types';
 import { getAssets, getTaxonomy, saveRecord, getStandardPrecisionItems, generateId } from '../services/storageService';
@@ -58,6 +57,18 @@ const createDefaultRecord = (): RcaRecord => ({
     lessons_learned: []
 });
 
+// Helper to find full path to a node for ID resolution
+const findAssetPath = (nodes: AssetNode[], targetId: string): AssetNode[] | null => {
+    for (const node of nodes) {
+        if (node.id === targetId) return [node];
+        if (node.children) {
+            const path = findAssetPath(node.children, targetId);
+            if (path) return [node, ...path];
+        }
+    }
+    return null;
+};
+
 export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: () => void) => {
   const [step, setStep] = useState(1);
   const [assets, setAssets] = useState<AssetNode[]>([]);
@@ -108,10 +119,6 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
             setFormData(prev => ({ ...prev, status: doneStatusId }));
         }
     } else {
-        // If incomplete, do not force a status, but if it WAS 'Concluída', revert to default or leave as is if user set it?
-        // Logic: The status MUST be 'Concluída' IF complete. 
-        // If not complete, user can choose any status EXCEPT 'Concluída' (handled in UI)
-        // For now, if it becomes incomplete but was 'Concluída', we switch it to 'Em Andamento' (if available) or the first default.
         if (formData.status === doneStatusId) {
             const defaultStatusItem = taxonomy.analysisStatuses[0];
             const defaultStatusId = defaultStatusItem ? defaultStatusItem.id : 'Em Andamento';
@@ -134,10 +141,29 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
   };
 
   const handleAssetSelect = (asset: AssetNode) => {
-    let update = { asset_name_display: asset.name };
-    if (asset.type === 'AREA') update = { ...update, area_id: asset.id } as any;
-    if (asset.type === 'EQUIPMENT') update = { ...update, equipment_id: asset.id } as any;
-    if (asset.type === 'SUBGROUP') update = { ...update, subgroup_id: asset.id } as any;
+    // Traverse tree to find full path (Area -> Equipment -> Subgroup)
+    const path = findAssetPath(assets, asset.id);
+    
+    const update: Partial<RcaRecord> = { 
+        asset_name_display: asset.name,
+        // Reset IDs to ensure we don't keep stale ones if moving branches
+        area_id: '',
+        equipment_id: '',
+        subgroup_id: ''
+    };
+
+    if (path) {
+        path.forEach(node => {
+            if (node.type === 'AREA') update.area_id = node.id;
+            if (node.type === 'EQUIPMENT') update.equipment_id = node.id;
+            if (node.type === 'SUBGROUP') update.subgroup_id = node.id;
+        });
+    } else {
+        // Fallback (should not happen if asset comes from the tree)
+        if (asset.type === 'AREA') update.area_id = asset.id;
+        if (asset.type === 'EQUIPMENT') update.equipment_id = asset.id;
+        if (asset.type === 'SUBGROUP') update.subgroup_id = asset.id;
+    }
     
     setFormData(prev => ({ ...prev, ...update }));
   };
