@@ -2,7 +2,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { RcaRecord, AssetNode, TaxonomyConfig } from '../types';
 import { getAssets, getTaxonomy } from '../services/storageService';
-import { Plus, Search, Filter, RefreshCw, ChevronUp, ChevronDown, Calendar, FileText } from 'lucide-react';
+import { Plus, FileText } from 'lucide-react';
+import { FilterBar, FilterState } from './FilterBar';
 
 interface AnalysesViewProps {
   records: RcaRecord[];
@@ -13,12 +14,14 @@ interface AnalysesViewProps {
 export const AnalysesView: React.FC<AnalysesViewProps> = ({ records, onNew, onEdit }) => {
   // --- Filter State ---
   const [showFilters, setShowFilters] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dateStart, setDateStart] = useState('');
-  const [dateEnd, setDateEnd] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
-  const [areaFilter, setAreaFilter] = useState<string>('ALL');
-  const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
+  const [filters, setFilters] = useState<FilterState>({
+      searchTerm: '',
+      dateStart: '',
+      dateEnd: '',
+      status: 'ALL',
+      area: 'ALL',
+      category: 'ALL'
+  });
 
   // --- Data Loading ---
   const [assets, setAssets] = useState<AssetNode[]>([]);
@@ -63,8 +66,8 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ records, onNew, onEd
   const filteredRecords = useMemo(() => {
     return records.filter(r => {
         // Text Search
-        const searchLower = searchTerm.toLowerCase();
-        const matchesSearch = !searchTerm || 
+        const searchLower = filters.searchTerm.toLowerCase();
+        const matchesSearch = !filters.searchTerm || 
             r.what?.toLowerCase().includes(searchLower) ||
             r.problem_description?.toLowerCase().includes(searchLower) ||
             r.id.toLowerCase().includes(searchLower) ||
@@ -73,26 +76,28 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ records, onNew, onEd
 
         // Date Range
         const rDate = new Date(r.failure_date);
-        const start = dateStart ? new Date(dateStart) : null;
-        const end = dateEnd ? new Date(dateEnd) : null;
+        const start = filters.dateStart ? new Date(filters.dateStart) : null;
+        const end = filters.dateEnd ? new Date(filters.dateEnd) : null;
         const matchesDate = (!start || rDate >= start) && (!end || rDate <= end);
 
         // Dropdowns
-        const matchesStatus = statusFilter === 'ALL' || r.status === statusFilter;
-        const matchesArea = areaFilter === 'ALL' || r.area_id === areaFilter;
-        const matchesCategory = categoryFilter === 'ALL' || r.failure_category_id === categoryFilter;
+        const matchesStatus = filters.status === 'ALL' || r.status === filters.status;
+        const matchesArea = filters.area === 'ALL' || r.area_id === filters.area;
+        const matchesCategory = filters.category === 'ALL' || r.failure_category_id === filters.category;
 
         return matchesSearch && matchesDate && matchesStatus && matchesArea && matchesCategory;
     });
-  }, [records, searchTerm, dateStart, dateEnd, statusFilter, areaFilter, categoryFilter]);
+  }, [records, filters]);
 
-  const clearFilters = () => {
-      setSearchTerm('');
-      setDateStart('');
-      setDateEnd('');
-      setStatusFilter('ALL');
-      setAreaFilter('ALL');
-      setCategoryFilter('ALL');
+  const handleReset = () => {
+      setFilters({
+          searchTerm: '',
+          dateStart: '',
+          dateEnd: '',
+          status: 'ALL',
+          area: 'ALL',
+          category: 'ALL'
+      });
   };
 
   return (
@@ -111,102 +116,28 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ records, onNew, onEd
         </button>
       </div>
 
-      {/* Filter Bar */}
-      <div className={`bg-white rounded-xl shadow-sm border border-slate-200 transition-all duration-300 overflow-hidden mb-6 ${showFilters ? 'p-6' : 'p-0 border-0 h-0'}`}>
-         {showFilters && (
-             <div className="animate-in fade-in slide-in-from-top-2">
-                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center gap-2">
-                        <Filter size={16} /> Filter Criteria
-                    </h3>
-                    <button onClick={clearFilters} className="text-xs text-slate-500 hover:text-red-500 flex items-center gap-1">
-                        <RefreshCw size={12} /> Reset
-                    </button>
-                 </div>
-                 
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {/* Search */}
-                    <div className="col-span-1 md:col-span-2">
-                        <label className="block text-xs font-medium text-slate-500 mb-1">Search</label>
-                        <div className="relative">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input 
-                                type="text" 
-                                placeholder="Search by Title, ID, Asset..." 
-                                className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Date */}
-                    <div>
-                        <label className="block text-xs font-medium text-slate-500 mb-1">Failure Date Range</label>
-                        <div className="flex gap-2 items-center">
-                            <input type="date" className="w-full border border-slate-300 rounded-lg p-2 text-sm" value={dateStart} onChange={e => setDateStart(e.target.value)} />
-                            <span className="text-slate-400">-</span>
-                            <input type="date" className="w-full border border-slate-300 rounded-lg p-2 text-sm" value={dateEnd} onChange={e => setDateEnd(e.target.value)} />
-                        </div>
-                    </div>
-
-                    {/* Status */}
-                    <div>
-                        <label className="block text-xs font-medium text-slate-500 mb-1">Status</label>
-                        <select 
-                            className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white"
-                            value={statusFilter}
-                            onChange={e => setStatusFilter(e.target.value)}
-                        >
-                            <option value="ALL">All Statuses</option>
-                            {availableStatuses.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                        </select>
-                    </div>
-
-                    {/* Area */}
-                    <div>
-                        <label className="block text-xs font-medium text-slate-500 mb-1">Area</label>
-                        <select 
-                            className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white"
-                            value={areaFilter}
-                            onChange={e => setAreaFilter(e.target.value)}
-                        >
-                            <option value="ALL">All Areas</option>
-                            {availableAreas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                        </select>
-                    </div>
-
-                    {/* Category */}
-                    <div>
-                        <label className="block text-xs font-medium text-slate-500 mb-1">Failure Category</label>
-                        <select 
-                            className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white"
-                            value={categoryFilter}
-                            onChange={e => setCategoryFilter(e.target.value)}
-                        >
-                            <option value="ALL">All Categories</option>
-                            {availableCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                        </select>
-                    </div>
-                 </div>
-             </div>
-         )}
-      </div>
-
-      {/* Toolbar */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-2">
-            <button 
-                onClick={() => setShowFilters(!showFilters)} 
-                className="text-sm font-medium text-blue-600 flex items-center gap-1 hover:underline"
-            >
-                {showFilters ? <><ChevronUp size={14}/> Hide Filters</> : <><ChevronDown size={14}/> Show Filters</>}
-            </button>
-        </div>
-        <div className="text-sm text-slate-500">
-            Showing <strong>{filteredRecords.length}</strong> records
-        </div>
-      </div>
+      <FilterBar 
+          isOpen={showFilters}
+          onToggle={() => setShowFilters(!showFilters)}
+          filters={filters}
+          onFilterChange={setFilters}
+          onReset={handleReset}
+          totalResults={filteredRecords.length}
+          config={{
+              showSearch: true,
+              showDate: true,
+              showStatus: true,
+              showArea: true,
+              showCategory: true,
+              searchPlaceholder: "Search by Title, ID, Asset...",
+              dateLabel: "Failure Date Range"
+          }}
+          options={{
+              statuses: availableStatuses,
+              areas: availableAreas,
+              categories: availableCategories
+          }}
+      />
 
       {/* Data Table */}
       <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">

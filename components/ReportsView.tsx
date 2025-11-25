@@ -1,9 +1,8 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { RcaRecord, AssetNode, TaxonomyConfig } from '../types';
-import { getAssets, getTaxonomy } from '../services/storageService';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Cell, PieChart, Pie } from 'recharts';
-import { Printer, AlertCircle, Filter, Search, Calendar, RefreshCw, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { RcaRecord, AssetNode, TaxonomyConfig, ActionRecord } from '../types';
+import { getAssets, getTaxonomy, getActions } from '../services/storageService';
+import { Printer, AlertCircle, Filter, Search, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 
 interface ReportsViewProps {
   records: RcaRecord[];
@@ -24,10 +23,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
   // Asset & Taxonomy Data
   const [assets, setAssets] = useState<AssetNode[]>([]);
   const [taxonomy, setTaxonomy] = useState<TaxonomyConfig | null>(null);
+  const [allSystemActions, setAllSystemActions] = useState<ActionRecord[]>([]);
 
   useEffect(() => {
     setAssets(getAssets());
     setTaxonomy(getTaxonomy());
+    setAllSystemActions(getActions());
   }, []);
 
   // --- Helpers ---
@@ -39,7 +40,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
 
   const getStatusName = (id: string) => getName('analysisStatuses', id);
 
-  // Derived Lists for Dropdowns
+  // Derived Lists
   const availableAreas = useMemo(() => {
       const areas: {id: string, name: string}[] = [];
       const traverse = (nodes: AssetNode[]) => {
@@ -59,7 +60,6 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
   // Filtering Logic
   const filteredRecords = useMemo(() => {
     return records.filter(r => {
-        // Text Search
         const searchLower = searchTerm.toLowerCase();
         const matchesSearch = !searchTerm || 
             r.what?.toLowerCase().includes(searchLower) ||
@@ -68,29 +68,20 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
             r.os_number?.toLowerCase().includes(searchLower) ||
             r.asset_name_display?.toLowerCase().includes(searchLower);
 
-        // Date Range
         const rDate = new Date(r.failure_date);
         const start = dateStart ? new Date(dateStart) : null;
         const end = dateEnd ? new Date(dateEnd) : null;
         const matchesDate = (!start || rDate >= start) && (!end || rDate <= end);
 
-        // Status
         const matchesStatus = statusFilter === 'ALL' || r.status === statusFilter;
-
-        // Area
         const matchesArea = areaFilter === 'ALL' || r.area_id === areaFilter;
-
-        // Category
         const matchesCategory = categoryFilter === 'ALL' || r.failure_category_id === categoryFilter;
-        
-        // Component Type
         const matchesComponent = componentTypeFilter === 'ALL' || r.component_type === componentTypeFilter;
 
         return matchesSearch && matchesDate && matchesStatus && matchesArea && matchesCategory && matchesComponent;
     });
   }, [records, searchTerm, dateStart, dateEnd, statusFilter, areaFilter, categoryFilter, componentTypeFilter]);
 
-  // Clear Filters
   const clearFilters = () => {
       setSearchTerm('');
       setDateStart('');
@@ -101,22 +92,16 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
       setComponentTypeFilter('ALL');
   };
 
-  // KPI Calculations based on Filtered Data
+  // KPI Calculations
   const totalCost = filteredRecords.reduce((acc, r) => acc + (r.financial_impact || 0), 0);
   const totalDowntime = filteredRecords.reduce((acc, r) => acc + (r.downtime_minutes || 0), 0);
   
-  const allActions = filteredRecords.flatMap(r => 
-    r.corrective_actions.map(a => ({ 
-        ...a, 
-        rcaId: r.id, 
-        rcaName: r.what, 
-        asset: r.asset_name_display,
-        rcaStatus: r.status
-    }))
-  );
+  // Resolve Actions for Filtered Records Only
+  const filteredRecordIds = new Set(filteredRecords.map(r => r.id));
+  const relevantActions = allSystemActions.filter(a => filteredRecordIds.has(a.rca_id));
 
-  // Open Actions: Status is NOT '3' (Concluída) and NOT '4' (Ef. Comprovada) based on Box logic
-  const openActions = allActions.filter(a => a.status !== '3' && a.status !== '4');
+  // Open: Status not 3 (Concluída) and not 4 (Ef. Comprovada)
+  const openActions = relevantActions.filter(a => a.status !== '3' && a.status !== '4');
   const overdueActions = openActions.filter(a => new Date(a.date) < new Date());
 
   const costByArea = filteredRecords.reduce((acc: any, r) => {
@@ -126,15 +111,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
     return acc;
   }, {});
 
-  const costChartData = Object.keys(costByArea).map(k => ({ name: k, cost: costByArea[k] }));
-
   const failureModeCount = filteredRecords.reduce((acc: any, r) => {
     const mode = getName('failureModes', r.failure_mode_id || 'Unknown');
     acc[mode] = (acc[mode] || 0) + 1;
     return acc;
   }, {});
-
-  const failureModeData = Object.keys(failureModeCount).map(k => ({ name: k, count: failureModeCount[k] }));
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
@@ -145,51 +126,31 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
           <p className="text-slate-500 mt-1">Operational impact and action tracking summary.</p>
         </div>
         <div className="flex gap-2">
-            <button 
-                onClick={() => setShowFilters(!showFilters)}
-                className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 border transition-colors ${showFilters ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-300 text-slate-700'}`}
-            >
-                <Filter size={18} /> Filters
-                {showFilters ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
+            <button onClick={() => setShowFilters(!showFilters)} className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 border transition-colors ${showFilters ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-300 text-slate-700'}`}>
+                <Filter size={18} /> Filters {showFilters ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
             </button>
-            <button 
-                onClick={() => window.print()}
-                className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-medium flex items-center gap-2 hover:bg-slate-50"
-            >
+            <button onClick={() => window.print()} className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-medium flex items-center gap-2 hover:bg-slate-50">
                 <Printer size={18} /> Print
             </button>
         </div>
       </div>
 
-      {/* Advanced Filters */}
+      {/* Filters (same as dashboard, kept for context of specific reporting view if needed) */}
       {showFilters && (
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-in fade-in slide-in-from-top-2">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center gap-2">
-                    <Search size={16} /> Advanced Search
-                </h3>
-                <button onClick={clearFilters} className="text-xs text-slate-500 hover:text-red-500 flex items-center gap-1">
-                    <RefreshCw size={12} /> Reset Filters
-                </button>
+                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center gap-2"><Search size={16} /> Advanced Search</h3>
+                <button onClick={clearFilters} className="text-xs text-slate-500 hover:text-red-500 flex items-center gap-1"><RefreshCw size={12} /> Reset Filters</button>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Search Text */}
                 <div className="col-span-1 md:col-span-2">
                     <label className="block text-xs font-medium text-slate-500 mb-1">Search Keywords</label>
                     <div className="relative">
                         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input 
-                            type="text" 
-                            placeholder="Search by Title, ID, OS or Description..." 
-                            className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                        />
+                        <input type="text" placeholder="Search..." className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
                     </div>
                 </div>
-
-                {/* Date Range */}
                 <div>
                     <label className="block text-xs font-medium text-slate-500 mb-1">Date Range</label>
                     <div className="flex gap-2 items-center">
@@ -198,68 +159,13 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                         <input type="date" className="w-full border border-slate-300 rounded-lg p-2 text-sm" value={dateEnd} onChange={e => setDateEnd(e.target.value)} />
                     </div>
                 </div>
-
-                {/* Status */}
                 <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Analysis Status</label>
-                    <select 
-                        className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white"
-                        value={statusFilter}
-                        onChange={e => setStatusFilter(e.target.value)}
-                    >
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Status</label>
+                    <select className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
                         <option value="ALL">All Statuses</option>
                         {availableStatuses.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
                 </div>
-
-                {/* Area */}
-                <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Area / Location</label>
-                    <select 
-                        className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white"
-                        value={areaFilter}
-                        onChange={e => setAreaFilter(e.target.value)}
-                    >
-                        <option value="ALL">All Areas</option>
-                        {availableAreas.map(area => (
-                            <option key={area.id} value={area.id}>{area.name}</option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Category */}
-                <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Failure Category</label>
-                    <select 
-                        className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white"
-                        value={categoryFilter}
-                        onChange={e => setCategoryFilter(e.target.value)}
-                    >
-                        <option value="ALL">All Categories</option>
-                        {availableCategories.map(c => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                    </select>
-                </div>
-
-                 {/* Component Type */}
-                 <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Component Type</label>
-                    <select 
-                        className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white"
-                        value={componentTypeFilter}
-                        onChange={e => setComponentTypeFilter(e.target.value)}
-                    >
-                        <option value="ALL">All Types</option>
-                        {availableComponentTypes.map(c => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                    </select>
-                </div>
-            </div>
-            
-            <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end items-center gap-2 text-sm text-slate-500">
-                <span className="font-bold text-slate-800">{filteredRecords.length}</span> records found
             </div>
           </div>
       )}
@@ -268,9 +174,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
             <div className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Total Financial Impact</div>
-            <div className="text-2xl font-bold text-slate-800">
-                ${totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
+            <div className="text-2xl font-bold text-slate-800">${totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
         </div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
             <div className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Total Downtime</div>
@@ -289,43 +193,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
         </div>
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <h3 className="font-bold text-slate-700 mb-6">Financial Impact by Area</h3>
-            <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={costChartData} margin={{bottom: 20, right: 20}}>
-                        <XAxis dataKey="name" tick={{fontSize: 10}} interval={0} angle={-15} textAnchor="end" height={60} />
-                        <YAxis tickFormatter={(val) => `$${val/1000}k`} width={60} />
-                        <Tooltip formatter={(val: number) => `$${val.toLocaleString()}`} />
-                        <Bar dataKey="cost" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
-        </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <h3 className="font-bold text-slate-700 mb-6">Top Failure Modes</h3>
-            <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={failureModeData} layout="vertical" margin={{left: 20, right: 20}}>
-                        <XAxis type="number" hide />
-                        <YAxis dataKey="name" type="category" width={140} tick={{fontSize: 11}} />
-                        <Tooltip />
-                        <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} barSize={15} />
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
-        </div>
-      </div>
-
       {/* Actions Table */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                <AlertCircle size={18} className="text-amber-500" />
-                Filtered Actions (Open)
-            </h3>
+            <h3 className="font-bold text-slate-800 flex items-center gap-2"><AlertCircle size={18} className="text-amber-500" /> Filtered Actions (Open)</h3>
         </div>
         <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600">
@@ -334,35 +205,23 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                         <th className="px-6 py-3">Due Date</th>
                         <th className="px-6 py-3">Action</th>
                         <th className="px-6 py-3">Responsible</th>
-                        <th className="px-6 py-3">RCA Origin</th>
-                        <th className="px-6 py-3">Box (Action Status)</th>
+                        <th className="px-6 py-3">Box</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                     {openActions.length === 0 && (
-                        <tr>
-                            <td colSpan={5} className="p-8 text-center text-slate-400">No open actions found matching filters.</td>
-                        </tr>
+                        <tr><td colSpan={4} className="p-8 text-center text-slate-400">No open actions found matching filters.</td></tr>
                     )}
                     {openActions.map((action, idx) => {
                         const isOverdue = new Date(action.date) < new Date();
                         return (
-                            <tr key={`${action.rcaId}-${idx}`} className="hover:bg-slate-50">
+                            <tr key={`${action.rca_id}-${idx}`} className="hover:bg-slate-50">
                                 <td className={`px-6 py-4 font-mono ${isOverdue ? 'text-red-600 font-bold' : ''}`}>
-                                    {action.date}
-                                    {isOverdue && <span className="ml-2 text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded">LATE</span>}
+                                    {action.date} {isOverdue && <span className="ml-2 text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded">LATE</span>}
                                 </td>
                                 <td className="px-6 py-4 max-w-xs truncate" title={action.action}>{action.action}</td>
                                 <td className="px-6 py-4">{action.responsible}</td>
-                                <td className="px-6 py-4">
-                                    <div className="font-medium text-slate-800">{action.rcaId}</div>
-                                    <div className="text-xs text-slate-400 truncate max-w-[150px]">{action.asset}</div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-600 text-xs font-medium">
-                                        Box {action.status}
-                                    </span>
-                                </td>
+                                <td className="px-6 py-4"><span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-600 text-xs font-medium">Box {action.status}</span></td>
                             </tr>
                         );
                     })}

@@ -55,7 +55,6 @@ const createDefaultRecord = (): RcaRecord => ({
     precision_maintenance: getStandardPrecisionItems(),
 
     containment_actions: [],
-    corrective_actions: [],
     lessons_learned: []
 });
 

@@ -1,17 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, FileText, Database, Settings, Upload, AlertTriangle, List } from 'lucide-react';
+import { LayoutDashboard, FileText, Database, Settings, Upload, AlertTriangle, List, CheckSquare } from 'lucide-react';
 import { RcaRecord } from './types';
 import { getRecords } from './services/storageService';
 import { RcaEditor } from './components/RcaEditor';
 import { AssetsManager } from './components/AssetsManager';
 import { Dashboard } from './components/Dashboard';
 import { AnalysesView } from './components/AnalysesView';
+import { ActionsView } from './components/ActionsView';
 import { SettingsView } from './components/SettingsView';
 import { MigrationView } from './components/MigrationView';
 
 export default function App() {
-  const [view, setView] = useState<'DASHBOARD' | 'ANALYSES' | 'ASSETS' | 'SETTINGS' | 'MIGRATION'>('DASHBOARD');
+  const [view, setView] = useState<'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'ASSETS' | 'SETTINGS' | 'MIGRATION'>('DASHBOARD');
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<RcaRecord | null>(null);
   const [records, setRecords] = useState<RcaRecord[]>([]);
@@ -62,6 +63,12 @@ export default function App() {
                 <List size={20} /> Analyses
             </button>
             <button 
+                onClick={() => setView('ACTIONS')}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'ACTIONS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
+            >
+                <CheckSquare size={20} /> Action Plans
+            </button>
+            <button 
                 onClick={() => setView('ASSETS')}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'ASSETS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
             >
@@ -81,7 +88,7 @@ export default function App() {
             </button>
         </nav>
         <div className="p-6 border-t border-slate-800 text-xs text-slate-500">
-            v17.0 Integrated<br/>
+            v17.1 Integrated<br/>
             Running on React 18
         </div>
       </aside>
@@ -105,6 +112,9 @@ export default function App() {
                 )}
                 {view === 'ANALYSES' && (
                     <AnalysesView records={records} onNew={openNew} onEdit={openEdit} />
+                )}
+                {view === 'ACTIONS' && (
+                    <ActionsView />
                 )}
                 {view === 'ASSETS' && (
                     <AssetsManager />

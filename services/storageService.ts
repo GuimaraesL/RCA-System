@@ -1,8 +1,9 @@
 
-import { AssetNode, RcaRecord, MigrationData, PrecisionChecklistItem, TaxonomyConfig, TaxonomyItem } from "../types";
+import { AssetNode, RcaRecord, ActionRecord, MigrationData, PrecisionChecklistItem, TaxonomyConfig, TaxonomyItem } from "../types";
 
 const STORAGE_KEY_ASSETS = 'rca_assets';
 const STORAGE_KEY_RECORDS = 'rca_records';
+const STORAGE_KEY_ACTIONS = 'rca_actions';
 const STORAGE_KEY_TAXONOMY = 'rca_taxonomy';
 
 // Helper for Auto-ID Generation
@@ -12,7 +13,8 @@ export const generateId = (prefix: string = 'GEN'): string => {
   return `${prefix}-${timestamp}-${random}`;
 };
 
-// Initial Mock Data
+// --- INITIAL DATA ---
+
 const INITIAL_ASSETS: AssetNode[] = [
   {
     id: 'AREA-INIT-01', name: 'Plant A - Manufacturing', type: 'AREA', children: [
@@ -28,7 +30,6 @@ const INITIAL_ASSETS: AssetNode[] = [
   }
 ];
 
-// Helper to create initial taxonomy items
 const taxItem = (id: string, name: string): TaxonomyItem => ({ id, name });
 
 const INITIAL_TAXONOMY: TaxonomyConfig = {
@@ -42,7 +43,7 @@ const INITIAL_TAXONOMY: TaxonomyConfig = {
     taxItem('STATUS-02', "Em Andamento"),
     taxItem('STATUS-03', "Aguardando Aprovação"),
     taxItem('STATUS-04', "Cancelada"),
-    taxItem('STATUS-DONE', "Concluída") // System managed ID
+    taxItem('STATUS-DONE', "Concluída")
   ],
   specialties: [
     taxItem('SPEC-01', "Mecânica"),
@@ -107,8 +108,8 @@ const INITIAL_RECORDS: RcaRecord[] = [
     version: '16.0',
     analysis_date: '2025-08-25',
     analysis_duration_minutes: 45,
-    analysis_type: 'TYPE-01', // Mini RCA
-    status: 'STATUS-DONE', // Concluída
+    analysis_type: 'TYPE-01',
+    status: 'STATUS-DONE',
     participants: 'Ademir, Lucas, Paulo e Lourival',
     facilitator: 'Felipe Moraes',
     
@@ -121,12 +122,12 @@ const INITIAL_RECORDS: RcaRecord[] = [
     area_id: 'AREA-INIT-01',
     equipment_id: 'EQP-INIT-01',
     subgroup_id: 'SG-INIT-01',
-    component_type: 'COMP-10', // Drive
+    component_type: 'COMP-10',
     asset_name_display: 'Rolling Oil System',
 
-    specialty_id: 'SPEC-02', // Elétrica
-    failure_mode_id: 'FM-10', // Indicação Falsa
-    failure_category_id: 'FC-02', // Fim de Vida Útil
+    specialty_id: 'SPEC-02',
+    failure_mode_id: 'FM-10',
+    failure_category_id: 'FC-02',
 
     who: 'Turno',
     what: 'Falha no drive da bomba principal do rolling oil',
@@ -159,13 +160,23 @@ const INITIAL_RECORDS: RcaRecord[] = [
     containment_actions: [
       { id: 'ACT-C-01', action: 'Troca do drive reserva', responsible: 'Turno', date: '2025-08-25', status: 'Concluído' }
     ],
-    corrective_actions: [
-      { id: 'ACT-A-01', action: 'Reparar o drive de acionamento da bomba principal', responsible: 'Ademir Alves', date: '2025-11-15', status: '2', moc_number: '' }
-    ],
     lessons_learned: ['Monitorar temperatura dos drives antigos com maior frequência']
   }
 ];
 
+const INITIAL_ACTIONS: ActionRecord[] = [
+  {
+    id: 'ACT-A-01',
+    rca_id: 'RCA-EXAMPLE-01',
+    action: 'Reparar o drive de acionamento da bomba principal',
+    responsible: 'Ademir Alves',
+    date: '2025-11-15',
+    status: '2', // Em Andamento
+    moc_number: ''
+  }
+];
+
+// --- ASSETS ---
 export const getAssets = (): AssetNode[] => {
   const stored = localStorage.getItem(STORAGE_KEY_ASSETS);
   if (!stored) {
@@ -179,6 +190,7 @@ export const saveAssets = (assets: AssetNode[]): void => {
   localStorage.setItem(STORAGE_KEY_ASSETS, JSON.stringify(assets));
 };
 
+// --- TAXONOMY ---
 export const getTaxonomy = (): TaxonomyConfig => {
   const stored = localStorage.getItem(STORAGE_KEY_TAXONOMY);
   if (!stored) {
@@ -192,6 +204,7 @@ export const saveTaxonomy = (taxonomy: TaxonomyConfig): void => {
   localStorage.setItem(STORAGE_KEY_TAXONOMY, JSON.stringify(taxonomy));
 };
 
+// --- RECORDS ---
 export const getRecords = (): RcaRecord[] => {
   const stored = localStorage.getItem(STORAGE_KEY_RECORDS);
   if (!stored) {
@@ -212,18 +225,51 @@ export const saveRecord = (record: RcaRecord): void => {
   localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
 };
 
+// --- ACTIONS (New Independent Store) ---
+export const getActions = (): ActionRecord[] => {
+  const stored = localStorage.getItem(STORAGE_KEY_ACTIONS);
+  if (!stored) {
+    localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(INITIAL_ACTIONS));
+    return INITIAL_ACTIONS;
+  }
+  return JSON.parse(stored);
+};
+
+export const getActionsByRca = (rcaId: string): ActionRecord[] => {
+  const actions = getActions();
+  return actions.filter(a => a.rca_id === rcaId);
+};
+
+export const saveAction = (action: ActionRecord): void => {
+  const actions = getActions();
+  const index = actions.findIndex(a => a.id === action.id);
+  if (index >= 0) {
+    actions[index] = action;
+  } else {
+    actions.push(action);
+  }
+  localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(actions));
+};
+
+export const deleteAction = (actionId: string): void => {
+  const actions = getActions();
+  const newActions = actions.filter(a => a.id !== actionId);
+  localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(newActions));
+};
+
+// --- IMPORT/EXPORT ---
 export const importData = (jsonContent: string): { success: boolean, message: string } => {
   try {
     const data: MigrationData = JSON.parse(jsonContent);
     if (!Array.isArray(data.assets) || !Array.isArray(data.records)) {
-      return { success: false, message: "Invalid JSON Schema: Missing assets or records arrays." };
+      return { success: false, message: "Invalid JSON Schema." };
     }
     localStorage.setItem(STORAGE_KEY_ASSETS, JSON.stringify(data.assets));
     localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(data.records));
-    if (data.taxonomy) {
-      localStorage.setItem(STORAGE_KEY_TAXONOMY, JSON.stringify(data.taxonomy));
-    }
-    return { success: true, message: `Imported ${data.assets.length} asset roots, ${data.records.length} records and taxonomy.` };
+    if (data.taxonomy) localStorage.setItem(STORAGE_KEY_TAXONOMY, JSON.stringify(data.taxonomy));
+    if (data.actions) localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(data.actions));
+    
+    return { success: true, message: `Imported successfully.` };
   } catch (e) {
     return { success: false, message: "JSON Parse Error" };
   }
@@ -235,6 +281,7 @@ export const exportData = (): string => {
     exportedAt: new Date().toISOString(),
     assets: getAssets(),
     records: getRecords(),
+    actions: getActions(),
     taxonomy: getTaxonomy()
   };
   return JSON.stringify(data, null, 2);

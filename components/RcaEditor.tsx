@@ -1,10 +1,11 @@
 
-import React from 'react';
-import { RcaRecord, IshikawaDiagram, PrecisionStatus } from '../types';
+import React, { useEffect, useState } from 'react';
+import { RcaRecord, IshikawaDiagram, PrecisionStatus, ActionRecord } from '../types';
 import { AssetSelector } from './AssetSelector';
-import { generateId } from '../services/storageService';
-import { Save, Wand2, ArrowLeft, Loader2, Plus, Trash2, CheckSquare, Square, XSquare, RefreshCw, AlertTriangle, Lock } from 'lucide-react';
+import { generateId, getActionsByRca, saveAction, deleteAction } from '../services/storageService';
+import { Save, Wand2, ArrowLeft, Loader2, Plus, Trash2, CheckSquare, Square, XSquare, RefreshCw, AlertTriangle, Lock, Edit2 } from 'lucide-react';
 import { useRcaLogic } from '../hooks/useRcaLogic';
+import { ActionModal } from './ActionModal';
 
 interface RcaEditorProps {
   existingRecord?: RcaRecord | null;
@@ -24,6 +25,25 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
       handleSave
   } = useRcaLogic(existingRecord || null, onSave);
 
+  // Local state for actions fetched by ID
+  const [linkedActions, setLinkedActions] = useState<ActionRecord[]>([]);
+  
+  // Modal State for Actions
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [editingAction, setEditingAction] = useState<ActionRecord | null>(null);
+
+  const refreshActions = () => {
+    if (formData.id) {
+        setLinkedActions(getActionsByRca(formData.id));
+    }
+  };
+
+  useEffect(() => {
+    if (step === 5 && formData.id) {
+        refreshActions();
+    }
+  }, [step, formData.id]);
+
   const updateFiveWhy = (index: number, field: 'why_question' | 'answer', value: string) => {
       const newWhys = [...formData.five_whys];
       newWhys[index] = { ...newWhys[index], [field]: value };
@@ -37,6 +57,31 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
       setFormData(prev => ({ ...prev, precision_maintenance: newItems }));
   };
 
+  // Action Handlers
+  const handleAddAction = () => {
+      setEditingAction(null);
+      setIsActionModalOpen(true);
+  };
+
+  const handleEditAction = (action: ActionRecord) => {
+      setEditingAction(action);
+      setIsActionModalOpen(true);
+  };
+
+  const handleDeleteAction = (id: string) => {
+      if(confirm("Are you sure you want to delete this action?")) {
+          deleteAction(id);
+          refreshActions();
+      }
+  };
+
+  const handleSaveAction = (action: ActionRecord) => {
+      if(!action.id) action.id = generateId('ACT');
+      saveAction(action);
+      refreshActions();
+      setIsActionModalOpen(false);
+  };
+
   const isCompletedStatus = () => {
       const doneStatus = taxonomy.analysisStatuses.find(s => s.name === 'Concluída');
       return doneStatus && formData.status === doneStatus.id;
@@ -44,7 +89,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
   const isCompleted = isCompletedStatus();
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-full w-full max-w-7xl mx-auto">
+    <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-full w-full max-w-7xl mx-auto relative">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
         <div className="flex items-center gap-3">
@@ -194,10 +239,9 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
 
         {/* STEP 2: PROBLEM */}
         {step === 2 && (
-            <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+             <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">1. Descrição do Problema (5W2H)</h3>
-                    
                     <div className="grid grid-cols-2 gap-6 mb-4">
                         <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">What (Short Title) <span className="text-red-500">*</span></label>
@@ -208,7 +252,6 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                             <input type="text" className="w-full border p-2 rounded text-sm" value={formData.who} onChange={e => setFormData(prev => ({...prev, who: e.target.value}))} />
                         </div>
                     </div>
-
                     <div className="grid grid-cols-2 gap-6 mb-4">
                         <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">When (Detailed Timing)</label>
@@ -219,50 +262,35 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                             <input type="text" className="w-full border p-2 rounded text-sm" value={formData.where_description} onChange={e => setFormData(prev => ({...prev, where_description: e.target.value}))} />
                         </div>
                     </div>
-
                     <div className="mb-4">
                         <label className="block text-xs font-medium text-slate-500 mb-1">Full Problem Description <span className="text-red-500">*</span></label>
                         <textarea className="w-full border p-2 rounded text-sm h-24" value={formData.problem_description} onChange={e => setFormData(prev => ({...prev, problem_description: e.target.value}))} />
                     </div>
-
                     <div>
                         <label className="block text-xs font-medium text-slate-500 mb-1">Potential Impacts (Safety, Environment, etc)</label>
                         <textarea className="w-full border p-2 rounded text-sm h-16" value={formData.potential_impacts} onChange={e => setFormData(prev => ({...prev, potential_impacts: e.target.value}))} />
                     </div>
                 </div>
-
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">Classificação</h3>
                     <div className="grid grid-cols-3 gap-4">
                         <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">Specialty</label>
-                            <select 
-                              className="w-full border p-2 rounded text-sm bg-white"
-                              value={formData.specialty_id}
-                              onChange={e => setFormData(prev => ({...prev, specialty_id: e.target.value}))}
-                            >
+                            <select className="w-full border p-2 rounded text-sm bg-white" value={formData.specialty_id} onChange={e => setFormData(prev => ({...prev, specialty_id: e.target.value}))}>
                               <option value="">Select Specialty...</option>
                               {taxonomy.specialties.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                             </select>
                         </div>
                         <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">Failure Mode</label>
-                            <select 
-                              className="w-full border p-2 rounded text-sm bg-white"
-                              value={formData.failure_mode_id}
-                              onChange={e => setFormData(prev => ({...prev, failure_mode_id: e.target.value}))}
-                            >
+                            <select className="w-full border p-2 rounded text-sm bg-white" value={formData.failure_mode_id} onChange={e => setFormData(prev => ({...prev, failure_mode_id: e.target.value}))}>
                               <option value="">Select Failure Mode...</option>
                               {taxonomy.failureModes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                             </select>
                         </div>
                         <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">Failure Category</label>
-                            <select 
-                              className="w-full border p-2 rounded text-sm bg-white"
-                              value={formData.failure_category_id}
-                              onChange={e => setFormData(prev => ({...prev, failure_category_id: e.target.value}))}
-                            >
+                            <select className="w-full border p-2 rounded text-sm bg-white" value={formData.failure_category_id} onChange={e => setFormData(prev => ({...prev, failure_category_id: e.target.value}))}>
                               <option value="">Select Category...</option>
                               {taxonomy.failureCategories.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                             </select>
@@ -271,11 +299,10 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                 </div>
             </div>
         )}
-
+        
         {/* STEP 3: INVESTIGATION */}
         {step === 3 && (
-            <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                {/* 5 Whys */}
+             <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                      <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">4. 5 Whys Analysis</h3>
                      <div className="space-y-2">
@@ -287,31 +314,17 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                         {formData.five_whys.map((w, idx) => (
                              <div key={idx} className="grid grid-cols-12 gap-4 items-center">
                                 <div className="col-span-1 text-center font-bold text-slate-300 text-lg">{idx + 1}</div>
-                                <div className="col-span-5">
-                                    <input type="text" className="w-full border p-2 rounded text-sm" value={w.why_question} onChange={e => updateFiveWhy(idx, 'why_question', e.target.value)} placeholder={`Why did ${idx === 0 ? 'the problem occur' : 'that happen'}?`} />
-                                </div>
-                                <div className="col-span-6">
-                                    <input type="text" className="w-full border p-2 rounded text-sm" value={w.answer} onChange={e => updateFiveWhy(idx, 'answer', e.target.value)} placeholder="Because..." />
-                                </div>
+                                <div className="col-span-5"><input type="text" className="w-full border p-2 rounded text-sm" value={w.why_question} onChange={e => updateFiveWhy(idx, 'why_question', e.target.value)} placeholder={`Why...`} /></div>
+                                <div className="col-span-6"><input type="text" className="w-full border p-2 rounded text-sm" value={w.answer} onChange={e => updateFiveWhy(idx, 'answer', e.target.value)} placeholder="Because..." /></div>
                              </div>
                         ))}
                      </div>
                 </div>
-
-                {/* Ishikawa */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <div className="flex justify-between items-center mb-6 border-b pb-2">
                          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">3. Causa e Efeito (Ishikawa)</h3>
-                         <button 
-                            onClick={handleAnalyzeAI} 
-                            disabled={isAnalyzing || !formData.problem_description}
-                            className="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1 rounded font-medium flex items-center gap-1 transition-colors"
-                         >
-                            {isAnalyzing ? <Loader2 className="animate-spin" size={12}/> : <Wand2 size={12}/>}
-                            Generate with Gemini
-                         </button>
+                         <button onClick={handleAnalyzeAI} disabled={isAnalyzing || !formData.problem_description} className="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1 rounded font-medium flex items-center gap-1 transition-colors">{isAnalyzing ? <Loader2 className="animate-spin" size={12}/> : <Wand2 size={12}/>} Generate with Gemini</button>
                     </div>
-                    
                     <div className="grid grid-cols-3 gap-6">
                         {(Object.keys(formData.ishikawa) as Array<keyof IshikawaDiagram>).map((category) => (
                             <div key={category} className="bg-slate-50 p-4 rounded border border-slate-200">
@@ -320,54 +333,25 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                                     {formData.ishikawa[category].map((item, i) => (
                                         <li key={i} className="text-sm bg-white p-2 rounded border border-slate-200 shadow-sm flex justify-between group">
                                             <span>{item}</span>
-                                            <button 
-                                                onClick={() => {
-                                                    const newArr = [...formData.ishikawa[category]];
-                                                    newArr.splice(i, 1);
-                                                    setFormData(prev => ({...prev, ishikawa: {...formData.ishikawa, [category]: newArr}}));
-                                                }}
-                                                className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100"
-                                            >
-                                                <Trash2 size={12}/>
-                                            </button>
+                                            <button onClick={() => { const newArr = [...formData.ishikawa[category]]; newArr.splice(i, 1); setFormData(prev => ({...prev, ishikawa: {...formData.ishikawa, [category]: newArr}})); }} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100"><Trash2 size={12}/></button>
                                         </li>
                                     ))}
                                     <li>
-                                        <input 
-                                            type="text" 
-                                            placeholder="Add cause..." 
-                                            className="w-full text-xs bg-transparent border-b border-slate-300 focus:border-blue-500 outline-none p-1"
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    const val = e.currentTarget.value;
-                                                    if(val) {
-                                                        setFormData(prev => ({...prev, ishikawa: {...formData.ishikawa, [category]: [...formData.ishikawa[category], val]}}));
-                                                        e.currentTarget.value = '';
-                                                    }
-                                                }
-                                            }}
-                                        />
+                                        <input type="text" placeholder="Add cause..." className="w-full text-xs bg-transparent border-b border-slate-300 focus:border-blue-500 outline-none p-1" onKeyDown={(e) => { if (e.key === 'Enter' && e.currentTarget.value) { setFormData(prev => ({...prev, ishikawa: {...formData.ishikawa, [category]: [...formData.ishikawa[category], e.currentTarget.value]}})); e.currentTarget.value = ''; } }} />
                                     </li>
                                 </ul>
                             </div>
                         ))}
                     </div>
                 </div>
-
-                {/* Root Cause */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 border-l-4 border-l-green-500">
                      <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2">5. Causa Raiz Validada <span className="text-red-500">*</span></h3>
-                     <textarea 
-                        className="w-full border p-3 rounded text-base text-slate-800 font-medium" 
-                        value={formData.root_cause} 
-                        onChange={e => setFormData(prev => ({...prev, root_cause: e.target.value}))}
-                        placeholder="Conclusion of investigation..." 
-                    />
+                     <textarea className="w-full border p-3 rounded text-base text-slate-800 font-medium" value={formData.root_cause} onChange={e => setFormData(prev => ({...prev, root_cause: e.target.value}))} placeholder="Conclusion of investigation..." />
                 </div>
             </div>
         )}
 
-        {/* STEP 4: PRECISION MAINTENANCE */}
+        {/* STEP 4: PRECISION */}
         {step === 4 && (
             <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
@@ -378,37 +362,18 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                             <p className="text-sm text-slate-500">Check list de verificação para restaurar a condição básica.</p>
                         </div>
                     </div>
-                    
                     <table className="w-full text-sm text-left">
                         <thead>
-                            <tr className="bg-slate-50 text-slate-500 border-b">
-                                <th className="p-3 w-10 text-center">#</th>
-                                <th className="p-3">Atividade</th>
-                                <th className="p-3 w-32 text-center">Executado</th>
-                                <th className="p-3 w-32 text-center">Não Exec.</th>
-                                <th className="p-3 w-32 text-center">N/A</th>
-                            </tr>
+                            <tr className="bg-slate-50 text-slate-500 border-b"><th className="p-3 w-10 text-center">#</th><th className="p-3">Atividade</th><th className="p-3 w-32 text-center">Executado</th><th className="p-3 w-32 text-center">Não Exec.</th><th className="p-3 w-32 text-center">N/A</th></tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {formData.precision_maintenance.map((item) => (
                                 <tr key={item.id} className="hover:bg-slate-50">
                                     <td className="p-3 text-center text-slate-400">{item.id}</td>
                                     <td className="p-3 font-medium text-slate-700">{item.activity}</td>
-                                    <td className="p-3 text-center">
-                                        <button onClick={() => updatePrecision(item.id, 'EXECUTED')} className={`p-1 rounded ${item.status === 'EXECUTED' ? 'text-green-600' : 'text-slate-300'}`}>
-                                            {item.status === 'EXECUTED' ? <CheckSquare /> : <Square />}
-                                        </button>
-                                    </td>
-                                    <td className="p-3 text-center">
-                                        <button onClick={() => updatePrecision(item.id, 'NOT_EXECUTED')} className={`p-1 rounded ${item.status === 'NOT_EXECUTED' ? 'text-red-500' : 'text-slate-300'}`}>
-                                            {item.status === 'NOT_EXECUTED' ? <XSquare /> : <Square />}
-                                        </button>
-                                    </td>
-                                    <td className="p-3 text-center">
-                                        <button onClick={() => updatePrecision(item.id, 'NOT_APPLICABLE')} className={`p-1 rounded ${item.status === 'NOT_APPLICABLE' ? 'text-slate-500' : 'text-slate-300'}`}>
-                                            {item.status === 'NOT_APPLICABLE' ? <CheckSquare /> : <Square />}
-                                        </button>
-                                    </td>
+                                    <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'EXECUTED')} className={`p-1 rounded ${item.status === 'EXECUTED' ? 'text-green-600' : 'text-slate-300'}`}>{item.status === 'EXECUTED' ? <CheckSquare /> : <Square />}</button></td>
+                                    <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'NOT_EXECUTED')} className={`p-1 rounded ${item.status === 'NOT_EXECUTED' ? 'text-red-500' : 'text-slate-300'}`}>{item.status === 'NOT_EXECUTED' ? <XSquare /> : <Square />}</button></td>
+                                    <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'NOT_APPLICABLE')} className={`p-1 rounded ${item.status === 'NOT_APPLICABLE' ? 'text-slate-500' : 'text-slate-300'}`}>{item.status === 'NOT_APPLICABLE' ? <CheckSquare /> : <Square />}</button></td>
                                 </tr>
                             ))}
                         </tbody>
@@ -417,14 +382,13 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
             </div>
         )}
 
-        {/* STEP 5: ACTIONS */}
+        {/* STEP 5: ACTIONS (UPDATED) */}
         {step === 5 && (
             <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                {/* Actions content remains same as actions don't use taxonomy IDs yet, except maybe Status Box */}
-                {/* Containment */}
+                {/* Containment (Still editable as part of RCA record) */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <div className="flex justify-between items-center mb-4 border-b pb-2">
-                         <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">2. Ação de Contenção</h3>
+                         <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">2. Ação de Contenção (Imediata)</h3>
                          <button onClick={() => setFormData(prev => ({...prev, containment_actions: [...formData.containment_actions, {id: generateId('ACT'), action: '', responsible: '', date: '', status: ''}]}))} className="text-blue-600 text-xs font-bold flex items-center gap-1"><Plus size={14}/> ADD</button>
                     </div>
                     {formData.containment_actions.map((act, idx) => (
@@ -448,7 +412,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                     {formData.containment_actions.length === 0 && <p className="text-xs text-slate-400 italic">No containment actions recorded.</p>}
                 </div>
 
-                {/* Corrective & Box Legend */}
+                {/* Corrective (READ ONLY / SYSTEM LINKED) */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 relative">
                      {/* BOX LEGEND */}
                      <div className="absolute top-4 right-6 flex gap-2 text-[10px] font-bold text-slate-500 border border-slate-200 rounded p-1.5 bg-slate-50">
@@ -460,35 +424,50 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
 
                      <div className="flex justify-between items-center mb-4 border-b pb-2 pr-48">
                          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">7. Plano de Ação (Corretiva)</h3>
-                         <button onClick={() => setFormData(prev => ({...prev, corrective_actions: [...formData.corrective_actions, {id: generateId('ACT'), action: '', responsible: '', date: '', status: '1'}]}))} className="text-blue-600 text-xs font-bold flex items-center gap-1"><Plus size={14}/> ADD</button>
+                         <button onClick={handleAddAction} className="text-blue-600 text-xs font-bold flex items-center gap-1"><Plus size={14}/> ADD ACTION PLAN</button>
                     </div>
-                     {formData.corrective_actions.map((act, idx) => (
-                        <div key={idx} className="flex gap-2 mb-2 items-center">
-                             <input type="text" className="flex-grow border p-2 rounded text-sm" placeholder="Action" value={act.action} onChange={e => {
-                                const list = [...formData.corrective_actions]; list[idx].action = e.target.value; setFormData(prev => ({...prev, corrective_actions: list}));
-                            }}/>
-                            <input type="text" className="w-32 border p-2 rounded text-sm" placeholder="Responsible" value={act.responsible} onChange={e => {
-                                const list = [...formData.corrective_actions]; list[idx].responsible = e.target.value; setFormData(prev => ({...prev, corrective_actions: list}));
-                            }}/>
-                             <input type="date" className="w-32 border p-2 rounded text-sm" value={act.date} onChange={e => {
-                                const list = [...formData.corrective_actions]; list[idx].date = e.target.value; setFormData(prev => ({...prev, corrective_actions: list}));
-                            }}/>
-                            <div className="flex flex-col items-center">
-                                <label className="text-[9px] font-bold text-slate-400">BOX</label>
-                                <select className="w-16 border p-1 rounded text-sm font-bold text-center" value={act.status} onChange={e => {
-                                    const list = [...formData.corrective_actions]; list[idx].status = e.target.value; setFormData(prev => ({...prev, corrective_actions: list}));
-                                }}>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                    <option value="4">4</option>
-                                </select>
-                            </div>
-                            <button onClick={() => {
-                                    const list = [...formData.corrective_actions]; list.splice(idx, 1); setFormData(prev => ({...prev, corrective_actions: list}));
-                                }} className="text-slate-300 hover:text-red-500"><Trash2 size={16}/></button>
-                        </div>
-                     ))}
+                     
+                    {/* LINKED TABLE */}
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm text-slate-600">
+                            <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-semibold">
+                                <tr>
+                                    <th className="px-4 py-2">Box</th>
+                                    <th className="px-4 py-2 w-1/2">Action</th>
+                                    <th className="px-4 py-2">Responsible</th>
+                                    <th className="px-4 py-2">Due Date</th>
+                                    <th className="px-4 py-2 text-right">Manage</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {linkedActions.length === 0 && (
+                                    <tr>
+                                        <td colSpan={5} className="p-4 text-center text-slate-400 italic bg-slate-50/50">
+                                            No linked action plans. Click "Add Action Plan" to create one for this analysis.
+                                        </td>
+                                    </tr>
+                                )}
+                                {linkedActions.map(act => (
+                                    <tr key={act.id} className="hover:bg-slate-50">
+                                        <td className="px-4 py-2 font-bold text-center border-r border-slate-100 bg-slate-50/50 w-16">{act.status}</td>
+                                        <td className="px-4 py-2">{act.action}</td>
+                                        <td className="px-4 py-2">{act.responsible}</td>
+                                        <td className="px-4 py-2 font-mono text-xs">{act.date}</td>
+                                        <td className="px-4 py-2 text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <button onClick={() => handleEditAction(act)} className="text-slate-400 hover:text-blue-600"><Edit2 size={14}/></button>
+                                                <button onClick={() => handleDeleteAction(act.id)} className="text-slate-400 hover:text-red-600"><Trash2 size={14}/></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="mt-4 p-3 bg-blue-50 text-blue-700 text-xs rounded border border-blue-100 flex items-center gap-2">
+                        <AlertTriangle size={14} />
+                        Actions created here are automatically linked to this RCA ID ({formData.id}) and synced with the Action Plans tab.
+                    </div>
                 </div>
 
                  {/* Lessons */}
@@ -512,6 +491,15 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         )}
 
       </div>
+
+      {/* Action Modal (Inline) */}
+      <ActionModal 
+        isOpen={isActionModalOpen}
+        initialData={editingAction}
+        fixedRca={{id: formData.id, title: formData.what}}
+        onClose={() => setIsActionModalOpen(false)}
+        onSave={handleSaveAction}
+      />
     </div>
   );
 };

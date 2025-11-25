@@ -23,7 +23,7 @@ export interface TaxonomyItem {
 
 export interface TaxonomyConfig {
   analysisTypes: TaxonomyItem[];
-  analysisStatuses: TaxonomyItem[]; // New configurable statuses
+  analysisStatuses: TaxonomyItem[];
   specialties: TaxonomyItem[];
   failureModes: TaxonomyItem[];
   failureCategories: TaxonomyItem[];
@@ -64,12 +64,16 @@ export interface ContainmentAction {
   status: string;
 }
 
-export interface CorrectiveAction {
+// Box Logic Status: 1-Aprovada, 2-Em Andamento, 3-Concluída, 4-Ef. Comprovada
+export type ActionStatus = '1' | '2' | '3' | '4';
+
+export interface ActionRecord {
   id: string;
+  rca_id: string; // Foreign Key to RcaRecord
   action: string;
   responsible: string;
   date: string; // YYYY-MM-DD
-  status: string; // This corresponds to Box 1, 2, 3, 4
+  status: ActionStatus;
   moc_number?: string;
 }
 
@@ -123,7 +127,7 @@ export interface RcaRecord {
 
   // 8. Planos e Lições
   containment_actions: ContainmentAction[];
-  corrective_actions: CorrectiveAction[];
+  // corrective_actions removed -> Now stored in ActionRecord[]
   lessons_learned: string[];
 }
 
@@ -132,5 +136,6 @@ export interface MigrationData {
   exportedAt: string;
   assets: AssetNode[];
   records: RcaRecord[];
+  actions: ActionRecord[];
   taxonomy: TaxonomyConfig;
 }
