@@ -15,7 +15,7 @@ const createDefaultRecord = (): RcaRecord => ({
     analysis_duration_minutes: 0,
     analysis_type: '',
     status: 'Em Aberto',
-    participants: '',
+    participants: [],
     facilitator: '',
     
     failure_date: new Date().toISOString().split('T')[0],
@@ -40,7 +40,6 @@ const createDefaultRecord = (): RcaRecord => ({
     where_description: '',
     problem_description: '',
     potential_impacts: '',
-    image_url: '',
 
     five_whys: [
         { id: '1', why_question: '', answer: '' },
@@ -61,7 +60,6 @@ const createDefaultRecord = (): RcaRecord => ({
     lessons_learned: []
 });
 
-// Helper to find full path to a node for ID resolution
 const findAssetPath = (nodes: AssetNode[], targetId: string): AssetNode[] | null => {
     for (const node of nodes) {
         if (node.id === targetId) return [node];
@@ -84,7 +82,6 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
   const [formData, setFormData] = useState<RcaRecord>(existingRecord || createDefaultRecord());
 
   useEffect(() => {
-    // Load fresh data on mount or when existingRecord changes
     const freshAssets = getAssets();
     setAssets(freshAssets);
     
@@ -92,30 +89,41 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
     setTaxonomy(tax);
 
     if (!existingRecord) {
-        // Reset to default if creating new
         const newRec = createDefaultRecord();
         if (tax.analysisTypes.length > 0) newRec.analysis_type = tax.analysisTypes[0].id;
         if (tax.analysisStatuses.length > 0) newRec.status = tax.analysisStatuses[0].id;
         setFormData(newRec);
     } else {
-        // --- Migration Logic for Legacy Fields ---
+        // --- Migration Logic ---
         let migratedRecord = { ...existingRecord };
+        const anyRecord = migratedRecord as any;
 
-        // Ensure root_causes array exists
+        // 1. Array-ify Root Causes
         if (!migratedRecord.root_causes) {
              migratedRecord.root_causes = [];
-             // If legacy fields exist, migrate them to the first array item
-             const legacyRecord = existingRecord as any;
-             if (legacyRecord.root_cause && legacyRecord.root_cause_m_id) {
+             if (anyRecord.root_cause && anyRecord.root_cause_m_id) {
                  migratedRecord.root_causes.push({
                      id: generateId('RC'),
-                     cause: legacyRecord.root_cause,
-                     root_cause_m_id: legacyRecord.root_cause_m_id
+                     cause: anyRecord.root_cause,
+                     root_cause_m_id: anyRecord.root_cause_m_id
                  });
              }
         }
 
-        // Ensure HRA struct exists
+        // 2. Normalize Participants (String -> String[])
+        if (typeof migratedRecord.participants === 'string') {
+            migratedRecord.participants = (migratedRecord.participants as string)
+                .split(',')
+                .map(p => p.trim())
+                .filter(p => p);
+        }
+
+        // 3. Remove Image Fields (Production DTO Constraint)
+        if (anyRecord.image_url) {
+            delete anyRecord.image_url;
+        }
+
+        // 4. Ensure HRA Struct
         if (!migratedRecord.human_reliability) {
             migratedRecord.human_reliability = getStandardHraStruct();
         }
@@ -124,20 +132,19 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
     }
   }, [existingRecord]);
 
-  // Validation Effect for Automatic Status
   useEffect(() => {
     const requiredFields = [
         formData.analysis_type,
         formData.what,
         formData.problem_description,
-        formData.participants,
         formData.asset_name_display
     ];
     
     const basicFieldsComplete = requiredFields.every(field => field && field.trim().length > 0);
+    const hasParticipants = formData.participants && formData.participants.length > 0;
     const hasRootCause = formData.root_causes && formData.root_causes.length > 0;
     
-    const isComplete = basicFieldsComplete && hasRootCause;
+    const isComplete = basicFieldsComplete && hasParticipants && hasRootCause;
 
     const doneStatusItem = taxonomy.analysisStatuses.find(s => s.name === 'Concluída');
     const doneStatusId = doneStatusItem ? doneStatusItem.id : 'Concluída';
@@ -145,12 +152,6 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
     if (isComplete) {
         if (formData.status !== doneStatusId) {
             setFormData(prev => ({ ...prev, status: doneStatusId }));
-        }
-    } else {
-        if (formData.status === doneStatusId) {
-            const defaultStatusItem = taxonomy.analysisStatuses[0];
-            const defaultStatusId = defaultStatusItem ? defaultStatusItem.id : 'Em Andamento';
-            setFormData(prev => ({ ...prev, status: defaultStatusId }));
         }
     }
   }, [
@@ -169,12 +170,9 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
   };
 
   const handleAssetSelect = (asset: AssetNode) => {
-    // Traverse tree to find full path (Area -> Equipment -> Subgroup)
     const path = findAssetPath(assets, asset.id);
-    
     const update: Partial<RcaRecord> = { 
         asset_name_display: asset.name,
-        // Reset IDs to ensure we don't keep stale ones if moving branches
         area_id: '',
         equipment_id: '',
         subgroup_id: ''
@@ -187,7 +185,6 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
             if (node.type === 'SUBGROUP') update.subgroup_id = node.id;
         });
     } else {
-        // Fallback (should not happen if asset comes from the tree)
         if (asset.type === 'AREA') update.area_id = asset.id;
         if (asset.type === 'EQUIPMENT') update.equipment_id = asset.id;
         if (asset.type === 'SUBGROUP') update.subgroup_id = asset.id;

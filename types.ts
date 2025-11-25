@@ -28,7 +28,7 @@ export interface TaxonomyConfig {
   failureModes: TaxonomyItem[];
   failureCategories: TaxonomyItem[];
   componentTypes: TaxonomyItem[];
-  rootCauseMs: TaxonomyItem[]; // New: 6M Categories
+  rootCauseMs: TaxonomyItem[];
 }
 
 // 6. Investigação types
@@ -51,10 +51,11 @@ export interface IshikawaDiagram {
 export type PrecisionStatus = "EXECUTED" | "NOT_EXECUTED" | "NOT_APPLICABLE";
 
 export interface PrecisionChecklistItem {
-  id: number;
-  activity: string;
+  id: string; // Semantic ID (slug)
+  activity: string; // Current text definition
+  question_snapshot?: string; // Historical text at time of record
   status: PrecisionStatus;
-  comment?: string; // Added comment field
+  comment?: string;
 }
 
 // 8. Planos e Lições types
@@ -66,15 +67,15 @@ export interface ContainmentAction {
   status: string;
 }
 
-// Box Logic Status: 1-Aprovada, 2-Em Andamento, 3-Concluída, 4-Ef. Comprovada
+// Box Logic Status
 export type ActionStatus = '1' | '2' | '3' | '4';
 
 export interface ActionRecord {
   id: string;
-  rca_id: string; // Foreign Key to RcaRecord
+  rca_id: string;
   action: string;
   responsible: string;
-  date: string; // YYYY-MM-DD
+  date: string;
   status: ActionStatus;
   moc_number?: string;
 }
@@ -84,6 +85,7 @@ export interface HraQuestion {
   id: string;
   category: string;
   question: string;
+  question_snapshot?: string; // Historical text
   answer: 'YES' | 'NO' | '';
   comment: string;
 }
@@ -110,16 +112,22 @@ export interface RootCauseItem {
   cause: string;
 }
 
+export interface AdditionalInfo {
+    meetingNotes?: string;
+    comments?: string;
+    historicalInfo?: string;
+}
+
 export interface RcaRecord {
-  id: string; // Internal GUID for system use
+  id: string;
 
   // 1. Cabeçalho e Metadados
   version: string;
   analysis_date: string;
   analysis_duration_minutes: number;
-  analysis_type: string; // Stores ID
-  status: string; // Stores ID
-  participants: string;
+  analysis_type: string;
+  status: string;
+  participants: string[]; // Normalized to Array
   facilitator: string;
 
   // 2. Definição do Evento
@@ -133,46 +141,52 @@ export interface RcaRecord {
   area_id: string;
   equipment_id: string;
   subgroup_id: string;
-  component_type: string; // Stores ID
+  component_type: string;
   asset_name_display?: string; 
 
   // 4. Classificação da Falha
-  specialty_id: string; // Stores ID
-  failure_mode_id: string; // Stores ID
-  failure_category_id: string; // Stores ID
+  specialty_id: string;
+  failure_mode_id: string;
+  failure_category_id: string;
 
   // 5. Descrição do Problema
   who: string;
-  what: string; // Title
+  what: string;
   when: string;
   where_description: string;
   problem_description: string;
   potential_impacts: string;
-  image_url?: string;
+  // REMOVED: image_url (Binary data removed for production DTO)
 
   // 6. Investigação
   five_whys: FiveWhy[];
   ishikawa: IshikawaDiagram;
   
-  root_causes: RootCauseItem[]; // Array of Root Causes
+  root_causes: RootCauseItem[];
 
   // 7. Manutenção de Precisão
   precision_maintenance: PrecisionChecklistItem[];
 
-  // 8. Human Reliability Analysis (Conditional)
+  // 8. Human Reliability Analysis
   human_reliability?: HumanReliabilityAnalysis;
 
   // 9. Planos e Lições
   containment_actions: ContainmentAction[];
-  // corrective_actions removed -> Now stored in ActionRecord[]
   lessons_learned: string[];
+
+  // 10. Additional Info
+  additionalInfo?: AdditionalInfo;
 }
 
 export interface MigrationData {
-  version: string;
-  exportedAt: string;
-  assets: AssetNode[];
+  metadata: {
+    exportDate: string;
+    systemVersion: string;
+    recordCount: number;
+    description?: string;
+  };
+  assets?: AssetNode[];
+  taxonomy?: TaxonomyConfig;
   records: RcaRecord[];
   actions: ActionRecord[];
-  taxonomy: TaxonomyConfig;
 }

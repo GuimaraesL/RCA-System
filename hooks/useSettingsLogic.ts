@@ -10,11 +10,22 @@ export const useSettingsLogic = () => {
     specialties: [],
     failureModes: [],
     failureCategories: [],
-    componentTypes: []
+    componentTypes: [],
+    rootCauseMs: []
   });
 
   useEffect(() => {
-    setTaxonomy(getTaxonomy());
+    const loaded = getTaxonomy();
+    // Ensure all arrays exist even if local storage has legacy data
+    setTaxonomy(prev => ({
+      analysisTypes: loaded.analysisTypes || [],
+      analysisStatuses: loaded.analysisStatuses || [],
+      specialties: loaded.specialties || [],
+      failureModes: loaded.failureModes || [],
+      failureCategories: loaded.failureCategories || [],
+      componentTypes: loaded.componentTypes || [],
+      rootCauseMs: loaded.rootCauseMs || []
+    }));
   }, []);
 
   const handleUpdate = (field: keyof TaxonomyConfig, newItems: TaxonomyItem[]) => {
@@ -29,15 +40,15 @@ export const useSettingsLogic = () => {
       id: generateId(field.substring(0, 3).toUpperCase()),
       name: name.trim()
     };
-    handleUpdate(field, [...taxonomy[field], newItem]);
+    handleUpdate(field, [...(taxonomy[field] || []), newItem]);
   };
 
   const removeItem = (field: keyof TaxonomyConfig, id: string) => {
-    handleUpdate(field, taxonomy[field].filter(i => i.id !== id));
+    handleUpdate(field, (taxonomy[field] || []).filter(i => i.id !== id));
   };
 
   const updateItem = (field: keyof TaxonomyConfig, id: string, name: string) => {
-    const updated = taxonomy[field].map(i => i.id === id ? { ...i, name } : i);
+    const updated = (taxonomy[field] || []).map(i => i.id === id ? { ...i, name } : i);
     handleUpdate(field, updated);
   };
 

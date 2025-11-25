@@ -6,7 +6,6 @@ const STORAGE_KEY_RECORDS = 'rca_records';
 const STORAGE_KEY_ACTIONS = 'rca_actions';
 const STORAGE_KEY_TAXONOMY = 'rca_taxonomy';
 
-// Helper for Auto-ID Generation
 export const generateId = (prefix: string = 'GEN'): string => {
   const timestamp = Date.now().toString(36).toUpperCase();
   const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
@@ -96,33 +95,33 @@ const INITIAL_TAXONOMY: TaxonomyConfig = {
 };
 
 const STANDARD_PRECISION_ITEMS: PrecisionChecklistItem[] = [
-  { id: 1, activity: "Área está limpa e arrumada", status: "NOT_APPLICABLE", comment: "" },
-  { id: 2, activity: "Os ajustes e tolerâncias estão corretos", status: "NOT_APPLICABLE", comment: "" },
-  { id: 3, activity: "A lubrificação é limpa, livre de contaminantes, com a quantidade e qualidade adequadas", status: "NOT_APPLICABLE", comment: "" },
-  { id: 4, activity: "A correia tem tensão e alinhamento corretos", status: "NOT_APPLICABLE", comment: "" },
-  { id: 5, activity: "Cargas estão suportadas corretamente com montagens rígidas e suportes", status: "NOT_APPLICABLE", comment: "" },
-  { id: 6, activity: "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão devidamente alinhados", status: "NOT_APPLICABLE", comment: "" },
-  { id: 7, activity: "Componentes rotativos estão balanceados", status: "NOT_APPLICABLE", comment: "" },
-  { id: 8, activity: "Torques e Tensões estão corretos, utilizando torquímetros apropriados", status: "NOT_APPLICABLE", comment: "" },
-  { id: 9, activity: "Utilizados somente peças de acordo com a especificação para o equipamento (no BOM)", status: "NOT_APPLICABLE", comment: "" },
-  { id: 10, activity: "Teste Funcional executado", status: "NOT_APPLICABLE", comment: "" },
-  { id: 11, activity: "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)", status: "NOT_APPLICABLE", comment: "" }
+  { id: "chk_clean", activity: "Área está limpa e arrumada", question_snapshot: "Área está limpa e arrumada", status: "NOT_APPLICABLE", comment: "" },
+  { id: "chk_tol", activity: "Os ajustes e tolerâncias estão corretos", question_snapshot: "Os ajustes e tolerâncias estão corretos", status: "NOT_APPLICABLE", comment: "" },
+  { id: "chk_lube", activity: "A lubrificação é limpa, livre de contaminantes, com a quantidade e qualidade adequadas", question_snapshot: "A lubrificação é limpa, livre de contaminantes, com a quantidade e qualidade adequadas", status: "NOT_APPLICABLE", comment: "" },
+  { id: "chk_belt", activity: "A correia tem tensão e alinhamento corretos", question_snapshot: "A correia tem tensão e alinhamento corretos", status: "NOT_APPLICABLE", comment: "" },
+  { id: "chk_load", activity: "Cargas estão suportadas corretamente com montagens rígidas e suportes", question_snapshot: "Cargas estão suportadas corretamente com montagens rígidas e suportes", status: "NOT_APPLICABLE", comment: "" },
+  { id: "chk_align", activity: "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão devidamente alinhados", question_snapshot: "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão devidamente alinhados", status: "NOT_APPLICABLE", comment: "" },
+  { id: "chk_bal", activity: "Componentes rotativos estão balanceados", question_snapshot: "Componentes rotativos estão balanceados", status: "NOT_APPLICABLE", comment: "" },
+  { id: "chk_torque", activity: "Torques e Tensões estão corretos, utilizando torquímetros apropriados", question_snapshot: "Torques e Tensões estão corretos, utilizando torquímetros apropriados", status: "NOT_APPLICABLE", comment: "" },
+  { id: "chk_parts", activity: "Utilizados somente peças de acordo com a especificação para o equipamento (no BOM)", question_snapshot: "Utilizados somente peças de acordo com a especificação para o equipamento (no BOM)", status: "NOT_APPLICABLE", comment: "" },
+  { id: "chk_func", activity: "Teste Funcional executado", question_snapshot: "Teste Funcional executado", status: "NOT_APPLICABLE", comment: "" },
+  { id: "chk_doc", activity: "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)", question_snapshot: "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)", status: "NOT_APPLICABLE", comment: "" }
 ];
 
 export const getStandardPrecisionItems = () => JSON.parse(JSON.stringify(STANDARD_PRECISION_ITEMS));
 
 const STANDARD_HRA_QUESTIONS: HraQuestion[] = [
-  { id: "1.1", category: "1. Procedimentos e Comunicação", question: "Os procedimentos são precisos e revisados?", answer: "", comment: "" },
-  { id: "1.3", category: "1. Procedimentos e Comunicação", question: "Os procedimentos estão alinhados com as práticas reais?", answer: "", comment: "" },
-  { id: "1.4", category: "1. Procedimentos e Comunicação", question: "Há comunicação apropriada de métodos de compartilhamento e escalonamento?", answer: "", comment: "" },
-  { id: "2.1", category: "2. Treinamentos, materiais e sua eficiência", question: "Os materiais de treinamento refletem as informações e conhecimentos necessários?", answer: "", comment: "" },
-  { id: "2.2", category: "2. Treinamentos, materiais e sua eficiência", question: "Os conhecimentos e habilidades são adquiridos segundo as rotinas?", answer: "", comment: "" },
-  { id: "3.1", category: "3. Impactos externos (físicos e cognitivos)", question: "Todos os fatores externos como estresse, altos ruídos, calor/frio, vibração, atividades complexas, etc. estão sob controle?", answer: "", comment: "" },
-  { id: "4.1", category: "4. Trabalho rotineiro e monótono", question: "Há flexibilidade de treinamentos cruzados disponíveis para os profissionais?", answer: "", comment: "" },
-  { id: "4.2", category: "4. Trabalho rotineiro e monótono", question: "Os funcionários compreendem o valor e o impacto de seu trabalho?", answer: "", comment: "" },
-  { id: "5.1", category: "5. Organização do ambiente e dos processos", question: "As condições de trabalho como: localização e acesso às ferramentas/equipamentos, sequência ideal de tarefas e padrões foram satisfeitas?", answer: "", comment: "" },
-  { id: "6.1", category: "6. Medidas contra falhas", question: "Existem medidas para ajudar a identificar erros potenciais durante tarefas críticas, atividades ou eventos não rotineiros?", answer: "", comment: "" },
-  { id: "6.2", category: "6. Medidas contra falhas", question: "Os executantes estavam focados na atividade de forma que não ocorresse erro por falta de atenção?", answer: "", comment: "" }
+  { id: "1.1", category: "1. Procedimentos e Comunicação", question: "Os procedimentos são precisos e revisados?", question_snapshot: "Os procedimentos são precisos e revisados?", answer: "", comment: "" },
+  { id: "1.3", category: "1. Procedimentos e Comunicação", question: "Os procedimentos estão alinhados com as práticas reais?", question_snapshot: "Os procedimentos estão alinhados com as práticas reais?", answer: "", comment: "" },
+  { id: "1.4", category: "1. Procedimentos e Comunicação", question: "Há comunicação apropriada de métodos de compartilhamento e escalonamento?", question_snapshot: "Há comunicação apropriada de métodos de compartilhamento e escalonamento?", answer: "", comment: "" },
+  { id: "2.1", category: "2. Treinamentos, materiais e sua eficiência", question: "Os materiais de treinamento refletem as informações e conhecimentos necessários?", question_snapshot: "Os materiais de treinamento refletem as informações e conhecimentos necessários?", answer: "", comment: "" },
+  { id: "2.2", category: "2. Treinamentos, materiais e sua eficiência", question: "Os conhecimentos e habilidades são adquiridos segundo as rotinas?", question_snapshot: "Os conhecimentos e habilidades são adquiridos segundo as rotinas?", answer: "", comment: "" },
+  { id: "3.1", category: "3. Impactos externos (físicos e cognitivos)", question: "Todos os fatores externos como estresse, altos ruídos, calor/frio, vibração, atividades complexas, etc. estão sob controle?", question_snapshot: "Todos os fatores externos como estresse, altos ruídos, calor/frio, vibração, atividades complexas, etc. estão sob controle?", answer: "", comment: "" },
+  { id: "4.1", category: "4. Trabalho rotineiro e monótono", question: "Há flexibilidade de treinamentos cruzados disponíveis para os profissionais?", question_snapshot: "Há flexibilidade de treinamentos cruzados disponíveis para os profissionais?", answer: "", comment: "" },
+  { id: "4.2", category: "4. Trabalho rotineiro e monótono", question: "Os funcionários compreendem o valor e o impacto de seu trabalho?", question_snapshot: "Os funcionários compreendem o valor e o impacto de seu trabalho?", answer: "", comment: "" },
+  { id: "5.1", category: "5. Organização do ambiente e dos processos", question: "As condições de trabalho como: localização e acesso às ferramentas/equipamentos, sequência ideal de tarefas e padrões foram satisfeitas?", question_snapshot: "As condições de trabalho como: localização e acesso às ferramentas/equipamentos, sequência ideal de tarefas e padrões foram satisfeitas?", answer: "", comment: "" },
+  { id: "6.1", category: "6. Medidas contra falhas", question: "Existem medidas para ajudar a identificar erros potenciais durante tarefas críticas, atividades ou eventos não rotineiros?", question_snapshot: "Existem medidas para ajudar a identificar erros potenciais durante tarefas críticas, atividades ou eventos não rotineiros?", answer: "", comment: "" },
+  { id: "6.2", category: "6. Medidas contra falhas", question: "Os executantes estavam focados na atividade de forma que não ocorresse erro por falta de atenção?", question_snapshot: "Os executantes estavam focados na atividade de forma que não ocorresse erro por falta de atenção?", answer: "", comment: "" }
 ];
 
 const STANDARD_HRA_CONCLUSIONS: HraConclusion[] = [
@@ -143,12 +142,12 @@ export const getStandardHraStruct = (): HumanReliabilityAnalysis => ({
 const INITIAL_RECORDS: RcaRecord[] = [
   {
     id: 'RCA-EXAMPLE-01',
-    version: '16.0',
+    version: '17.0',
     analysis_date: '2025-08-25',
     analysis_duration_minutes: 45,
     analysis_type: 'TYPE-01',
     status: 'STATUS-DONE',
-    participants: 'Ademir, Lucas, Paulo e Lourival',
+    participants: ['Ademir', 'Lucas', 'Paulo', 'Lourival'],
     facilitator: 'Felipe Moraes',
     
     failure_date: '2025-08-25',
@@ -195,14 +194,20 @@ const INITIAL_RECORDS: RcaRecord[] = [
       { id: 'RC-01', root_cause_m_id: 'M-06', cause: 'Fim de vida útil do componente eletrônico do drive.' }
     ],
 
-    precision_maintenance: STANDARD_PRECISION_ITEMS.map(i => i.id === 1 ? {...i, status: "EXECUTED"} : i),
+    precision_maintenance: STANDARD_PRECISION_ITEMS.map(i => i.id === 'chk_clean' ? {...i, status: "EXECUTED"} : i),
     
     human_reliability: getStandardHraStruct(),
 
     containment_actions: [
       { id: 'ACT-C-01', action: 'Troca do drive reserva', responsible: 'Turno', date: '2025-08-25', status: 'Concluído' }
     ],
-    lessons_learned: ['Monitorar temperatura dos drives antigos com maior frequência']
+    lessons_learned: ['Monitorar temperatura dos drives antigos com maior frequência'],
+
+    additionalInfo: {
+        meetingNotes: '',
+        comments: '',
+        historicalInfo: ''
+    }
   }
 ];
 
@@ -267,6 +272,10 @@ export const saveRecord = (record: RcaRecord): void => {
   localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
 };
 
+export const saveRecords = (records: RcaRecord[]): void => {
+    localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+};
+
 // --- ACTIONS (New Independent Store) ---
 export const getActions = (): ActionRecord[] => {
   const stored = localStorage.getItem(STORAGE_KEY_ACTIONS);
@@ -293,6 +302,10 @@ export const saveAction = (action: ActionRecord): void => {
   localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(actions));
 };
 
+export const saveActions = (actions: ActionRecord[]): void => {
+    localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(actions));
+};
+
 export const deleteAction = (actionId: string): void => {
   const actions = getActions();
   const newActions = actions.filter(a => a.id !== actionId);
@@ -303,24 +316,35 @@ export const deleteAction = (actionId: string): void => {
 export const importData = (jsonContent: string): { success: boolean, message: string } => {
   try {
     const data: MigrationData = JSON.parse(jsonContent);
-    if (!Array.isArray(data.assets) || !Array.isArray(data.records)) {
-      return { success: false, message: "Invalid JSON Schema." };
+    const records = data.records || (Array.isArray(data) ? data : []);
+    const actions = data.actions || [];
+    const assets = data.assets || [];
+    const taxonomy = data.taxonomy;
+
+    if (!Array.isArray(records)) {
+      return { success: false, message: "Invalid JSON: Missing records array." };
     }
-    localStorage.setItem(STORAGE_KEY_ASSETS, JSON.stringify(data.assets));
-    localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(data.records));
-    if (data.taxonomy) localStorage.setItem(STORAGE_KEY_TAXONOMY, JSON.stringify(data.taxonomy));
-    if (data.actions) localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(data.actions));
+
+    if(assets.length > 0) localStorage.setItem(STORAGE_KEY_ASSETS, JSON.stringify(assets));
+    if(records.length > 0) localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+    if(actions.length > 0) localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(actions));
+    if(taxonomy) localStorage.setItem(STORAGE_KEY_TAXONOMY, JSON.stringify(taxonomy));
     
-    return { success: true, message: `Imported successfully.` };
+    return { success: true, message: `Imported successfully. Records: ${records.length}` };
   } catch (e) {
+    console.error(e);
     return { success: false, message: "JSON Parse Error" };
   }
 };
 
 export const exportData = (): string => {
   const data: MigrationData = {
-    version: '17.0',
-    exportedAt: new Date().toISOString(),
+    metadata: {
+        exportDate: new Date().toISOString(),
+        systemVersion: '17.0',
+        recordCount: getRecords().length,
+        description: 'Full System Backup'
+    },
     assets: getAssets(),
     records: getRecords(),
     actions: getActions(),

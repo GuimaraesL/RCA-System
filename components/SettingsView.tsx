@@ -16,6 +16,8 @@ export const SettingsView: React.FC = () => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editValue, setEditValue] = useState('');
 
+    const safeItems = items || [];
+
     const handleAdd = () => {
       addItem(field, newItemName);
       setNewItemName('');
@@ -41,7 +43,7 @@ export const SettingsView: React.FC = () => {
         <h3 className="text-sm font-bold text-slate-800 uppercase mb-4 pb-2 border-b">{title}</h3>
         
         <div className="flex-1 overflow-y-auto space-y-2 mb-4 max-h-60 custom-scrollbar">
-          {items.map((item) => (
+          {safeItems.map((item) => (
             <div key={item.id} className="flex items-center justify-between p-2 bg-slate-50 rounded group border border-transparent hover:border-slate-200">
               {editingId === item.id ? (
                 <div className="flex-1 flex gap-2">
@@ -68,6 +70,9 @@ export const SettingsView: React.FC = () => {
               )}
             </div>
           ))}
+          {safeItems.length === 0 && (
+            <div className="text-xs text-slate-400 italic text-center py-4">No items defined.</div>
+          )}
         </div>
 
         <div className="flex gap-2 mt-auto pt-2 border-t border-slate-100">
