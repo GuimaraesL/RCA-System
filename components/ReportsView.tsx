@@ -104,19 +104,6 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
   const openActions = relevantActions.filter(a => a.status !== '3' && a.status !== '4');
   const overdueActions = openActions.filter(a => new Date(a.date) < new Date());
 
-  const costByArea = filteredRecords.reduce((acc: any, r) => {
-    const areaId = r.area_id;
-    const areaName = availableAreas.find(a => a.id === areaId)?.name || 'Unknown Area';
-    acc[areaName] = (acc[areaName] || 0) + (r.financial_impact || 0);
-    return acc;
-  }, {});
-
-  const failureModeCount = filteredRecords.reduce((acc: any, r) => {
-    const mode = getName('failureModes', r.failure_mode_id || 'Unknown');
-    acc[mode] = (acc[mode] || 0) + 1;
-    return acc;
-  }, {});
-
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
@@ -135,7 +122,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
         </div>
       </div>
 
-      {/* Filters (same as dashboard, kept for context of specific reporting view if needed) */}
+      {/* Filters */}
       {showFilters && (
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-in fade-in slide-in-from-top-2">
             <div className="flex justify-between items-center mb-4">
@@ -174,7 +161,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
             <div className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Total Financial Impact</div>
-            <div className="text-2xl font-bold text-slate-800">${totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="text-2xl font-bold text-slate-800">${(totalCost || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
         </div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
             <div className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Total Downtime</div>

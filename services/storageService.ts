@@ -111,17 +111,17 @@ const STANDARD_PRECISION_ITEMS: PrecisionChecklistItem[] = [
 export const getStandardPrecisionItems = () => JSON.parse(JSON.stringify(STANDARD_PRECISION_ITEMS));
 
 const STANDARD_HRA_QUESTIONS: HraQuestion[] = [
-  { id: "1.1", category: "1. Procedimentos e Comunicação", question: "Os procedimentos são precisos e revisados?", question_snapshot: "Os procedimentos são precisos e revisados?", answer: "", comment: "" },
-  { id: "1.3", category: "1. Procedimentos e Comunicação", question: "Os procedimentos estão alinhados com as práticas reais?", question_snapshot: "Os procedimentos estão alinhados com as práticas reais?", answer: "", comment: "" },
-  { id: "1.4", category: "1. Procedimentos e Comunicação", question: "Há comunicação apropriada de métodos de compartilhamento e escalonamento?", question_snapshot: "Há comunicação apropriada de métodos de compartilhamento e escalonamento?", answer: "", comment: "" },
-  { id: "2.1", category: "2. Treinamentos, materiais e sua eficiência", question: "Os materiais de treinamento refletem as informações e conhecimentos necessários?", question_snapshot: "Os materiais de treinamento refletem as informações e conhecimentos necessários?", answer: "", comment: "" },
-  { id: "2.2", category: "2. Treinamentos, materiais e sua eficiência", question: "Os conhecimentos e habilidades são adquiridos segundo as rotinas?", question_snapshot: "Os conhecimentos e habilidades são adquiridos segundo as rotinas?", answer: "", comment: "" },
-  { id: "3.1", category: "3. Impactos externos (físicos e cognitivos)", question: "Todos os fatores externos como estresse, altos ruídos, calor/frio, vibração, atividades complexas, etc. estão sob controle?", question_snapshot: "Todos os fatores externos como estresse, altos ruídos, calor/frio, vibração, atividades complexas, etc. estão sob controle?", answer: "", comment: "" },
-  { id: "4.1", category: "4. Trabalho rotineiro e monótono", question: "Há flexibilidade de treinamentos cruzados disponíveis para os profissionais?", question_snapshot: "Há flexibilidade de treinamentos cruzados disponíveis para os profissionais?", answer: "", comment: "" },
-  { id: "4.2", category: "4. Trabalho rotineiro e monótono", question: "Os funcionários compreendem o valor e o impacto de seu trabalho?", question_snapshot: "Os funcionários compreendem o valor e o impacto de seu trabalho?", answer: "", comment: "" },
-  { id: "5.1", category: "5. Organização do ambiente e dos processos", question: "As condições de trabalho como: localização e acesso às ferramentas/equipamentos, sequência ideal de tarefas e padrões foram satisfeitas?", question_snapshot: "As condições de trabalho como: localização e acesso às ferramentas/equipamentos, sequência ideal de tarefas e padrões foram satisfeitas?", answer: "", comment: "" },
-  { id: "6.1", category: "6. Medidas contra falhas", question: "Existem medidas para ajudar a identificar erros potenciais durante tarefas críticas, atividades ou eventos não rotineiros?", question_snapshot: "Existem medidas para ajudar a identificar erros potenciais durante tarefas críticas, atividades ou eventos não rotineiros?", answer: "", comment: "" },
-  { id: "6.2", category: "6. Medidas contra falhas", question: "Os executantes estavam focados na atividade de forma que não ocorresse erro por falta de atenção?", question_snapshot: "Os executantes estavam focados na atividade de forma que não ocorresse erro por falta de atenção?", answer: "", comment: "" }
+  { id: "1.1", category: "Procedimentos e Comunicação", question: "Os procedimentos são precisos e revisados?", question_snapshot: "Os procedimentos são precisos e revisados?", answer: "", comment: "" },
+  { id: "1.3", category: "Procedimentos e Comunicação", question: "Os procedimentos estão alinhados com as práticas reais?", question_snapshot: "Os procedimentos estão alinhados com as práticas reais?", answer: "", comment: "" },
+  { id: "1.4", category: "Procedimentos e Comunicação", question: "Há comunicação apropriada e métodos de compartilhamento e escalonamento?", question_snapshot: "Há comunicação apropriada e métodos de compartilhamento e escalonamento?", answer: "", comment: "" },
+  { id: "2.1", category: "Treinamentos, materiais e sua eficiência", question: "Os materiais de treinamento refletem as informações e conhecimentos necessários para as competências identificadas?", question_snapshot: "Os materiais de treinamento refletem as informações e conhecimentos necessários para as competências identificadas?", answer: "", comment: "" },
+  { id: "2.2", category: "Treinamentos, materiais e sua eficiência", question: "Os conhecimentos e habilidades estão sendo adquiridos e retidos?", question_snapshot: "Os conhecimentos e habilidades estão sendo adquiridos e retidos?", answer: "", comment: "" },
+  { id: "3.1", category: "Impactos externos (físicos e cognitivos)", question: "Há algum fator externo que possa afetar o desempenho do profissional: estresse, altos ruídos, calor/frio, vibração, atividades complexas, etc.?", question_snapshot: "Há algum fator externo que possa afetar o desempenho do profissional: estresse, altos ruídos, calor/frio, vibração, atividades complexas, etc.?", answer: "", comment: "" },
+  { id: "4.1", category: "Trabalho rotineiro e monótono", question: "Há flexibilidade e treinamentos cruzados disponíveis para os profissionais?", question_snapshot: "Há flexibilidade e treinamentos cruzados disponíveis para os profissionais?", answer: "", comment: "" },
+  { id: "4.2", category: "Trabalho rotineiro e monótono", question: "Os funcionários compreendem o valor e o impacto de seu trabalho?", question_snapshot: "Os funcionários compreendem o valor e o impacto de seu trabalho?", answer: "", comment: "" },
+  { id: "5.1", category: "Organização do ambiente e dos processos", question: "As condições de trabalho têm situações que criam dificuldades práticas para os funcionários: localização e acesso as ferramentas/equipamentos, sequência ideal de tarefas e padrões apropriados em vigor?", question_snapshot: "As condições de trabalho têm situações que criam dificuldades práticas para os funcionários: localização e acesso as ferramentas/equipamentos, sequência ideal de tarefas e padrões apropriados em vigor?", answer: "", comment: "" },
+  { id: "6.1", category: "Medidas contra falhas", question: "Existem medidas para ajudar a identificar erros potenciais durante tarefas críticas, atividades ou eventos não rotineiros?", question_snapshot: "Existem medidas para ajudar a identificar erros potenciais durante tarefas críticas, atividades ou eventos não rotineiros?", answer: "", comment: "" },
+  { id: "6.2", category: "Medidas contra falhas", question: "Há erros que podem ter acontecido por falta de atenção?", question_snapshot: "Há erros que podem ter acontecido por falta de atenção?", answer: "", comment: "" }
 ];
 
 const STANDARD_HRA_CONCLUSIONS: HraConclusion[] = [
@@ -150,6 +150,10 @@ const INITIAL_RECORDS: RcaRecord[] = [
     participants: ['Ademir', 'Lucas', 'Paulo', 'Lourival'],
     facilitator: 'Felipe Moraes',
     
+    start_date: '2025-08-25',
+    completion_date: '2025-08-26',
+    requires_operation_support: false,
+
     failure_date: '2025-08-25',
     failure_time: '13:02',
     downtime_minutes: 108,
@@ -171,7 +175,8 @@ const INITIAL_RECORDS: RcaRecord[] = [
     when: 'Durante operação normal',
     where_description: 'Sala de Drives',
     problem_description: 'Parada de 108 minutos no CM3 devido Falha no drive da bomba principal do rolling oil causando normal stop',
-    potential_impacts: 'Downtime. Não houve desvio de qualidade.',
+    potential_impacts: 'Downtime.',
+    quality_impacts: 'Não houve desvio de qualidade.',
     
     five_whys: [
       { id: '1', why_question: 'Laminador parado', answer: 'Falha no sistema rolling oil' },
@@ -202,6 +207,7 @@ const INITIAL_RECORDS: RcaRecord[] = [
       { id: 'ACT-C-01', action: 'Troca do drive reserva', responsible: 'Turno', date: '2025-08-25', status: 'Concluído' }
     ],
     lessons_learned: ['Monitorar temperatura dos drives antigos com maior frequência'],
+    general_moc_number: 'MOC-2025-001',
 
     additionalInfo: {
         meetingNotes: '',
@@ -318,19 +324,87 @@ export const importData = (jsonContent: string): { success: boolean, message: st
     const data: MigrationData = JSON.parse(jsonContent);
     const records = data.records || (Array.isArray(data) ? data : []);
     const actions = data.actions || [];
-    const assets = data.assets || [];
-    const taxonomy = data.taxonomy;
+    let assets = data.assets || getAssets(); // Default to existing if not in JSON
+    let taxonomy = data.taxonomy || getTaxonomy(); // Default to existing
 
     if (!Array.isArray(records)) {
       return { success: false, message: "Invalid JSON: Missing records array." };
     }
 
-    if(assets.length > 0) localStorage.setItem(STORAGE_KEY_ASSETS, JSON.stringify(assets));
-    if(records.length > 0) localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
-    if(actions.length > 0) localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(actions));
-    if(taxonomy) localStorage.setItem(STORAGE_KEY_TAXONOMY, JSON.stringify(taxonomy));
+    // --- 1. Auto-Discover Taxonomy Items from Records ---
+    // This ensures that imported IDs (which might be text names in legacy data) 
+    // exist in the settings dropdowns.
+    const ensureTaxonomy = (listKey: keyof TaxonomyConfig, val: string) => {
+        if (!val) return '';
+        const list = taxonomy[listKey] || [];
+        // Check by ID or Name match
+        const existing = list.find(i => i.id === val || i.name.toLowerCase() === val.toLowerCase());
+        if (existing) return existing.id;
+        
+        // Create new
+        const newId = val.length < 10 ? val : generateId('AUTO'); // Keep legacy ID if short, else gen new
+        list.push({ id: newId, name: val });
+        taxonomy[listKey] = list;
+        return newId;
+    };
+
+    // --- 2. Auto-Discover Asset Hierarchy from Records ---
+    // Builds the tree (Area -> Equipment -> Subgroup) based on record fields
+    const ensureAsset = (currentNodes: AssetNode[], id: string, type: 'AREA'|'EQUIPMENT'|'SUBGROUP', parentId?: string): AssetNode => {
+        let node = currentNodes.find(n => n.id === id);
+        if (!node) {
+            node = { id, name: id, type, children: [], parentId };
+            currentNodes.push(node);
+        }
+        return node;
+    };
+
+    const recordsToSave = records.map((rec: any) => {
+        // Normalize Taxonomy Fields
+        if (rec.specialty_id) rec.specialty_id = ensureTaxonomy('specialties', rec.specialty_id);
+        if (rec.failure_mode_id) rec.failure_mode_id = ensureTaxonomy('failureModes', rec.failure_mode_id);
+        if (rec.failure_category_id) rec.failure_category_id = ensureTaxonomy('failureCategories', rec.failure_category_id);
+        if (rec.component_type) rec.component_type = ensureTaxonomy('componentTypes', rec.component_type);
+        if (rec.analysis_type) rec.analysis_type = ensureTaxonomy('analysisTypes', rec.analysis_type);
+        if (rec.status) rec.status = ensureTaxonomy('analysisStatuses', rec.status);
+
+        // Normalize Asset Hierarchy
+        if (rec.area_id) {
+            const areaNode = ensureAsset(assets, rec.area_id, 'AREA');
+            
+            if (rec.equipment_id) {
+                areaNode.children = areaNode.children || [];
+                const equipNode = ensureAsset(areaNode.children, rec.equipment_id, 'EQUIPMENT', rec.area_id);
+                
+                if (rec.subgroup_id) {
+                    equipNode.children = equipNode.children || [];
+                    ensureAsset(equipNode.children, rec.subgroup_id, 'SUBGROUP', rec.equipment_id);
+                }
+            }
+        }
+
+        // Normalize Root Cause M
+        if (rec.root_causes && Array.isArray(rec.root_causes)) {
+            rec.root_causes.forEach((rc: any) => {
+                if (rc.root_cause_m_id) {
+                    rc.root_cause_m_id = ensureTaxonomy('rootCauseMs', rc.root_cause_m_id);
+                }
+            });
+        }
+
+        return rec;
+    });
+
+    // Save Everything
+    localStorage.setItem(STORAGE_KEY_ASSETS, JSON.stringify(assets));
+    localStorage.setItem(STORAGE_KEY_TAXONOMY, JSON.stringify(taxonomy));
+    localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(recordsToSave));
     
-    return { success: true, message: `Imported successfully. Records: ${records.length}` };
+    if(actions.length > 0) {
+        localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(actions));
+    }
+    
+    return { success: true, message: `Imported successfully. Processed ${records.length} records and updated configuration.` };
   } catch (e) {
     console.error(e);
     return { success: false, message: "JSON Parse Error" };

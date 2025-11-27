@@ -55,16 +55,24 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange }) => {
                         onChange={(e) => onChange('problem_description', e.target.value)}
                     />
 
-                    <Textarea
-                        label="Impactos Potenciais"
-                        placeholder="Descreva os riscos: Segurança, Ambiental, Custo..."
-                        rows={4}
-                        value={data.potential_impacts}
-                        onChange={(e) => onChange('potential_impacts', e.target.value)}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Textarea
+                            label="Impactos Potenciais (Operacionais)"
+                            placeholder="Descreva os riscos: Segurança, Ambiental, Custo..."
+                            rows={4}
+                            value={data.potential_impacts}
+                            onChange={(e) => onChange('potential_impacts', e.target.value)}
+                        />
+                        <Textarea
+                            label="Impactos para a Qualidade"
+                            placeholder="Desvios de qualidade, refugos, etc."
+                            rows={4}
+                            value={data.quality_impacts || ''}
+                            onChange={(e) => onChange('quality_impacts', e.target.value)}
+                        />
+                    </div>
                 </div>
             </div>
-            {/* Image upload removed per production DTO constraint */}
         </div>
     );
 };

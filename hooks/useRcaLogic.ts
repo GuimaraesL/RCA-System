@@ -19,6 +19,10 @@ const createDefaultRecord = (): RcaRecord => ({
     participants: [],
     facilitator: '',
     
+    start_date: new Date().toISOString().split('T')[0],
+    completion_date: '',
+    requires_operation_support: false,
+
     failure_date: new Date().toISOString().split('T')[0],
     failure_time: '00:00',
     downtime_minutes: 0,
@@ -41,6 +45,7 @@ const createDefaultRecord = (): RcaRecord => ({
     where_description: '',
     problem_description: '',
     potential_impacts: '',
+    quality_impacts: '',
 
     five_whys: [
         { id: '1', why_question: '', answer: '' },
@@ -58,7 +63,8 @@ const createDefaultRecord = (): RcaRecord => ({
     human_reliability: getStandardHraStruct(),
 
     containment_actions: [],
-    lessons_learned: []
+    lessons_learned: [],
+    general_moc_number: ''
 });
 
 const findAssetPath = (nodes: AssetNode[], targetId: string): AssetNode[] | null => {
@@ -87,7 +93,8 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         setFormData(newRec);
     } else {
         // --- Migration Logic ---
-        let migratedRecord = { ...existingRecord };
+        // Merge with default record to ensure all fields exist (prevent undefined errors)
+        let migratedRecord = { ...createDefaultRecord(), ...existingRecord };
         const anyRecord = migratedRecord as any;
 
         // 1. Array-ify Root Causes
@@ -119,6 +126,13 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         if (!migratedRecord.human_reliability) {
             migratedRecord.human_reliability = getStandardHraStruct();
         }
+
+        // 5. Ensure nested objects are not overwritten by undefined spreads if source was partial
+        if(!migratedRecord.five_whys) migratedRecord.five_whys = createDefaultRecord().five_whys;
+        if(!migratedRecord.ishikawa) migratedRecord.ishikawa = emptyIshikawa;
+        if(!migratedRecord.precision_maintenance) migratedRecord.precision_maintenance = getStandardPrecisionItems();
+        if(!migratedRecord.containment_actions) migratedRecord.containment_actions = [];
+        if(!migratedRecord.lessons_learned) migratedRecord.lessons_learned = [];
 
         setFormData(migratedRecord);
     }

@@ -182,7 +182,7 @@ export const Dashboard: React.FC = () => {
                 <div className="p-2 bg-red-50 text-red-600 rounded-lg min-w-0"><DollarSign size={20}/></div>
             </div>
             <div className="text-2xl font-bold text-slate-800 mt-2">
-                ${totalCost.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                ${(totalCost || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </div>
         </div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
@@ -217,7 +217,7 @@ export const Dashboard: React.FC = () => {
                     <BarChart data={costChartData} margin={{bottom: 20, right: 20, left: 20}}>
                         <XAxis dataKey="name" tick={{fontSize: 10}} interval={0} angle={-15} textAnchor="end" height={60} />
                         <YAxis tickFormatter={(val) => `$${val/1000}k`} width={60} />
-                        <Tooltip formatter={(val: number) => `$${val.toLocaleString()}`} />
+                        <Tooltip formatter={(val: number) => `$${(val || 0).toLocaleString()}`} />
                         <Bar dataKey="cost" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={40} />
                     </BarChart>
                 </ResponsiveContainer>

@@ -65,10 +65,10 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy 
                 <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-sm text-blue-800">
                         <strong>Impacto Estimado:</strong> {' '}
-                        {data.financial_impact.toLocaleString('pt-BR', {
+                        {(data.financial_impact || 0).toLocaleString('pt-BR', {
                             style: 'currency',
                             currency: 'BRL'
-                        })} em {data.downtime_minutes} minutos de parada
+                        })} em {data.downtime_minutes || 0} minutos de parada
                     </p>
                 </div>
             </div>

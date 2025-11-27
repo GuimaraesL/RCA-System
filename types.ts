@@ -51,7 +51,7 @@ export interface IshikawaDiagram {
 export type PrecisionStatus = "EXECUTED" | "NOT_EXECUTED" | "NOT_APPLICABLE";
 
 export interface PrecisionChecklistItem {
-  id: string; // Semantic ID (slug)
+  id: string; // Semantic ID (slug) or UUID
   activity: string; // Current text definition
   question_snapshot?: string; // Historical text at time of record
   status: PrecisionStatus;
@@ -129,6 +129,11 @@ export interface RcaRecord {
   status: string;
   participants: string[]; // Normalized to Array
   facilitator: string;
+  
+  // Added fields from Excel Template
+  start_date?: string;
+  completion_date?: string;
+  requires_operation_support?: boolean;
 
   // 2. Definição do Evento
   failure_date: string;
@@ -156,7 +161,7 @@ export interface RcaRecord {
   where_description: string;
   problem_description: string;
   potential_impacts: string;
-  // REMOVED: image_url (Binary data removed for production DTO)
+  quality_impacts?: string; // Added field
 
   // 6. Investigação
   five_whys: FiveWhy[];
@@ -173,6 +178,7 @@ export interface RcaRecord {
   // 9. Planos e Lições
   containment_actions: ContainmentAction[];
   lessons_learned: string[];
+  general_moc_number?: string; // Added field
 
   // 10. Additional Info
   additionalInfo?: AdditionalInfo;

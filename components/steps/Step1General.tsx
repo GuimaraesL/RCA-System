@@ -29,9 +29,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
     };
 
     const handleParticipantsChange = (val: string) => {
-        const parts = val.split(',').map(p => p.trimStart()); // keep partial entries until blur, or simplistic approach
-        // Better: just store string and split on save? No, data model expects array.
-        // UI Pattern: Input text, split on comma.
+        const parts = val.split(',').map(p => p.trimStart());
         onChange('participants', parts);
     };
 
@@ -113,7 +111,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
 
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">Analysis Metadata</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                     <Select
                         label="Analysis Type"
                         options={[{value: '', label: 'Select...'}, ...taxonomy.analysisTypes.map(t => ({value: t.id, label: t.name}))]}
@@ -131,6 +129,30 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         value={data.participants.join(', ')}
                         onChange={(e) => handleParticipantsChange(e.target.value)}
                     />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Input
+                        label="Start Date (Inicio)"
+                        type="date"
+                        value={data.start_date || ''}
+                        onChange={(e) => onChange('start_date', e.target.value)}
+                    />
+                    <Input
+                        label="Completion Date (Conclusão)"
+                        type="date"
+                        value={data.completion_date || ''}
+                        onChange={(e) => onChange('completion_date', e.target.value)}
+                    />
+                    <div className="flex items-center pt-6">
+                        <input 
+                            type="checkbox" 
+                            id="opSupport"
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            checked={data.requires_operation_support || false}
+                            onChange={(e) => onChange('requires_operation_support', e.target.checked)}
+                        />
+                        <label htmlFor="opSupport" className="ml-2 text-sm font-medium text-gray-700">Necessário operação na AF?</label>
+                    </div>
                 </div>
             </div>
         </div>

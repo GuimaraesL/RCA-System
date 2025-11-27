@@ -54,7 +54,7 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                     <tbody className="divide-y divide-slate-100">
                         {data.human_reliability.questions.map(q => (
                             <tr key={q.id} className="hover:bg-slate-50">
-                                <td className="p-3 font-mono text-xs text-slate-400">{q.id}</td>
+                                <td className="p-3 font-mono text-xs text-slate-400 max-w-[80px] truncate" title={q.id}>{q.id}</td>
                                 <td className="p-3">
                                     <div className="text-xs text-slate-400 mb-1 font-bold uppercase">{q.category}</div>
                                     {q.question_snapshot || q.question}

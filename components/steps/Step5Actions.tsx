@@ -46,6 +46,18 @@ export const Step5Actions: React.FC<Step5Props> = ({
                 <p className="text-gray-600">Ações imediatas e corretivas para solucionar a falha</p>
             </div>
 
+            {/* MOC Number */}
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+                <div className="max-w-md">
+                    <Input 
+                        label="6a. Número do MOC (Geral da Análise)"
+                        placeholder="Management of Change ID (e.g. AQ40)"
+                        value={data.general_moc_number || ''}
+                        onChange={(e) => onChange('general_moc_number', e.target.value)}
+                    />
+                </div>
+            </div>
+
             {/* Containment Actions (Internal) */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                 <div className="flex justify-between items-center mb-4 border-b pb-2">
