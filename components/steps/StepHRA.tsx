@@ -62,7 +62,7 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                                 <td className="p-3 text-center"><button onClick={() => updateHraQuestion(q.id, 'answer', 'YES')} className={`p-1 rounded ${q.answer === 'YES' ? 'text-green-600 bg-green-50' : 'text-slate-300'}`}>{q.answer === 'YES' ? <CheckSquare size={18} /> : <Square size={18} />}</button></td>
                                 <td className="p-3 text-center"><button onClick={() => updateHraQuestion(q.id, 'answer', 'NO')} className={`p-1 rounded ${q.answer === 'NO' ? 'text-red-500 bg-red-50' : 'text-slate-300'}`}>{q.answer === 'NO' ? <XSquare size={18} /> : <Square size={18} />}</button></td>
                                 <td className="p-3">
-                                    <input type="text" className="w-full border-b border-slate-200 focus:border-indigo-500 outline-none bg-transparent text-xs py-1" placeholder="Add comment..." value={q.comment} onChange={e => updateHraQuestion(q.id, 'comment', e.target.value)} />
+                                    <input type="text" className="w-full border-b border-slate-200 focus:border-indigo-500 outline-none bg-transparent text-xs py-1 text-slate-900 placeholder:text-slate-400" placeholder="Add comment..." value={q.comment} onChange={e => updateHraQuestion(q.id, 'comment', e.target.value)} />
                                 </td>
                             </tr>
                         ))}

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Search, Filter, RefreshCw, ChevronUp, ChevronDown } from 'lucide-react';
 
@@ -120,7 +121,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                         <input 
                                             type="text" 
                                             placeholder={searchPlaceholder} 
-                                            className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 outline-none"
                                             value={filters.searchTerm}
                                             onChange={e => handleChange('searchTerm', e.target.value)}
                                         />
@@ -135,14 +136,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                     <div className="flex gap-2 items-center">
                                         <input 
                                             type="date" 
-                                            className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+                                            className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" 
                                             value={filters.dateStart} 
                                             onChange={e => handleChange('dateStart', e.target.value)} 
                                         />
                                         <span className="text-slate-300 font-bold">-</span>
                                         <input 
                                             type="date" 
-                                            className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+                                            className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" 
                                             value={filters.dateEnd} 
                                             onChange={e => handleChange('dateEnd', e.target.value)} 
                                         />
@@ -155,7 +156,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                 <div className="col-span-12 md:col-span-6 lg:col-span-4">
                                     <label className="block text-xs font-medium text-slate-500 mb-1.5">Status</label>
                                     <select 
-                                        className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                        className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
                                         value={filters.status}
                                         onChange={e => handleChange('status', e.target.value)}
                                     >
@@ -170,7 +171,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                 <div className="col-span-12 md:col-span-6 lg:col-span-6">
                                     <label className="block text-xs font-medium text-slate-500 mb-1.5">Area</label>
                                     <select 
-                                        className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                        className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
                                         value={filters.area}
                                         onChange={e => handleChange('area', e.target.value)}
                                     >
@@ -185,7 +186,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                 <div className="col-span-12 md:col-span-6 lg:col-span-6">
                                     <label className="block text-xs font-medium text-slate-500 mb-1.5">Failure Category</label>
                                     <select 
-                                        className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                        className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
                                         value={filters.category}
                                         onChange={e => handleChange('category', e.target.value)}
                                     >

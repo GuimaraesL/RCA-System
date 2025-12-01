@@ -64,7 +64,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                         ) : (
                             <select 
                                 required
-                                className="w-full border p-2 rounded text-sm bg-white"
+                                className="w-full border p-2 rounded text-sm bg-white text-slate-900"
                                 value={form.rca_id}
                                 onChange={e => setForm({...form, rca_id: e.target.value})}
                             >
@@ -77,7 +77,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                         <label className="block text-xs font-medium text-slate-500 mb-1">Action Description <span className="text-red-500">*</span></label>
                         <textarea 
                             required
-                            className="w-full border p-2 rounded text-sm h-24"
+                            className="w-full border p-2 rounded text-sm h-24 bg-white text-slate-900"
                             value={form.action}
                             onChange={e => setForm({...form, action: e.target.value})}
                         />
@@ -85,17 +85,17 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">Responsible</label>
-                            <input type="text" required className="w-full border p-2 rounded text-sm" value={form.responsible} onChange={e => setForm({...form, responsible: e.target.value})} />
+                            <input type="text" required className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.responsible} onChange={e => setForm({...form, responsible: e.target.value})} />
                         </div>
                         <div>
                              <label className="block text-xs font-medium text-slate-500 mb-1">Due Date</label>
-                             <input type="date" required className="w-full border p-2 rounded text-sm" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
+                             <input type="date" required className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                          <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">Status (Box)</label>
-                            <select className="w-full border p-2 rounded text-sm bg-white" value={form.status} onChange={e => setForm({...form, status: e.target.value as any})}>
+                            <select className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.status} onChange={e => setForm({...form, status: e.target.value as any})}>
                                 <option value="1">1 - Aprovada</option>
                                 <option value="2">2 - Em Andamento</option>
                                 <option value="3">3 - Concluída</option>
@@ -104,7 +104,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                          </div>
                          <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">MOC Number (Optional)</label>
-                            <input type="text" className="w-full border p-2 rounded text-sm" value={form.moc_number || ''} onChange={e => setForm({...form, moc_number: e.target.value})} />
+                            <input type="text" className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.moc_number || ''} onChange={e => setForm({...form, moc_number: e.target.value})} />
                          </div>
                     </div>
 

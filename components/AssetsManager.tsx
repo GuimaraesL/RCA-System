@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AssetNode } from '../types';
 import { Folder, Database, Layers, Plus, Trash2, Edit2, ChevronRight, ChevronDown, Lock } from 'lucide-react';
@@ -124,7 +125,7 @@ export const AssetsManager: React.FC = () => {
                   value={nodeType} 
                   onChange={e => setNodeType(e.target.value as any)}
                   disabled={!!selectedNode && !parentNode}
-                  className="w-full border border-slate-300 rounded-lg p-3 bg-white"
+                  className="w-full border border-slate-300 rounded-lg p-3 bg-white text-slate-900"
                 >
                   <option value="AREA">Area</option>
                   <option value="EQUIPMENT">Equipment</option>
@@ -139,7 +140,7 @@ export const AssetsManager: React.FC = () => {
                   value={nodeName}
                   onChange={e => setNodeName(e.target.value)}
                   placeholder="e.g. Rolling Mill 1"
-                  className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full border border-slate-300 rounded-lg p-3 bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
                 />
               </div>
 

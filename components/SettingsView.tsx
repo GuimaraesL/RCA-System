@@ -49,7 +49,7 @@ export const SettingsView: React.FC = () => {
                 <div className="flex-1 flex gap-2">
                   <input 
                     autoFocus
-                    className="flex-1 border border-blue-300 rounded px-2 py-1 text-sm outline-none"
+                    className="flex-1 border border-blue-300 rounded px-2 py-1 text-sm outline-none bg-white text-slate-900"
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
                   />
@@ -79,7 +79,7 @@ export const SettingsView: React.FC = () => {
           <input 
             type="text" 
             placeholder="Add new item..." 
-            className="flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm outline-none bg-white text-slate-900 placeholder:text-slate-400 focus:border-blue-500"
             value={newItemName}
             onChange={e => setNewItemName(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleAdd()}

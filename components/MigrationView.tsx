@@ -209,7 +209,7 @@ export const MigrationView: React.FC = () => {
                      <div className="mb-6">
                         <label className="block text-sm font-medium text-slate-700 mb-2">Target Entity</label>
                         <select 
-                            className="w-full md:w-1/2 p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full md:w-1/2 p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-900"
                             value={csvType}
                             onChange={e => { setCsvType(e.target.value as CsvEntityType); setMsg(null); }}
                         >

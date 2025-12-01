@@ -86,7 +86,7 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
                         <div key={idx} className="flex gap-2">
                             <input 
                                 type="text" 
-                                className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+                                className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-slate-900 placeholder:text-slate-400" 
                                 value={lesson} 
                                 onChange={e => updateLesson(idx, e.target.value)}
                             />

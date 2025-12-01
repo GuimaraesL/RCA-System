@@ -69,7 +69,7 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
                                 <td className="p-3">
                                     <input 
                                         type="text" 
-                                        className="w-full border-b border-slate-200 focus:border-blue-500 outline-none bg-transparent text-xs py-1" 
+                                        className="w-full border-b border-slate-200 focus:border-blue-500 outline-none bg-transparent text-xs py-1 text-slate-900 placeholder:text-slate-400" 
                                         placeholder="Add comment..." 
                                         value={item.comment || ''} 
                                         onChange={(e) => updatePrecision(item.id, 'comment', e.target.value)}

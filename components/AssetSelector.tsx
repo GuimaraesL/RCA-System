@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { AssetNode } from '../types';
 import { ChevronRight, ChevronDown, Folder, Database, Layers } from 'lucide-react';
 
@@ -76,13 +77,30 @@ const AssetTreeNode: React.FC<{
 };
 
 export const AssetSelector: React.FC<AssetSelectorProps> = ({ assets, onSelect, selectedAssetId, selectableTypes }) => {
-  if (!assets || assets.length === 0) {
+  
+  // Recursive function to sort nodes alphabetically by name
+  const sortNodes = (nodes: AssetNode[]): AssetNode[] => {
+    return [...nodes]
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }))
+      .map(node => ({
+        ...node,
+        children: node.children ? sortNodes(node.children) : undefined
+      }));
+  };
+
+  // Memoize the sorted tree to prevent unnecessary re-sorting on every render
+  const sortedAssets = useMemo(() => {
+    if (!assets) return [];
+    return sortNodes(assets);
+  }, [assets]);
+
+  if (!sortedAssets || sortedAssets.length === 0) {
       return <div className="p-4 text-xs text-slate-400 text-center italic">No assets configured. Go to Assets tab.</div>;
   }
   
   return (
     <div className="border rounded-lg p-2 bg-white shadow-sm h-64 overflow-y-auto custom-scrollbar">
-      {assets.map(asset => (
+      {sortedAssets.map(asset => (
         <AssetTreeNode 
           key={asset.id} 
           node={asset} 
