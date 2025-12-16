@@ -14,53 +14,33 @@ interface AnalysesViewProps {
 export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => {
   const { records, assets, taxonomy } = useRcaContext();
 
-  // --- Persistent Filter State ---
+  // --- Persistent Filter State (Updated) ---
   const defaultFilters: FilterState = {
       searchTerm: '',
-      dateStart: '',
-      dateEnd: '',
+      year: '', // Optional in list view
+      months: [],
       status: 'ALL',
       area: 'ALL',
-      category: 'ALL'
+      equipment: 'ALL',
+      subgroup: 'ALL',
+      specialty: 'ALL',
+      analysisType: 'ALL'
   };
 
   const { showFilters, setShowFilters, filters, setFilters, handleReset } = useFilterPersistence(
-      'rca_analyses_view', 
+      'rca_analyses_view_v2', 
       defaultFilters,
       true
   );
 
-  // --- Helpers for Display ---
+  // --- Helpers ---
   const getName = (type: keyof TaxonomyConfig, id: string) => {
       if (!taxonomy || !id) return id;
-      const item = taxonomy[type].find(t => t.id === id);
+      const item = (taxonomy[type] as any[]).find((t: any) => t.id === id);
       return item ? item.name : id;
   };
 
-  // --- Derived Lists ---
-  const availableAreas = useMemo(() => {
-      const areas: {id: string, name: string}[] = [];
-      const traverse = (nodes: AssetNode[]) => {
-          nodes.forEach(n => {
-              if (n.type === 'AREA') areas.push({id: n.id, name: n.name});
-              if (n.children) traverse(n.children);
-          });
-      };
-      traverse(assets);
-      return areas;
-  }, [assets]);
-
-  const availableCategories = useMemo(() => {
-      if(!taxonomy) return [];
-      return taxonomy.failureCategories;
-  }, [taxonomy]);
-
-  const availableStatuses = useMemo(() => {
-      if(!taxonomy) return [];
-      return taxonomy.analysisStatuses;
-  }, [taxonomy]);
-
-  // --- Filtering Logic ---
+  // --- Filtering Logic (Matches Dashboard logic roughly) ---
   const filteredRecords = useMemo(() => {
     return records.filter(r => {
         // Text Search
@@ -68,22 +48,28 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         const matchesSearch = !filters.searchTerm || 
             r.what?.toLowerCase().includes(searchLower) ||
             r.problem_description?.toLowerCase().includes(searchLower) ||
-            r.id.toLowerCase().includes(searchLower) ||
-            r.os_number?.toLowerCase().includes(searchLower) ||
-            r.asset_name_display?.toLowerCase().includes(searchLower);
+            r.id.toLowerCase().includes(searchLower);
 
-        // Date Range
+        // Date (Year Only if set)
         const rDate = new Date(r.failure_date);
-        const start = filters.dateStart ? new Date(filters.dateStart) : null;
-        const end = filters.dateEnd ? new Date(filters.dateEnd) : null;
-        const matchesDate = (!start || rDate >= start) && (!end || rDate <= end);
+        const matchesYear = !filters.year || rDate.getFullYear().toString() === filters.year;
+        
+        // Month
+        const rMonth = (rDate.getMonth() + 1).toString().padStart(2, '0');
+        const matchesMonth = filters.months.length === 0 || filters.months.includes(rMonth);
 
-        // Dropdowns
+        // Filters
         const matchesStatus = filters.status === 'ALL' || r.status === filters.status;
-        const matchesArea = filters.area === 'ALL' || r.area_id === filters.area;
-        const matchesCategory = filters.category === 'ALL' || r.failure_category_id === filters.category;
+        const matchesType = filters.analysisType === 'ALL' || r.analysis_type === filters.analysisType;
+        const matchesSpecialty = filters.specialty === 'ALL' || r.specialty_id === filters.specialty;
 
-        return matchesSearch && matchesDate && matchesStatus && matchesArea && matchesCategory;
+        // Assets
+        let matchesAsset = true;
+        if (filters.subgroup !== 'ALL') matchesAsset = r.subgroup_id === filters.subgroup;
+        else if (filters.equipment !== 'ALL') matchesAsset = r.equipment_id === filters.equipment;
+        else if (filters.area !== 'ALL') matchesAsset = r.area_id === filters.area;
+
+        return matchesSearch && matchesYear && matchesMonth && matchesStatus && matchesAsset && matchesType && matchesSpecialty;
     });
   }, [records, filters]);
 
@@ -114,15 +100,15 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
               showSearch: true,
               showDate: true,
               showStatus: true,
-              showArea: true,
-              showCategory: true,
-              searchPlaceholder: "Search by Title, ID, Asset...",
-              dateLabel: "Failure Date Range"
+              showAssetHierarchy: true,
+              showAnalysisType: true,
+              showSpecialty: true
           }}
           options={{
-              statuses: availableStatuses,
-              areas: availableAreas,
-              categories: availableCategories
+              statuses: taxonomy.analysisStatuses,
+              analysisTypes: taxonomy.analysisTypes,
+              specialties: taxonomy.specialties,
+              assets: assets
           }}
       />
 

@@ -24,39 +24,24 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
     setTaxonomy(getTaxonomy());
   }, []);
 
-  // --- Persistent Filter State ---
+  // --- Persistent Filter State (Updated) ---
   const defaultFilters: FilterState = {
       searchTerm: '',
-      dateStart: '',
-      dateEnd: '',
-      status: 'ALL',
+      year: '',
+      months: [],
+      status: 'ALL', // Box Status
       area: 'ALL',
-      category: 'ALL'
+      equipment: 'ALL',
+      subgroup: 'ALL',
+      specialty: 'ALL',
+      analysisType: 'ALL'
   };
 
   const { showFilters, setShowFilters, filters, setFilters, handleReset } = useFilterPersistence(
-      'rca_actions_view', 
+      'rca_actions_view_v2', 
       defaultFilters,
       true
   );
-
-  // --- Derived Filter Lists ---
-  const availableAreas = useMemo(() => {
-      const areas: {id: string, name: string}[] = [];
-      const traverse = (nodes: AssetNode[]) => {
-          nodes.forEach(n => {
-              if (n.type === 'AREA') areas.push({id: n.id, name: n.name});
-              if (n.children) traverse(n.children);
-          });
-      };
-      traverse(assets);
-      return areas;
-  }, [assets]);
-
-  const availableCategories = useMemo(() => {
-      if(!taxonomy) return [];
-      return taxonomy.failureCategories;
-  }, [taxonomy]);
 
   const boxStatusOptions = [
       { id: '1', name: '1 - Aprovada' },
@@ -68,27 +53,29 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
   // --- Filter Logic ---
   const filteredActions = useMemo(() => {
       return actions.filter(a => {
-        // Search (Action, Responsible, RCA Title)
+        // Search
         const searchLower = filters.searchTerm.toLowerCase();
         const matchesSearch = !filters.searchTerm || 
                               a.action.toLowerCase().includes(searchLower) || 
                               a.responsible.toLowerCase().includes(searchLower) ||
                               a.rcaTitle.toLowerCase().includes(searchLower);
         
-        // Status
+        // Status (Box)
         const matchesStatus = filters.status === 'ALL' || a.status === filters.status;
 
-        // Date
+        // Date (Year/Month)
         const aDate = new Date(a.date);
-        const start = filters.dateStart ? new Date(filters.dateStart) : null;
-        const end = filters.dateEnd ? new Date(filters.dateEnd) : null;
-        const matchesDate = (!start || aDate >= start) && (!end || aDate <= end);
+        const matchesYear = !filters.year || aDate.getFullYear().toString() === filters.year;
+        const matchesMonth = filters.months.length === 0 || filters.months.includes((aDate.getMonth()+1).toString().padStart(2, '0'));
 
-        // Context Filters (Area & Category from Linked RCA)
-        const matchesArea = filters.area === 'ALL' || a.areaId === filters.area;
-        const matchesCategory = filters.category === 'ALL' || a.categoryId === filters.category;
+        // Context Filters (Asset from Linked RCA)
+        let matchesAsset = true;
+        // Logic: actions ViewModel only has 'areaId'. For deep asset filtering, we'd need more data in ViewModel.
+        // For now, we support Area filter only in Actions View as implemented in useActionsLogic hook (viewModel has areaId).
+        // Deep asset filtering could be added if ViewModel is expanded, but Area is sufficient for general context.
+        if (filters.area !== 'ALL') matchesAsset = a.areaId === filters.area;
 
-        return matchesSearch && matchesStatus && matchesDate && matchesArea && matchesCategory;
+        return matchesSearch && matchesStatus && matchesYear && matchesMonth && matchesAsset;
       });
   }, [actions, filters]);
 
@@ -125,15 +112,13 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
               showSearch: true,
               showDate: true,
               showStatus: true,
-              showArea: true,     
-              showCategory: true, 
-              searchPlaceholder: "Search by action, responsible, or RCA...",
-              dateLabel: "Due Date Range"
+              showAssetHierarchy: true, // Only Area is effectively used in filtering logic currently
+              showSpecialty: false,
+              showAnalysisType: false,
           }}
           options={{
               statuses: boxStatusOptions,
-              areas: availableAreas,
-              categories: availableCategories
+              assets: assets // Passes tree for area select
           }}
       />
 
