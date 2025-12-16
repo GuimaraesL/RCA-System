@@ -34,7 +34,11 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
       equipment: 'ALL',
       subgroup: 'ALL',
       specialty: 'ALL',
-      analysisType: 'ALL'
+      analysisType: 'ALL',
+      failureMode: 'ALL',
+      failureCategory: 'ALL',
+      componentType: 'ALL',
+      rootCause6M: 'ALL'
   };
 
   const { showFilters, setShowFilters, filters, setFilters, handleReset } = useFilterPersistence(
@@ -96,11 +100,10 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
     const usedSpecialties = new Set(actionsForSpecialties.map(a => a.specialtyId));
 
     // 3. Statuses (Box): Global + Assets + Attributes(ignore Status)
-    // Note: boxStatusOptions is hardcoded, but we can prune it if we want strict mode.
-    // For now, let's prune it to show only boxes that have actions in the current context.
+    // Note: boxStatusOptions is hardcoded, but we can prune it to show only boxes that have actions.
     const actionsForStatus = actions.filter(a => matchesGlobal(a) && matchesAssets(a) && matchesAttributes(a, 'status'));
     const usedStatuses = new Set(actionsForStatus.map(a => a.status));
-    const filteredBoxOptions = boxStatusOptions.filter(opt => usedStatuses.has(opt.id));
+    const filteredBoxOptions = boxStatusOptions.filter(opt => usedStatuses.has(opt.id as any));
 
     return {
         assets: filterAssetsByUsage(assets, usedAssetIds),
@@ -135,7 +138,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
       });
   }, [actions, filters]);
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: any) => {
     switch(status) {
       case '1': return <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold">1 - Aprovada</span>;
       case '2': return <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold">2 - Em Andamento</span>;

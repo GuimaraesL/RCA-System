@@ -25,7 +25,11 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
       equipment: 'ALL',
       subgroup: 'ALL',
       specialty: 'ALL',
-      analysisType: 'ALL'
+      analysisType: 'ALL',
+      failureMode: 'ALL',
+      failureCategory: 'ALL',
+      componentType: 'ALL',
+      rootCause6M: 'ALL'
   };
 
   const { showFilters, setShowFilters, filters, setFilters, handleReset } = useFilterPersistence(

@@ -13,6 +13,11 @@ export interface FilterState {
     subgroup: string;
     specialty: string;
     analysisType: string;
+    // New fields for extensive cross-filtering
+    failureMode: string;
+    failureCategory: string;
+    componentType: string;
+    rootCause6M: string;
 }
 
 export interface FilterOption {
@@ -126,6 +131,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         filters.specialty !== 'ALL' ? { label: `Esp: ${getOptionName(filters.specialty, specialties)}`, onRemove: () => handleChange('specialty', 'ALL') } : null,
         filters.analysisType !== 'ALL' ? { label: `Tipo: ${getOptionName(filters.analysisType, analysisTypes)}`, onRemove: () => handleChange('analysisType', 'ALL') } : null,
         filters.searchTerm ? { label: `Busca: "${filters.searchTerm}"`, onRemove: () => handleChange('searchTerm', '') } : null,
+        
+        // New Technical Filters Chips (Usually hidden in dropdown but shown as chips when clicked on charts)
+        filters.componentType !== 'ALL' && filters.componentType ? { label: `Comp: ${filters.componentType}`, onRemove: () => handleChange('componentType', 'ALL') } : null,
+        filters.failureMode !== 'ALL' && filters.failureMode ? { label: `Modo: ${filters.failureMode}`, onRemove: () => handleChange('failureMode', 'ALL') } : null,
+        filters.failureCategory !== 'ALL' && filters.failureCategory ? { label: `Cat: ${filters.failureCategory}`, onRemove: () => handleChange('failureCategory', 'ALL') } : null,
+        filters.rootCause6M !== 'ALL' && filters.rootCause6M ? { label: `6M: ${filters.rootCause6M}`, onRemove: () => handleChange('rootCause6M', 'ALL') } : null,
+
     ].filter(Boolean);
 
     return (
@@ -334,6 +346,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                         </div>
                                     )}
                                 </div>
+                                <p className="text-xs text-slate-400 mt-2">
+                                    * Filtros adicionais (Modo de Falha, Categoria, Componente, 6M) podem ser ativados clicando diretamente nos gráficos do painel.
+                                </p>
                             </div>
                         )}
                     </div>
