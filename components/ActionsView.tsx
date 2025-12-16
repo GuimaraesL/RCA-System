@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useActionsLogic } from '../hooks/useActionsLogic';
+import { useRcaContext } from '../context/RcaContext';
 import { AssetNode, TaxonomyConfig } from '../types';
 import { getAssets, getTaxonomy, filterAssetsByUsage } from '../services/storageService';
 import { Plus, Edit2, Trash2, ExternalLink } from 'lucide-react';
@@ -14,6 +15,7 @@ interface ActionsViewProps {
 
 export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
   const { actions, rcaList, isModalOpen, setIsModalOpen, editingAction, openNew, openEdit, handleSave, handleDelete } = useActionsLogic();
+  const { records } = useRcaContext();
   
   // --- Data for Filters ---
   const [assets, setAssets] = useState<AssetNode[]>([]);
@@ -134,9 +136,29 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
 
         const matchesSpecialty = filters.specialty === 'ALL' || a.specialtyId === filters.specialty;
 
-        return matchesSearch && matchesStatus && matchesYear && matchesMonth && matchesAsset && matchesSpecialty;
+        // --- Technical Filters (Deep check on Parent RCA) ---
+        // We find the parent record to check technical details not present in the ActionViewModel
+        const parent = records.find(r => r.id === a.rca_id);
+        
+        let matchesFailureMode = true;
+        let matchesFailureCategory = true;
+        let matchesComponent = true;
+        let matches6M = true;
+
+        if (parent) {
+            if (filters.failureMode !== 'ALL') matchesFailureMode = parent.failure_mode_id === filters.failureMode;
+            if (filters.failureCategory !== 'ALL') matchesFailureCategory = parent.failure_category_id === filters.failureCategory;
+            if (filters.componentType !== 'ALL') matchesComponent = parent.component_type === filters.componentType;
+            if (filters.rootCause6M !== 'ALL') matches6M = parent.root_causes?.some((rc: any) => rc.root_cause_m_id === filters.rootCause6M);
+        } else if (filters.failureMode !== 'ALL' || filters.failureCategory !== 'ALL' || filters.componentType !== 'ALL' || filters.rootCause6M !== 'ALL') {
+            // If we have active technical filters but no parent found (orphan action), hide it
+            return false;
+        }
+
+        return matchesSearch && matchesStatus && matchesYear && matchesMonth && matchesAsset && matchesSpecialty
+               && matchesFailureMode && matchesFailureCategory && matchesComponent && matches6M;
       });
-  }, [actions, filters]);
+  }, [actions, records, filters]);
 
   const getStatusBadge = (status: any) => {
     switch(status) {

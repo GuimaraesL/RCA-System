@@ -128,18 +128,29 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         const rMonth = (rDate.getMonth() + 1).toString().padStart(2, '0');
         const matchesMonth = filters.months.length === 0 || filters.months.includes(rMonth);
 
-        // Filters
+        // Dropdown Filters
         const matchesStatus = filters.status === 'ALL' || r.status === filters.status;
         const matchesType = filters.analysisType === 'ALL' || r.analysis_type === filters.analysisType;
         const matchesSpecialty = filters.specialty === 'ALL' || r.specialty_id === filters.specialty;
 
-        // Assets
+        // Assets Hierarchy
         let matchesAsset = true;
         if (filters.subgroup !== 'ALL') matchesAsset = r.subgroup_id === filters.subgroup;
         else if (filters.equipment !== 'ALL') matchesAsset = r.equipment_id === filters.equipment;
         else if (filters.area !== 'ALL') matchesAsset = r.area_id === filters.area;
 
-        return matchesSearch && matchesYear && matchesMonth && matchesStatus && matchesAsset && matchesType && matchesSpecialty;
+        // --- Technical Filters (Dashboard Click-through) ---
+        const matchesFailureMode = filters.failureMode === 'ALL' || r.failure_mode_id === filters.failureMode;
+        const matchesFailureCategory = filters.failureCategory === 'ALL' || r.failure_category_id === filters.failureCategory;
+        const matchesComponent = filters.componentType === 'ALL' || r.component_type === filters.componentType;
+        
+        let matches6M = true;
+        if (filters.rootCause6M !== 'ALL') {
+            matches6M = r.root_causes?.some((rc: any) => rc.root_cause_m_id === filters.rootCause6M);
+        }
+
+        return matchesSearch && matchesYear && matchesMonth && matchesStatus && matchesAsset && matchesType && matchesSpecialty 
+               && matchesFailureMode && matchesFailureCategory && matchesComponent && matches6M;
     });
   }, [records, filters]);
 
