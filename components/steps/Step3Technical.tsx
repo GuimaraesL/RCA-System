@@ -20,6 +20,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Select
                         label="Especialidade"
+                        required
                         options={[{value: '', label: 'Select...'}, ...taxonomy.specialties.map(t => ({value: t.id, label: t.name}))]}
                         value={data.specialty_id}
                         onChange={(e) => onChange('specialty_id', e.target.value)}
@@ -27,6 +28,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy 
 
                     <Select
                         label="Modo de Falha"
+                        required
                         options={[{value: '', label: 'Select...'}, ...taxonomy.failureModes.map(t => ({value: t.id, label: t.name}))]}
                         value={data.failure_mode_id}
                         onChange={(e) => onChange('failure_mode_id', e.target.value)}
@@ -34,6 +36,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy 
 
                     <Select
                         label="Categoria da Falha"
+                        required
                         options={[{value: '', label: 'Select...'}, ...taxonomy.failureCategories.map(t => ({value: t.id, label: t.name}))]}
                         value={data.failure_category_id}
                         onChange={(e) => onChange('failure_category_id', e.target.value)}
@@ -47,6 +50,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy 
                     <Input
                         label="Duração da Parada (minutos)"
                         type="number"
+                        required
                         placeholder="0"
                         value={data.downtime_minutes}
                         onChange={(e) => onChange('downtime_minutes', parseInt(e.target.value) || 0)}
@@ -55,6 +59,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy 
                     <Input
                         label="Impacto Financeiro (R$)"
                         type="number"
+                        required
                         placeholder="0.00"
                         step="0.01"
                         value={data.financial_impact}

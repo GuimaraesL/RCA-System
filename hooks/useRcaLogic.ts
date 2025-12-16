@@ -15,7 +15,7 @@ const createDefaultRecord = (): RcaRecord => ({
     analysis_date: new Date().toISOString().split('T')[0],
     analysis_duration_minutes: 0,
     analysis_type: '',
-    status: 'STATUS-01', // Default to 'Em Aberto' ID if possible, will be resolved by logic
+    status: '', // Will be set by taxonomy logic
     participants: [],
     facilitator: '',
     
@@ -83,61 +83,60 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
   const [step, setStep] = useState(1);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
-  const [formData, setFormData] = useState<RcaRecord>(existingRecord || createDefaultRecord());
+  // Initialize with default or existing, BUT we need to validate status immediately
+  const [formData, setFormData] = useState<RcaRecord>(() => {
+      const base = existingRecord ? { ...createDefaultRecord(), ...existingRecord } : createDefaultRecord();
+      return base;
+  });
 
+  // --- Initialization & Migration Logic ---
   useEffect(() => {
-    if (!existingRecord) {
-        const newRec = createDefaultRecord();
-        if (taxonomy.analysisTypes.length > 0) newRec.analysis_type = taxonomy.analysisTypes[0].id;
-        // Default to first status (usually 'Em Aberto')
-        if (taxonomy.analysisStatuses.length > 0) newRec.status = taxonomy.analysisStatuses[0].id;
-        setFormData(newRec);
-    } else {
-        // --- Migration Logic ---
-        // Merge with default record to ensure all fields exist (prevent undefined errors)
-        let migratedRecord = { ...createDefaultRecord(), ...existingRecord };
-        const anyRecord = migratedRecord as any;
+      setFormData(prev => {
+          let updated = { ...prev };
+          
+          // 1. Ensure Status is Valid (Fix for "Desynchronized" issue)
+          const validStatuses = taxonomy.analysisStatuses.map(s => s.id);
+          const defaultStatus = validStatuses.length > 0 ? validStatuses[0] : 'STATUS-01';
 
-        // 1. Array-ify Root Causes
-        if (!migratedRecord.root_causes) {
-             migratedRecord.root_causes = [];
-             if (anyRecord.root_cause && anyRecord.root_cause_m_id) {
-                 migratedRecord.root_causes.push({
+          // If current status is empty, DRAFT, or invalid ID -> reset to default
+          if (!updated.status || !validStatuses.includes(updated.status)) {
+              console.warn(`Invalid status '${updated.status}' detected. Resetting to '${defaultStatus}'`);
+              updated.status = defaultStatus;
+          }
+
+          // 2. Ensure Analysis Type is valid
+          if (!updated.analysis_type && taxonomy.analysisTypes.length > 0) {
+              updated.analysis_type = taxonomy.analysisTypes[0].id;
+          }
+
+          // 3. Migration: Array-ify Root Causes if missing
+          if (!updated.root_causes) {
+             updated.root_causes = [];
+             // Handle legacy field migration if present in 'any' cast
+             const anyRec = updated as any;
+             if (anyRec.root_cause && anyRec.root_cause_m_id) {
+                 updated.root_causes.push({
                      id: generateId('RC'),
-                     cause: anyRecord.root_cause,
-                     root_cause_m_id: anyRecord.root_cause_m_id
+                     cause: anyRec.root_cause,
+                     root_cause_m_id: anyRec.root_cause_m_id
                  });
              }
-        }
+          }
 
-        // 2. Normalize Participants (String -> String[])
-        if (typeof migratedRecord.participants === 'string') {
-            migratedRecord.participants = (migratedRecord.participants as string)
-                .split(',')
-                .map(p => p.trim())
-                .filter(p => p);
-        }
+          // 4. Migration: String participants to array
+          if (typeof updated.participants === 'string') {
+            updated.participants = (updated.participants as string).split(',').map(p => p.trim()).filter(p => p);
+          }
 
-        // 3. Remove Image Fields (Production DTO Constraint)
-        if (anyRecord.image_url) {
-            delete anyRecord.image_url;
-        }
+          // 5. Ensure structures
+          if(!updated.human_reliability) updated.human_reliability = getStandardHraStruct();
+          if(!updated.five_whys) updated.five_whys = createDefaultRecord().five_whys;
+          if(!updated.ishikawa) updated.ishikawa = emptyIshikawa;
+          if(!updated.precision_maintenance) updated.precision_maintenance = getStandardPrecisionItems();
 
-        // 4. Ensure HRA Struct
-        if (!migratedRecord.human_reliability) {
-            migratedRecord.human_reliability = getStandardHraStruct();
-        }
-
-        // 5. Ensure nested objects are not overwritten by undefined spreads if source was partial
-        if(!migratedRecord.five_whys) migratedRecord.five_whys = createDefaultRecord().five_whys;
-        if(!migratedRecord.ishikawa) migratedRecord.ishikawa = emptyIshikawa;
-        if(!migratedRecord.precision_maintenance) migratedRecord.precision_maintenance = getStandardPrecisionItems();
-        if(!migratedRecord.containment_actions) migratedRecord.containment_actions = [];
-        if(!migratedRecord.lessons_learned) migratedRecord.lessons_learned = [];
-
-        setFormData(migratedRecord);
-    }
-  }, [existingRecord]);
+          return updated;
+      });
+  }, [existingRecord, taxonomy]); // Run when record loads or taxonomy loads
 
   // --- Strict Validation Logic ---
   useEffect(() => {
@@ -173,23 +172,14 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
     const doneStatusId = doneStatusItem ? doneStatusItem.id : 'STATUS-DONE';
     const openStatusId = openStatusItem ? openStatusItem.id : 'STATUS-01';
 
-    // Enforcement Logic
-    if (isComplete) {
-        // Option A: Auto-complete. If user fills everything, we mark it as Done.
-        // Option B: Just allow it.
-        // Based on user request "APLICAR A NOSSA LOGICA DE ANALISE CONCLUIDA", we assume automatic completion logic or at least validation check.
-        // We will NOT auto-set to Done to avoid UX jumping, but we allow it.
-        // However, if it WAS in a "Draft" or "Open" state and acts as "Completed" logic, some systems auto-promote.
-        // Let's stick to: It is valid to be Done.
-    } else {
-        // If incomplete, it CANNOT be "Concluída". Downgrade to "Em Aberto".
-        if (formData.status === doneStatusId) {
-             console.warn("Downgrading status to Open due to missing fields.");
-             setFormData(prev => ({ ...prev, status: openStatusId }));
-        }
+    // Enforcement Logic: Downgrade if incomplete
+    if (!isComplete && formData.status === doneStatusId) {
+         // Prevent infinite loop by checking if it's already what we want
+         console.warn("Validation Failed: Downgrading status to Open due to missing fields.");
+         setFormData(prev => ({ ...prev, status: openStatusId }));
     }
   }, [
-    // Dependency array listing all validated fields to trigger check on any change
+    // Dependency array listing all validated fields
     formData.analysis_type, 
     formData.what, 
     formData.problem_description, 

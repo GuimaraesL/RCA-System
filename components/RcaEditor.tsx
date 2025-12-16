@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { RcaRecord, ActionRecord } from '../types';
 import { generateId, getActionsByRca, saveAction, deleteAction } from '../services/storageService';
-import { Save, ArrowLeft, Lock, Check } from 'lucide-react';
+import { Save, ArrowLeft, Lock, Check, ChevronDown } from 'lucide-react';
 import { useRcaLogic } from '../hooks/useRcaLogic';
 import { ActionModal } from './ActionModal';
 
@@ -55,10 +55,6 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
 
   // Generic Field Updater
   const handleChange = (field: string, value: any) => {
-      // Handle nested fields: 'equipment.subgroupId' -> formData.equipment.subgroupId
-      // But my formData is flat for core fields, nested only for objects like 'five_whys'
-      // If field contains dots, handle nesting manually or use setFormData callback
-      
       if (field.includes('.')) {
           const parts = field.split('.');
           setFormData(prev => {
@@ -100,11 +96,8 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
       setIsActionModalOpen(false);
   };
 
-  const isCompletedStatus = () => {
-      const doneStatus = taxonomy.analysisStatuses.find(s => s.name === 'Concluída');
-      return doneStatus && formData.status === doneStatus.id;
-  };
-  const isCompleted = isCompletedStatus();
+  // Is Completed Check for visual coloring only (Logic handled in hook)
+  const isCompleted = taxonomy.analysisStatuses.find(s => s.id === formData.status)?.name === 'Concluída';
 
   // Logic to show Step 6 (Human Reliability)
   const manpowerId = taxonomy.rootCauseMs.find(m => m.name === 'Mão de Obra')?.id;
@@ -144,19 +137,21 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         <div className="flex gap-4 items-center">
             <div className="flex flex-col items-end">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status</label>
-                <div className={`relative ${isCompleted ? 'text-green-600' : 'text-slate-700'}`}>
+                <div className="relative">
                     <select 
                         value={formData.status}
                         onChange={(e) => setFormData(prev => ({...prev, status: e.target.value}))}
-                        disabled={isCompleted} 
-                        className={`text-sm font-bold bg-transparent border-none focus:ring-0 cursor-pointer appearance-none pr-6 ${isCompleted ? 'opacity-100' : ''}`}
+                        className={`appearance-none cursor-pointer pl-3 pr-8 py-1.5 rounded-lg text-sm font-bold border transition-colors focus:ring-2 focus:ring-blue-200 focus:outline-none ${
+                            isCompleted 
+                            ? 'bg-green-50 text-green-700 border-green-200' 
+                            : 'bg-slate-50 text-slate-700 border-slate-200'
+                        }`}
                     >
-                        {isCompleted && <option value={formData.status}>Concluída</option>}
-                        {!isCompleted && taxonomy.analysisStatuses.map(s => (
+                        {taxonomy.analysisStatuses.map(s => (
                             <option key={s.id} value={s.id}>{s.name}</option>
                         ))}
                     </select>
-                    {isCompleted && <Lock size={12} className="absolute right-0 top-1/2 -translate-y-1/2" />}
+                    <ChevronDown size={14} className={`absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none ${isCompleted ? 'text-green-500' : 'text-slate-400'}`} />
                 </div>
             </div>
             <button 
