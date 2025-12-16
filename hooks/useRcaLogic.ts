@@ -15,7 +15,7 @@ const createDefaultRecord = (): RcaRecord => ({
     analysis_date: new Date().toISOString().split('T')[0],
     analysis_duration_minutes: 0,
     analysis_type: '',
-    status: 'Em Aberto',
+    status: 'STATUS-01', // Default to 'Em Aberto' ID if possible, will be resolved by logic
     participants: [],
     facilitator: '',
     
@@ -89,6 +89,7 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
     if (!existingRecord) {
         const newRec = createDefaultRecord();
         if (taxonomy.analysisTypes.length > 0) newRec.analysis_type = taxonomy.analysisTypes[0].id;
+        // Default to first status (usually 'Em Aberto')
         if (taxonomy.analysisStatuses.length > 0) newRec.status = taxonomy.analysisStatuses[0].id;
         setFormData(newRec);
     } else {
@@ -138,41 +139,78 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
     }
   }, [existingRecord]);
 
+  // --- Strict Validation Logic ---
   useEffect(() => {
-    const requiredFields = [
+    // Define all fields that MUST be present for a "Completed" analysis
+    const mandatoryStrings = [
         formData.analysis_type,
         formData.what,
         formData.problem_description,
-        formData.asset_name_display
+        formData.asset_name_display,
+        formData.who,
+        formData.when,
+        formData.where_description,
+        formData.specialty_id,
+        formData.failure_mode_id,
+        formData.failure_category_id,
+        formData.component_type
     ];
-    
-    const basicFieldsComplete = requiredFields.every(field => field && field.trim().length > 0);
-    const hasParticipants = formData.participants && formData.participants.length > 0;
-    const hasRootCause = formData.root_causes && formData.root_causes.length > 0;
-    
-    const isComplete = basicFieldsComplete && hasParticipants && hasRootCause;
 
+    const stringsOk = mandatoryStrings.every(s => s && s.trim().length > 0);
+    const participantsOk = formData.participants && formData.participants.length > 0;
+    const rootCausesOk = formData.root_causes && formData.root_causes.length > 0;
+    
+    // Impact fields must be numbers (0 is allowed, but not undefined/null)
+    const impactsOk = (formData.financial_impact !== undefined && formData.financial_impact !== null) &&
+                      (formData.downtime_minutes !== undefined && formData.downtime_minutes !== null);
+
+    const isComplete = stringsOk && participantsOk && rootCausesOk && impactsOk;
+
+    // Resolve IDs from Taxonomy
     const doneStatusItem = taxonomy.analysisStatuses.find(s => s.name === 'Concluída');
-    const doneStatusId = doneStatusItem ? doneStatusItem.id : 'Concluída';
+    const openStatusItem = taxonomy.analysisStatuses.find(s => s.name === 'Em Aberto');
+    
+    const doneStatusId = doneStatusItem ? doneStatusItem.id : 'STATUS-DONE';
+    const openStatusId = openStatusItem ? openStatusItem.id : 'STATUS-01';
 
+    // Enforcement Logic
     if (isComplete) {
-        if (formData.status !== doneStatusId) {
-            setFormData(prev => ({ ...prev, status: doneStatusId }));
+        // Option A: Auto-complete. If user fills everything, we mark it as Done.
+        // Option B: Just allow it.
+        // Based on user request "APLICAR A NOSSA LOGICA DE ANALISE CONCLUIDA", we assume automatic completion logic or at least validation check.
+        // We will NOT auto-set to Done to avoid UX jumping, but we allow it.
+        // However, if it WAS in a "Draft" or "Open" state and acts as "Completed" logic, some systems auto-promote.
+        // Let's stick to: It is valid to be Done.
+    } else {
+        // If incomplete, it CANNOT be "Concluída". Downgrade to "Em Aberto".
+        if (formData.status === doneStatusId) {
+             console.warn("Downgrading status to Open due to missing fields.");
+             setFormData(prev => ({ ...prev, status: openStatusId }));
         }
     }
   }, [
+    // Dependency array listing all validated fields to trigger check on any change
     formData.analysis_type, 
     formData.what, 
     formData.problem_description, 
-    formData.root_causes,
-    formData.participants,
     formData.asset_name_display,
+    formData.who,
+    formData.when,
+    formData.where_description,
+    formData.specialty_id,
+    formData.failure_mode_id,
+    formData.failure_category_id,
+    formData.component_type,
+    formData.participants,
+    formData.root_causes,
+    formData.financial_impact,
+    formData.downtime_minutes,
     formData.status,
     taxonomy.analysisStatuses
   ]);
 
   const refreshAssets = () => {
-      // Context handles asset syncing automatically, no manual fetch needed here usually
+      // Context handles asset syncing automatically
   };
 
   const handleAssetSelect = (asset: AssetNode) => {

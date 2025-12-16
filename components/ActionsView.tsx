@@ -1,13 +1,18 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useActionsLogic } from '../hooks/useActionsLogic';
 import { ActionStatus, AssetNode, TaxonomyConfig } from '../types';
 import { getAssets, getTaxonomy } from '../services/storageService';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, ExternalLink } from 'lucide-react';
 import { ActionModal } from './ActionModal';
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
 
-export const ActionsView: React.FC = () => {
+interface ActionsViewProps {
+    onOpenRca?: (rcaId: string) => void;
+}
+
+export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
   const { actions, rcaList, isModalOpen, setIsModalOpen, editingAction, openNew, openEdit, handleSave, handleDelete } = useActionsLogic();
   
   // --- Data for Filters ---
@@ -154,8 +159,17 @@ export const ActionsView: React.FC = () => {
                         <td className="px-6 py-4">{action.responsible}</td>
                         <td className="px-6 py-4 font-mono">{action.date}</td>
                         <td className="px-6 py-4">
-                            <div className="text-xs font-bold text-blue-600 truncate max-w-[200px]" title={action.rcaTitle}>{action.rcaTitle}</div>
-                            <div className="text-[10px] text-slate-400">{action.assetName}</div>
+                            <button 
+                                onClick={() => onOpenRca && onOpenRca(action.rca_id)}
+                                className="group text-left focus:outline-none"
+                                title="Click to view RCA details"
+                            >
+                                <div className="text-xs font-bold text-blue-600 truncate max-w-[200px] flex items-center gap-1 group-hover:underline">
+                                    {action.rcaTitle} 
+                                    <ExternalLink size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                                <div className="text-[10px] text-slate-400 group-hover:text-blue-400 transition-colors">{action.assetName}</div>
+                            </button>
                         </td>
                         <td className="px-6 py-4 text-right">
                            <button onClick={() => openEdit(action)} className="text-slate-400 hover:text-blue-600 mr-3"><Edit2 size={16}/></button>

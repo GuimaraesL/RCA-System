@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare } from 'lucide-react';
+import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Book } from 'lucide-react';
 import { RcaRecord } from './types';
 import { RcaEditor } from './components/RcaEditor';
 import { AssetsManager } from './components/AssetsManager';
@@ -9,14 +9,15 @@ import { AnalysesView } from './components/AnalysesView';
 import { ActionsView } from './components/ActionsView';
 import { SettingsView } from './components/SettingsView';
 import { MigrationView } from './components/MigrationView';
+import { DocumentationView } from './components/DocumentationView';
 import { RcaProvider, useRcaContext } from './context/RcaContext';
 
 const AppContent: React.FC = () => {
-  const [view, setView] = useState<'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'ASSETS' | 'SETTINGS' | 'MIGRATION'>('DASHBOARD');
+  const [view, setView] = useState<'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'ASSETS' | 'SETTINGS' | 'MIGRATION' | 'DOCS'>('DASHBOARD');
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<RcaRecord | null>(null);
   
-  const { refreshAll } = useRcaContext();
+  const { refreshAll, records } = useRcaContext();
 
   const handleCloseEditor = () => {
       setIsEditorOpen(false);
@@ -32,6 +33,14 @@ const AppContent: React.FC = () => {
   const openEdit = (rec: RcaRecord) => {
     setEditingRecord(rec);
     setIsEditorOpen(true);
+  };
+
+  const handleOpenRca = (rcaId: string) => {
+      const record = records.find(r => r.id === rcaId);
+      if (record) {
+          setEditingRecord(record);
+          setIsEditorOpen(true);
+      }
   };
 
   return (
@@ -71,18 +80,27 @@ const AppContent: React.FC = () => {
             >
                 <Database size={20} /> Assets
             </button>
-            <button 
-                 onClick={() => setView('SETTINGS')}
-                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'SETTINGS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
-            >
-                <Settings size={20} /> Settings
-            </button>
-            <button 
-                 onClick={() => setView('MIGRATION')}
-                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'MIGRATION' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
-            >
-                <Upload size={20} /> Migration
-            </button>
+            
+            <div className="pt-4 mt-4 border-t border-slate-800">
+                <button 
+                    onClick={() => setView('DOCS')}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'DOCS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
+                >
+                    <Book size={20} /> Documentation
+                </button>
+                <button 
+                     onClick={() => setView('SETTINGS')}
+                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'SETTINGS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
+                >
+                    <Settings size={20} /> Settings
+                </button>
+                <button 
+                     onClick={() => setView('MIGRATION')}
+                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'MIGRATION' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
+                >
+                    <Upload size={20} /> Migration
+                </button>
+            </div>
         </nav>
         <div className="p-6 border-t border-slate-800 text-xs text-slate-500">
             v17.2 Context API<br/>
@@ -111,7 +129,7 @@ const AppContent: React.FC = () => {
                     <AnalysesView onNew={openNew} onEdit={openEdit} />
                 )}
                 {view === 'ACTIONS' && (
-                    <ActionsView />
+                    <ActionsView onOpenRca={handleOpenRca} />
                 )}
                 {view === 'ASSETS' && (
                     <AssetsManager />
@@ -121,6 +139,9 @@ const AppContent: React.FC = () => {
                 )}
                 {view === 'MIGRATION' && (
                     <MigrationView />
+                )}
+                {view === 'DOCS' && (
+                    <DocumentationView />
                 )}
             </div>
         )}

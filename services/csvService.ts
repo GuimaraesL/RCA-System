@@ -1,4 +1,3 @@
-
 import { AssetNode, ActionRecord, TaxonomyConfig, TaxonomyItem, RcaRecord } from "../types";
 import { generateId, getAssets, saveAssets, getActions, saveActions, getTaxonomy, saveTaxonomy, getRecords, saveRecords } from "./storageService";
 
@@ -38,7 +37,15 @@ const toCSV = (data: any[], headers: string[]): string => {
                 val = '';
             }
             
-            const stringVal = String(val);
+            let stringVal = String(val);
+
+            // SECURITY: CSV Injection / Formula Injection Prevention
+            // If the field starts with =, +, -, or @, Excel may execute it as a formula.
+            // We prepend a single quote to force it to be treated as text.
+            if (/^[=+\-@]/.test(stringVal)) {
+                stringVal = "'" + stringVal;
+            }
+            
             // Escape quotes and wrap in quotes if contains delimiter or newline
             if (stringVal.includes(';') || stringVal.includes('"') || stringVal.includes('\n')) {
                 return `"${stringVal.replace(/"/g, '""')}"`;
