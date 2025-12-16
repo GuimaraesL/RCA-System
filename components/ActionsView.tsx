@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useActionsLogic } from '../hooks/useActionsLogic';
-import { ActionStatus, AssetNode, TaxonomyConfig } from '../types';
-import { getAssets, getTaxonomy } from '../services/storageService';
+import { AssetNode, TaxonomyConfig } from '../types';
+import { getAssets, getTaxonomy, filterAssetsByUsage } from '../services/storageService';
 import { Plus, Edit2, Trash2, ExternalLink } from 'lucide-react';
 import { ActionModal } from './ActionModal';
 import { FilterBar, FilterState } from './FilterBar';
@@ -24,7 +24,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
     setTaxonomy(getTaxonomy());
   }, []);
 
-  // --- Persistent Filter State (Updated) ---
+  // --- Persistent Filter State ---
   const defaultFilters: FilterState = {
       searchTerm: '',
       year: '',
@@ -38,7 +38,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
   };
 
   const { showFilters, setShowFilters, filters, setFilters, handleReset } = useFilterPersistence(
-      'rca_actions_view_v2', 
+      'rca_actions_view_v3', 
       defaultFilters,
       true
   );
@@ -50,36 +50,92 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
       { id: '4', name: '4 - Ef. Comprovada' }
   ];
 
-  // --- Filter Logic ---
+  // --- Strict Cross-Filtering Logic for Options (Actions) ---
+  const dynamicOptions = useMemo(() => {
+    // Helper: Global filters
+    const matchesGlobal = (a: any) => {
+        const searchLower = filters.searchTerm.toLowerCase();
+        const matchesSearch = !filters.searchTerm || 
+                              a.action.toLowerCase().includes(searchLower) || 
+                              a.responsible.toLowerCase().includes(searchLower) ||
+                              a.rcaTitle.toLowerCase().includes(searchLower);
+
+        const aDate = new Date(a.date);
+        const matchesYear = !filters.year || aDate.getFullYear().toString() === filters.year;
+        const matchesMonth = filters.months.length === 0 || filters.months.includes((aDate.getMonth()+1).toString().padStart(2, '0'));
+
+        return matchesSearch && matchesYear && matchesMonth;
+    };
+
+    // Helper: Asset filters
+    const matchesAssets = (a: any) => {
+        if (filters.subgroup !== 'ALL' && a.subgroupId !== filters.subgroup) return false;
+        if (filters.equipment !== 'ALL' && a.equipmentId !== filters.equipment) return false;
+        if (filters.area !== 'ALL' && a.areaId !== filters.area) return false;
+        return true;
+    };
+
+    // Helper: Attributes (Status, Specialty)
+    const matchesAttributes = (a: any, ignore: 'status' | 'specialty' | null) => {
+         if (ignore !== 'status' && filters.status !== 'ALL' && a.status !== filters.status) return false;
+         if (ignore !== 'specialty' && filters.specialty !== 'ALL' && a.specialtyId !== filters.specialty) return false;
+         return true;
+    };
+
+    // 1. Assets: Global + Attributes
+    const actionsForAssets = actions.filter(a => matchesGlobal(a) && matchesAttributes(a, null));
+    const usedAssetIds = new Set<string>();
+    actionsForAssets.forEach(a => {
+        if(a.areaId) usedAssetIds.add(a.areaId);
+        if(a.equipmentId) usedAssetIds.add(a.equipmentId);
+        if(a.subgroupId) usedAssetIds.add(a.subgroupId);
+    });
+
+    // 2. Specialties: Global + Assets + Attributes(ignore Specialty)
+    const actionsForSpecialties = actions.filter(a => matchesGlobal(a) && matchesAssets(a) && matchesAttributes(a, 'specialty'));
+    const usedSpecialties = new Set(actionsForSpecialties.map(a => a.specialtyId));
+
+    // 3. Statuses (Box): Global + Assets + Attributes(ignore Status)
+    // Note: boxStatusOptions is hardcoded, but we can prune it if we want strict mode.
+    // For now, let's prune it to show only boxes that have actions in the current context.
+    const actionsForStatus = actions.filter(a => matchesGlobal(a) && matchesAssets(a) && matchesAttributes(a, 'status'));
+    const usedStatuses = new Set(actionsForStatus.map(a => a.status));
+    const filteredBoxOptions = boxStatusOptions.filter(opt => usedStatuses.has(opt.id));
+
+    return {
+        assets: filterAssetsByUsage(assets, usedAssetIds),
+        specialties: (taxonomy?.specialties || []).filter(s => usedSpecialties.has(s.id)),
+        statuses: filteredBoxOptions
+    };
+  }, [actions, assets, taxonomy, filters]);
+
+  // --- Filtering Logic ---
   const filteredActions = useMemo(() => {
       return actions.filter(a => {
-        // Search
         const searchLower = filters.searchTerm.toLowerCase();
         const matchesSearch = !filters.searchTerm || 
                               a.action.toLowerCase().includes(searchLower) || 
                               a.responsible.toLowerCase().includes(searchLower) ||
                               a.rcaTitle.toLowerCase().includes(searchLower);
         
-        // Status (Box)
         const matchesStatus = filters.status === 'ALL' || a.status === filters.status;
-
-        // Date (Year/Month)
+        
         const aDate = new Date(a.date);
         const matchesYear = !filters.year || aDate.getFullYear().toString() === filters.year;
         const matchesMonth = filters.months.length === 0 || filters.months.includes((aDate.getMonth()+1).toString().padStart(2, '0'));
 
-        // Context Filters (Asset from Linked RCA)
         let matchesAsset = true;
-        // Logic: actions ViewModel only has 'areaId'. For deep asset filtering, we'd need more data in ViewModel.
-        // For now, we support Area filter only in Actions View as implemented in useActionsLogic hook (viewModel has areaId).
-        // Deep asset filtering could be added if ViewModel is expanded, but Area is sufficient for general context.
-        if (filters.area !== 'ALL') matchesAsset = a.areaId === filters.area;
+        if (filters.subgroup !== 'ALL') matchesAsset = a.subgroupId === filters.subgroup;
+        else if (filters.equipment !== 'ALL') matchesAsset = a.equipmentId === filters.equipment;
+        else if (filters.area !== 'ALL') matchesAsset = a.areaId === filters.area;
 
-        return matchesSearch && matchesStatus && matchesYear && matchesMonth && matchesAsset;
+        const matchesSpecialty = filters.specialty === 'ALL' || a.specialtyId === filters.specialty;
+
+        return matchesSearch && matchesStatus && matchesYear && matchesMonth && matchesAsset && matchesSpecialty;
       });
   }, [actions, filters]);
 
-  const getStatusBadge = (status: ActionStatus) => {
+  const getStatusBadge = (status: string) => {
     switch(status) {
       case '1': return <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold">1 - Aprovada</span>;
       case '2': return <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold">2 - Em Andamento</span>;
@@ -112,13 +168,14 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
               showSearch: true,
               showDate: true,
               showStatus: true,
-              showAssetHierarchy: true, // Only Area is effectively used in filtering logic currently
-              showSpecialty: false,
+              showAssetHierarchy: true, 
+              showSpecialty: true,
               showAnalysisType: false,
           }}
           options={{
-              statuses: boxStatusOptions,
-              assets: assets // Passes tree for area select
+              statuses: dynamicOptions.statuses, // Now strictly filtered
+              assets: dynamicOptions.assets,
+              specialties: dynamicOptions.specialties
           }}
       />
 

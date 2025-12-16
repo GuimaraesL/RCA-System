@@ -6,6 +6,7 @@ import { Clock, TrendingUp, AlertCircle, CheckCircle, PieChart as PieIcon, Activ
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { useRcaContext } from '../context/RcaContext';
+import { filterAssetsByUsage } from '../services/storageService';
 
 // Professional Color Palette (Cool Tones + Accents)
 const COLORS = [
@@ -75,7 +76,73 @@ export const Dashboard: React.FC = () => {
       return findRecursive(assets) || id;
   };
 
-  // --- Filtering Logic ---
+  // --- Strict Cross-Filtering Logic for Options ---
+  // Calculates the available options for a specific field based on records filtered by ALL OTHER fields.
+  const dynamicOptions = useMemo(() => {
+    // Helper to check if a record matches "Global" filters (Date, Search)
+    const matchesGlobal = (r: any) => {
+         const searchLower = filters.searchTerm.toLowerCase();
+         const matchesSearch = !filters.searchTerm || 
+            r.what?.toLowerCase().includes(searchLower) ||
+            r.problem_description?.toLowerCase().includes(searchLower) ||
+            r.id.toLowerCase().includes(searchLower);
+
+        const rDate = new Date(r.failure_date);
+        const rYear = rDate.getFullYear().toString();
+        const rMonth = (rDate.getMonth() + 1).toString().padStart(2, '0');
+        const matchesYear = !filters.year || rYear === filters.year;
+        const matchesMonth = filters.months.length === 0 || filters.months.includes(rMonth);
+        
+        return matchesSearch && matchesYear && matchesMonth;
+    };
+
+    // Helper: Matches Asset filters (Area, Eq, Sub)
+    const matchesAssets = (r: any) => {
+        if (filters.subgroup !== 'ALL' && r.subgroup_id !== filters.subgroup) return false;
+        if (filters.equipment !== 'ALL' && r.equipment_id !== filters.equipment) return false;
+        if (filters.area !== 'ALL' && r.area_id !== filters.area) return false;
+        return true;
+    };
+    
+    // Helper: Matches Attribute filters (Status, Type, Specialty) EXCEPT the one passed as 'ignore'
+    const matchesAttributes = (r: any, ignore: 'status' | 'type' | 'specialty' | null) => {
+        if (ignore !== 'status' && filters.status !== 'ALL' && r.status !== filters.status) return false;
+        if (ignore !== 'type' && filters.analysisType !== 'ALL' && r.analysis_type !== filters.analysisType) return false;
+        if (ignore !== 'specialty' && filters.specialty !== 'ALL' && r.specialty_id !== filters.specialty) return false;
+        return true;
+    };
+
+    // 1. Available Assets: Records matching Global + Attributes (ignore Asset filters themselves to show siblings?) 
+    // Usually, asset tree shows where data exists matching the OTHER filters.
+    const recordsForAssets = records.filter(r => matchesGlobal(r) && matchesAttributes(r, null));
+    const usedAssetIds = new Set<string>();
+    recordsForAssets.forEach(r => {
+        if(r.area_id) usedAssetIds.add(r.area_id);
+        if(r.equipment_id) usedAssetIds.add(r.equipment_id);
+        if(r.subgroup_id) usedAssetIds.add(r.subgroup_id);
+    });
+
+    // 2. Available Statuses: Records matching Global + Assets + Attributes(ignore Status)
+    const recordsForStatuses = records.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'status'));
+    const usedStatuses = new Set(recordsForStatuses.map(r => r.status));
+
+    // 3. Available Specialties: Records matching Global + Assets + Attributes(ignore Specialty)
+    const recordsForSpecialties = records.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'specialty'));
+    const usedSpecialties = new Set(recordsForSpecialties.map(r => r.specialty_id));
+
+    // 4. Available Types: Records matching Global + Assets + Attributes(ignore Type)
+    const recordsForTypes = records.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'type'));
+    const usedTypes = new Set(recordsForTypes.map(r => r.analysis_type));
+
+    return {
+        assets: filterAssetsByUsage(assets, usedAssetIds),
+        statuses: taxonomy.analysisStatuses.filter(s => usedStatuses.has(s.id)),
+        specialties: taxonomy.specialties.filter(s => usedSpecialties.has(s.id)),
+        analysisTypes: taxonomy.analysisTypes.filter(t => usedTypes.has(t.id))
+    };
+  }, [records, assets, taxonomy, filters]);
+
+  // --- Main Filtering Logic (Intersection of everything) ---
   const filteredRecords = useMemo(() => {
     return records.filter(r => {
         const searchLower = filters.searchTerm.toLowerCase();
@@ -182,7 +249,12 @@ export const Dashboard: React.FC = () => {
           onReset={() => handleReset(defaultFilters)}
           totalResults={filteredRecords.length}
           config={{ showSearch: true, showDate: true, showStatus: true, showAssetHierarchy: true, showSpecialty: true, showAnalysisType: true }}
-          options={{ statuses: taxonomy.analysisStatuses, specialties: taxonomy.specialties, analysisTypes: taxonomy.analysisTypes, assets: assets }}
+          options={{ 
+              statuses: dynamicOptions.statuses, 
+              specialties: dynamicOptions.specialties, 
+              analysisTypes: dynamicOptions.analysisTypes, 
+              assets: dynamicOptions.assets 
+          }}
       />
 
       {/* KPI Cards */}

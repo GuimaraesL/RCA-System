@@ -9,7 +9,10 @@ export interface ActionViewModel extends ActionRecord {
   rcaTitle: string;
   assetName: string;
   areaId: string;
+  equipmentId: string;
+  subgroupId: string;
   categoryId: string;
+  specialtyId: string; // Added for dynamic filtering
 }
 
 // Helper to find asset name recursively by ID
@@ -42,11 +45,17 @@ export const useActionsLogic = () => {
       
       let assetName = 'Unknown Asset';
       let areaId = '';
+      let equipmentId = '';
+      let subgroupId = '';
       let categoryId = '';
+      let specialtyId = '';
 
       if (rca) {
-          areaId = rca.area_id;
-          categoryId = rca.failure_category_id;
+          areaId = rca.area_id || '';
+          equipmentId = rca.equipment_id || '';
+          subgroupId = rca.subgroup_id || '';
+          categoryId = rca.failure_category_id || '';
+          specialtyId = rca.specialty_id || '';
           
           if (rca.asset_name_display) {
               assetName = rca.asset_name_display;
@@ -66,8 +75,11 @@ export const useActionsLogic = () => {
         ...a,
         rcaTitle: rca ? rca.what : 'Unknown Analysis',
         assetName: assetName,
-        areaId: areaId,
-        categoryId: categoryId
+        areaId,
+        equipmentId,
+        subgroupId,
+        categoryId,
+        specialtyId
       };
     });
 
@@ -100,7 +112,7 @@ export const useActionsLogic = () => {
 
   const openEdit = (action: ActionViewModel) => {
     // Strip ViewModel props to get back to Record
-    const { rcaTitle, assetName, areaId, categoryId, ...record } = action;
+    const { rcaTitle, assetName, areaId, equipmentId, subgroupId, categoryId, specialtyId, ...record } = action;
     setEditingAction(record);
     setIsModalOpen(true);
   };

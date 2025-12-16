@@ -325,6 +325,36 @@ export const deleteAction = (actionId: string): void => {
   localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(newActions));
 };
 
+// --- UTILS FOR DYNAMIC FILTERING ---
+
+/**
+ * Traverses the asset tree and keeps ONLY the branches that have IDs in the provided set.
+ * Returns a pruned tree.
+ */
+export const filterAssetsByUsage = (allAssets: AssetNode[], usedIds: Set<string>): AssetNode[] => {
+    const prune = (nodes: AssetNode[]): AssetNode[] => {
+        return nodes.reduce<AssetNode[]>((acc, node) => {
+            // Check if this node is used
+            const isUsed = usedIds.has(node.id);
+            
+            // Recurse into children
+            const prunedChildren = node.children ? prune(node.children) : [];
+            const hasUsedChildren = prunedChildren.length > 0;
+
+            // Keep node if it's used OR has used children
+            if (isUsed || hasUsedChildren) {
+                acc.push({
+                    ...node,
+                    children: prunedChildren // Replace children with pruned version
+                });
+            }
+            return acc;
+        }, []);
+    };
+
+    return prune(allAssets);
+};
+
 // --- IMPORT/EXPORT ---
 export const importData = (jsonContent: string): { success: boolean, message: string } => {
   try {

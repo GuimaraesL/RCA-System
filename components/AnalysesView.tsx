@@ -5,6 +5,7 @@ import { Plus, FileText } from 'lucide-react';
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { useRcaContext } from '../context/RcaContext';
+import { filterAssetsByUsage } from '../services/storageService';
 
 interface AnalysesViewProps {
   onNew: () => void;
@@ -28,7 +29,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
   };
 
   const { showFilters, setShowFilters, filters, setFilters, handleReset } = useFilterPersistence(
-      'rca_analyses_view_v2', 
+      'rca_analyses_view_v3', 
       defaultFilters,
       true
   );
@@ -40,7 +41,72 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
       return item ? item.name : id;
   };
 
-  // --- Filtering Logic (Matches Dashboard logic roughly) ---
+  // --- Strict Cross-Filtering Logic for Options ---
+  // Same logic as Dashboard to ensure consistency across the app.
+  const dynamicOptions = useMemo(() => {
+    // Helper: Global filters (Date, Search)
+    const matchesGlobal = (r: any) => {
+         const searchLower = filters.searchTerm.toLowerCase();
+         const matchesSearch = !filters.searchTerm || 
+            r.what?.toLowerCase().includes(searchLower) ||
+            r.problem_description?.toLowerCase().includes(searchLower) ||
+            r.id.toLowerCase().includes(searchLower);
+
+        const rDate = new Date(r.failure_date);
+        const matchesYear = !filters.year || rDate.getFullYear().toString() === filters.year;
+        
+        const rMonth = (rDate.getMonth() + 1).toString().padStart(2, '0');
+        const matchesMonth = filters.months.length === 0 || filters.months.includes(rMonth);
+        
+        return matchesSearch && matchesYear && matchesMonth;
+    };
+
+    // Helper: Asset filters
+    const matchesAssets = (r: any) => {
+        if (filters.subgroup !== 'ALL' && r.subgroup_id !== filters.subgroup) return false;
+        if (filters.equipment !== 'ALL' && r.equipment_id !== filters.equipment) return false;
+        if (filters.area !== 'ALL' && r.area_id !== filters.area) return false;
+        return true;
+    };
+    
+    // Helper: Attribute filters
+    const matchesAttributes = (r: any, ignore: 'status' | 'type' | 'specialty' | null) => {
+        if (ignore !== 'status' && filters.status !== 'ALL' && r.status !== filters.status) return false;
+        if (ignore !== 'type' && filters.analysisType !== 'ALL' && r.analysis_type !== filters.analysisType) return false;
+        if (ignore !== 'specialty' && filters.specialty !== 'ALL' && r.specialty_id !== filters.specialty) return false;
+        return true;
+    };
+
+    // 1. Assets: Match Global + Attributes
+    const recordsForAssets = records.filter(r => matchesGlobal(r) && matchesAttributes(r, null));
+    const usedAssetIds = new Set<string>();
+    recordsForAssets.forEach(r => {
+        if(r.area_id) usedAssetIds.add(r.area_id);
+        if(r.equipment_id) usedAssetIds.add(r.equipment_id);
+        if(r.subgroup_id) usedAssetIds.add(r.subgroup_id);
+    });
+
+    // 2. Statuses: Match Global + Assets + Attributes(ignore Status)
+    const recordsForStatuses = records.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'status'));
+    const usedStatuses = new Set(recordsForStatuses.map(r => r.status));
+
+    // 3. Specialties: Match Global + Assets + Attributes(ignore Specialty)
+    const recordsForSpecialties = records.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'specialty'));
+    const usedSpecialties = new Set(recordsForSpecialties.map(r => r.specialty_id));
+
+    // 4. Types: Match Global + Assets + Attributes(ignore Type)
+    const recordsForTypes = records.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'type'));
+    const usedTypes = new Set(recordsForTypes.map(r => r.analysis_type));
+
+    return {
+        assets: filterAssetsByUsage(assets, usedAssetIds),
+        statuses: taxonomy.analysisStatuses.filter(s => usedStatuses.has(s.id)),
+        specialties: taxonomy.specialties.filter(s => usedSpecialties.has(s.id)),
+        analysisTypes: taxonomy.analysisTypes.filter(t => usedTypes.has(t.id))
+    };
+  }, [records, assets, taxonomy, filters]);
+
+  // --- Filtering Logic (View) ---
   const filteredRecords = useMemo(() => {
     return records.filter(r => {
         // Text Search
@@ -105,10 +171,10 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
               showSpecialty: true
           }}
           options={{
-              statuses: taxonomy.analysisStatuses,
-              analysisTypes: taxonomy.analysisTypes,
-              specialties: taxonomy.specialties,
-              assets: assets
+              statuses: dynamicOptions.statuses,
+              analysisTypes: dynamicOptions.analysisTypes,
+              specialties: dynamicOptions.specialties,
+              assets: dynamicOptions.assets
           }}
       />
 
