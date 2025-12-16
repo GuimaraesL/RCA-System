@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { Search, Filter, RefreshCw, ChevronUp, ChevronDown, Calendar, X, MapPin, Tag, Layers } from 'lucide-react';
+import { Search, Filter, RefreshCw, ChevronUp, ChevronDown, Calendar, X, MapPin, Tag, Globe, Lock } from 'lucide-react';
 import { AssetNode } from '../types';
 
 export interface FilterState {
@@ -46,6 +46,9 @@ interface FilterBarProps {
     isOpen: boolean;
     onToggle: () => void;
     totalResults?: number;
+    // Global Filter Props
+    isGlobal?: boolean;
+    onGlobalToggle?: () => void;
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({ 
@@ -56,7 +59,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     options,
     isOpen,
     onToggle,
-    totalResults
+    totalResults,
+    isGlobal,
+    onGlobalToggle
 }) => {
     const {
         showSearch = true,
@@ -148,7 +153,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 <div className="flex-1 flex flex-wrap gap-2 items-center px-2 py-1">
                     <button 
                         onClick={onToggle} 
-                        className={`text-sm font-semibold flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${isOpen ? 'bg-slate-100 text-slate-800' : 'bg-blue-600 text-white shadow-md hover:bg-blue-700'}`}
+                        className={`text-sm font-semibold flex items-center gap-2 px-4 py-2 rounded-lg transition-all border ${isOpen ? 'bg-slate-100 text-slate-800 border-slate-200' : 'bg-blue-600 text-white border-blue-600 shadow-md hover:bg-blue-700'}`}
                     >
                         <Filter size={16} />
                         Filtros
@@ -169,6 +174,24 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 </div>
 
                 <div className="flex items-center gap-4 px-4 border-l border-slate-100">
+                     {/* Global Toggle */}
+                     {onGlobalToggle && (
+                         <div className="flex items-center gap-2 mr-2">
+                            <button 
+                                onClick={onGlobalToggle}
+                                className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full transition-all border ${
+                                    isGlobal 
+                                    ? 'bg-indigo-100 text-indigo-700 border-indigo-200 shadow-inner' 
+                                    : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
+                                }`}
+                                title={isGlobal ? "Modo Global Ativo: Filtros aplicados em todo o sistema" : "Modo Local: Filtros apenas nesta página"}
+                            >
+                                <Globe size={14} className={isGlobal ? "animate-pulse" : ""} />
+                                {isGlobal ? 'Global On' : 'Global Off'}
+                            </button>
+                         </div>
+                     )}
+
                      {totalResults !== undefined && (
                         <div className="text-right">
                             <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">Registros</div>

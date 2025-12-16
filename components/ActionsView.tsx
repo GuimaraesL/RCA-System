@@ -41,7 +41,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
       rootCause6M: 'ALL'
   };
 
-  const { showFilters, setShowFilters, filters, setFilters, handleReset } = useFilterPersistence(
+  const { showFilters, setShowFilters, filters, setFilters, handleReset, isGlobal, toggleGlobal } = useFilterPersistence(
       'rca_actions_view_v3', 
       defaultFilters,
       true
@@ -180,6 +180,8 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
               assets: dynamicOptions.assets,
               specialties: dynamicOptions.specialties
           }}
+          isGlobal={isGlobal}
+          onGlobalToggle={toggleGlobal}
       />
 
       {/* Data Grid */}

@@ -61,7 +61,7 @@ export const Dashboard: React.FC = () => {
       rootCause6M: 'ALL'
   };
 
-  const { showFilters, setShowFilters, filters, setFilters, handleReset } = useFilterPersistence(
+  const { showFilters, setShowFilters, filters, setFilters, handleReset, isGlobal, toggleGlobal } = useFilterPersistence(
       'rca_dashboard_v3', 
       defaultFilters,
       false
@@ -320,6 +320,8 @@ export const Dashboard: React.FC = () => {
               analysisTypes: dynamicOptions.analysisTypes, 
               assets: dynamicOptions.assets 
           }}
+          isGlobal={isGlobal}
+          onGlobalToggle={toggleGlobal}
       />
 
       {/* KPI Cards */}
