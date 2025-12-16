@@ -1,23 +1,25 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Book } from 'lucide-react';
-import { RcaRecord } from './types';
+import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Book, Siren } from 'lucide-react';
+import { RcaRecord, TriggerRecord } from './types';
 import { RcaEditor } from './components/RcaEditor';
 import { AssetsManager } from './components/AssetsManager';
 import { Dashboard } from './components/Dashboard';
 import { AnalysesView } from './components/AnalysesView';
 import { ActionsView } from './components/ActionsView';
+import { TriggersView } from './components/TriggersView';
 import { SettingsView } from './components/SettingsView';
 import { MigrationView } from './components/MigrationView';
 import { DocumentationView } from './components/DocumentationView';
 import { RcaProvider, useRcaContext } from './context/RcaContext';
+import { generateId } from './services/storageService';
 
 const AppContent: React.FC = () => {
-  const [view, setView] = useState<'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'ASSETS' | 'SETTINGS' | 'MIGRATION' | 'DOCS'>('DASHBOARD');
+  const [view, setView] = useState<'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'TRIGGERS' | 'ASSETS' | 'SETTINGS' | 'MIGRATION' | 'DOCS'>('DASHBOARD');
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<RcaRecord | null>(null);
   
-  const { refreshAll, records } = useRcaContext();
+  const { refreshAll, records, updateTrigger } = useRcaContext();
 
   const handleCloseEditor = () => {
       setIsEditorOpen(false);
@@ -43,6 +45,38 @@ const AppContent: React.FC = () => {
       }
   };
 
+  // Create RCA from Trigger
+  const handleCreateRcaFromTrigger = (trigger: TriggerRecord) => {
+      // 1. Construct partial RCA from Trigger Data
+      const newRca: Partial<RcaRecord> = {
+          id: generateId('RCA'),
+          failure_date: trigger.start_date.split('T')[0],
+          failure_time: trigger.start_date.split('T')[1]?.substring(0,5) || '00:00',
+          downtime_minutes: trigger.duration_minutes,
+          area_id: trigger.area_id,
+          equipment_id: trigger.equipment_id,
+          subgroup_id: trigger.subgroup_id,
+          analysis_type: trigger.analysis_type_id,
+          what: `Falha: ${trigger.stop_reason}`,
+          problem_description: `${trigger.stop_type} - ${trigger.stop_reason}. ${trigger.comments || ''}`,
+          facilitator: trigger.responsible,
+          
+          // Link back to trigger for traceability (stored in historical info or standard field if we added one)
+          additionalInfo: {
+              historicalInfo: `Generated from Trigger ID: ${trigger.id}`
+          }
+      };
+
+      // 2. Open Editor
+      setEditingRecord(newRca as RcaRecord); // Cast as RcaRecord, hook will fill defaults
+      setIsEditorOpen(true);
+
+      // 3. Update Trigger with the new RCA ID immediately (or we could do this on save, but this is simpler for flow)
+      // Note: We are optimistically linking them. If user cancels RCA creation, we might have a dead link 
+      // but status remains 'ANALYSIS'.
+      updateTrigger({ ...trigger, rca_id: newRca.id!, status: 'ANALYSIS' });
+  };
+
   return (
     <div className="flex h-screen bg-slate-50">
       {/* Sidebar */}
@@ -61,6 +95,12 @@ const AppContent: React.FC = () => {
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'DASHBOARD' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
             >
                 <LayoutDashboard size={20} /> Dashboard
+            </button>
+            <button 
+                onClick={() => setView('TRIGGERS')}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'TRIGGERS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
+            >
+                <Siren size={20} /> Triggers
             </button>
             <button 
                 onClick={() => setView('ANALYSES')}
@@ -124,6 +164,9 @@ const AppContent: React.FC = () => {
             <div className="flex-1 overflow-auto bg-slate-50/50">
                 {view === 'DASHBOARD' && (
                     <Dashboard />
+                )}
+                {view === 'TRIGGERS' && (
+                    <TriggersView onCreateRca={handleCreateRcaFromTrigger} />
                 )}
                 {view === 'ANALYSES' && (
                     <AnalysesView onNew={openNew} onEdit={openEdit} />

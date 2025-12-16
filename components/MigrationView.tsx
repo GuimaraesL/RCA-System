@@ -122,6 +122,7 @@ export const MigrationView: React.FC = () => {
     };
 
     const entityOptions: {value: CsvEntityType, label: string}[] = [
+        { value: 'TRIGGERS', label: 'Triggers (Análise de Gatilhos)' },
         { value: 'ASSETS', label: 'Assets Hierarchy' },
         { value: 'ACTIONS', label: 'Action Plans' },
         { value: 'RECORDS_SUMMARY', label: 'RCA Records (Summary)' },

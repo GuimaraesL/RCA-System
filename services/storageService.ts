@@ -1,10 +1,11 @@
 
-import { AssetNode, RcaRecord, ActionRecord, MigrationData, PrecisionChecklistItem, TaxonomyConfig, TaxonomyItem, HumanReliabilityAnalysis, HraQuestion, HraConclusion } from "../types";
+import { AssetNode, RcaRecord, ActionRecord, TriggerRecord, MigrationData, PrecisionChecklistItem, TaxonomyConfig, TaxonomyItem, HumanReliabilityAnalysis, HraQuestion, HraConclusion } from "../types";
 
 const STORAGE_KEY_ASSETS = 'rca_assets';
 const STORAGE_KEY_RECORDS = 'rca_records';
 const STORAGE_KEY_ACTIONS = 'rca_actions';
 const STORAGE_KEY_TAXONOMY = 'rca_taxonomy';
+const STORAGE_KEY_TRIGGERS = 'rca_triggers';
 
 // SECURITY: Sanitize function to strip potential HTML tags from imports
 const sanitizeString = (str: any): string => {
@@ -98,6 +99,13 @@ const INITIAL_TAXONOMY: TaxonomyConfig = {
     taxItem('M-04', "Sistema de Medição"),
     taxItem('M-05', "Método"),
     taxItem('M-06', "Material")
+  ],
+  triggerStatuses: [
+    taxItem('TRG-ST-01', "Não iniciada"),
+    taxItem('TRG-ST-02', "Em andamento"),
+    taxItem('TRG-ST-03', "Concluída"),
+    taxItem('TRG-ST-04', "Atrasada"),
+    taxItem('TRG-ST-05', "Removido")
   ]
 };
 
@@ -289,7 +297,7 @@ export const saveRecords = (records: RcaRecord[]): void => {
     localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
 };
 
-// --- ACTIONS (New Independent Store) ---
+// --- ACTIONS ---
 export const getActions = (): ActionRecord[] => {
   const stored = localStorage.getItem(STORAGE_KEY_ACTIONS);
   if (!stored) {
@@ -323,6 +331,33 @@ export const deleteAction = (actionId: string): void => {
   const actions = getActions();
   const newActions = actions.filter(a => a.id !== actionId);
   localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(newActions));
+};
+
+// --- TRIGGERS ---
+export const getTriggers = (): TriggerRecord[] => {
+    const stored = localStorage.getItem(STORAGE_KEY_TRIGGERS);
+    return stored ? JSON.parse(stored) : [];
+};
+
+export const saveTrigger = (trigger: TriggerRecord): void => {
+    const triggers = getTriggers();
+    const index = triggers.findIndex(t => t.id === trigger.id);
+    if (index >= 0) {
+        triggers[index] = trigger;
+    } else {
+        triggers.push(trigger);
+    }
+    localStorage.setItem(STORAGE_KEY_TRIGGERS, JSON.stringify(triggers));
+};
+
+export const saveTriggers = (triggers: TriggerRecord[]): void => {
+    localStorage.setItem(STORAGE_KEY_TRIGGERS, JSON.stringify(triggers));
+};
+
+export const deleteTrigger = (id: string): void => {
+    const triggers = getTriggers();
+    const newTriggers = triggers.filter(t => t.id !== id);
+    localStorage.setItem(STORAGE_KEY_TRIGGERS, JSON.stringify(newTriggers));
 };
 
 // --- UTILS FOR DYNAMIC FILTERING ---
@@ -361,6 +396,7 @@ export const importData = (jsonContent: string): { success: boolean, message: st
     const data: MigrationData = JSON.parse(jsonContent);
     const rawRecords = data.records || (Array.isArray(data) ? data : []);
     const actions = data.actions || [];
+    const triggers = data.triggers || [];
     let assets = data.assets || getAssets(); 
     let taxonomy = data.taxonomy || getTaxonomy(); 
 
@@ -449,6 +485,7 @@ export const importData = (jsonContent: string): { success: boolean, message: st
     localStorage.setItem(STORAGE_KEY_ASSETS, JSON.stringify(assets));
     localStorage.setItem(STORAGE_KEY_TAXONOMY, JSON.stringify(taxonomy));
     localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(recordsToSave));
+    localStorage.setItem(STORAGE_KEY_TRIGGERS, JSON.stringify(triggers));
     
     if(actions.length > 0) {
         // Sanitize actions
@@ -478,6 +515,7 @@ export const exportData = (): string => {
     assets: getAssets(),
     records: getRecords(),
     actions: getActions(),
+    triggers: getTriggers(),
     taxonomy: getTaxonomy()
   };
   return JSON.stringify(data, null, 2);

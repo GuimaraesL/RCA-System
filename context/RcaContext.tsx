@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { RcaRecord, AssetNode, ActionRecord, TaxonomyConfig } from '../types';
+import { RcaRecord, AssetNode, ActionRecord, TriggerRecord, TaxonomyConfig } from '../types';
 import * as storage from '../services/storageService';
 
 interface RcaContextType {
@@ -8,6 +8,7 @@ interface RcaContextType {
   records: RcaRecord[];
   assets: AssetNode[];
   actions: ActionRecord[];
+  triggers: TriggerRecord[];
   taxonomy: TaxonomyConfig;
 
   // Records Methods
@@ -23,6 +24,11 @@ interface RcaContextType {
   updateAction: (action: ActionRecord) => void;
   deleteAction: (id: string) => void;
 
+  // Triggers Methods
+  addTrigger: (trigger: TriggerRecord) => void;
+  updateTrigger: (trigger: TriggerRecord) => void;
+  deleteTrigger: (id: string) => void;
+
   // Taxonomy Methods
   updateTaxonomy: (taxonomy: TaxonomyConfig) => void;
 
@@ -36,15 +42,17 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [records, setRecords] = useState<RcaRecord[]>([]);
   const [assets, setAssets] = useState<AssetNode[]>([]);
   const [actions, setActions] = useState<ActionRecord[]>([]);
+  const [triggers, setTriggers] = useState<TriggerRecord[]>([]);
   const [taxonomy, setTaxonomy] = useState<TaxonomyConfig>({
       analysisTypes: [], analysisStatuses: [], specialties: [], failureModes: [], 
-      failureCategories: [], componentTypes: [], rootCauseMs: []
+      failureCategories: [], componentTypes: [], rootCauseMs: [], triggerStatuses: []
   });
 
   const refreshAll = () => {
     setRecords(storage.getRecords());
     setAssets(storage.getAssets());
     setActions(storage.getActions());
+    setTriggers(storage.getTriggers());
     setTaxonomy(storage.getTaxonomy());
   };
 
@@ -93,6 +101,22 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     refreshAll();
   };
 
+  // --- Triggers Wrappers ---
+  const addTrigger = (trigger: TriggerRecord) => {
+      storage.saveTrigger(trigger);
+      refreshAll();
+  };
+
+  const updateTrigger = (trigger: TriggerRecord) => {
+      storage.saveTrigger(trigger);
+      refreshAll();
+  };
+
+  const deleteTriggerInternal = (id: string) => {
+      storage.deleteTrigger(id);
+      refreshAll();
+  };
+
   // --- Taxonomy Wrappers ---
   const updateTaxonomyInternal = (newTaxonomy: TaxonomyConfig) => {
     storage.saveTaxonomy(newTaxonomy);
@@ -104,6 +128,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       records,
       assets,
       actions,
+      triggers,
       taxonomy,
       addRecord,
       updateRecord,
@@ -112,6 +137,9 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addAction,
       updateAction,
       deleteAction: deleteActionInternal,
+      addTrigger,
+      updateTrigger,
+      deleteTrigger: deleteTriggerInternal,
       updateTaxonomy: updateTaxonomyInternal,
       refreshAll
     }}>
