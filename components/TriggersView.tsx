@@ -428,6 +428,23 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                 </select>
                             </div>
 
+                            {/* Campo de Vínculo RCA */}
+                            <div>
+                                <label className="block text-xs font-medium text-slate-500 mb-1">RCA Vinculada</label>
+                                <select
+                                    className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={editingTrigger.rca_id || ''}
+                                    onChange={e => setEditingTrigger({ ...editingTrigger, rca_id: e.target.value || undefined })}
+                                >
+                                    <option value="">Nenhuma RCA vinculada</option>
+                                    {records.map(r => (
+                                        <option key={r.id} value={r.id}>
+                                            {r.id} - {r.what?.substring(0, 30) || 'Sem descrição'}...
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
                             <div>
                                 <label className="block text-xs font-medium text-slate-500 mb-1">Comentários</label>
                                 <textarea
