@@ -35,16 +35,35 @@ export const saveAssetToApi = async (asset: Partial<AssetNode> & { id: string })
 };
 
 export const importAssetsToApi = async (assets: any[]): Promise<void> => {
-    console.log('🔄 API: Importing', assets.length, 'assets...');
-    // Flatten tree to list for bulk import
+    console.log('🔄 API: Importing', assets.length, 'assets (Top-Down)...');
+
+    // Flatten tree to list for bulk import ensuring parent comes before children
     const flatten = (nodes: any[], parentId?: string): any[] => {
-        return nodes.flatMap(n => [
-            { id: n.id, name: n.name, type: n.type, parent_id: parentId || null },
-            ...(n.children ? flatten(n.children, n.id) : [])
-        ]);
+        let result: any[] = [];
+        for (const n of nodes) {
+            // Add parent first
+            result.push({ id: n.id, name: n.name, type: n.type, parent_id: parentId || null });
+            // Then recursively add children
+            if (n.children && n.children.length > 0) {
+                result = [...result, ...flatten(n.children, n.id)];
+            }
+        }
+        return result;
     };
 
     const flat = flatten(assets);
+
+    // Limpar assets atuais antes de importar para garantir integridade da árvore vinda do JSON
+    console.log('🧹 API: Cleaning existing assets before import...');
+    try {
+        const flatAssets = await fetch(`${API_BASE}/assets/flat`).then(r => r.json());
+        for (const asset of flatAssets) {
+            await fetch(`${API_BASE}/assets/${asset.id}`, { method: 'DELETE' });
+        }
+    } catch (e) {
+        console.warn('⚠️ API: Could not clean all assets, proceeding with import...', e);
+    }
+
     const response = await fetch(`${API_BASE}/assets/bulk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

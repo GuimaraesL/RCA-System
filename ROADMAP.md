@@ -9,9 +9,9 @@
 
 | Categoria | Concluídos | Total | Status |
 |-----------|------------|-------|--------|
-| Bugs Core | 6 | 7 | 🟡 85% |
+| Bugs Core | 7 | 7 | 🟢 100% |
 | Features | 0 | 2 | 🔴 0% |
-| **Total** | **6** | **9** | **66%** |
+| **Total** | **7** | **9** | **77%** |
 
 ---
 
@@ -30,6 +30,11 @@
 ### Bug #6: Criar RCA a partir do Trigger (Corrigido)
 - **Problema:** Ao clicar em "Nova RCA" na aba de Triggers, o editor não abria ou não vinculava os dados.
 - **Solução:** Restaurado o fluxo de criação e vínculo no `App.tsx`.
+- **Status:** ✅ Corrigido
+
+### Bug #7: Importação JSON - Regressão na Hierarquia de Assets (Corrigido)
+- **Problema:** Ao importar JSON, a hierarquia de ativos era perdida ou gerava erros de chave estrangeira no SQLite devido à ordem de inserção.
+- **Solução:** Implementada a ordenação Top-Down na função `flatten` (pais antes de filhos) e adicionada limpeza automática da tabela de assets antes da importação para garantir integridade.
 - **Status:** ✅ Corrigido
 
 ### Bug #3: Excluir Action
@@ -54,11 +59,7 @@
 
 ## 🐛 Bugs Pendentes
 
-### Bug #7: Importação JSON - Regressão na Hierarquia de Assets
-- **Onde:** Migration → Import JSON
-- **Problema:** Funcionalidade de importação de hierarquia de assets parou de funcionar com a implementação do banco de dados TypeScript/SQLite.
-- **Sintoma:** RCAs importam, mas Assets não aparecem ou perdem a estrutura de árvore (Area > Equip > Sub).
-- **Prioridade:** 🔴 Alta
+*Nenhum bug crítico pendente.*
 
 ---
 

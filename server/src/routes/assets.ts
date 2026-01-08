@@ -85,17 +85,31 @@ router.post('/bulk', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
         const assets = req.body;
+        let successCount = 0;
+        let errorCount = 0;
 
+        // Recomendado: Usar transação para sql.js se disponível via run('BEGIN;'),
+        // por enquanto iteramos com segurança.
         assets.forEach((a: any) => {
-            db.run('INSERT OR REPLACE INTO assets (id, name, type, parent_id) VALUES (?, ?, ?, ?)',
-                [a.id, a.name, a.type, a.parent_id || null]);
+            try {
+                db.run('INSERT OR REPLACE INTO assets (id, name, type, parent_id) VALUES (?, ?, ?, ?)',
+                    [a.id, a.name, a.type, a.parent_id || null]);
+                successCount++;
+            } catch (err) {
+                console.error(`❌ Erro ao importar asset individual [${a.id}]:`, err);
+                errorCount++;
+            }
         });
 
         saveDatabase();
-        res.status(201).json({ message: `${assets.length} assets importados` });
+        console.log(`✅ Bulk Import assets: ${successCount} sucessos, ${errorCount} erros.`);
+        res.status(201).json({
+            message: `${successCount} assets importados com sucesso.`,
+            errors: errorCount
+        });
     } catch (error) {
-        console.error('Erro ao importar assets:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        console.error('Erro crítico no bulk import de assets:', error);
+        res.status(500).json({ error: 'Erro interno ao processar lote de assets' });
     }
 });
 
