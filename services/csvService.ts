@@ -1,18 +1,20 @@
 
-import { AssetNode, ActionRecord, TaxonomyConfig, TaxonomyItem, RcaRecord } from "../types";
-import { generateId, getAssets, saveAssets, getActions, saveActions, getTaxonomy, saveTaxonomy, getRecords, saveRecords } from "./storageService";
+import { AssetNode, ActionRecord, TaxonomyConfig, TaxonomyItem, RcaRecord, TriggerRecord } from "../types";
+import { generateId, getAssets, saveAssets, getActions, saveActions, getTaxonomy, saveTaxonomy, getRecords, saveRecords, getTriggers, saveTriggers } from "./storageService";
 
 export type CsvEntityType = 
     | 'ASSETS' 
     | 'ACTIONS' 
     | 'RECORDS_SUMMARY'
+    | 'TRIGGERS'
     | 'TAXONOMY_ANALYSIS_TYPES'
     | 'TAXONOMY_STATUSES'
     | 'TAXONOMY_SPECIALTIES'
     | 'TAXONOMY_FAILURE_MODES'
     | 'TAXONOMY_FAILURE_CATEGORIES'
     | 'TAXONOMY_COMPONENT_TYPES'
-    | 'TAXONOMY_ROOT_CAUSE_MS';
+    | 'TAXONOMY_ROOT_CAUSE_MS'
+    | 'TAXONOMY_TRIGGER_STATUSES';
 
 const TAXONOMY_MAP: Record<string, keyof TaxonomyConfig> = {
     'TAXONOMY_ANALYSIS_TYPES': 'analysisTypes',
@@ -21,10 +23,33 @@ const TAXONOMY_MAP: Record<string, keyof TaxonomyConfig> = {
     'TAXONOMY_FAILURE_MODES': 'failureModes',
     'TAXONOMY_FAILURE_CATEGORIES': 'failureCategories',
     'TAXONOMY_COMPONENT_TYPES': 'componentTypes',
-    'TAXONOMY_ROOT_CAUSE_MS': 'rootCauseMs'
+    'TAXONOMY_ROOT_CAUSE_MS': 'rootCauseMs',
+    'TAXONOMY_TRIGGER_STATUSES': 'triggerStatuses'
 };
 
 // --- HELPERS ---
+
+// Helper to parse DD/MM/YYYY HH:mm or DD/MM/YYYY to ISO String
+const parseDateString = (dateStr: string): string => {
+    if (!dateStr) return '';
+    try {
+        // Handle Excel numeric dates if passed as string? (Simple implementation assumes text format based on prompt)
+        // Format: DD/MM/YYYY or DD/MM/YYYY HH:mm
+        const parts = dateStr.trim().split(' ');
+        const dateParts = parts[0].split('/');
+        
+        if (dateParts.length === 3) {
+            const day = dateParts[0].padStart(2, '0');
+            const month = dateParts[1].padStart(2, '0');
+            const year = dateParts[2];
+            const time = parts[1] || '00:00';
+            return `${year}-${month}-${day}T${time}`;
+        }
+        return new Date(dateStr).toISOString(); // Fallback
+    } catch (e) {
+        return '';
+    }
+};
 
 const toCSV = (data: any[], headers: string[]): string => {
     const headerRow = headers.join(';'); // Export with semicolon for better Excel compatibility in many regions
@@ -38,7 +63,15 @@ const toCSV = (data: any[], headers: string[]): string => {
                 val = '';
             }
             
-            const stringVal = String(val);
+            let stringVal = String(val);
+
+            // SECURITY: CSV Injection / Formula Injection Prevention
+            // If the field starts with =, +, -, or @, Excel may execute it as a formula.
+            // We prepend a single quote to force it to be treated as text.
+            if (/^[=+\-@]/.test(stringVal)) {
+                stringVal = "'" + stringVal;
+            }
+            
             // Escape quotes and wrap in quotes if contains delimiter or newline
             if (stringVal.includes(';') || stringVal.includes('"') || stringVal.includes('\n')) {
                 return `"${stringVal.replace(/"/g, '""')}"`;
@@ -116,6 +149,7 @@ export const getCsvTemplate = (type: CsvEntityType): string => {
     switch(type) {
         case 'ASSETS': return 'id;name;type;parentId';
         case 'ACTIONS': return 'id;rca_id;action;responsible;date;status;moc_number';
+        case 'TRIGGERS': return 'AREA;Equip.;Subconjunto;Data/Hora Início;Data/Hora Fim;Duração (min);Tipo Parada;Razão Parada;Comentários;Tipo AF;Status;Responsável;ID AF';
         case 'RECORDS_SUMMARY': return 'id;what;participants;problem_description;analysis_type;status;failure_date;downtime_minutes;financial_impact;area_id';
         default: return 'id;name';
     }
@@ -143,6 +177,27 @@ export const exportToCsv = (type: CsvEntityType): string => {
     if (type === 'ACTIONS') {
         const actions = getActions();
         return toCSV(actions, ['id', 'rca_id', 'action', 'responsible', 'date', 'status', 'moc_number']);
+    }
+
+    if (type === 'TRIGGERS') {
+        const triggers = getTriggers();
+        // Map internal structure back to Excel column names
+        const rows = triggers.map(t => ({
+            'AREA': t.area_id, // Note: This exports IDs, ideally we'd export Names for user readability, but let's stick to IDs for roundtrip simplicity or upgrade later
+            'Equip.': t.equipment_id,
+            'Subconjunto': t.subgroup_id,
+            'Data/Hora Início': t.start_date,
+            'Data/Hora Fim': t.end_date,
+            'Duração (min)': t.duration_minutes,
+            'Tipo Parada': t.stop_type,
+            'Razão Parada': t.stop_reason,
+            'Comentários': t.comments,
+            'Tipo AF': t.analysis_type_id,
+            'Status': t.status,
+            'Responsável': t.responsible,
+            'ID AF': t.rca_id
+        }));
+        return toCSV(rows, ['AREA', 'Equip.', 'Subconjunto', 'Data/Hora Início', 'Data/Hora Fim', 'Duração (min)', 'Tipo Parada', 'Razão Parada', 'Comentários', 'Tipo AF', 'Status', 'Responsável', 'ID AF']);
     }
 
     if (type === 'RECORDS_SUMMARY') {
@@ -198,6 +253,75 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string): { succes
 
             saveAssets(rootNodes);
             return { success: true, message: `Successfully imported ${nodes.length} assets.` };
+        }
+
+        if (type === 'TRIGGERS') {
+            const assets = getAssets();
+            const taxonomy = getTaxonomy();
+            const existingTriggers = getTriggers();
+            const newTriggers: TriggerRecord[] = [];
+
+            // Helper to find asset ID by Name (Recursive)
+            const findAssetId = (name: string, nodes: AssetNode[]): string => {
+                if (!name) return '';
+                const cleanName = name.trim().toLowerCase();
+                for (const node of nodes) {
+                    if (node.name.toLowerCase() === cleanName || node.id === name) return node.id;
+                    if (node.children) {
+                        const found = findAssetId(name, node.children);
+                        if (found) return found;
+                    }
+                }
+                return '';
+            };
+
+            // Helper to find Taxonomy ID by Name
+            const findTaxonomyId = (list: TaxonomyItem[], name: string): string => {
+                if (!name) return '';
+                const found = list.find(i => i.name.toLowerCase() === name.toLowerCase().trim() || i.id === name);
+                return found ? found.id : '';
+            };
+
+            // Default Status ID fallback (Usually 'Não iniciada')
+            const defaultStatusId = taxonomy.triggerStatuses?.[0]?.id || 'TRG-ST-01';
+
+            rawData.forEach(r => {
+                // Map Status from CSV String to ID
+                const statusName = r['Status'] || '';
+                let statusId = findTaxonomyId(taxonomy.triggerStatuses || [], statusName);
+                if (!statusId) statusId = defaultStatusId;
+
+                // Map Assets
+                const areaId = findAssetId(r['AREA'], assets);
+                // Optimization: If area found, we could narrow search, but global search is safer for CSVs with partial data
+                const equipId = findAssetId(r['Equip.'], assets);
+                const subId = findAssetId(r['Subconjunto'], assets);
+
+                // Map Analysis Type
+                const typeId = findTaxonomyId(taxonomy.analysisTypes, r['Tipo AF']);
+
+                const trigger: TriggerRecord = {
+                    id: generateId('TRG'),
+                    area_id: areaId,
+                    equipment_id: equipId,
+                    subgroup_id: subId,
+                    start_date: parseDateString(r['Data/Hora Início']),
+                    end_date: parseDateString(r['Data/Hora Fim']),
+                    duration_minutes: parseInt(r['Duração (min)']) || 0,
+                    stop_type: r['Tipo Parada'] || '',
+                    stop_reason: r['Razão Parada'] || '',
+                    comments: r['Comentários'] || '',
+                    analysis_type_id: typeId,
+                    status: statusId, // Now using ID
+                    responsible: r['Responsável'] || '',
+                    rca_id: r['ID AF'] || ''
+                };
+                newTriggers.push(trigger);
+            });
+
+            // Append to existing or replace? Usually imports might be addictive. Let's append but avoid dupes if ID exists
+            saveTriggers([...existingTriggers, ...newTriggers]);
+            return { success: true, message: `Successfully imported ${newTriggers.length} triggers.` };
         }
 
         if (type === 'ACTIONS') {

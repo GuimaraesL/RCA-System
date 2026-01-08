@@ -111,6 +111,7 @@ export const SettingsView: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
         <ListManager title="Analysis Types" field="analysisTypes" items={taxonomy.analysisTypes} />
         <ListManager title="Analysis Statuses" field="analysisStatuses" items={taxonomy.analysisStatuses} />
+        <ListManager title="Trigger Statuses" field="triggerStatuses" items={taxonomy.triggerStatuses} />
         <ListManager title="Component Types" field="componentTypes" items={taxonomy.componentTypes} />
         <ListManager title="Specialties" field="specialties" items={taxonomy.specialties} />
         <ListManager title="Failure Modes" field="failureModes" items={taxonomy.failureModes} />

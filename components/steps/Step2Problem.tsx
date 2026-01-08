@@ -19,6 +19,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <Input
                         label="Quem (Who)"
+                        required
                         placeholder="Quem detectou o problema?"
                         value={data.who}
                         onChange={(e) => onChange('who', e.target.value)}
@@ -26,6 +27,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange }) => {
 
                     <Input
                         label="Quando (When)"
+                        required
                         placeholder="Data/Hora da ocorrência detalhada"
                         value={data.when}
                         onChange={(e) => onChange('when', e.target.value)}
@@ -33,6 +35,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange }) => {
 
                     <Input
                         label="Onde (Where)"
+                        required
                         placeholder="Área, Equipamento, Local específico"
                         value={data.where_description}
                         onChange={(e) => onChange('where_description', e.target.value)}
@@ -40,6 +43,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange }) => {
 
                     <Input
                         label="O Que (What) - Título Curto"
+                        required
                         placeholder="Descrição sucinta da falha"
                         value={data.what}
                         onChange={(e) => onChange('what', e.target.value)}
@@ -49,6 +53,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange }) => {
                 <div className="space-y-6">
                     <Textarea
                         label="Descrição Detalhada do Problema"
+                        required
                         placeholder="Descreva detalhadamente o problema, incluindo circunstâncias e contexto..."
                         rows={6}
                         value={data.problem_description}

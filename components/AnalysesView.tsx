@@ -5,6 +5,7 @@ import { Plus, FileText } from 'lucide-react';
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { useRcaContext } from '../context/RcaContext';
+import { filterAssetsByUsage } from '../services/storageService';
 
 interface AnalysesViewProps {
   onNew: () => void;
@@ -14,53 +15,102 @@ interface AnalysesViewProps {
 export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => {
   const { records, assets, taxonomy } = useRcaContext();
 
-  // --- Persistent Filter State ---
+  // --- Persistent Filter State (Updated) ---
   const defaultFilters: FilterState = {
       searchTerm: '',
-      dateStart: '',
-      dateEnd: '',
+      year: '', // Optional in list view
+      months: [],
       status: 'ALL',
       area: 'ALL',
-      category: 'ALL'
+      equipment: 'ALL',
+      subgroup: 'ALL',
+      specialty: 'ALL',
+      analysisType: 'ALL',
+      failureMode: 'ALL',
+      failureCategory: 'ALL',
+      componentType: 'ALL',
+      rootCause6M: 'ALL'
   };
 
-  const { showFilters, setShowFilters, filters, setFilters, handleReset } = useFilterPersistence(
-      'rca_analyses_view', 
+  const { showFilters, setShowFilters, filters, setFilters, handleReset, isGlobal, toggleGlobal } = useFilterPersistence(
+      'rca_analyses_view_v3', 
       defaultFilters,
       true
   );
 
-  // --- Helpers for Display ---
+  // --- Helpers ---
   const getName = (type: keyof TaxonomyConfig, id: string) => {
       if (!taxonomy || !id) return id;
-      const item = taxonomy[type].find(t => t.id === id);
+      const item = (taxonomy[type] as any[]).find((t: any) => t.id === id);
       return item ? item.name : id;
   };
 
-  // --- Derived Lists ---
-  const availableAreas = useMemo(() => {
-      const areas: {id: string, name: string}[] = [];
-      const traverse = (nodes: AssetNode[]) => {
-          nodes.forEach(n => {
-              if (n.type === 'AREA') areas.push({id: n.id, name: n.name});
-              if (n.children) traverse(n.children);
-          });
-      };
-      traverse(assets);
-      return areas;
-  }, [assets]);
+  // --- Strict Cross-Filtering Logic for Options ---
+  // Same logic as Dashboard to ensure consistency across the app.
+  const dynamicOptions = useMemo(() => {
+    // Helper: Global filters (Date, Search)
+    const matchesGlobal = (r: any) => {
+         const searchLower = filters.searchTerm.toLowerCase();
+         const matchesSearch = !filters.searchTerm || 
+            r.what?.toLowerCase().includes(searchLower) ||
+            r.problem_description?.toLowerCase().includes(searchLower) ||
+            r.id.toLowerCase().includes(searchLower);
 
-  const availableCategories = useMemo(() => {
-      if(!taxonomy) return [];
-      return taxonomy.failureCategories;
-  }, [taxonomy]);
+        const rDate = new Date(r.failure_date);
+        const matchesYear = !filters.year || rDate.getFullYear().toString() === filters.year;
+        
+        const rMonth = (rDate.getMonth() + 1).toString().padStart(2, '0');
+        const matchesMonth = filters.months.length === 0 || filters.months.includes(rMonth);
+        
+        return matchesSearch && matchesYear && matchesMonth;
+    };
 
-  const availableStatuses = useMemo(() => {
-      if(!taxonomy) return [];
-      return taxonomy.analysisStatuses;
-  }, [taxonomy]);
+    // Helper: Asset filters
+    const matchesAssets = (r: any) => {
+        if (filters.subgroup !== 'ALL' && r.subgroup_id !== filters.subgroup) return false;
+        if (filters.equipment !== 'ALL' && r.equipment_id !== filters.equipment) return false;
+        if (filters.area !== 'ALL' && r.area_id !== filters.area) return false;
+        return true;
+    };
+    
+    // Helper: Attribute filters
+    const matchesAttributes = (r: any, ignore: 'status' | 'type' | 'specialty' | null) => {
+        if (ignore !== 'status' && filters.status !== 'ALL' && r.status !== filters.status) return false;
+        if (ignore !== 'type' && filters.analysisType !== 'ALL' && r.analysis_type !== filters.analysisType) return false;
+        if (ignore !== 'specialty' && filters.specialty !== 'ALL' && r.specialty_id !== filters.specialty) return false;
+        return true;
+    };
 
-  // --- Filtering Logic ---
+    // 1. Assets: Match Global + Attributes
+    const recordsForAssets = records.filter(r => matchesGlobal(r) && matchesAttributes(r, null));
+    const usedAssetIds = new Set<string>();
+    recordsForAssets.forEach(r => {
+        if(r.area_id) usedAssetIds.add(r.area_id);
+        if(r.equipment_id) usedAssetIds.add(r.equipment_id);
+        if(r.subgroup_id) usedAssetIds.add(r.subgroup_id);
+    });
+
+    // 2. Statuses: Match Global + Assets + Attributes(ignore Status)
+    const recordsForStatuses = records.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'status'));
+    const usedStatuses = new Set(recordsForStatuses.map(r => r.status));
+
+    // 3. Specialties: Match Global + Assets + Attributes(ignore Specialty)
+    const recordsForSpecialties = records.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'specialty'));
+    const usedSpecialties = new Set(recordsForSpecialties.map(r => r.specialty_id));
+
+    // 4. Types: Match Global + Assets + Attributes(ignore Type)
+    const recordsForTypes = records.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'type'));
+    const usedTypes = new Set(recordsForTypes.map(r => r.analysis_type));
+
+    return {
+        assets: filterAssetsByUsage(assets, usedAssetIds),
+        statuses: taxonomy.analysisStatuses.filter(s => usedStatuses.has(s.id)),
+        specialties: taxonomy.specialties.filter(s => usedSpecialties.has(s.id)),
+        analysisTypes: taxonomy.analysisTypes.filter(t => usedTypes.has(t.id))
+    };
+  }, [records, assets, taxonomy, filters]);
+
+  // --- Filtering Logic (View) ---
   const filteredRecords = useMemo(() => {
     return records.filter(r => {
         // Text Search
@@ -68,22 +118,39 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         const matchesSearch = !filters.searchTerm || 
             r.what?.toLowerCase().includes(searchLower) ||
             r.problem_description?.toLowerCase().includes(searchLower) ||
-            r.id.toLowerCase().includes(searchLower) ||
-            r.os_number?.toLowerCase().includes(searchLower) ||
-            r.asset_name_display?.toLowerCase().includes(searchLower);
+            r.id.toLowerCase().includes(searchLower);
 
-        // Date Range
+        // Date (Year Only if set)
         const rDate = new Date(r.failure_date);
-        const start = filters.dateStart ? new Date(filters.dateStart) : null;
-        const end = filters.dateEnd ? new Date(filters.dateEnd) : null;
-        const matchesDate = (!start || rDate >= start) && (!end || rDate <= end);
+        const matchesYear = !filters.year || rDate.getFullYear().toString() === filters.year;
+        
+        // Month
+        const rMonth = (rDate.getMonth() + 1).toString().padStart(2, '0');
+        const matchesMonth = filters.months.length === 0 || filters.months.includes(rMonth);
 
-        // Dropdowns
+        // Dropdown Filters
         const matchesStatus = filters.status === 'ALL' || r.status === filters.status;
-        const matchesArea = filters.area === 'ALL' || r.area_id === filters.area;
-        const matchesCategory = filters.category === 'ALL' || r.failure_category_id === filters.category;
+        const matchesType = filters.analysisType === 'ALL' || r.analysis_type === filters.analysisType;
+        const matchesSpecialty = filters.specialty === 'ALL' || r.specialty_id === filters.specialty;
 
-        return matchesSearch && matchesDate && matchesStatus && matchesArea && matchesCategory;
+        // Assets Hierarchy
+        let matchesAsset = true;
+        if (filters.subgroup !== 'ALL') matchesAsset = r.subgroup_id === filters.subgroup;
+        else if (filters.equipment !== 'ALL') matchesAsset = r.equipment_id === filters.equipment;
+        else if (filters.area !== 'ALL') matchesAsset = r.area_id === filters.area;
+
+        // --- Technical Filters (Dashboard Click-through) ---
+        const matchesFailureMode = filters.failureMode === 'ALL' || r.failure_mode_id === filters.failureMode;
+        const matchesFailureCategory = filters.failureCategory === 'ALL' || r.failure_category_id === filters.failureCategory;
+        const matchesComponent = filters.componentType === 'ALL' || r.component_type === filters.componentType;
+        
+        let matches6M = true;
+        if (filters.rootCause6M !== 'ALL') {
+            matches6M = r.root_causes?.some((rc: any) => rc.root_cause_m_id === filters.rootCause6M);
+        }
+
+        return matchesSearch && matchesYear && matchesMonth && matchesStatus && matchesAsset && matchesType && matchesSpecialty 
+               && matchesFailureMode && matchesFailureCategory && matchesComponent && matches6M;
     });
   }, [records, filters]);
 
@@ -114,16 +181,18 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
               showSearch: true,
               showDate: true,
               showStatus: true,
-              showArea: true,
-              showCategory: true,
-              searchPlaceholder: "Search by Title, ID, Asset...",
-              dateLabel: "Failure Date Range"
+              showAssetHierarchy: true,
+              showAnalysisType: true,
+              showSpecialty: true
           }}
           options={{
-              statuses: availableStatuses,
-              areas: availableAreas,
-              categories: availableCategories
+              statuses: dynamicOptions.statuses,
+              analysisTypes: dynamicOptions.analysisTypes,
+              specialties: dynamicOptions.specialties,
+              assets: dynamicOptions.assets
           }}
+          isGlobal={isGlobal}
+          onGlobalToggle={toggleGlobal}
       />
 
       {/* Data Table */}

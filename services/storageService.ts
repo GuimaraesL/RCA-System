@@ -1,10 +1,18 @@
 
-import { AssetNode, RcaRecord, ActionRecord, MigrationData, PrecisionChecklistItem, TaxonomyConfig, TaxonomyItem, HumanReliabilityAnalysis, HraQuestion, HraConclusion } from "../types";
+import { AssetNode, RcaRecord, ActionRecord, TriggerRecord, MigrationData, PrecisionChecklistItem, TaxonomyConfig, TaxonomyItem, HumanReliabilityAnalysis, HraQuestion, HraConclusion } from "../types";
 
 const STORAGE_KEY_ASSETS = 'rca_assets';
 const STORAGE_KEY_RECORDS = 'rca_records';
 const STORAGE_KEY_ACTIONS = 'rca_actions';
 const STORAGE_KEY_TAXONOMY = 'rca_taxonomy';
+const STORAGE_KEY_TRIGGERS = 'rca_triggers';
+
+// SECURITY: Sanitize function to strip potential HTML tags from imports
+const sanitizeString = (str: any): string => {
+    if (typeof str !== 'string') return '';
+    // Basic stripping of HTML tags to prevent Stored XSS vectors in raw data
+    return str.replace(/<[^>]*>?/gm, '');
+};
 
 export const generateId = (prefix: string = 'GEN'): string => {
   const timestamp = Date.now().toString(36).toUpperCase();
@@ -91,6 +99,13 @@ const INITIAL_TAXONOMY: TaxonomyConfig = {
     taxItem('M-04', "Sistema de Medição"),
     taxItem('M-05', "Método"),
     taxItem('M-06', "Material")
+  ],
+  triggerStatuses: [
+    taxItem('TRG-ST-01', "Não iniciada"),
+    taxItem('TRG-ST-02', "Em andamento"),
+    taxItem('TRG-ST-03', "Concluída"),
+    taxItem('TRG-ST-04', "Atrasada"),
+    taxItem('TRG-ST-05', "Removido")
   ]
 };
 
@@ -282,7 +297,7 @@ export const saveRecords = (records: RcaRecord[]): void => {
     localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
 };
 
-// --- ACTIONS (New Independent Store) ---
+// --- ACTIONS ---
 export const getActions = (): ActionRecord[] => {
   const stored = localStorage.getItem(STORAGE_KEY_ACTIONS);
   if (!stored) {
@@ -318,55 +333,125 @@ export const deleteAction = (actionId: string): void => {
   localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(newActions));
 };
 
+// --- TRIGGERS ---
+export const getTriggers = (): TriggerRecord[] => {
+    const stored = localStorage.getItem(STORAGE_KEY_TRIGGERS);
+    return stored ? JSON.parse(stored) : [];
+};
+
+export const saveTrigger = (trigger: TriggerRecord): void => {
+    const triggers = getTriggers();
+    const index = triggers.findIndex(t => t.id === trigger.id);
+    if (index >= 0) {
+        triggers[index] = trigger;
+    } else {
+        triggers.push(trigger);
+    }
+    localStorage.setItem(STORAGE_KEY_TRIGGERS, JSON.stringify(triggers));
+};
+
+export const saveTriggers = (triggers: TriggerRecord[]): void => {
+    localStorage.setItem(STORAGE_KEY_TRIGGERS, JSON.stringify(triggers));
+};
+
+export const deleteTrigger = (id: string): void => {
+    const triggers = getTriggers();
+    const newTriggers = triggers.filter(t => t.id !== id);
+    localStorage.setItem(STORAGE_KEY_TRIGGERS, JSON.stringify(newTriggers));
+};
+
+// --- UTILS FOR DYNAMIC FILTERING ---
+
+/**
+ * Traverses the asset tree and keeps ONLY the branches that have IDs in the provided set.
+ * Returns a pruned tree.
+ */
+export const filterAssetsByUsage = (allAssets: AssetNode[], usedIds: Set<string>): AssetNode[] => {
+    const prune = (nodes: AssetNode[]): AssetNode[] => {
+        return nodes.reduce<AssetNode[]>((acc, node) => {
+            // Check if this node is used
+            const isUsed = usedIds.has(node.id);
+            
+            // Recurse into children
+            const prunedChildren = node.children ? prune(node.children) : [];
+            const hasUsedChildren = prunedChildren.length > 0;
+
+            // Keep node if it's used OR has used children
+            if (isUsed || hasUsedChildren) {
+                acc.push({
+                    ...node,
+                    children: prunedChildren // Replace children with pruned version
+                });
+            }
+            return acc;
+        }, []);
+    };
+
+    return prune(allAssets);
+};
+
 // --- IMPORT/EXPORT ---
 export const importData = (jsonContent: string): { success: boolean, message: string } => {
   try {
     const data: MigrationData = JSON.parse(jsonContent);
-    const records = data.records || (Array.isArray(data) ? data : []);
+    const rawRecords = data.records || (Array.isArray(data) ? data : []);
     const actions = data.actions || [];
-    let assets = data.assets || getAssets(); // Default to existing if not in JSON
-    let taxonomy = data.taxonomy || getTaxonomy(); // Default to existing
+    const triggers = data.triggers || [];
+    let assets = data.assets || getAssets(); 
+    let taxonomy = data.taxonomy || getTaxonomy(); 
 
-    if (!Array.isArray(records)) {
+    if (!Array.isArray(rawRecords)) {
       return { success: false, message: "Invalid JSON: Missing records array." };
     }
 
     // --- 1. Auto-Discover Taxonomy Items from Records ---
-    // This ensures that imported IDs (which might be text names in legacy data) 
-    // exist in the settings dropdowns.
     const ensureTaxonomy = (listKey: keyof TaxonomyConfig, val: string) => {
         if (!val) return '';
         const list = taxonomy[listKey] || [];
-        // Check by ID or Name match
         const existing = list.find(i => i.id === val || i.name.toLowerCase() === val.toLowerCase());
         if (existing) return existing.id;
         
         // Create new
-        const newId = val.length < 10 ? val : generateId('AUTO'); // Keep legacy ID if short, else gen new
-        list.push({ id: newId, name: val });
+        const newId = val.length < 10 ? val : generateId('AUTO'); 
+        list.push({ id: newId, name: sanitizeString(val) }); // Sanitize new taxonomy names
         taxonomy[listKey] = list;
         return newId;
     };
 
     // --- 2. Auto-Discover Asset Hierarchy from Records ---
-    // Builds the tree (Area -> Equipment -> Subgroup) based on record fields
     const ensureAsset = (currentNodes: AssetNode[], id: string, type: 'AREA'|'EQUIPMENT'|'SUBGROUP', parentId?: string): AssetNode => {
         let node = currentNodes.find(n => n.id === id);
         if (!node) {
-            node = { id, name: id, type, children: [], parentId };
+            node = { id, name: sanitizeString(id), type, children: [], parentId };
             currentNodes.push(node);
         }
         return node;
     };
 
-    const recordsToSave = records.map((rec: any) => {
+    const recordsToSave = rawRecords.map((rec: any) => {
+        // Sanitize Strings in Record
+        if (rec.what) rec.what = sanitizeString(rec.what);
+        if (rec.problem_description) rec.problem_description = sanitizeString(rec.problem_description);
+        if (rec.asset_name_display) rec.asset_name_display = sanitizeString(rec.asset_name_display);
+        
+        // Normalize Status & Handle DRAFT
+        if (rec.status) {
+             const statusUpper = rec.status.toString().toUpperCase();
+             if (statusUpper === 'DRAFT') {
+                 rec.status = 'STATUS-01'; // Map DRAFT to Open
+             } else {
+                 rec.status = ensureTaxonomy('analysisStatuses', rec.status);
+             }
+        } else {
+            rec.status = 'STATUS-01';
+        }
+
         // Normalize Taxonomy Fields
         if (rec.specialty_id) rec.specialty_id = ensureTaxonomy('specialties', rec.specialty_id);
         if (rec.failure_mode_id) rec.failure_mode_id = ensureTaxonomy('failureModes', rec.failure_mode_id);
         if (rec.failure_category_id) rec.failure_category_id = ensureTaxonomy('failureCategories', rec.failure_category_id);
         if (rec.component_type) rec.component_type = ensureTaxonomy('componentTypes', rec.component_type);
         if (rec.analysis_type) rec.analysis_type = ensureTaxonomy('analysisTypes', rec.analysis_type);
-        if (rec.status) rec.status = ensureTaxonomy('analysisStatuses', rec.status);
 
         // Normalize Asset Hierarchy
         if (rec.area_id) {
@@ -389,6 +474,7 @@ export const importData = (jsonContent: string): { success: boolean, message: st
                 if (rc.root_cause_m_id) {
                     rc.root_cause_m_id = ensureTaxonomy('rootCauseMs', rc.root_cause_m_id);
                 }
+                if (rc.cause) rc.cause = sanitizeString(rc.cause);
             });
         }
 
@@ -399,12 +485,19 @@ export const importData = (jsonContent: string): { success: boolean, message: st
     localStorage.setItem(STORAGE_KEY_ASSETS, JSON.stringify(assets));
     localStorage.setItem(STORAGE_KEY_TAXONOMY, JSON.stringify(taxonomy));
     localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(recordsToSave));
+    localStorage.setItem(STORAGE_KEY_TRIGGERS, JSON.stringify(triggers));
     
     if(actions.length > 0) {
-        localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(actions));
+        // Sanitize actions
+        const sanitizedActions = actions.map((a: any) => ({
+            ...a,
+            action: sanitizeString(a.action),
+            responsible: sanitizeString(a.responsible)
+        }));
+        localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(sanitizedActions));
     }
     
-    return { success: true, message: `Imported successfully. Processed ${records.length} records and updated configuration.` };
+    return { success: true, message: `Imported successfully. Processed ${rawRecords.length} records and updated configuration.` };
   } catch (e) {
     console.error(e);
     return { success: false, message: "JSON Parse Error" };
@@ -422,6 +515,7 @@ export const exportData = (): string => {
     assets: getAssets(),
     records: getRecords(),
     actions: getActions(),
+    triggers: getTriggers(),
     taxonomy: getTaxonomy()
   };
   return JSON.stringify(data, null, 2);

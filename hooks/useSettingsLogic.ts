@@ -13,7 +13,8 @@ export const useSettingsLogic = () => {
     failureModes: [],
     failureCategories: [],
     componentTypes: [],
-    rootCauseMs: []
+    rootCauseMs: [],
+    triggerStatuses: []
   });
 
   useEffect(() => {
@@ -25,7 +26,8 @@ export const useSettingsLogic = () => {
       failureModes: taxonomy.failureModes || [],
       failureCategories: taxonomy.failureCategories || [],
       componentTypes: taxonomy.componentTypes || [],
-      rootCauseMs: taxonomy.rootCauseMs || []
+      rootCauseMs: taxonomy.rootCauseMs || [],
+      triggerStatuses: taxonomy.triggerStatuses || []
     });
   }, [taxonomy]);
 

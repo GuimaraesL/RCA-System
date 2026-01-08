@@ -1,18 +1,26 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { IshikawaDiagram } from "../types";
-
-const apiKey = process.env.API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
 
 export const analyzeFailure = async (
   assetName: string,
   problemDescription: string
 ): Promise<IshikawaDiagram> => {
+  // Safely retrieve API Key inside the function scope to avoid top-level ReferenceErrors during module load
+  let apiKey = '';
+  try {
+    apiKey = process.env.API_KEY || '';
+  } catch (e) {
+    console.warn("process.env.API_KEY is not accessible.");
+  }
+
   if (!apiKey) {
     console.warn("API Key missing for Gemini");
     return { machine: [], method: [], material: [], manpower: [], measurement: [], environment: [] };
   }
 
+  // Initialize client instance right before making the call
+  const ai = new GoogleGenAI({ apiKey });
   const model = "gemini-2.5-flash";
   const prompt = `
     Acting as a Senior Reliability Engineer, analyze the following equipment failure.

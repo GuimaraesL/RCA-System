@@ -29,6 +29,7 @@ export interface TaxonomyConfig {
   failureCategories: TaxonomyItem[];
   componentTypes: TaxonomyItem[];
   rootCauseMs: TaxonomyItem[];
+  triggerStatuses: TaxonomyItem[]; // Added field
 }
 
 // 6. Investigação types
@@ -78,6 +79,29 @@ export interface ActionRecord {
   date: string;
   status: ActionStatus;
   moc_number?: string;
+}
+
+// Trigger Analysis Types
+export interface TriggerRecord {
+  id: string;
+  // Asset Hierarchy Links
+  area_id: string;
+  equipment_id: string;
+  subgroup_id: string;
+  
+  start_date: string; // ISO Date Time
+  end_date: string;   // ISO Date Time
+  duration_minutes: number;
+  
+  stop_type: string;
+  stop_reason: string;
+  comments: string;
+  
+  analysis_type_id: string; // Link to Taxonomy
+  status: string; // Dynamic ID from Taxonomy
+  responsible: string;
+  
+  rca_id?: string; // Link to an existing or new RCA
 }
 
 // Human Reliability Analysis Types
@@ -195,4 +219,5 @@ export interface MigrationData {
   taxonomy?: TaxonomyConfig;
   records: RcaRecord[];
   actions: ActionRecord[];
+  triggers?: TriggerRecord[];
 }

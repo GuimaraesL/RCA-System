@@ -1,58 +1,163 @@
 
 import React, { useMemo } from 'react';
 import { AssetNode } from '../types';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
-import { TrendingUp, Clock, AlertCircle, DollarSign } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts';
+import { Clock, TrendingUp, AlertCircle, CheckCircle, PieChart as PieIcon, Activity, MousePointerClick } from 'lucide-react';
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { useRcaContext } from '../context/RcaContext';
+import { filterAssetsByUsage } from '../services/storageService';
+
+// Professional Color Palette (Cool Tones + Accents)
+const COLORS = [
+    '#3b82f6', // Blue 500
+    '#10b981', // Emerald 500
+    '#f59e0b', // Amber 500
+    '#6366f1', // Indigo 500
+    '#ec4899', // Pink 500
+    '#06b6d4', // Cyan 500
+    '#8b5cf6', // Violet 500
+    '#ef4444', // Red 500
+    '#84cc16', // Lime 500 (kept as accent)
+    '#14b8a6', // Teal 500
+];
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-white/95 backdrop-blur-sm p-3 border border-slate-200 shadow-lg rounded-lg text-sm z-50">
+                <p className="font-bold text-slate-800 mb-1">{label || payload[0].payload.name}</p>
+                <p className="text-blue-600 font-medium">
+                    {payload[0].value} <span className="text-slate-500 text-xs">registros</span>
+                </p>
+                {payload[0].payload.id && (
+                    <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wide">
+                        Click to filter
+                    </p>
+                )}
+            </div>
+        );
+    }
+    return null;
+};
 
 export const Dashboard: React.FC = () => {
-  const { records, assets, actions: allSystemActions, taxonomy } = useRcaContext();
+  const { records, assets, taxonomy } = useRcaContext();
   
-  // --- Persistent Filter State ---
   const defaultFilters: FilterState = {
       searchTerm: '',
-      dateStart: '',
-      dateEnd: '',
+      year: new Date().getFullYear().toString(),
+      months: [],
       status: 'ALL',
       area: 'ALL',
-      category: 'ALL'
+      equipment: 'ALL',
+      subgroup: 'ALL',
+      specialty: 'ALL',
+      analysisType: 'ALL',
+      // New filters
+      failureMode: 'ALL',
+      failureCategory: 'ALL',
+      componentType: 'ALL',
+      rootCause6M: 'ALL'
   };
 
-  const { showFilters, setShowFilters, filters, setFilters, handleReset } = useFilterPersistence(
-      'rca_dashboard', 
+  const { showFilters, setShowFilters, filters, setFilters, handleReset, isGlobal, toggleGlobal } = useFilterPersistence(
+      'rca_dashboard_v3', 
       defaultFilters,
-      false // Default closed for dashboard
+      false
   );
 
-  // --- Helpers ---
-  const getStatusName = (id: string) => {
-      if(!taxonomy) return id;
-      const s = taxonomy.analysisStatuses.find(t => t.id === id);
-      return s ? s.name : id;
-  };
-  
-  const getModeName = (id: string) => {
-      if(!taxonomy) return id;
-      const m = taxonomy.failureModes.find(t => t.id === id);
-      return m ? m.name : id;
+  const resolveTaxonomyName = (type: keyof typeof taxonomy, id: string) => {
+      if(!taxonomy || !taxonomy[type]) return id;
+      const item = (taxonomy[type] as any[]).find((t: any) => t.id === id);
+      return item ? item.name : id;
   };
 
-  const getAreaName = (areaId: string) => {
+  const resolveAssetName = (id: string) => {
       const findRecursive = (nodes: AssetNode[]): string | undefined => {
           for(const n of nodes) {
-              if(n.id === areaId) return n.name;
+              if(n.id === id) return n.name;
               if(n.children) {
                   const found = findRecursive(n.children);
                   if(found) return found;
               }
           }
       };
-      return findRecursive(assets) || areaId;
+      return findRecursive(assets) || id;
   };
 
-  // --- Filtering Logic ---
+  // --- Strict Cross-Filtering Logic for Options ---
+  const dynamicOptions = useMemo(() => {
+    // Basic Global Filters
+    const matchesGlobal = (r: any) => {
+         const searchLower = filters.searchTerm.toLowerCase();
+         const matchesSearch = !filters.searchTerm || 
+            r.what?.toLowerCase().includes(searchLower) ||
+            r.problem_description?.toLowerCase().includes(searchLower) ||
+            r.id.toLowerCase().includes(searchLower);
+
+        const rDate = new Date(r.failure_date);
+        const rYear = rDate.getFullYear().toString();
+        const rMonth = (rDate.getMonth() + 1).toString().padStart(2, '0');
+        const matchesYear = !filters.year || rYear === filters.year;
+        const matchesMonth = filters.months.length === 0 || filters.months.includes(rMonth);
+        
+        return matchesSearch && matchesYear && matchesMonth;
+    };
+
+    // Asset Filters
+    const matchesAssets = (r: any) => {
+        if (filters.subgroup !== 'ALL' && r.subgroup_id !== filters.subgroup) return false;
+        if (filters.equipment !== 'ALL' && r.equipment_id !== filters.equipment) return false;
+        if (filters.area !== 'ALL' && r.area_id !== filters.area) return false;
+        return true;
+    };
+    
+    // Technical Filters
+    const matchesAttributes = (r: any, ignore: 'status' | 'type' | 'specialty' | null) => {
+        if (ignore !== 'status' && filters.status !== 'ALL' && r.status !== filters.status) return false;
+        if (ignore !== 'type' && filters.analysisType !== 'ALL' && r.analysis_type !== filters.analysisType) return false;
+        if (ignore !== 'specialty' && filters.specialty !== 'ALL' && r.specialty_id !== filters.specialty) return false;
+        
+        // Deep filters (Chart Clicks)
+        if (filters.failureMode !== 'ALL' && r.failure_mode_id !== filters.failureMode) return false;
+        if (filters.failureCategory !== 'ALL' && r.failure_category_id !== filters.failureCategory) return false;
+        if (filters.componentType !== 'ALL' && r.component_type !== filters.componentType) return false;
+        if (filters.rootCause6M !== 'ALL') {
+             // 6M Logic: Pass if ANY root cause matches the filter
+             const hasCause = r.root_causes?.some((rc: any) => rc.root_cause_m_id === filters.rootCause6M);
+             if (!hasCause) return false;
+        }
+
+        return true;
+    };
+
+    const recordsForAssets = records.filter(r => matchesGlobal(r) && matchesAttributes(r, null));
+    const usedAssetIds = new Set<string>();
+    recordsForAssets.forEach(r => {
+        if(r.area_id) usedAssetIds.add(r.area_id);
+        if(r.equipment_id) usedAssetIds.add(r.equipment_id);
+        if(r.subgroup_id) usedAssetIds.add(r.subgroup_id);
+    });
+
+    const recordsForStatuses = records.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'status'));
+    const usedStatuses = new Set(recordsForStatuses.map(r => r.status));
+
+    const recordsForSpecialties = records.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'specialty'));
+    const usedSpecialties = new Set(recordsForSpecialties.map(r => r.specialty_id));
+
+    const recordsForTypes = records.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'type'));
+    const usedTypes = new Set(recordsForTypes.map(r => r.analysis_type));
+
+    return {
+        assets: filterAssetsByUsage(assets, usedAssetIds),
+        statuses: taxonomy.analysisStatuses.filter(s => usedStatuses.has(s.id)),
+        specialties: taxonomy.specialties.filter(s => usedSpecialties.has(s.id)),
+        analysisTypes: taxonomy.analysisTypes.filter(t => usedTypes.has(t.id))
+    };
+  }, [records, assets, taxonomy, filters]);
+
+  // --- Main Filtering Logic ---
   const filteredRecords = useMemo(() => {
     return records.filter(r => {
         const searchLower = filters.searchTerm.toLowerCase();
@@ -62,96 +167,145 @@ export const Dashboard: React.FC = () => {
             r.id.toLowerCase().includes(searchLower);
 
         const rDate = new Date(r.failure_date);
-        const start = filters.dateStart ? new Date(filters.dateStart) : null;
-        const end = filters.dateEnd ? new Date(filters.dateEnd) : null;
-        const matchesDate = (!start || rDate >= start) && (!end || rDate <= end);
+        const rYear = rDate.getFullYear().toString();
+        const rMonth = (rDate.getMonth() + 1).toString().padStart(2, '0');
 
+        const matchesYear = !filters.year || rYear === filters.year;
+        const matchesMonth = filters.months.length === 0 || filters.months.includes(rMonth);
+
+        // Standard dropdown filters
         const matchesStatus = filters.status === 'ALL' || r.status === filters.status;
-        const matchesArea = filters.area === 'ALL' || r.area_id === filters.area;
-        const matchesCategory = filters.category === 'ALL' || r.failure_category_id === filters.category;
+        const matchesSpecialty = filters.specialty === 'ALL' || r.specialty_id === filters.specialty;
+        const matchesType = filters.analysisType === 'ALL' || r.analysis_type === filters.analysisType;
 
-        return matchesSearch && matchesDate && matchesStatus && matchesArea && matchesCategory;
+        // Hierarchy
+        let matchesAsset = true;
+        if (filters.subgroup !== 'ALL') matchesAsset = r.subgroup_id === filters.subgroup;
+        else if (filters.equipment !== 'ALL') matchesAsset = r.equipment_id === filters.equipment;
+        else if (filters.area !== 'ALL') matchesAsset = r.area_id === filters.area;
+
+        // Advanced Chart Filters (Click-through)
+        const matchesFailureMode = filters.failureMode === 'ALL' || r.failure_mode_id === filters.failureMode;
+        const matchesFailureCategory = filters.failureCategory === 'ALL' || r.failure_category_id === filters.failureCategory;
+        const matchesComponent = filters.componentType === 'ALL' || r.component_type === filters.componentType;
+        
+        let matches6M = true;
+        if (filters.rootCause6M !== 'ALL') {
+            matches6M = r.root_causes?.some((rc: any) => rc.root_cause_m_id === filters.rootCause6M);
+        }
+
+        return matchesSearch && matchesYear && matchesMonth && matchesStatus && matchesSpecialty && matchesType && matchesAsset && matchesFailureMode && matchesFailureCategory && matchesComponent && matches6M;
     });
   }, [records, filters]);
 
-  // --- Filter Options ---
-  const availableAreas = useMemo(() => {
-    const areas: {id: string, name: string}[] = [];
-    const traverse = (nodes: AssetNode[]) => {
-        nodes.forEach(n => {
-            if (n.type === 'AREA') areas.push({id: n.id, name: n.name});
-            if (n.children) traverse(n.children);
-        });
-    };
-    traverse(assets);
-    return areas;
-  }, [assets]);
+  // --- Cross Filtering Interaction ---
+  const handleChartClick = (field: keyof FilterState, id: string) => {
+      if (!id) return;
+      
+      setFilters((prev) => {
+          const currentValue = prev[field];
+          // Toggle logic: If clicking the already selected item, reset to ALL
+          const newValue = currentValue === id ? 'ALL' : id;
+          
+          // Special handling for hierarchy reset if moving up/down (optional but cleaner)
+          const updates: any = { [field]: newValue };
+          if (field === 'area' && newValue === 'ALL') {
+              updates.equipment = 'ALL';
+              updates.subgroup = 'ALL';
+          }
+          if (field === 'equipment' && newValue === 'ALL') {
+              updates.subgroup = 'ALL';
+          }
 
-  const availableCategories = taxonomy.failureCategories || [];
-  const availableStatuses = taxonomy.analysisStatuses || [];
+          return { ...prev, ...updates };
+      });
+  };
 
-  // --- KPI Calculations (Based on Filtered Data) ---
-  const totalCost = filteredRecords.reduce((acc, r) => acc + (r.financial_impact || 0), 0);
-  const totalDowntime = filteredRecords.reduce((acc, r) => acc + (r.downtime_minutes || 0), 0);
+  // --- Aggregation Functions (Modified to keep IDs) ---
+  const aggregateCount = (
+      keyFn: (r: any) => string, 
+      nameResolver: (id: string) => string
+  ) => {
+      const counts: Record<string, number> = {};
+      filteredRecords.forEach(r => {
+          const key = keyFn(r);
+          if(key) counts[key] = (counts[key] || 0) + 1;
+      });
+      return Object.keys(counts)
+          .map(id => ({ id, name: nameResolver(id), count: counts[id] }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 10);
+  };
+
+  // 1. Data Prep with IDs
+  const dataStatus = aggregateCount(r => r.status, id => resolveTaxonomyName('analysisStatuses', id));
+  const dataType = aggregateCount(r => r.analysis_type, id => resolveTaxonomyName('analysisTypes', id));
+  const dataEquip = aggregateCount(r => r.equipment_id, id => resolveAssetName(id));
+  const dataSub = aggregateCount(r => r.subgroup_id, id => resolveAssetName(id));
   
-  const activeAnalyses = filteredRecords.filter(r => {
-      const name = getStatusName(r.status);
-      return name !== 'Concluída' && name !== 'Cancelada';
-  }).length;
+  // 2. New Data Preps for Bottom Charts
+  const dataComp = aggregateCount(r => r.component_type, id => resolveTaxonomyName('componentTypes', id));
+  const dataMode = aggregateCount(r => r.failure_mode_id, id => resolveTaxonomyName('failureModes', id));
+  const dataCat = aggregateCount(r => r.failure_category_id, id => resolveTaxonomyName('failureCategories', id));
 
-  // Calculate Actions Linked to Filtered Records
-  const filteredRecordIds = new Set(filteredRecords.map(r => r.id));
-  const linkedActions = allSystemActions.filter(a => filteredRecordIds.has(a.rca_id));
-  const openActionCount = linkedActions.filter(a => a.status !== '3' && a.status !== '4').length;
+  // 3. 6M Special Aggregation (Fixed to use ID as Key)
+  const rootCauseCounts: Record<string, number> = {};
+  filteredRecords.forEach(r => {
+      r.root_causes?.forEach(rc => {
+          if(rc.root_cause_m_id) {
+              // Use ID as key, not name, to allow filtering
+              rootCauseCounts[rc.root_cause_m_id] = (rootCauseCounts[rc.root_cause_m_id] || 0) + 1;
+          }
+      });
+  });
+  const data6M = Object.keys(rootCauseCounts)
+    .map(id => ({ id, name: resolveTaxonomyName('rootCauseMs', id), count: rootCauseCounts[id] }))
+    .sort((a, b) => b.count - a.count);
 
-  // --- Chart Data Preparation ---
-  const statusCounts = filteredRecords.reduce((acc: any, curr) => {
-      const s = getStatusName(curr.status || 'Unknown');
-      acc[s] = (acc[s] || 0) + 1;
-      return acc;
-  }, {});
+  // KPIs
+  const totalDowntimeMin = filteredRecords.reduce((acc, r) => acc + (r.downtime_minutes || 0), 0);
+  const totalDowntimeHours = (totalDowntimeMin / 60).toFixed(1);
+  const totalCost = filteredRecords.reduce((acc, r) => acc + (r.financial_impact || 0), 0);
 
-  const statusData = Object.keys(statusCounts).map((key, index) => ({
-      name: key,
-      value: statusCounts[key],
-      color: key === 'Concluída' ? '#10b981' : 
-             key === 'Em Andamento' ? '#3b82f6' : 
-             key === 'Em Aberto' ? '#94a3b8' : 
-             key === 'Cancelada' ? '#ef4444' : 
-             `hsl(${index * 45}, 70%, 50%)`
-  }));
-
-  const costByArea = filteredRecords.reduce((acc: any, r) => {
-    const areaName = getAreaName(r.area_id) || 'Unknown';
-    acc[areaName] = (acc[areaName] || 0) + (r.financial_impact || 0);
-    return acc;
-  }, {});
-
-  const costChartData = Object.keys(costByArea)
-    .map(k => ({ name: k, cost: costByArea[k] }))
-    .sort((a, b) => b.cost - a.cost)
-    .slice(0, 5);
-
-  const failureModeCount = filteredRecords.reduce((acc: any, r) => {
-    const mode = getModeName(r.failure_mode_id || 'Unspecified');
-    acc[mode] = (acc[mode] || 0) + 1;
-    return acc;
-  }, {});
-
-  const failureModeData = Object.keys(failureModeCount)
-    .map(k => ({ name: k, count: failureModeCount[k] }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
+  // --- Reusable Chart Card ---
+  const ChartCard: React.FC<{ 
+      title: string; 
+      children: React.ReactNode; 
+      icon?: React.ReactNode;
+      isInteractive?: boolean;
+  }> = ({ title, children, icon, isInteractive }) => (
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[350px] transition-all hover:shadow-md relative group">
+          <div className="flex items-center justify-between mb-4 border-b border-slate-50 pb-2">
+              <div className="flex items-center gap-2">
+                  {icon && <span className="text-slate-400">{icon}</span>}
+                  <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wide">{title}</h3>
+              </div>
+              {isInteractive && (
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-blue-500 flex items-center gap-1">
+                      <MousePointerClick size={12} /> Filter
+                  </div>
+              )}
+          </div>
+          <div className="flex-1 w-full min-h-0 relative">
+             {children}
+          </div>
+      </div>
+  );
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto animate-in fade-in duration-500">
-      <div className="flex justify-between items-center">
+    <div className="p-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-500 pb-20">
+      
+      {/* Header */}
+      <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Executive Dashboard</h1>
-          <p className="text-slate-500 mt-1">High-level reliability metrics and operational insights.</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <Activity className="text-blue-600"/> Painel Geral
+          </h1>
+          <p className="text-slate-500 mt-1">Visão consolidada de falhas, custos e performance.</p>
         </div>
       </div>
 
+      {/* Filter Bar */}
       <FilterBar 
           isOpen={showFilters}
           onToggle={() => setShowFilters(!showFilters)}
@@ -159,107 +313,284 @@ export const Dashboard: React.FC = () => {
           onFilterChange={setFilters}
           onReset={() => handleReset(defaultFilters)}
           totalResults={filteredRecords.length}
-          config={{
-              showSearch: true,
-              showDate: true,
-              showStatus: true,
-              showArea: true,
-              showCategory: true,
-              dateLabel: "Failure Date Range"
+          config={{ showSearch: true, showDate: true, showStatus: true, showAssetHierarchy: true, showSpecialty: true, showAnalysisType: true }}
+          options={{ 
+              statuses: dynamicOptions.statuses, 
+              specialties: dynamicOptions.specialties, 
+              analysisTypes: dynamicOptions.analysisTypes, 
+              assets: dynamicOptions.assets 
           }}
-          options={{
-              statuses: availableStatuses,
-              areas: availableAreas,
-              categories: availableCategories
-          }}
+          isGlobal={isGlobal}
+          onGlobalToggle={toggleGlobal}
       />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
-            <div className="flex items-start justify-between">
-                <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">Total Impact</div>
-                <div className="p-2 bg-red-50 text-red-600 rounded-lg min-w-0"><DollarSign size={20}/></div>
-            </div>
-            <div className="text-2xl font-bold text-slate-800 mt-2">
-                ${(totalCost || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
-            </div>
-        </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
-            <div className="flex items-start justify-between">
-                <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">Total Downtime</div>
-                <div className="p-2 bg-amber-50 text-amber-600 rounded-lg min-w-0"><Clock size={20}/></div>
-            </div>
-            <div className="text-2xl font-bold text-slate-800 mt-2">{totalDowntime} <span className="text-sm font-normal text-slate-400">min</span></div>
-        </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
-             <div className="flex items-start justify-between">
-                <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">Open Actions (Linked)</div>
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg min-w-0"><AlertCircle size={20}/></div>
-            </div>
-            <div className="text-2xl font-bold text-slate-800 mt-2">{openActionCount}</div>
-        </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
-            <div className="flex items-start justify-between">
-                <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">Active Analyses</div>
-                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg min-w-0"><TrendingUp size={20}/></div>
-            </div>
-            <div className="text-2xl font-bold text-slate-800 mt-2">{activeAnalyses}</div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-gradient-to-br from-white to-blue-50 p-6 rounded-2xl shadow-sm border border-blue-100 relative overflow-hidden group">
+              <div className="absolute right-0 top-0 w-24 h-24 bg-blue-100 rounded-full -mr-8 -mt-8 opacity-50 group-hover:scale-110 transition-transform"></div>
+              <div className="text-xs text-blue-600 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><Clock size={14}/> Duração (Min)</div>
+              <div className="text-4xl font-bold text-slate-800 relative z-10">{totalDowntimeMin.toLocaleString()}</div>
+          </div>
+          <div className="bg-gradient-to-br from-white to-indigo-50 p-6 rounded-2xl shadow-sm border border-indigo-100 relative overflow-hidden group">
+              <div className="absolute right-0 top-0 w-24 h-24 bg-indigo-100 rounded-full -mr-8 -mt-8 opacity-50 group-hover:scale-110 transition-transform"></div>
+              <div className="text-xs text-indigo-600 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><Clock size={14}/> Duração (Horas)</div>
+              <div className="text-4xl font-bold text-slate-800 relative z-10">{totalDowntimeHours}</div>
+          </div>
+          <div className="bg-gradient-to-br from-white to-emerald-50 p-6 rounded-2xl shadow-sm border border-emerald-100 relative overflow-hidden group">
+              <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-100 rounded-full -mr-8 -mt-8 opacity-50 group-hover:scale-110 transition-transform"></div>
+              <div className="text-xs text-emerald-600 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><TrendingUp size={14}/> Custo Total Est.</div>
+              <div className="text-4xl font-bold text-slate-800 relative z-10">
+                ${totalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              </div>
+          </div>
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden group">
+              <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><PieIcon size={14}/> Total RCAs</div>
+              <div className="text-4xl font-bold text-slate-800 relative z-10">{filteredRecords.length}</div>
+              <div className="text-xs text-slate-400 mt-2">Registros filtrados</div>
+          </div>
       </div>
 
-      {/* Charts Row 1 */}
+      {/* Main Grid: 2 Columns for better readability */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 min-w-0 flex flex-col">
-            <h3 className="font-bold text-slate-700 mb-6">Financial Impact by Area (Top 5)</h3>
-            <div className="w-full flex-1 min-h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={costChartData} margin={{bottom: 20, right: 20, left: 20}}>
-                        <XAxis dataKey="name" tick={{fontSize: 10}} interval={0} angle={-15} textAnchor="end" height={60} />
-                        <YAxis tickFormatter={(val) => `$${val/1000}k`} width={60} />
-                        <Tooltip formatter={(val: number) => `$${(val || 0).toLocaleString()}`} />
-                        <Bar dataKey="cost" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={40} />
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
-        </div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 min-w-0 flex flex-col">
-            <h3 className="font-bold text-slate-700 mb-6">Analysis Status Distribution</h3>
-            <div className="w-full flex-1 min-h-[300px]">
+          
+          {/* Row 1: High Level Distribution (Interactive) */}
+          <ChartCard title="Total por Status" icon={<CheckCircle size={16}/>} isInteractive>
+             {dataStatus.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                        <Pie data={statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                            {statusData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
+                        <Pie 
+                            data={dataStatus} 
+                            cx="50%" cy="50%" 
+                            innerRadius={60} 
+                            outerRadius={100} 
+                            paddingAngle={2} 
+                            dataKey="count"
+                            onClick={(data) => handleChartClick('status', data.id)}
+                            cursor="pointer"
+                        >
+                            {dataStatus.map((entry, index) => {
+                                const isDimmed = filters.status !== 'ALL' && filters.status !== entry.id;
+                                return (
+                                    <Cell 
+                                        key={`cell-${index}`} 
+                                        fill={COLORS[index % COLORS.length]} 
+                                        stroke="none" 
+                                        opacity={isDimmed ? 0.2 : 1}
+                                    />
+                                );
+                            })}
                         </Pie>
-                        <Tooltip />
+                        <Tooltip content={<CustomTooltip />} />
                         <Legend verticalAlign="middle" align="right" layout="vertical" iconType="circle" />
                     </PieChart>
                 </ResponsiveContainer>
-            </div>
-        </div>
-      </div>
+             ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">Sem dados</div>}
+          </ChartCard>
 
-       {/* Charts Row 2 */}
-       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 min-w-0 flex flex-col">
-            <h3 className="font-bold text-slate-700 mb-6">Top Failure Modes</h3>
-            <div className="w-full flex-1 min-h-[300px]">
+          <ChartCard title="Total por Tipo de Análise" icon={<PieIcon size={16}/>} isInteractive>
+             {dataType.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={failureModeData} layout="vertical" margin={{left: 10, right: 30}}>
-                        <XAxis type="number" hide />
-                        <YAxis dataKey="name" type="category" width={150} tick={{fontSize: 11}} />
-                        <Tooltip />
-                        <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} barSize={20} />
+                    <PieChart>
+                        <Pie 
+                            data={dataType} 
+                            cx="50%" cy="50%" 
+                            outerRadius={100} 
+                            dataKey="count" 
+                            label={({percent}) => `${(percent * 100).toFixed(0)}%`}
+                            onClick={(data) => handleChartClick('analysisType', data.id)}
+                            cursor="pointer"
+                        >
+                             {dataType.map((entry, index) => {
+                                const isDimmed = filters.analysisType !== 'ALL' && filters.analysisType !== entry.id;
+                                return (
+                                    <Cell 
+                                        key={`cell-${index}`} 
+                                        fill={COLORS[(index + 3) % COLORS.length]} 
+                                        stroke="white" 
+                                        strokeWidth={2} 
+                                        opacity={isDimmed ? 0.2 : 1}
+                                    />
+                                );
+                             })}
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend verticalAlign="bottom" height={36}/>
+                    </PieChart>
+                </ResponsiveContainer>
+             ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">Sem dados</div>}
+          </ChartCard>
+
+          {/* Row 2: Assets (Interactive) */}
+          <ChartCard title="Top Equipamentos (Pareto)" icon={<TrendingUp size={16}/>} isInteractive>
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart 
+                        data={dataEquip} 
+                        layout="vertical" 
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                         <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                         <XAxis type="number" allowDecimals={false} hide />
+                         <YAxis dataKey="name" type="category" width={120} tick={{fontSize: 11, fill: '#64748b'}} />
+                         <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc'}} />
+                         <Bar 
+                            dataKey="count" 
+                            radius={[0, 4, 4, 0]} 
+                            barSize={20}
+                            onClick={(data) => handleChartClick('equipment', data.id)}
+                            cursor="pointer"
+                        >
+                            {dataEquip.map((entry, index) => {
+                                const isDimmed = filters.equipment !== 'ALL' && filters.equipment !== entry.id;
+                                return <Cell key={`cell-${index}`} fill="#3b82f6" opacity={isDimmed ? 0.2 : 1} />;
+                            })}
+                         </Bar>
                     </BarChart>
                 </ResponsiveContainer>
-            </div>
-        </div>
-        <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 border-dashed flex items-center justify-center text-slate-400 text-sm italic min-w-0">
-            Select 'Action Plans' in the menu to manage corrective actions for RCAs.
-        </div>
-       </div>
+          </ChartCard>
+
+          <ChartCard title="Top Subgrupos" icon={<TrendingUp size={16}/>} isInteractive>
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart 
+                        data={dataSub} 
+                        layout="vertical" 
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                         <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                         <XAxis type="number" allowDecimals={false} hide />
+                         <YAxis dataKey="name" type="category" width={120} tick={{fontSize: 11, fill: '#64748b'}} />
+                         <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc'}} />
+                         <Bar 
+                            dataKey="count" 
+                            radius={[0, 4, 4, 0]} 
+                            barSize={20}
+                            onClick={(data) => handleChartClick('subgroup', data.id)}
+                            cursor="pointer"
+                        >
+                            {dataSub.map((entry, index) => {
+                                const isDimmed = filters.subgroup !== 'ALL' && filters.subgroup !== entry.id;
+                                return <Cell key={`cell-${index}`} fill="#06b6d4" opacity={isDimmed ? 0.2 : 1} />;
+                            })}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+          </ChartCard>
+
+          {/* Row 3: Technical Details (Interactive) */}
+          <ChartCard title="Distribuição 6M (Causas Raízes)" icon={<AlertCircle size={16}/>} isInteractive>
+             {data6M.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                        <Pie 
+                            data={data6M} 
+                            cx="50%" cy="50%" 
+                            innerRadius={40} 
+                            outerRadius={80} 
+                            paddingAngle={5} 
+                            dataKey="count" 
+                            label
+                            onClick={(data) => handleChartClick('rootCause6M', data.id)}
+                            cursor="pointer"
+                        >
+                            {data6M.map((entry, index) => {
+                                const isDimmed = filters.rootCause6M !== 'ALL' && filters.rootCause6M !== entry.id;
+                                return (
+                                    <Cell 
+                                        key={`cell-${index}`} 
+                                        fill={COLORS[index % COLORS.length]} 
+                                        stroke="none" 
+                                        opacity={isDimmed ? 0.2 : 1}
+                                    />
+                                );
+                            })}
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend />
+                    </PieChart>
+                </ResponsiveContainer>
+             ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">Sem causas raízes definidas</div>}
+          </ChartCard>
+
+          <ChartCard title="Total por Componente" icon={<AlertCircle size={16}/>} isInteractive>
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={dataComp} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                         <XAxis dataKey="name" tick={{fontSize: 10, fill: '#64748b'}} interval={0} angle={-45} textAnchor="end" height={60} />
+                         <YAxis allowDecimals={false} tick={{fontSize: 11}} />
+                         <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc'}} />
+                         <Bar 
+                            dataKey="count" 
+                            fill="#10b981" 
+                            radius={[4, 4, 0, 0]} 
+                            barSize={30}
+                            onClick={(data) => handleChartClick('componentType', data.id)}
+                            cursor="pointer"
+                        >
+                            {dataComp.map((entry, index) => {
+                                const isDimmed = filters.componentType !== 'ALL' && filters.componentType !== entry.id;
+                                return <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} opacity={isDimmed ? 0.2 : 1} />;
+                            })}
+                         </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+          </ChartCard>
+
+          <ChartCard title="Modo de Falha" icon={<AlertCircle size={16}/>} isInteractive>
+               <ResponsiveContainer width="100%" height="100%">
+                    <BarChart 
+                        data={dataMode} 
+                        layout="vertical" 
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                         <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                         <XAxis type="number" allowDecimals={false} hide />
+                         <YAxis dataKey="name" type="category" width={140} tick={{fontSize: 11, fill: '#64748b'}} />
+                         <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc'}} />
+                         <Bar 
+                            dataKey="count" 
+                            fill="#8b5cf6" 
+                            radius={[0, 4, 4, 0]} 
+                            barSize={15} 
+                            onClick={(data) => handleChartClick('failureMode', data.id)}
+                            cursor="pointer"
+                        >
+                            {dataMode.map((entry, index) => {
+                                const isDimmed = filters.failureMode !== 'ALL' && filters.failureMode !== entry.id;
+                                return <Cell key={`cell-${index}`} fill="#8b5cf6" opacity={isDimmed ? 0.2 : 1} />;
+                            })}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+          </ChartCard>
+
+          <ChartCard title="Categoria da Falha" icon={<AlertCircle size={16}/>} isInteractive>
+               <ResponsiveContainer width="100%" height="100%">
+                    <BarChart 
+                        data={dataCat} 
+                        layout="vertical" 
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                         <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                         <XAxis type="number" allowDecimals={false} hide />
+                         <YAxis dataKey="name" type="category" width={140} tick={{fontSize: 11, fill: '#64748b'}} />
+                         <Tooltip content={<CustomTooltip />} cursor={{fill: '#f8fafc'}} />
+                         <Bar 
+                            dataKey="count" 
+                            fill="#ec4899" 
+                            radius={[0, 4, 4, 0]} 
+                            barSize={15} 
+                            onClick={(data) => handleChartClick('failureCategory', data.id)}
+                            cursor="pointer"
+                        >
+                             {dataCat.map((entry, index) => {
+                                const isDimmed = filters.failureCategory !== 'ALL' && filters.failureCategory !== entry.id;
+                                return <Cell key={`cell-${index}`} fill="#ec4899" opacity={isDimmed ? 0.2 : 1} />;
+                            })}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+          </ChartCard>
+
+      </div>
     </div>
   );
 };

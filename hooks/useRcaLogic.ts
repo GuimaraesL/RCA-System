@@ -15,10 +15,10 @@ const createDefaultRecord = (): RcaRecord => ({
     analysis_date: new Date().toISOString().split('T')[0],
     analysis_duration_minutes: 0,
     analysis_type: '',
-    status: 'Em Aberto',
+    status: '', // Will be set by taxonomy logic
     participants: [],
     facilitator: '',
-    
+
     start_date: new Date().toISOString().split('T')[0],
     completion_date: '',
     requires_operation_support: false,
@@ -55,11 +55,11 @@ const createDefaultRecord = (): RcaRecord => ({
         { id: '5', why_question: '', answer: '' }
     ],
     ishikawa: emptyIshikawa,
-    
+
     root_causes: [],
 
     precision_maintenance: getStandardPrecisionItems(),
-    
+
     human_reliability: getStandardHraStruct(),
 
     containment_actions: [],
@@ -79,156 +79,189 @@ const findAssetPath = (nodes: AssetNode[], targetId: string): AssetNode[] | null
 };
 
 export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: () => void) => {
-  const { assets, taxonomy, updateRecord, addRecord } = useRcaContext();
-  const [step, setStep] = useState(1);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  
-  const [formData, setFormData] = useState<RcaRecord>(existingRecord || createDefaultRecord());
+    const { assets, taxonomy, updateRecord, addRecord } = useRcaContext();
+    const [step, setStep] = useState(1);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  useEffect(() => {
-    if (!existingRecord) {
-        const newRec = createDefaultRecord();
-        if (taxonomy.analysisTypes.length > 0) newRec.analysis_type = taxonomy.analysisTypes[0].id;
-        if (taxonomy.analysisStatuses.length > 0) newRec.status = taxonomy.analysisStatuses[0].id;
-        setFormData(newRec);
-    } else {
-        // --- Migration Logic ---
-        // Merge with default record to ensure all fields exist (prevent undefined errors)
-        let migratedRecord = { ...createDefaultRecord(), ...existingRecord };
-        const anyRecord = migratedRecord as any;
+    // Initialize with default or existing, BUT we need to validate status immediately
+    const [formData, setFormData] = useState<RcaRecord>(() => {
+        const base = existingRecord ? { ...createDefaultRecord(), ...existingRecord } : createDefaultRecord();
+        return base;
+    });
 
-        // 1. Array-ify Root Causes
-        if (!migratedRecord.root_causes) {
-             migratedRecord.root_causes = [];
-             if (anyRecord.root_cause && anyRecord.root_cause_m_id) {
-                 migratedRecord.root_causes.push({
-                     id: generateId('RC'),
-                     cause: anyRecord.root_cause,
-                     root_cause_m_id: anyRecord.root_cause_m_id
-                 });
-             }
+    // --- Initialization & Migration Logic ---
+    useEffect(() => {
+        setFormData(prev => {
+            let updated = { ...prev };
+
+            // 1. Ensure Status is Valid (Fix for "Desynchronized" issue)
+            const validStatuses = taxonomy.analysisStatuses.map(s => s.id);
+            const defaultStatus = validStatuses.length > 0 ? validStatuses[0] : 'STATUS-01';
+
+            // If current status is empty, DRAFT, or invalid ID -> reset to default
+            if (!updated.status || !validStatuses.includes(updated.status)) {
+                console.warn(`Invalid status '${updated.status}' detected. Resetting to '${defaultStatus}'`);
+                updated.status = defaultStatus;
+            }
+
+            // 2. Ensure Analysis Type is valid
+            if (!updated.analysis_type && taxonomy.analysisTypes.length > 0) {
+                updated.analysis_type = taxonomy.analysisTypes[0].id;
+            }
+
+            // 3. Migration: Array-ify Root Causes if missing
+            if (!updated.root_causes) {
+                updated.root_causes = [];
+                // Handle legacy field migration if present in 'any' cast
+                const anyRec = updated as any;
+                if (anyRec.root_cause && anyRec.root_cause_m_id) {
+                    updated.root_causes.push({
+                        id: generateId('RC'),
+                        cause: anyRec.root_cause,
+                        root_cause_m_id: anyRec.root_cause_m_id
+                    });
+                }
+            }
+
+            // 4. Migration: String participants to array
+            if (typeof updated.participants === 'string') {
+                updated.participants = (updated.participants as string).split(',').map(p => p.trim()).filter(p => p);
+            }
+
+            // 5. Ensure structures
+            if (!updated.human_reliability) updated.human_reliability = getStandardHraStruct();
+            if (!updated.five_whys) updated.five_whys = createDefaultRecord().five_whys;
+            if (!updated.ishikawa) updated.ishikawa = emptyIshikawa;
+            if (!updated.precision_maintenance) updated.precision_maintenance = getStandardPrecisionItems();
+
+            return updated;
+        });
+    }, [existingRecord, taxonomy]); // Run when record loads or taxonomy loads
+
+    // --- Strict Validation Logic ---
+    useEffect(() => {
+        // Define all fields that MUST be present for a "Completed" analysis
+        const mandatoryStrings = [
+            formData.analysis_type,
+            formData.what,
+            formData.problem_description,
+            formData.asset_name_display,
+            formData.who,
+            formData.when,
+            formData.where_description,
+            formData.specialty_id,
+            formData.failure_mode_id,
+            formData.failure_category_id,
+            formData.component_type
+        ];
+
+        const stringsOk = mandatoryStrings.every(s => s && s.trim().length > 0);
+        const participantsOk = formData.participants && formData.participants.length > 0;
+        const rootCausesOk = formData.root_causes && formData.root_causes.length > 0;
+
+        // Impact fields must be numbers (0 is allowed, but not undefined/null)
+        const impactsOk = (formData.financial_impact !== undefined && formData.financial_impact !== null) &&
+            (formData.downtime_minutes !== undefined && formData.downtime_minutes !== null);
+
+        const isComplete = stringsOk && participantsOk && rootCausesOk && impactsOk;
+
+        // Resolve IDs from Taxonomy
+        const doneStatusItem = taxonomy.analysisStatuses.find(s => s.name === 'Concluída');
+        const openStatusItem = taxonomy.analysisStatuses.find(s => s.name === 'Em Aberto');
+
+        const doneStatusId = doneStatusItem ? doneStatusItem.id : 'STATUS-DONE';
+        const openStatusId = openStatusItem ? openStatusItem.id : 'STATUS-01';
+
+        // Enforcement Logic: Downgrade if incomplete
+        if (!isComplete && formData.status === doneStatusId) {
+            // Prevent infinite loop by checking if it's already what we want
+            console.warn("Validation Failed: Downgrading status to Open due to missing fields.");
+            setFormData(prev => ({ ...prev, status: openStatusId }));
         }
-
-        // 2. Normalize Participants (String -> String[])
-        if (typeof migratedRecord.participants === 'string') {
-            migratedRecord.participants = (migratedRecord.participants as string)
-                .split(',')
-                .map(p => p.trim())
-                .filter(p => p);
-        }
-
-        // 3. Remove Image Fields (Production DTO Constraint)
-        if (anyRecord.image_url) {
-            delete anyRecord.image_url;
-        }
-
-        // 4. Ensure HRA Struct
-        if (!migratedRecord.human_reliability) {
-            migratedRecord.human_reliability = getStandardHraStruct();
-        }
-
-        // 5. Ensure nested objects are not overwritten by undefined spreads if source was partial
-        if(!migratedRecord.five_whys) migratedRecord.five_whys = createDefaultRecord().five_whys;
-        if(!migratedRecord.ishikawa) migratedRecord.ishikawa = emptyIshikawa;
-        if(!migratedRecord.precision_maintenance) migratedRecord.precision_maintenance = getStandardPrecisionItems();
-        if(!migratedRecord.containment_actions) migratedRecord.containment_actions = [];
-        if(!migratedRecord.lessons_learned) migratedRecord.lessons_learned = [];
-
-        setFormData(migratedRecord);
-    }
-  }, [existingRecord]);
-
-  useEffect(() => {
-    const requiredFields = [
+    }, [
+        // Dependency array listing all validated fields
         formData.analysis_type,
         formData.what,
         formData.problem_description,
-        formData.asset_name_display
-    ];
-    
-    const basicFieldsComplete = requiredFields.every(field => field && field.trim().length > 0);
-    const hasParticipants = formData.participants && formData.participants.length > 0;
-    const hasRootCause = formData.root_causes && formData.root_causes.length > 0;
-    
-    const isComplete = basicFieldsComplete && hasParticipants && hasRootCause;
+        formData.asset_name_display,
+        formData.who,
+        formData.when,
+        formData.where_description,
+        formData.specialty_id,
+        formData.failure_mode_id,
+        formData.failure_category_id,
+        formData.component_type,
+        formData.participants,
+        formData.root_causes,
+        formData.financial_impact,
+        formData.downtime_minutes,
+        formData.status,
+        taxonomy.analysisStatuses
+    ]);
 
-    const doneStatusItem = taxonomy.analysisStatuses.find(s => s.name === 'Concluída');
-    const doneStatusId = doneStatusItem ? doneStatusItem.id : 'Concluída';
-
-    if (isComplete) {
-        if (formData.status !== doneStatusId) {
-            setFormData(prev => ({ ...prev, status: doneStatusId }));
-        }
-    }
-  }, [
-    formData.analysis_type, 
-    formData.what, 
-    formData.problem_description, 
-    formData.root_causes,
-    formData.participants,
-    formData.asset_name_display,
-    formData.status,
-    taxonomy.analysisStatuses
-  ]);
-
-  const refreshAssets = () => {
-      // Context handles asset syncing automatically, no manual fetch needed here usually
-  };
-
-  const handleAssetSelect = (asset: AssetNode) => {
-    const path = findAssetPath(assets, asset.id);
-    const update: Partial<RcaRecord> = { 
-        asset_name_display: asset.name,
-        area_id: '',
-        equipment_id: '',
-        subgroup_id: ''
+    const refreshAssets = () => {
+        // Context handles asset syncing automatically
     };
 
-    if (path) {
-        path.forEach(node => {
-            if (node.type === 'AREA') update.area_id = node.id;
-            if (node.type === 'EQUIPMENT') update.equipment_id = node.id;
-            if (node.type === 'SUBGROUP') update.subgroup_id = node.id;
-        });
-    } else {
-        if (asset.type === 'AREA') update.area_id = asset.id;
-        if (asset.type === 'EQUIPMENT') update.equipment_id = asset.id;
-        if (asset.type === 'SUBGROUP') update.subgroup_id = asset.id;
-    }
-    
-    setFormData(prev => ({ ...prev, ...update }));
-  };
+    const handleAssetSelect = (asset: AssetNode) => {
+        const path = findAssetPath(assets, asset.id);
+        const update: Partial<RcaRecord> = {
+            asset_name_display: asset.name,
+            area_id: '',
+            equipment_id: '',
+            subgroup_id: ''
+        };
 
-  const handleAnalyzeAI = async () => {
-    if (!formData.asset_name_display || !formData.problem_description) return;
-    setIsAnalyzing(true);
-    const diagram = await analyzeFailure(formData.asset_name_display, formData.problem_description);
-    if (diagram) {
-      setFormData(prev => ({
-        ...prev,
-        ishikawa: diagram
-      }));
-    }
-    setIsAnalyzing(false);
-  };
+        if (path) {
+            path.forEach(node => {
+                if (node.type === 'AREA') update.area_id = node.id;
+                if (node.type === 'EQUIPMENT') update.equipment_id = node.id;
+                if (node.type === 'SUBGROUP') update.subgroup_id = node.id;
+            });
+        } else {
+            if (asset.type === 'AREA') update.area_id = asset.id;
+            if (asset.type === 'EQUIPMENT') update.equipment_id = asset.id;
+            if (asset.type === 'SUBGROUP') update.subgroup_id = asset.id;
+        }
 
-  const handleSave = () => {
-    if (existingRecord) {
-        updateRecord(formData);
-    } else {
-        addRecord(formData);
-    }
-    onSaveCallback();
-  };
+        setFormData(prev => ({ ...prev, ...update }));
+    };
 
-  return {
-      step, setStep,
-      assets, refreshAssets,
-      taxonomy,
-      isAnalyzing,
-      formData, setFormData,
-      handleAssetSelect,
-      handleAnalyzeAI,
-      handleSave
-  };
+    const handleAnalyzeAI = async () => {
+        if (!formData.asset_name_display || !formData.problem_description) return;
+        setIsAnalyzing(true);
+        const diagram = await analyzeFailure(formData.asset_name_display, formData.problem_description);
+        if (diagram) {
+            setFormData(prev => ({
+                ...prev,
+                ishikawa: diagram
+            }));
+        }
+        setIsAnalyzing(false);
+    };
+
+    const handleSave = async () => {
+        try {
+            if (existingRecord) {
+                await updateRecord(formData);
+            } else {
+                await addRecord(formData);
+            }
+            console.log('✅ RCA salva com sucesso:', formData.id);
+            onSaveCallback();
+        } catch (error) {
+            console.error('❌ Erro ao salvar RCA:', error);
+        }
+    };
+
+    return {
+        step, setStep,
+        assets, refreshAssets,
+        taxonomy,
+        isAnalyzing,
+        formData, setFormData,
+        handleAssetSelect,
+        handleAnalyzeAI,
+        handleSave
+    };
 };

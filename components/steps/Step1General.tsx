@@ -66,6 +66,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                     <div className="space-y-4">
                         <Select
                             label="Component Type (Conforme lista)"
+                            required
                             options={[{value: '', label: 'Select Type...'}, ...taxonomy.componentTypes.map(t => ({value: t.id, label: t.name}))]}
                             value={data.component_type}
                             onChange={(e) => onChange('component_type', e.target.value)}
@@ -75,12 +76,14 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                             <Input
                                 label="Failure Date"
                                 type="date"
+                                required
                                 value={data.failure_date}
                                 onChange={(e) => onChange('failure_date', e.target.value)}
                             />
                             <Input
                                 label="Time"
                                 type="time"
+                                required
                                 value={data.failure_time}
                                 onChange={(e) => onChange('failure_time', e.target.value)}
                             />
@@ -90,12 +93,14 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                              <Input
                                 label="Downtime (min)"
                                 type="number"
+                                required
                                 value={data.downtime_minutes}
                                 onChange={(e) => onChange('downtime_minutes', Number(e.target.value))}
                             />
                             <Input
                                 label="Impact ($)"
                                 type="number"
+                                required
                                 value={data.financial_impact}
                                 onChange={(e) => onChange('financial_impact', Number(e.target.value))}
                             />
@@ -114,6 +119,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                     <Select
                         label="Analysis Type"
+                        required
                         options={[{value: '', label: 'Select...'}, ...taxonomy.analysisTypes.map(t => ({value: t.id, label: t.name}))]}
                         value={data.analysis_type}
                         onChange={(e) => onChange('analysis_type', e.target.value)}
@@ -125,6 +131,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                     />
                     <Input
                         label="Participants"
+                        required
                         placeholder="Ademir, Lucas, Paulo (Separated by comma)"
                         value={data.participants.join(', ')}
                         onChange={(e) => handleParticipantsChange(e.target.value)}

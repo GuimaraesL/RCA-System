@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { ActionRecord } from '../types';
+import { ActionRecord, AssetNode } from '../types';
 import { generateId } from '../services/storageService';
 import { useRcaContext } from '../context/RcaContext';
 
@@ -9,11 +9,26 @@ export interface ActionViewModel extends ActionRecord {
   rcaTitle: string;
   assetName: string;
   areaId: string;
+  equipmentId: string;
+  subgroupId: string;
   categoryId: string;
+  specialtyId: string; // Added for dynamic filtering
 }
 
+// Helper to find asset name recursively by ID
+const findAssetNameById = (nodes: AssetNode[], id: string): string | undefined => {
+    for (const node of nodes) {
+        if (node.id === id) return node.name;
+        if (node.children) {
+            const found = findAssetNameById(node.children, id);
+            if (found) return found;
+        }
+    }
+    return undefined;
+};
+
 export const useActionsLogic = () => {
-  const { actions: rawActions, records, addAction, updateAction, deleteAction } = useRcaContext();
+  const { actions: rawActions, records, assets, addAction, updateAction, deleteAction } = useRcaContext();
   const [actions, setActions] = useState<ActionViewModel[]>([]);
   const [rcaList, setRcaList] = useState<{id: string, title: string}[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,17 +42,49 @@ export const useActionsLogic = () => {
     // Create ViewModel
     const resolvedActions: ActionViewModel[] = rawActions.map(a => {
       const rca = records.find(r => r.id === a.rca_id);
+      
+      let assetName = 'Unknown Asset';
+      let areaId = '';
+      let equipmentId = '';
+      let subgroupId = '';
+      let categoryId = '';
+      let specialtyId = '';
+
+      if (rca) {
+          areaId = rca.area_id || '';
+          equipmentId = rca.equipment_id || '';
+          subgroupId = rca.subgroup_id || '';
+          categoryId = rca.failure_category_id || '';
+          specialtyId = rca.specialty_id || '';
+          
+          if (rca.asset_name_display) {
+              assetName = rca.asset_name_display;
+          } else {
+              // Fallback: try to resolve via ID from assets tree
+              const targetId = rca.subgroup_id || rca.equipment_id || rca.area_id;
+              if (targetId) {
+                  const resolved = findAssetNameById(assets, targetId);
+                  assetName = resolved || targetId;
+              }
+          }
+      } else {
+          assetName = '-';
+      }
+
       return {
         ...a,
         rcaTitle: rca ? rca.what : 'Unknown Analysis',
-        assetName: rca ? rca.asset_name_display || 'Unknown Asset' : '-',
-        areaId: rca ? rca.area_id : '',
-        categoryId: rca ? rca.failure_category_id : ''
+        assetName: assetName,
+        areaId,
+        equipmentId,
+        subgroupId,
+        categoryId,
+        specialtyId
       };
     });
 
     setActions(resolvedActions);
-  }, [rawActions, records]);
+  }, [rawActions, records, assets]);
 
   const handleSave = (action: ActionRecord) => {
     if (!action.id) action.id = generateId('ACT');
@@ -65,7 +112,7 @@ export const useActionsLogic = () => {
 
   const openEdit = (action: ActionViewModel) => {
     // Strip ViewModel props to get back to Record
-    const { rcaTitle, assetName, areaId, categoryId, ...record } = action;
+    const { rcaTitle, assetName, areaId, equipmentId, subgroupId, categoryId, specialtyId, ...record } = action;
     setEditingAction(record);
     setIsModalOpen(true);
   };
