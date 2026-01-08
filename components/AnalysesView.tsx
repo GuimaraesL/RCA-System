@@ -1,11 +1,12 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { RcaRecord, AssetNode, TaxonomyConfig } from '../types';
-import { Plus, FileText } from 'lucide-react';
+import { Plus, FileText, Trash2 } from 'lucide-react';
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { useRcaContext } from '../context/RcaContext';
 import { filterAssetsByUsage } from '../services/storageService';
+import { ConfirmModal } from './ConfirmModal';
 
 interface AnalysesViewProps {
   onNew: () => void;
@@ -13,7 +14,11 @@ interface AnalysesViewProps {
 }
 
 export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => {
-  const { records, assets, taxonomy } = useRcaContext();
+  const { records, assets, taxonomy, deleteRecord } = useRcaContext();
+
+  // Delete Modal State
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
 
   // --- Persistent Filter State (Updated) ---
   const defaultFilters: FilterState = {
@@ -43,6 +48,25 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
       if (!taxonomy || !id) return id;
       const item = (taxonomy[type] as any[]).find((t: any) => t.id === id);
       return item ? item.name : id;
+  };
+
+  // --- Delete Handlers ---
+  const handleDelete = (e: React.MouseEvent, id: string) => {
+      e.stopPropagation(); // Prevent row click from triggering edit
+      setRecordToDelete(id);
+      setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+      if (!recordToDelete) return;
+      try {
+          await deleteRecord(recordToDelete);
+          console.log('✅ RCA excluída:', recordToDelete);
+      } catch (error) {
+          console.error('❌ Erro ao excluir RCA:', error);
+      }
+      setDeleteModalOpen(false);
+      setRecordToDelete(null);
   };
 
   // --- Strict Cross-Filtering Logic for Options ---
@@ -207,12 +231,13 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                         <th className="px-6 py-4">Status</th>
                         <th className="px-6 py-4">Impact</th>
                         <th className="px-6 py-4">Date</th>
+                        <th className="px-6 py-4 w-16">Actions</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                     {filteredRecords.length === 0 && (
                         <tr>
-                            <td colSpan={6} className="p-12 text-center text-slate-400">
+                            <td colSpan={7} className="p-12 text-center text-slate-400">
                                 <FileText size={48} className="mx-auto mb-3 opacity-20" />
                                 No records found matching your criteria.
                             </td>
@@ -251,6 +276,15 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                 <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
                                     {r.failure_date}
                                 </td>
+                                <td className="px-6 py-4">
+                                    <button
+                                        onClick={(e) => handleDelete(e, r.id)}
+                                        className="text-slate-400 hover:text-red-600 p-1 rounded transition-colors"
+                                        title="Excluir RCA"
+                                    >
+                                        <Trash2 size={16}/>
+                                    </button>
+                                </td>
                             </tr>
                         );
                     })}
@@ -258,6 +292,16 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
             </table>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+          isOpen={deleteModalOpen}
+          onClose={() => setDeleteModalOpen(false)}
+          onConfirm={confirmDelete}
+          title="Excluir Análise RCA"
+          message="Tem certeza que deseja excluir esta análise RCA? Esta ação não pode ser desfeita."
+          confirmText="Excluir"
+      />
     </div>
   );
 };

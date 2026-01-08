@@ -129,8 +129,16 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       await refreshAll();
       console.log('✅ Context: RCA adicionada com sucesso');
     } catch (error) {
-      console.error('❌ Context: Erro ao adicionar RCA:', error);
-      throw error;
+      console.error('❌ Context: Erro ao adicionar RCA via API, tentando localStorage...', error);
+      // Fallback to localStorage if API fails
+      try {
+        storage.saveRecord(record);
+        setRecords(prev => [...prev, record]);
+        console.log('✅ Context: RCA adicionada com sucesso via localStorage (fallback)');
+      } catch (localError) {
+        console.error('❌ Context: Erro ao adicionar RCA:', localError);
+        throw localError;
+      }
     }
   };
 
@@ -145,8 +153,16 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       await refreshAll();
       console.log('✅ Context: RCA atualizada com sucesso');
     } catch (error) {
-      console.error('❌ Context: Erro ao atualizar RCA:', error);
-      throw error;
+      console.error('❌ Context: Erro ao atualizar RCA via API, tentando localStorage...', error);
+      // Fallback to localStorage if API fails
+      try {
+        storage.saveRecord(record);
+        setRecords(prev => prev.map(r => r.id === record.id ? record : r));
+        console.log('✅ Context: RCA atualizada com sucesso via localStorage (fallback)');
+      } catch (localError) {
+        console.error('❌ Context: Erro ao atualizar RCA:', localError);
+        throw localError;
+      }
     }
   };
 
@@ -162,8 +178,17 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       await refreshAll();
       console.log('✅ Context: RCA excluída com sucesso');
     } catch (error) {
-      console.error('❌ Context: Erro ao excluir RCA:', error);
-      throw error;
+      console.error('❌ Context: Erro ao excluir RCA via API, tentando localStorage...', error);
+      // Fallback to localStorage if API fails
+      try {
+        const newRecords = records.filter(r => r.id !== id);
+        storage.saveRecords(newRecords);
+        setRecords(newRecords);
+        console.log('✅ Context: RCA excluída com sucesso via localStorage (fallback)');
+      } catch (localError) {
+        console.error('❌ Context: Erro ao excluir RCA:', localError);
+        throw localError;
+      }
     }
   };
 
