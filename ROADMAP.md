@@ -22,12 +22,12 @@
 - **Solução:** Criado `ConfirmModal.tsx` customizado com design moderno
 - **Commit:** `fix(triggers): Corrigir exclusão de triggers com ConfirmModal`
 
-### Bug #1: Excluir RCA não funciona
+### Bug #1: Excluir RCA não funciona (Corrigido)
 - **Problema:** Botão de lixeira na aba Analyses não executava a exclusão
 - **Solução:** Corrigida a função `deleteRecord` no `RcaContext` e vinculado o clique corretamente na `AnalysesView`
 - **Status:** ✅ Corrigido
 
-### Bug #6: Criar RCA a partir do Trigger
+### Bug #6: Criar RCA a partir do Trigger (Corrigido)
 - **Problema:** Ao clicar em "Nova RCA" na aba de Triggers, o editor não abria ou não vinculava os dados.
 - **Solução:** Restaurado o fluxo de criação e vínculo no `App.tsx`.
 - **Status:** ✅ Corrigido
@@ -54,20 +54,15 @@
 
 ## 🐛 Bugs Pendentes
 
-### Bug #7: Importação JSON - Hierarquia de Assets
-- **Status:** Regressão identificada.
+### Bug #7: Importação JSON - Regressão na Hierarquia de Assets
+- **Onde:** Migration → Import JSON
+- **Problema:** Funcionalidade de importação de hierarquia de assets parou de funcionar com a implementação do banco de dados TypeScript/SQLite.
+- **Sintoma:** RCAs importam, mas Assets não aparecem ou perdem a estrutura de árvore (Area > Equip > Sub).
 - **Prioridade:** 🔴 Alta
 
 ---
 
 ## 🔧 Features Pendentes
-
-### Bug #7: Importação JSON - Hierarquia de Assets (Regressão)
-- **Onde:** Migration → Import JSON
-- **Sintoma:** RCAs importam, mas Assets não aparecem ou perdem hierarquia.
-- **Nota:** Esta funcionalidade parou de funcionar após a migração para o banco de dados TypeScript/SQLite.
-- **Causa Técnica:** A função `flatten` em `apiService.ts` converte a árvore em lista, mas o backend pode falhar se um `parent_id` for inserido antes do pai existir.
-- **Prioridade:** 🔴 Alta (Critico para migração)
 
 ### Feature #8: Settings - Adicionar Itens
 - **Onde:** Aba Settings → Adicionar tipo de análise, etc
