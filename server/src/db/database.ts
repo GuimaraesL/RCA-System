@@ -6,8 +6,8 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
 // Caminho do banco de dados
-const DATA_DIR = join(__dirname, '..', '..', 'data');
-const DB_PATH = join(DATA_DIR, 'rca.db');
+const DATA_DIR = join(__dirname, '..', '..', 'rca-system');
+const DB_PATH = join(DATA_DIR, 'features.db');
 
 let db: Database;
 
