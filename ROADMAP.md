@@ -7,11 +7,9 @@
 
 ## 📊 Progresso Geral
 
-| Categoria | Concluídos | Total | Status |
-|-----------|------------|-------|--------|
-| Bugs Core | 4 | 6 | 🟡 67% |
+| Bugs Core | 5 | 6 | 🟢 83% |
 | Features | 0 | 3 | 🔴 0% |
-| **Total** | **4** | **9** | **44%** |
+| **Total** | **5** | **9** | **55%** |
 
 ---
 
@@ -21,6 +19,11 @@
 - **Problema:** `window.confirm()` bloqueado pelo navegador corporativo
 - **Solução:** Criado `ConfirmModal.tsx` customizado com design moderno
 - **Commit:** `fix(triggers): Corrigir exclusão de triggers com ConfirmModal`
+
+### Bug #1: Excluir RCA não funciona
+- **Problema:** Botão de lixeira na aba Analyses não executava a exclusão
+- **Solução:** Corrigida a função `deleteRecord` no `RcaContext` e vinculado o clique corretamente na `AnalysesView`
+- **Status:** ✅ Corrigido
 
 ### Bug #3: Excluir Action
 - **Problema:** `handleDeleteAction` não usava contexto async
@@ -39,13 +42,10 @@
 
 ---
 
-## 🐛 Bugs Pendentes
 
-### Bug #1: Excluir RCA não funciona
-- **Onde:** Aba Analyses → Botão de lixeira
-- **Sintoma:** Clica mas não exclui
-- **Causa provável:** Função `deleteRecord` no contexto ou na View
-- **Prioridade:** 🔴 Alta
+---
+
+## 🐛 Bugs Pendentes
 
 ### Bug #6: Criar RCA a partir do Trigger
 - **Onde:** Aba Triggers → Botão "Nova RCA"
@@ -58,8 +58,8 @@
 
 ### Feature #7: Importação JSON - Hierarquia de Assets
 - **Onde:** Migration → Import JSON
-- **Sintoma:** RCAs importam, mas Assets não
-- **Causa:** `importDataToApi` não processa assets corretamente
+- **Sintoma:** RCAs importam, mas Assets não aparecem ou perdem hierarquia.
+- **Causa Técnica:** A função `flatten` em `apiService.ts` converte a árvore em lista, mas o backend pode falhar se um `parent_id` for inserido antes do pai existir. Além disso, o vínculo de `area_id` e `equipment_id` nas RCAs depende dos Assets estarem presentes.
 - **Prioridade:** 🟡 Média
 
 ### Feature #8: Settings - Adicionar Itens
@@ -111,7 +111,10 @@ RCA-System/
 
 1. ⬜ Corrigir Bug #1 (Excluir RCA)
 2. ⬜ Corrigir Bug #6 (Criar RCA do Trigger)
-3. ⬜ Implementar Feature #7 (Import Assets)
+3. ⬜ Implementar Feature #7 (Import Assets):
+    - [ ] Corrigir ordem de inserção (Top-down) no `flatten`.
+    - [ ] Garantir que `parent_id` seja `null` se não existir no banco.
+    - [ ] Validar se as RCAs importadas mantêm os IDs corretos de Area/Equipamento.
 4. ⬜ Refatorar Settings (#8 e #9)
 
 ---
