@@ -5,6 +5,7 @@ import { TriggerRecord, AssetNode, TaxonomyConfig } from '../types';
 import { generateId } from '../services/storageService';
 import { Plus, Edit2, Trash2, Link, ExternalLink, AlertCircle, Clock, CheckCircle } from 'lucide-react';
 import { AssetSelector } from './AssetSelector';
+import { ConfirmModal } from './ConfirmModal';
 
 interface TriggersViewProps {
     onCreateRca: (trigger: TriggerRecord) => void;
@@ -12,21 +13,25 @@ interface TriggersViewProps {
 
 export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
     const { triggers, assets, taxonomy, records, addTrigger, updateTrigger, deleteTrigger } = useRcaContext();
-    
+
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTrigger, setEditingTrigger] = useState<TriggerRecord | null>(null);
+
+    // Confirm Delete Modal State
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [triggerToDelete, setTriggerToDelete] = useState<string | null>(null);
 
     // Filter State
     const [statusFilter, setStatusFilter] = useState('ALL');
 
     // --- Helpers ---
     const getAssetName = (id: string, nodes: AssetNode[]): string => {
-        for(const node of nodes) {
-            if(node.id === id) return node.name;
-            if(node.children) {
+        for (const node of nodes) {
+            if (node.id === id) return node.name;
+            if (node.children) {
                 const found = getAssetName(id, node.children);
-                if(found) return found;
+                if (found) return found;
             }
         }
         return id; // fallback to ID if not found
@@ -57,10 +62,10 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
     // Calculate Farol (Days Open)
     const getFarol = (startDate: string, statusId: string) => {
         if (!startDate) return { days: 0, color: 'bg-gray-100 text-gray-500' };
-        
+
         // Lookup status name to determine behavior
         const statusName = getTaxonomyName(taxonomy.triggerStatuses, statusId);
-        
+
         // Stop counting if Concluded or Removed
         const isClosed = statusName === 'Concluída' || statusName === 'Removido' || statusName === 'Ignorada' || statusName === 'CONVERTED';
 
@@ -75,7 +80,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
         if (days >= 7) color = 'bg-red-100 text-red-700';
 
         if (isClosed) {
-             color = 'bg-gray-100 text-gray-400'; // Dimmed for closed items
+            color = 'bg-gray-100 text-gray-400'; // Dimmed for closed items
         }
 
         return { days, color };
@@ -84,7 +89,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
     // Helper to get status badge color based on name (Hardcoded map for known statuses, fallback for others)
     const getStatusColor = (statusId: string) => {
         const name = getTaxonomyName(taxonomy.triggerStatuses, statusId);
-        switch(name) {
+        switch (name) {
             case 'Não iniciada': return 'bg-gray-100 text-gray-600';
             case 'Em andamento': return 'bg-blue-100 text-blue-700';
             case 'Concluída': return 'bg-green-100 text-green-700';
@@ -118,12 +123,27 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
     };
 
     const handleEdit = (t: TriggerRecord) => {
-        setEditingTrigger({...t});
+        setEditingTrigger({ ...t });
         setIsModalOpen(true);
     };
 
+    // Abre modal de confirmação de exclusão
     const handleDelete = (id: string) => {
-        if(confirm('Delete this trigger?')) deleteTrigger(id);
+        setTriggerToDelete(id);
+        setDeleteModalOpen(true);
+    };
+
+    // Confirma exclusão após modal
+    const confirmDelete = async () => {
+        if (!triggerToDelete) return;
+        try {
+            await deleteTrigger(triggerToDelete);
+            console.log('✅ Trigger excluído:', triggerToDelete);
+        } catch (error) {
+            console.error('❌ Erro ao excluir trigger:', error);
+        }
+        setDeleteModalOpen(false);
+        setTriggerToDelete(null);
     };
 
     const handleSave = () => {
@@ -134,7 +154,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
         };
 
         if (!toSave.id) toSave.id = generateId('TRG');
-        
+
         if (triggers.find(t => t.id === toSave.id)) {
             updateTrigger(toSave);
         } else {
@@ -152,20 +172,21 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
     };
 
     const handleCreateRca = (trigger: TriggerRecord) => {
+        // Delega para App.tsx que já faz:
+        // 1. Gera novo RCA com dados do trigger
+        // 2. Abre o editor
+        // 3. Atualiza o trigger com rca_id e status 'ANALYSIS'
         onCreateRca(trigger);
-        // Find 'Em andamento' status ID
-        const progressStatus = taxonomy.triggerStatuses.find(s => s.name === 'Em andamento')?.id || trigger.status;
-        updateTrigger({ ...trigger, status: progressStatus });
     };
 
     const handleAssetSelect = (node: AssetNode) => {
         if (!editingTrigger) return;
-        
+
         // Find path to populate all levels (Area > Equipment > Subgroup)
         const path = findAssetPath(assets, node.id);
-        
+
         const update = { ...editingTrigger };
-        
+
         // Reset fields
         update.area_id = '';
         update.equipment_id = '';
@@ -173,21 +194,21 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
 
         if (path) {
             path.forEach(n => {
-                if(n.type === 'AREA') update.area_id = n.id;
-                if(n.type === 'EQUIPMENT') update.equipment_id = n.id;
-                if(n.type === 'SUBGROUP') update.subgroup_id = n.id;
+                if (n.type === 'AREA') update.area_id = n.id;
+                if (n.type === 'EQUIPMENT') update.equipment_id = n.id;
+                if (n.type === 'SUBGROUP') update.subgroup_id = n.id;
             });
         } else {
             // Fallback if path not found (direct assignment)
             if (node.type === 'SUBGROUP') update.subgroup_id = node.id;
         }
-        
+
         setEditingTrigger(update);
     };
 
     const filteredTriggers = useMemo(() => {
         return triggers.filter(t => statusFilter === 'ALL' || t.status === statusFilter)
-                       .sort((a,b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
+            .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
     }, [triggers, statusFilter]);
 
     return (
@@ -206,7 +227,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
             {/* Filter */}
             <div className="bg-white p-4 rounded-xl border border-slate-200 mb-6 flex gap-4 items-center shadow-sm">
                 <span className="text-sm font-bold text-slate-500 uppercase">Status Filter:</span>
-                <select 
+                <select
                     className="border border-slate-300 rounded-lg px-3 py-1.5 text-sm bg-white text-slate-900"
                     value={statusFilter}
                     onChange={e => setStatusFilter(e.target.value)}
@@ -256,7 +277,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
                                                 {statusName}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 font-mono">{t.start_date.replace('T', ' ')}</td>
+                                        <td className="px-4 py-3 font-mono">{t.start_date?.replace('T', ' ') || '-'}</td>
                                         <td className="px-4 py-3 max-w-[150px] truncate" title={assetName}>{assetName}</td>
                                         <td className="px-4 py-3 font-bold">{t.duration_minutes} min</td>
                                         <td className="px-4 py-3 max-w-[200px]">
@@ -268,27 +289,27 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
                                         <td className="px-4 py-3">
                                             {t.rca_id ? (
                                                 <div className="flex items-center gap-1 text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded w-fit">
-                                                    <Link size={12}/> {linkedRca ? linkedRca.what.substring(0, 15) + '...' : t.rca_id}
+                                                    <Link size={12} /> {linkedRca?.what ? linkedRca.what.substring(0, 15) + '...' : t.rca_id}
                                                 </div>
                                             ) : (
                                                 <div className="flex gap-2">
                                                     <button onClick={() => handleCreateRca(t)} className="text-green-600 bg-green-50 hover:bg-green-100 p-1.5 rounded flex items-center gap-1" title="Create New RCA">
                                                         <Plus size={14} /> New
                                                     </button>
-                                                    <select 
+                                                    <select
                                                         className="w-24 text-[10px] border rounded bg-white text-slate-900"
-                                                        onChange={(e) => { if(e.target.value) handleLinkRca(t, e.target.value); }}
+                                                        onChange={(e) => { if (e.target.value) handleLinkRca(t, e.target.value); }}
                                                         value=""
                                                     >
                                                         <option value="">Link...</option>
-                                                        {records.map(r => <option key={r.id} value={r.id}>{r.id} - {r.what.substring(0,10)}</option>)}
+                                                        {records.map(r => <option key={r.id} value={r.id}>{r.id} - {r.what.substring(0, 10)}</option>)}
                                                     </select>
                                                 </div>
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-right">
-                                            <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-blue-600 mr-2"><Edit2 size={16}/></button>
-                                            <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-600"><Trash2 size={16}/></button>
+                                            <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-blue-600 mr-2"><Edit2 size={16} /></button>
+                                            <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-600"><Trash2 size={16} /></button>
                                         </td>
                                     </tr>
                                 );
@@ -310,20 +331,20 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-medium text-slate-500 mb-1">Data/Hora Início</label>
-                                    <input 
-                                        type="datetime-local" 
+                                    <input
+                                        type="datetime-local"
                                         className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                        value={editingTrigger.start_date} 
-                                        onChange={e => setEditingTrigger({...editingTrigger, start_date: e.target.value})} 
+                                        value={editingTrigger.start_date}
+                                        onChange={e => setEditingTrigger({ ...editingTrigger, start_date: e.target.value })}
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-slate-500 mb-1">Data/Hora Fim</label>
-                                    <input 
-                                        type="datetime-local" 
+                                    <input
+                                        type="datetime-local"
                                         className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                        value={editingTrigger.end_date} 
-                                        onChange={e => setEditingTrigger({...editingTrigger, end_date: e.target.value})} 
+                                        value={editingTrigger.end_date}
+                                        onChange={e => setEditingTrigger({ ...editingTrigger, end_date: e.target.value })}
                                     />
                                 </div>
                             </div>
@@ -332,9 +353,9 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
                             <div>
                                 <label className="block text-xs font-medium text-slate-500 mb-1">Subconjunto / Equipamento (Select)</label>
                                 <div className="border rounded h-32 overflow-auto bg-slate-50 mb-2">
-                                    <AssetSelector 
-                                        assets={assets} 
-                                        onSelect={handleAssetSelect} 
+                                    <AssetSelector
+                                        assets={assets}
+                                        onSelect={handleAssetSelect}
                                         selectedAssetId={editingTrigger.subgroup_id || editingTrigger.equipment_id}
                                         selectableTypes={['SUBGROUP']}
                                     />
@@ -348,20 +369,20 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-medium text-slate-500 mb-1">Tipo Parada</label>
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                        value={editingTrigger.stop_type} 
-                                        onChange={e => setEditingTrigger({...editingTrigger, stop_type: e.target.value})} 
+                                        value={editingTrigger.stop_type}
+                                        onChange={e => setEditingTrigger({ ...editingTrigger, stop_type: e.target.value })}
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-slate-500 mb-1">Razão Parada</label>
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                        value={editingTrigger.stop_reason} 
-                                        onChange={e => setEditingTrigger({...editingTrigger, stop_reason: e.target.value})} 
+                                        value={editingTrigger.stop_reason}
+                                        onChange={e => setEditingTrigger({ ...editingTrigger, stop_reason: e.target.value })}
                                     />
                                 </div>
                             </div>
@@ -369,10 +390,10 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-medium text-slate-500 mb-1">Tipo AF</label>
-                                    <select 
+                                    <select
                                         className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                        value={editingTrigger.analysis_type_id} 
-                                        onChange={e => setEditingTrigger({...editingTrigger, analysis_type_id: e.target.value})}
+                                        value={editingTrigger.analysis_type_id}
+                                        onChange={e => setEditingTrigger({ ...editingTrigger, analysis_type_id: e.target.value })}
                                     >
                                         <option value="">Select...</option>
                                         {taxonomy.analysisTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -380,21 +401,21 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-slate-500 mb-1">Responsável</label>
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                        value={editingTrigger.responsible} 
-                                        onChange={e => setEditingTrigger({...editingTrigger, responsible: e.target.value})} 
+                                        value={editingTrigger.responsible}
+                                        onChange={e => setEditingTrigger({ ...editingTrigger, responsible: e.target.value })}
                                     />
                                 </div>
                             </div>
 
                             <div>
                                 <label className="block text-xs font-medium text-slate-500 mb-1">Status</label>
-                                <select 
+                                <select
                                     className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={editingTrigger.status} 
-                                    onChange={e => setEditingTrigger({...editingTrigger, status: e.target.value as any})}
+                                    value={editingTrigger.status}
+                                    onChange={e => setEditingTrigger({ ...editingTrigger, status: e.target.value as any })}
                                 >
                                     {taxonomy.triggerStatuses?.map(s => (
                                         <option key={s.id} value={s.id}>{s.name}</option>
@@ -404,10 +425,10 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
 
                             <div>
                                 <label className="block text-xs font-medium text-slate-500 mb-1">Comentários</label>
-                                <textarea 
+                                <textarea
                                     className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none h-20"
-                                    value={editingTrigger.comments} 
-                                    onChange={e => setEditingTrigger({...editingTrigger, comments: e.target.value})} 
+                                    value={editingTrigger.comments}
+                                    onChange={e => setEditingTrigger({ ...editingTrigger, comments: e.target.value })}
                                 />
                             </div>
 
@@ -419,6 +440,21 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
                     </div>
                 </div>
             )}
+
+            {/* Modal de Confirmação de Exclusão */}
+            <ConfirmModal
+                isOpen={deleteModalOpen}
+                title="Excluir Trigger"
+                message="Tem certeza que deseja excluir este trigger? Esta ação não pode ser desfeita."
+                confirmText="Excluir"
+                cancelText="Cancelar"
+                onConfirm={confirmDelete}
+                onCancel={() => {
+                    setDeleteModalOpen(false);
+                    setTriggerToDelete(null);
+                }}
+                variant="danger"
+            />
         </div>
     );
 };

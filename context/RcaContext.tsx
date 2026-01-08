@@ -1,6 +1,9 @@
+// Contexto Global do RCA System
+// VERSÃO CORRIGIDA - com tratamento de erros e logs de debug
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { RcaRecord, AssetNode, ActionRecord, TriggerRecord, TaxonomyConfig } from '../types';
+import * as api from '../services/apiService';
 import * as storage from '../services/storageService';
 
 interface RcaContextType {
@@ -10,117 +13,281 @@ interface RcaContextType {
   actions: ActionRecord[];
   triggers: TriggerRecord[];
   taxonomy: TaxonomyConfig;
+  isLoading: boolean;
+  useApi: boolean;
 
   // Records Methods
-  addRecord: (record: RcaRecord) => void;
-  updateRecord: (record: RcaRecord) => void;
-  deleteRecord: (id: string) => void;
+  addRecord: (record: RcaRecord) => Promise<void>;
+  updateRecord: (record: RcaRecord) => Promise<void>;
+  deleteRecord: (id: string) => Promise<void>;
 
   // Assets Methods
-  updateAssets: (assets: AssetNode[]) => void;
+  updateAssets: (assets: AssetNode[]) => Promise<void>;
 
   // Actions Methods
-  addAction: (action: ActionRecord) => void;
-  updateAction: (action: ActionRecord) => void;
-  deleteAction: (id: string) => void;
+  addAction: (action: ActionRecord) => Promise<void>;
+  updateAction: (action: ActionRecord) => Promise<void>;
+  deleteAction: (id: string) => Promise<void>;
 
   // Triggers Methods
-  addTrigger: (trigger: TriggerRecord) => void;
-  updateTrigger: (trigger: TriggerRecord) => void;
-  deleteTrigger: (id: string) => void;
+  addTrigger: (trigger: TriggerRecord) => Promise<void>;
+  updateTrigger: (trigger: TriggerRecord) => Promise<void>;
+  deleteTrigger: (id: string) => Promise<void>;
 
   // Taxonomy Methods
-  updateTaxonomy: (taxonomy: TaxonomyConfig) => void;
+  updateTaxonomy: (taxonomy: TaxonomyConfig) => Promise<void>;
 
   // Utility
-  refreshAll: () => void;
+  refreshAll: () => Promise<void>;
+  setUseApi: (value: boolean) => void;
 }
 
 const RcaContext = createContext<RcaContextType | undefined>(undefined);
+
+const emptyTaxonomy: TaxonomyConfig = {
+  analysisTypes: [], analysisStatuses: [], specialties: [], failureModes: [],
+  failureCategories: [], componentTypes: [], rootCauseMs: [], triggerStatuses: []
+};
 
 export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [records, setRecords] = useState<RcaRecord[]>([]);
   const [assets, setAssets] = useState<AssetNode[]>([]);
   const [actions, setActions] = useState<ActionRecord[]>([]);
   const [triggers, setTriggers] = useState<TriggerRecord[]>([]);
-  const [taxonomy, setTaxonomy] = useState<TaxonomyConfig>({
-      analysisTypes: [], analysisStatuses: [], specialties: [], failureModes: [], 
-      failureCategories: [], componentTypes: [], rootCauseMs: [], triggerStatuses: []
-  });
+  const [taxonomy, setTaxonomy] = useState<TaxonomyConfig>(emptyTaxonomy);
+  const [isLoading, setIsLoading] = useState(true);
+  const [useApi, setUseApi] = useState(false);
 
-  const refreshAll = () => {
-    setRecords(storage.getRecords());
-    setAssets(storage.getAssets());
-    setActions(storage.getActions());
-    setTriggers(storage.getTriggers());
-    setTaxonomy(storage.getTaxonomy());
-  };
+  // Detectar se API está disponível
+  useEffect(() => {
+    const checkApi = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/health');
+        if (response.ok) {
+          console.log('✅ API disponível - usando backend');
+          setUseApi(true);
+        }
+      } catch {
+        console.log('⚠️ API não disponível - usando localStorage');
+        setUseApi(false);
+      }
+    };
+    checkApi();
+  }, []);
+
+  const refreshAll = useCallback(async () => {
+    console.log('🔄 Refresh: Carregando dados... (useApi:', useApi, ')');
+    setIsLoading(true);
+    try {
+      if (useApi) {
+        const [recs, assts, acts, trigs, tax] = await Promise.all([
+          api.fetchRecords(),
+          api.fetchAssets(),
+          api.fetchActions(),
+          api.fetchTriggers(),
+          api.fetchTaxonomy()
+        ]);
+        setRecords(recs);
+        setAssets(assts);
+        setActions(acts);
+        setTriggers(trigs);
+        setTaxonomy(tax);
+        console.log('✅ Refresh completo via API');
+      } else {
+        setRecords(storage.getRecords());
+        setAssets(storage.getAssets());
+        setActions(storage.getActions());
+        setTriggers(storage.getTriggers());
+        setTaxonomy(storage.getTaxonomy());
+        console.log('✅ Refresh completo via localStorage');
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar dados:', error);
+      // Fallback para localStorage se API falhar
+      setRecords(storage.getRecords());
+      setAssets(storage.getAssets());
+      setActions(storage.getActions());
+      setTriggers(storage.getTriggers());
+      setTaxonomy(storage.getTaxonomy());
+    }
+    setIsLoading(false);
+  }, [useApi]);
 
   useEffect(() => {
     refreshAll();
-  }, []);
+  }, [refreshAll]);
 
   // --- Records Wrappers ---
-  const addRecord = (record: RcaRecord) => {
-    storage.saveRecord(record);
-    refreshAll();
+  const addRecord = async (record: RcaRecord): Promise<void> => {
+    console.log('📝 Context: Adicionando RCA...', record.id);
+    try {
+      if (useApi) {
+        await api.saveRecordToApi(record);
+      } else {
+        storage.saveRecord(record);
+      }
+      await refreshAll();
+      console.log('✅ Context: RCA adicionada com sucesso');
+    } catch (error) {
+      console.error('❌ Context: Erro ao adicionar RCA:', error);
+      throw error;
+    }
   };
 
-  const updateRecord = (record: RcaRecord) => {
-    storage.saveRecord(record);
-    refreshAll();
+  const updateRecord = async (record: RcaRecord): Promise<void> => {
+    console.log('📝 Context: Atualizando RCA...', record.id);
+    try {
+      if (useApi) {
+        await api.saveRecordToApi(record);
+      } else {
+        storage.saveRecord(record);
+      }
+      await refreshAll();
+      console.log('✅ Context: RCA atualizada com sucesso');
+    } catch (error) {
+      console.error('❌ Context: Erro ao atualizar RCA:', error);
+      throw error;
+    }
   };
 
-  const deleteRecord = (id: string) => {
-    // Implementation for delete would go here if added to storageService
-    // For now, we usually just update status to Cancelled, but if physical delete is needed:
-    const newRecords = records.filter(r => r.id !== id);
-    storage.saveRecords(newRecords);
-    refreshAll();
+  const deleteRecord = async (id: string): Promise<void> => {
+    console.log('🗑️ Context: Excluindo RCA...', id);
+    try {
+      if (useApi) {
+        await api.deleteRecordFromApi(id);
+      } else {
+        const newRecords = records.filter(r => r.id !== id);
+        storage.saveRecords(newRecords);
+      }
+      await refreshAll();
+      console.log('✅ Context: RCA excluída com sucesso');
+    } catch (error) {
+      console.error('❌ Context: Erro ao excluir RCA:', error);
+      throw error;
+    }
   };
 
   // --- Assets Wrappers ---
-  const updateAssets = (newAssets: AssetNode[]) => {
-    storage.saveAssets(newAssets);
-    setAssets(newAssets); // Optimistic update or wait for refresh
+  const updateAssets = async (newAssets: AssetNode[]): Promise<void> => {
+    console.log('📝 Context: Atualizando assets...');
+    try {
+      if (useApi) {
+        await api.importAssetsToApi(newAssets);
+      } else {
+        storage.saveAssets(newAssets);
+      }
+      setAssets(newAssets);
+    } catch (error) {
+      console.error('❌ Context: Erro ao atualizar assets:', error);
+      throw error;
+    }
   };
 
   // --- Actions Wrappers ---
-  const addAction = (action: ActionRecord) => {
-    storage.saveAction(action);
-    refreshAll();
+  const addAction = async (action: ActionRecord): Promise<void> => {
+    console.log('📝 Context: Adicionando action...', action.id);
+    try {
+      if (useApi) {
+        await api.saveActionToApi(action);
+      } else {
+        storage.saveAction(action);
+      }
+      await refreshAll();
+    } catch (error) {
+      console.error('❌ Context: Erro ao adicionar action:', error);
+      throw error;
+    }
   };
 
-  const updateAction = (action: ActionRecord) => {
-    storage.saveAction(action);
-    refreshAll();
+  const updateAction = async (action: ActionRecord): Promise<void> => {
+    try {
+      if (useApi) {
+        await api.saveActionToApi(action);
+      } else {
+        storage.saveAction(action);
+      }
+      await refreshAll();
+    } catch (error) {
+      console.error('❌ Context: Erro ao atualizar action:', error);
+      throw error;
+    }
   };
 
-  const deleteActionInternal = (id: string) => {
-    storage.deleteAction(id);
-    refreshAll();
+  const deleteActionInternal = async (id: string): Promise<void> => {
+    console.log('🗑️ Context: Excluindo action...', id);
+    try {
+      if (useApi) {
+        await api.deleteActionFromApi(id);
+      } else {
+        storage.deleteAction(id);
+      }
+      await refreshAll();
+    } catch (error) {
+      console.error('❌ Context: Erro ao excluir action:', error);
+      throw error;
+    }
   };
 
   // --- Triggers Wrappers ---
-  const addTrigger = (trigger: TriggerRecord) => {
-      storage.saveTrigger(trigger);
-      refreshAll();
+  const addTrigger = async (trigger: TriggerRecord): Promise<void> => {
+    console.log('📝 Context: Adicionando trigger...', trigger.id);
+    try {
+      if (useApi) {
+        await api.saveTriggerToApi(trigger);
+      } else {
+        storage.saveTrigger(trigger);
+      }
+      await refreshAll();
+    } catch (error) {
+      console.error('❌ Context: Erro ao adicionar trigger:', error);
+      throw error;
+    }
   };
 
-  const updateTrigger = (trigger: TriggerRecord) => {
-      storage.saveTrigger(trigger);
-      refreshAll();
+  const updateTrigger = async (trigger: TriggerRecord): Promise<void> => {
+    console.log('📝 Context: Atualizando trigger...', trigger.id);
+    try {
+      if (useApi) {
+        await api.saveTriggerToApi(trigger);
+      } else {
+        storage.saveTrigger(trigger);
+      }
+      await refreshAll();
+    } catch (error) {
+      console.error('❌ Context: Erro ao atualizar trigger:', error);
+      throw error;
+    }
   };
 
-  const deleteTriggerInternal = (id: string) => {
-      storage.deleteTrigger(id);
-      refreshAll();
+  const deleteTriggerInternal = async (id: string): Promise<void> => {
+    console.log('🗑️ Context: Excluindo trigger...', id);
+    try {
+      if (useApi) {
+        await api.deleteTriggerFromApi(id);
+      } else {
+        storage.deleteTrigger(id);
+      }
+      await refreshAll();
+    } catch (error) {
+      console.error('❌ Context: Erro ao excluir trigger:', error);
+      throw error;
+    }
   };
 
   // --- Taxonomy Wrappers ---
-  const updateTaxonomyInternal = (newTaxonomy: TaxonomyConfig) => {
-    storage.saveTaxonomy(newTaxonomy);
-    setTaxonomy(newTaxonomy);
+  const updateTaxonomyInternal = async (newTaxonomy: TaxonomyConfig): Promise<void> => {
+    console.log('📝 Context: Atualizando taxonomy...');
+    try {
+      if (useApi) {
+        await api.saveTaxonomyToApi(newTaxonomy);
+      } else {
+        storage.saveTaxonomy(newTaxonomy);
+      }
+      setTaxonomy(newTaxonomy);
+    } catch (error) {
+      console.error('❌ Context: Erro ao atualizar taxonomy:', error);
+      throw error;
+    }
   };
 
   return (
@@ -130,6 +297,8 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       actions,
       triggers,
       taxonomy,
+      isLoading,
+      useApi,
       addRecord,
       updateRecord,
       deleteRecord,
@@ -141,7 +310,8 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       updateTrigger,
       deleteTrigger: deleteTriggerInternal,
       updateTaxonomy: updateTaxonomyInternal,
-      refreshAll
+      refreshAll,
+      setUseApi
     }}>
       {children}
     </RcaContext.Provider>
