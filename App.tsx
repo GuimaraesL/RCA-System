@@ -166,7 +166,7 @@ const AppContent: React.FC = () => {
                             <Dashboard />
                         )}
                         {view === 'TRIGGERS' && (
-                            <TriggersView onCreateRca={handleCreateRcaFromTrigger} />
+                            <TriggersView onCreateRca={handleCreateRcaFromTrigger} onOpenRca={handleOpenRca} />
                         )}
                         {view === 'ANALYSES' && (
                             <AnalysesView onNew={openNew} onEdit={openEdit} />

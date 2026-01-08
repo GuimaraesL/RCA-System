@@ -9,9 +9,10 @@ import { ConfirmModal } from './ConfirmModal';
 
 interface TriggersViewProps {
     onCreateRca: (trigger: TriggerRecord) => void;
+    onOpenRca: (rcaId: string) => void;
 }
 
-export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
+export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenRca }) => {
     const { triggers, assets, taxonomy, records, addTrigger, updateTrigger, deleteTrigger } = useRcaContext();
 
     // Modal State
@@ -288,7 +289,11 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca }) => {
                                         <td className="px-4 py-3">{t.responsible}</td>
                                         <td className="px-4 py-3">
                                             {t.rca_id ? (
-                                                <div className="flex items-center gap-1 text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded w-fit">
+                                                <div
+                                                    className="flex items-center gap-1 text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded w-fit cursor-pointer hover:bg-blue-100 transition-colors"
+                                                    onClick={() => onOpenRca(t.rca_id!)}
+                                                    title="Clique para abrir a RCA"
+                                                >
                                                     <Link size={12} /> {linkedRca?.what ? linkedRca.what.substring(0, 15) + '...' : t.rca_id}
                                                 </div>
                                             ) : (
