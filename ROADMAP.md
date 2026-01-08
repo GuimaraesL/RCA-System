@@ -7,9 +7,11 @@
 
 ## 📊 Progresso Geral
 
-| Bugs Core | 5 | 6 | 🟢 83% |
-| Features | 0 | 3 | 🔴 0% |
-| **Total** | **5** | **9** | **55%** |
+| Categoria | Concluídos | Total | Status |
+|-----------|------------|-------|--------|
+| Bugs Core | 6 | 7 | 🟡 85% |
+| Features | 0 | 2 | 🔴 0% |
+| **Total** | **6** | **9** | **66%** |
 
 ---
 
@@ -23,6 +25,11 @@
 ### Bug #1: Excluir RCA não funciona
 - **Problema:** Botão de lixeira na aba Analyses não executava a exclusão
 - **Solução:** Corrigida a função `deleteRecord` no `RcaContext` e vinculado o clique corretamente na `AnalysesView`
+- **Status:** ✅ Corrigido
+
+### Bug #6: Criar RCA a partir do Trigger
+- **Problema:** Ao clicar em "Nova RCA" na aba de Triggers, o editor não abria ou não vinculava os dados.
+- **Solução:** Restaurado o fluxo de criação e vínculo no `App.tsx`.
 - **Status:** ✅ Corrigido
 
 ### Bug #3: Excluir Action
@@ -47,20 +54,20 @@
 
 ## 🐛 Bugs Pendentes
 
-### Bug #6: Criar RCA a partir do Trigger
-- **Onde:** Aba Triggers → Botão "Nova RCA"
-- **Sintoma:** Não abre editor ou não cria
-- **Prioridade:** 🟡 Média
+### Bug #7: Importação JSON - Hierarquia de Assets
+- **Status:** Regressão identificada.
+- **Prioridade:** 🔴 Alta
 
 ---
 
 ## 🔧 Features Pendentes
 
-### Feature #7: Importação JSON - Hierarquia de Assets
+### Bug #7: Importação JSON - Hierarquia de Assets (Regressão)
 - **Onde:** Migration → Import JSON
 - **Sintoma:** RCAs importam, mas Assets não aparecem ou perdem hierarquia.
-- **Causa Técnica:** A função `flatten` em `apiService.ts` converte a árvore em lista, mas o backend pode falhar se um `parent_id` for inserido antes do pai existir. Além disso, o vínculo de `area_id` e `equipment_id` nas RCAs depende dos Assets estarem presentes.
-- **Prioridade:** 🟡 Média
+- **Nota:** Esta funcionalidade parou de funcionar após a migração para o banco de dados TypeScript/SQLite.
+- **Causa Técnica:** A função `flatten` em `apiService.ts` converte a árvore em lista, mas o backend pode falhar se um `parent_id` for inserido antes do pai existir.
+- **Prioridade:** 🔴 Alta (Critico para migração)
 
 ### Feature #8: Settings - Adicionar Itens
 - **Onde:** Aba Settings → Adicionar tipo de análise, etc
