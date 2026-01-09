@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { useRcaContext } from '../context/RcaContext';
 import { TriggerRecord, AssetNode, TaxonomyConfig } from '../types';
-import { generateId, filterAssetsByUsage } from '../services/storageService';
+import { generateId, filterAssetsByUsage } from '../services/utils';
 import { Plus, Edit2, Trash2, Link, ExternalLink, AlertCircle, Clock, CheckCircle, FileText } from 'lucide-react';
 import { AssetSelector } from './AssetSelector';
 import { ConfirmModal } from './ConfirmModal';

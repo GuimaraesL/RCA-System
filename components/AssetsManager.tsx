@@ -49,7 +49,7 @@ export const AssetsManager: React.FC = () => {
             {node.type === 'AREA' && <Folder size={16} className="mr-2 text-slate-400" />}
             {node.type === 'EQUIPMENT' && <Database size={16} className="mr-2 text-blue-500" />}
             {node.type === 'SUBGROUP' && <Layers size={16} className="mr-2 text-indigo-500" />}
-            <span className="text-sm font-medium truncate">{node.name}</span>
+            <span className="text-sm font-medium whitespace-nowrap">{node.name}</span>
           </div>
         </div>
         {expanded && node.children?.map(child => <TreeNode key={child.id} node={child} depth={depth + 1} />)}
@@ -71,7 +71,7 @@ export const AssetsManager: React.FC = () => {
             <Plus size={18} />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto p-2">
+        <div className="flex-1 overflow-y-auto overflow-x-auto p-2">
           {assets.map(asset => <TreeNode key={asset.id} node={asset} depth={0} />)}
           {assets.length === 0 && <div className="text-center p-8 text-slate-400 text-sm">No assets defined. Add a root area.</div>}
         </div>

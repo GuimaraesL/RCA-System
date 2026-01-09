@@ -1,11 +1,16 @@
 
 import React, { useState, useRef } from 'react';
 import { Upload, Download, FileSpreadsheet, Database, RefreshCw, CheckCircle, AlertTriangle } from 'lucide-react';
-import { importData, exportData } from '../services/storageService';
-import { importDataToApi } from '../services/apiService';
+import { importData, saveAssets, saveActions, saveRecords, saveTriggers, saveTaxonomy } from '../services/storageService';
+import { importDataToApi, importRecordsToApi, importActionsToApi, importTriggersToApi, importAssetsToApi, importTaxonomyToApi } from '../services/apiService';
 import { MigrationData } from '../types';
 import { CsvEntityType, getCsvTemplate, exportToCsv as exportToCsvService, importFromCsv } from '../services/csvService';
 import { useRcaContext } from '../context/RcaContext';
+
+// ... (rest of imports)
+
+// ... inside component ...
+
 
 export const MigrationView: React.FC = () => {
     const [msg, setMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -17,7 +22,7 @@ export const MigrationView: React.FC = () => {
     const csvInputRef = useRef<HTMLInputElement>(null);
 
     // Access Context to refresh data without page reload
-    const { refreshAll, useApi } = useRcaContext();
+    const { refreshAll, useApi, records, assets, actions, triggers, taxonomy } = useRcaContext();
 
     // Helper to handle encoding (UTF-8 vs Windows-1252 for Excel)
     const readFileWithEncoding = (file: File): Promise<string> => {
@@ -26,11 +31,8 @@ export const MigrationView: React.FC = () => {
 
             reader.onload = (e) => {
                 const content = e.target?.result as string;
-
-                // Check for Unicode Replacement Character  (U+FFFD)
-                // This usually appears when UTF-8 decoder encounters invalid bytes (like ANSI accents)
-                if (content.includes('\uFFFD')) {
-                    console.log("Detected encoding issues (), retrying with windows-1252...");
+                if (content.includes('\uFFFD')) { // Check for replacement char
+                    console.log("Detected encoding issues, retrying with windows-1252...");
                     const retryReader = new FileReader();
                     retryReader.onload = (evt) => resolve(evt.target?.result as string);
                     retryReader.onerror = () => reject(retryReader.error);
@@ -39,9 +41,8 @@ export const MigrationView: React.FC = () => {
                     resolve(content);
                 }
             };
-
             reader.onerror = () => reject(reader.error);
-            reader.readAsText(file); // Default tries UTF-8
+            reader.readAsText(file);
         });
     };
 
@@ -58,21 +59,14 @@ export const MigrationView: React.FC = () => {
             let res: { success: boolean, message: string };
 
             if (useApi) {
-                // Usar API para persistir no banco
                 console.log('🔄 Importando via API...');
                 res = await importDataToApi(data);
             } else {
-                // Fallback para localStorage
                 res = importData(content);
             }
 
-            setMsg({
-                type: res.success ? 'success' : 'error',
-                text: res.message
-            });
-            if (res.success) {
-                await refreshAll();
-            }
+            setMsg({ type: res.success ? 'success' : 'error', text: res.message });
+            if (res.success) await refreshAll();
         } catch (error) {
             setMsg({ type: 'error', text: 'Failed to read file.' });
             console.error(error);
@@ -82,7 +76,20 @@ export const MigrationView: React.FC = () => {
     };
 
     const handleJsonDownload = () => {
-        const json = exportData();
+        const exportObj: MigrationData = {
+            metadata: {
+                systemVersion: '17.0',
+                exportDate: new Date().toISOString(),
+                recordCount: records.length, // Add record count for metadata compliance
+                description: 'Full System Backup'
+            },
+            assets,
+            records,
+            actions,
+            triggers,
+            taxonomy
+        };
+        const json = JSON.stringify(exportObj, null, 2);
         downloadFile(json, `rca_backup_v17_${new Date().toISOString().split('T')[0]}.json`, 'application/json');
     };
 
@@ -93,7 +100,8 @@ export const MigrationView: React.FC = () => {
     };
 
     const handleCsvExport = () => {
-        const csv = exportToCsvService(csvType);
+        // Pass current data from Context to CSV Service
+        const csv = exportToCsvService(csvType, { records, assets, actions, triggers, taxonomy });
         downloadFile(csv, `${csvType.toLowerCase()}_export.csv`, 'text/csv;charset=utf-8;');
     };
 
@@ -105,21 +113,80 @@ export const MigrationView: React.FC = () => {
 
         try {
             const content = await readFileWithEncoding(file);
-            const res = importFromCsv(csvType, content);
+            const res = importFromCsv(csvType, content, { records, assets, actions, triggers, taxonomy });
 
-            setMsg({
-                type: res.success ? 'success' : 'error',
-                text: res.message
-            });
-
-            if (res.success) {
-                refreshAll();
+            if (!res.success) {
+                setMsg({ type: 'error', text: res.message });
+                return;
             }
+
+            // Save Data Logic (Decoupled from Service)
+            try {
+                if (useApi) {
+                    setMsg({ type: 'success', text: 'Sending data to API...' });
+                    switch (res.dataType) {
+                        case 'ASSETS':
+                            await importAssetsToApi(res.data);
+                            break;
+                        case 'ACTIONS':
+                            await importActionsToApi(res.data);
+                            break;
+                        case 'TRIGGERS':
+                            await importTriggersToApi(res.data);
+                            break;
+                        case 'RECORDS_SUMMARY':
+                            await importRecordsToApi(res.data);
+                            break;
+                        case 'TAXONOMY_ANALYSIS_TYPES':
+                        case 'TAXONOMY_STATUSES':
+                        case 'TAXONOMY_SPECIALTIES':
+                        case 'TAXONOMY_FAILURE_MODES':
+                        case 'TAXONOMY_FAILURE_CATEGORIES':
+                        case 'TAXONOMY_COMPONENT_TYPES':
+                        case 'TAXONOMY_ROOT_CAUSE_MS':
+                        case 'TAXONOMY_TRIGGER_STATUSES':
+                            await importTaxonomyToApi(res.data);
+                            break;
+                    }
+                } else {
+                    setMsg({ type: 'success', text: 'Saving to Local Storage...' });
+                    switch (res.dataType) {
+                        case 'ASSETS':
+                            saveAssets(res.data);
+                            break;
+                        case 'ACTIONS':
+                            saveActions(res.data);
+                            break;
+                        case 'TRIGGERS':
+                            saveTriggers(res.data);
+                            break;
+                        case 'RECORDS_SUMMARY':
+                            saveRecords(res.data);
+                            break;
+                        case 'TAXONOMY_ANALYSIS_TYPES':
+                        case 'TAXONOMY_STATUSES':
+                        case 'TAXONOMY_SPECIALTIES':
+                        case 'TAXONOMY_FAILURE_MODES':
+                        case 'TAXONOMY_FAILURE_CATEGORIES':
+                        case 'TAXONOMY_COMPONENT_TYPES':
+                        case 'TAXONOMY_ROOT_CAUSE_MS':
+                        case 'TAXONOMY_TRIGGER_STATUSES':
+                            saveTaxonomy(res.data);
+                            break;
+                    }
+                }
+
+                setMsg({ type: 'success', text: res.message });
+                refreshAll();
+            } catch (saveError) {
+                console.error("Save Error:", saveError);
+                setMsg({ type: 'error', text: 'Failed to save imported data.' });
+            }
+
         } catch (error) {
             setMsg({ type: 'error', text: 'Failed to read file.' });
             console.error(error);
         } finally {
-            // Clear input value to allow re-uploading the same file if needed (e.g. after fixing errors)
             if (csvInputRef.current) csvInputRef.current.value = '';
         }
     };

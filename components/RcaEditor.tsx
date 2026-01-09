@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { RcaRecord, ActionRecord } from '../types';
-import { generateId } from '../services/storageService';
+import { generateId } from '../services/utils';
 import { useRcaContext } from '../context/RcaContext';
 import { Save, ArrowLeft, Lock, Check, ChevronDown } from 'lucide-react';
 import { useRcaLogic } from '../hooks/useRcaLogic';

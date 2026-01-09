@@ -12,7 +12,7 @@ import { SettingsView } from './components/SettingsView';
 import { MigrationView } from './components/MigrationView';
 import { DocumentationView } from './components/DocumentationView';
 import { RcaProvider, useRcaContext } from './context/RcaContext';
-import { generateId } from './services/storageService';
+import { generateId } from './services/utils';
 
 const AppContent: React.FC = () => {
     const [view, setView] = useState<'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'TRIGGERS' | 'ASSETS' | 'SETTINGS' | 'MIGRATION' | 'DOCS'>('DASHBOARD');

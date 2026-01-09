@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { AssetNode } from '../types';
-import { generateId } from '../services/storageService';
+import { generateId } from '../services/utils';
 import { useRcaContext } from '../context/RcaContext';
 
 export const useAssetsLogic = () => {

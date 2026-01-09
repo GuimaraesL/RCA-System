@@ -105,6 +105,18 @@ export const saveTaxonomyToApi = async (taxonomy: TaxonomyConfig): Promise<void>
     await checkResponse(response, 'PUT /taxonomy');
 };
 
+export const importTaxonomyToApi = async (taxonomy: TaxonomyConfig): Promise<void> => {
+    // Taxonomy is usually a single object configuration, so "bulk" might just be "save".
+    // But if we want to merge, logic might be complex. 
+    // For now, treating import as "save/overwrite" or using the existing save method is safer
+    // but the task implies usage of API. saveTaxonomyToApi replaces the whole config.
+    // We'll reuse saveTaxonomyToApi for consistency unless a merge is strictly required by backend logic unique to import.
+    // CSV import logic in csvService already merges locally before calling save.
+    // So here we likely just need to save the result.
+    return saveTaxonomyToApi(taxonomy);
+};
+
+
 // --- RECORDS (RCAs) ---
 export const fetchRecords = async (): Promise<RcaRecord[]> => {
     console.log('🔄 API: Fetching RCAs...');
@@ -155,6 +167,20 @@ export const deleteRecordFromApi = async (id: string): Promise<void> => {
     console.log('✅ API: RCA deleted:', id);
 };
 
+export const importRecordsToApi = async (records: RcaRecord[]): Promise<void> => {
+    console.log('🔄 API: Importing', records.length, 'records...');
+    // Assuming backend supports bulk import, otherwise we could iterate.
+    // For safety/consistency with Assets, trying bulk endpoint implies backend support.
+    // If backend doesn't support bulk for records, we might need a loop or update backend.
+    // Given the task, I will implement as bulk POST.
+    const response = await fetch(`${API_BASE}/rcas/bulk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(records)
+    });
+    await checkResponse(response, 'POST /rcas/bulk');
+};
+
 // --- ACTIONS ---
 export const fetchActions = async (): Promise<ActionRecord[]> => {
     console.log('🔄 API: Fetching actions...');
@@ -196,6 +222,17 @@ export const deleteActionFromApi = async (id: string): Promise<void> => {
     await checkResponse(response, `DELETE /actions/${id}`);
 };
 
+export const importActionsToApi = async (actions: ActionRecord[]): Promise<void> => {
+    console.log('🔄 API: Importing', actions.length, 'actions...');
+    const response = await fetch(`${API_BASE}/actions/bulk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(actions)
+    });
+    await checkResponse(response, 'POST /actions/bulk');
+};
+
+
 // --- TRIGGERS ---
 export const fetchTriggers = async (): Promise<TriggerRecord[]> => {
     console.log('🔄 API: Fetching triggers...');
@@ -229,6 +266,24 @@ export const deleteTriggerFromApi = async (id: string): Promise<void> => {
     console.log('🔄 API: Deleting trigger:', id);
     const response = await fetch(`${API_BASE}/triggers/${id}`, { method: 'DELETE' });
     await checkResponse(response, `DELETE /triggers/${id}`);
+};
+
+export const importTriggersToApi = async (triggers: TriggerRecord[]): Promise<void> => {
+    console.log('🔄 API: Importing', triggers.length, 'triggers...');
+    const response = await fetch(`${API_BASE}/triggers/bulk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(triggers)
+    });
+    await checkResponse(response, 'POST /triggers/bulk');
+};
+
+
+// --- HELPER: Gerar ID (Simples) ---
+const generateId = (prefix: string = 'GEN'): string => {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    return `${prefix}-${timestamp}-${random}`;
 };
 
 // --- HELPER: Extrair Assets de RCAs (Fallback) ---
@@ -293,22 +348,64 @@ export const importDataToApi = async (data: any): Promise<{ success: boolean, me
             console.warn('⚠️ Nenhum asset encontrado para importar.');
         }
 
-        // 2. Importar Taxonomy
-        if (data.taxonomy) {
-            await saveTaxonomyToApi(data.taxonomy);
-            console.log('✅ Taxonomy importada');
-        }
+        // 2. Importar Taxonomy (Merge com Auto-Discovery)
+        let taxonomyToSave = data.taxonomy || await fetchTaxonomy(); // Carrega existente se não vier no JSON
 
-        // 3. Importar RCAs (Bulk Optimized)
-        if (data.records && data.records.length > 0) {
+        const ensureTaxonomy = (listKey: keyof TaxonomyConfig, val: string) => {
+            if (!val) return null;
+            const list = taxonomyToSave[listKey] || [];
+            // Check ID or Name match
+            const existing = list.find(i => i.id === val || i.name.toLowerCase() === val.toLowerCase());
+
+            if (existing) return existing.id; // Retorna ID existente
+
+            // Create new item
+            const newId = val.length < 15 ? val : generateId('AUTO');
+            // Adiciona na lista
+            taxonomyToSave[listKey] = [...list, { id: newId, name: val }];
+            console.log(`🆕 Auto-discovered Taxonomy Item [${listKey}]: ${val} -> ${newId}`);
+            return newId;
+        };
+
+        // 2.1 Varre RCAs para atualizar taxonomia e normalizar IDs
+        const rcasToImport = data.records || data.results || [];
+        const normalizedRcas = rcasToImport.map((rec: any) => {
+            const newRec = { ...rec };
+
+            // Auto-discover keys
+            if (newRec.status) newRec.status = ensureTaxonomy('analysisStatuses', newRec.status) || newRec.status;
+            if (newRec.specialty_id) newRec.specialty_id = ensureTaxonomy('specialties', newRec.specialty_id) || newRec.specialty_id;
+            if (newRec.failure_mode_id) newRec.failure_mode_id = ensureTaxonomy('failureModes', newRec.failure_mode_id) || newRec.failure_mode_id;
+            if (newRec.failure_category_id) newRec.failure_category_id = ensureTaxonomy('failureCategories', newRec.failure_category_id) || newRec.failure_category_id;
+            if (newRec.component_type) newRec.component_type = ensureTaxonomy('componentTypes', newRec.component_type) || newRec.component_type;
+            if (newRec.analysis_type) newRec.analysis_type = ensureTaxonomy('analysisTypes', newRec.analysis_type) || newRec.analysis_type;
+
+            // Root Causes (M)
+            if (newRec.root_causes && Array.isArray(newRec.root_causes)) {
+                newRec.root_causes.forEach((rc: any) => {
+                    if (rc.root_cause_m_id) {
+                        rc.root_cause_m_id = ensureTaxonomy('rootCauseMs', rc.root_cause_m_id) || rc.root_cause_m_id;
+                    }
+                });
+            }
+
+            return newRec;
+        });
+
+        // 2.2 Salvar Taxonomia Atualizada
+        await saveTaxonomyToApi(taxonomyToSave);
+        console.log('✅ Taxonomy atualizada com sucesso.');
+
+        // 3. Importar RCAs (Bulk Optimized) com IDs normalizados
+        if (normalizedRcas.length > 0) {
             console.log('🔄 API: Bulk Importing RCAs...');
             const response = await fetch(`${API_BASE}/rcas/bulk`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data.records)
+                body: JSON.stringify(normalizedRcas)
             });
             await checkResponse(response, 'POST /rcas/bulk');
-            console.log('✅ RCAs importadas (Bulk):', data.records.length);
+            console.log('✅ RCAs importadas (Bulk):', normalizedRcas.length);
         }
 
         // 4. Importar Actions (Bulk)

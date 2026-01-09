@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { ActionRecord, AssetNode } from '../types';
-import { generateId } from '../services/storageService';
+import { generateId } from '../services/utils';
 import { useRcaContext } from '../context/RcaContext';
 
 // ViewModel includes resolved RCA name and context IDs for filtering

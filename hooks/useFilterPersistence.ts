@@ -1,4 +1,6 @@
 
+// [ALLOWED-USAGE] This file interacts with localStorage solely for UI preference persistence (filters, view modes).
+// It does NOT handle business data (Records, Assets, etc.).
 import { useState, useEffect } from 'react';
 import { FilterState } from '../components/FilterBar';
 
@@ -27,7 +29,7 @@ export const useFilterPersistence = (pageKey: string, defaultFilters: FilterStat
             // Determine source: Global Key or Page Specific Key
             const globalMode = localStorage.getItem(GLOBAL_MODE_KEY) === 'true';
             const sourceKey = globalMode ? GLOBAL_FILTERS_KEY : `${pageKey}_criteria`;
-            
+
             const saved = localStorage.getItem(sourceKey);
             if (saved) {
                 // Merge saved filters with defaults to ensure all fields exist (migration safety)
@@ -61,7 +63,7 @@ export const useFilterPersistence = (pageKey: string, defaultFilters: FilterStat
         // This ensures if I switch to Global, I see what was set on Dashboard, not what was on Actions
         const sourceKey = newGlobalState ? GLOBAL_FILTERS_KEY : `${pageKey}_criteria`;
         const saved = localStorage.getItem(sourceKey);
-        
+
         if (saved) {
             setFilters({ ...defaultFilters, ...JSON.parse(saved) });
         } else {
@@ -80,11 +82,11 @@ export const useFilterPersistence = (pageKey: string, defaultFilters: FilterStat
         setFilters(defaults);
     };
 
-    return { 
-        showFilters, 
-        setShowFilters, 
-        filters, 
-        setFilters, 
+    return {
+        showFilters,
+        setShowFilters,
+        filters,
+        setFilters,
         handleReset,
         isGlobal,
         toggleGlobal

@@ -1,10 +1,25 @@
 
 import { AssetNode, ActionRecord, TaxonomyConfig, TaxonomyItem, RcaRecord, TriggerRecord } from "../types";
-import { generateId, getAssets, saveAssets, getActions, saveActions, getTaxonomy, saveTaxonomy, getRecords, saveRecords, getTriggers, saveTriggers } from "./storageService";
+import { generateId } from "./utils";
 
-export type CsvEntityType = 
-    | 'ASSETS' 
-    | 'ACTIONS' 
+export interface CsvContextData {
+    records?: RcaRecord[];
+    assets?: AssetNode[];
+    actions?: ActionRecord[];
+    triggers?: TriggerRecord[];
+    taxonomy?: TaxonomyConfig;
+}
+
+export interface CsvImportResult {
+    success: boolean;
+    message: string;
+    data?: any;
+    dataType?: CsvEntityType;
+}
+
+export type CsvEntityType =
+    | 'ASSETS'
+    | 'ACTIONS'
     | 'RECORDS_SUMMARY'
     | 'TRIGGERS'
     | 'TAXONOMY_ANALYSIS_TYPES'
@@ -33,11 +48,9 @@ const TAXONOMY_MAP: Record<string, keyof TaxonomyConfig> = {
 const parseDateString = (dateStr: string): string => {
     if (!dateStr) return '';
     try {
-        // Handle Excel numeric dates if passed as string? (Simple implementation assumes text format based on prompt)
-        // Format: DD/MM/YYYY or DD/MM/YYYY HH:mm
         const parts = dateStr.trim().split(' ');
         const dateParts = parts[0].split('/');
-        
+
         if (dateParts.length === 3) {
             const day = dateParts[0].padStart(2, '0');
             const month = dateParts[1].padStart(2, '0');
@@ -62,16 +75,14 @@ const toCSV = (data: any[], headers: string[]): string => {
             } else if (val === undefined || val === null) {
                 val = '';
             }
-            
+
             let stringVal = String(val);
 
             // SECURITY: CSV Injection / Formula Injection Prevention
-            // If the field starts with =, +, -, or @, Excel may execute it as a formula.
-            // We prepend a single quote to force it to be treated as text.
             if (/^[=+\-@]/.test(stringVal)) {
                 stringVal = "'" + stringVal;
             }
-            
+
             // Escape quotes and wrap in quotes if contains delimiter or newline
             if (stringVal.includes(';') || stringVal.includes('"') || stringVal.includes('\n')) {
                 return `"${stringVal.replace(/"/g, '""')}"`;
@@ -94,10 +105,10 @@ const fromCSV = (csv: string): any[] => {
 
     // Auto-detect separator from first line
     const separator = detectSeparator(lines[0]);
-    
+
     // Parse Headers and clean them (remove whitespace/BOM)
     const headers = lines[0].split(separator).map(h => h.trim().replace(/^"|"$/g, '').replace(/^\uFEFF/, ''));
-    
+
     const result = [];
 
     for (let i = 1; i < lines.length; i++) {
@@ -131,9 +142,9 @@ const fromCSV = (csv: string): any[] => {
             if (val.startsWith('"') && val.endsWith('"')) {
                 val = val.substring(1, val.length - 1).replace(/""/g, '"');
             }
-            obj[h] = val; 
+            obj[h] = val;
         });
-        
+
         // Only add row if it has some data (ignore empty trailing lines)
         if (Object.values(obj).some(v => v !== '')) {
             result.push(obj);
@@ -146,7 +157,7 @@ const fromCSV = (csv: string): any[] => {
 
 export const getCsvTemplate = (type: CsvEntityType): string => {
     // We use semicolons in template to guide user towards Excel-friendly format
-    switch(type) {
+    switch (type) {
         case 'ASSETS': return 'id;name;type;parentId';
         case 'ACTIONS': return 'id;rca_id;action;responsible;date;status;moc_number';
         case 'TRIGGERS': return 'AREA;Equip.;Subconjunto;Data/Hora Início;Data/Hora Fim;Duração (min);Tipo Parada;Razão Parada;Comentários;Tipo AF;Status;Responsável;ID AF';
@@ -155,35 +166,35 @@ export const getCsvTemplate = (type: CsvEntityType): string => {
     }
 };
 
-export const exportToCsv = (type: CsvEntityType): string => {
+export const exportToCsv = (type: CsvEntityType, context: CsvContextData): string => {
+    const { assets = [], actions = [], triggers = [], records = [], taxonomy = { analysisTypes: [], analysisStatuses: [], specialties: [], failureModes: [], failureCategories: [], componentTypes: [], rootCauseMs: [], triggerStatuses: [] } } = context;
+
     if (type === 'ASSETS') {
-        const assets = getAssets();
         const flatAssets: any[] = [];
-        const traverse = (nodes: AssetNode[]) => {
+        // Fix: Pass parentId down the recursion explicitly
+        const traverse = (nodes: AssetNode[], currentParentId: string | null) => {
             nodes.forEach(n => {
                 flatAssets.push({
                     id: n.id,
                     name: n.name,
                     type: n.type,
-                    parentId: n.parentId || ''
+                    parentId: currentParentId // Use passed parentId directly
                 });
-                if (n.children) traverse(n.children);
+                if (n.children) traverse(n.children, n.id);
             });
         };
-        traverse(assets);
+        traverse(assets, null);
         return toCSV(flatAssets, ['id', 'name', 'type', 'parentId']);
     }
 
     if (type === 'ACTIONS') {
-        const actions = getActions();
         return toCSV(actions, ['id', 'rca_id', 'action', 'responsible', 'date', 'status', 'moc_number']);
     }
 
     if (type === 'TRIGGERS') {
-        const triggers = getTriggers();
         // Map internal structure back to Excel column names
         const rows = triggers.map(t => ({
-            'AREA': t.area_id, // Note: This exports IDs, ideally we'd export Names for user readability, but let's stick to IDs for roundtrip simplicity or upgrade later
+            'AREA': t.area_id,
             'Equip.': t.equipment_id,
             'Subconjunto': t.subgroup_id,
             'Data/Hora Início': t.start_date,
@@ -201,14 +212,12 @@ export const exportToCsv = (type: CsvEntityType): string => {
     }
 
     if (type === 'RECORDS_SUMMARY') {
-        const records = getRecords();
         return toCSV(records, ['id', 'what', 'participants', 'problem_description', 'analysis_type', 'status', 'failure_date', 'downtime_minutes', 'financial_impact', 'area_id']);
     }
 
-    const taxonomy = getTaxonomy();
-    const key = TAXONOMY_MAP[type];
-    if (key) {
-        return toCSV(taxonomy[key] || [], ['id', 'name']);
+    const taxonomyKey = TAXONOMY_MAP[type];
+    if (taxonomyKey && taxonomy) {
+        return toCSV(taxonomy[taxonomyKey] || [], ['id', 'name']);
     }
 
     return '';
@@ -216,15 +225,17 @@ export const exportToCsv = (type: CsvEntityType): string => {
 
 // --- IMPORTERS ---
 
-export const importFromCsv = (type: CsvEntityType, csvContent: string): { success: boolean, message: string } => {
+export const importFromCsv = (type: CsvEntityType, csvContent: string, context: CsvContextData): CsvImportResult => {
     try {
-        const rawData = fromCSV(csvContent);
+        const rawData = fromCSV(csvContent) as any[];
         if (rawData.length === 0) return { success: false, message: "Empty or unreadable CSV file." };
+
+        const { assets = [], taxonomy = { analysisTypes: [], analysisStatuses: [], specialties: [], failureModes: [], failureCategories: [], componentTypes: [], rootCauseMs: [], triggerStatuses: [] }, triggers: existingTriggers = [], actions: existingActions = [], records: existingRecords = [] } = context;
 
         if (type === 'ASSETS') {
             const nodes: AssetNode[] = rawData.map(r => ({
                 id: r.id || generateId('IMP'),
-                name: r.name || 'Unnamed Asset', // Better fallback
+                name: r.name || 'Unnamed Asset',
                 type: (r.type === 'AREA' || r.type === 'EQUIPMENT' || r.type === 'SUBGROUP') ? r.type : 'AREA',
                 parentId: r.parentId || undefined,
                 children: []
@@ -234,7 +245,7 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string): { succes
             nodes.forEach(n => nodeMap.set(n.id, n));
 
             const rootNodes: AssetNode[] = [];
-            
+
             // Reconstruct Hierarchy
             nodes.forEach(n => {
                 if (n.parentId && nodeMap.has(n.parentId)) {
@@ -246,19 +257,19 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string): { succes
                 }
             });
 
-            // Validation: Ensure we actually parsed something valid
             if (nodes.length > 0 && nodes.every(n => n.name === 'Unnamed Asset')) {
-                 return { success: false, message: "Import failed: Could not read 'name' column. Check CSV delimiter (Use ; or ,)." };
+                return { success: false, message: "Import failed: Could not read 'name' column. Check CSV delimiter (Use ; or ,)." };
             }
 
-            saveAssets(rootNodes);
-            return { success: true, message: `Successfully imported ${nodes.length} assets.` };
+            return {
+                success: true,
+                message: `Successfully parsed ${nodes.length} assets.`,
+                data: rootNodes,
+                dataType: 'ASSETS'
+            };
         }
 
         if (type === 'TRIGGERS') {
-            const assets = getAssets();
-            const taxonomy = getTaxonomy();
-            const existingTriggers = getTriggers();
             const newTriggers: TriggerRecord[] = [];
 
             // Helper to find asset ID by Name (Recursive)
@@ -282,23 +293,17 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string): { succes
                 return found ? found.id : '';
             };
 
-            // Default Status ID fallback (Usually 'Não iniciada')
             const defaultStatusId = taxonomy.triggerStatuses?.[0]?.id || 'TRG-ST-01';
 
             rawData.forEach(r => {
-                // Map Status from CSV String to ID
                 const statusName = r['Status'] || '';
                 let statusId = findTaxonomyId(taxonomy.triggerStatuses || [], statusName);
                 if (!statusId) statusId = defaultStatusId;
 
-                // Map Assets
                 const areaId = findAssetId(r['AREA'], assets);
-                // Optimization: If area found, we could narrow search, but global search is safer for CSVs with partial data
                 const equipId = findAssetId(r['Equip.'], assets);
                 const subId = findAssetId(r['Subconjunto'], assets);
-
-                // Map Analysis Type
-                const typeId = findTaxonomyId(taxonomy.analysisTypes, r['Tipo AF']);
+                const typeId = findTaxonomyId(taxonomy.analysisTypes || [], r['Tipo AF']);
 
                 const trigger: TriggerRecord = {
                     id: generateId('TRG'),
@@ -312,16 +317,24 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string): { succes
                     stop_reason: r['Razão Parada'] || '',
                     comments: r['Comentários'] || '',
                     analysis_type_id: typeId,
-                    status: statusId, // Now using ID
+                    status: statusId,
                     responsible: r['Responsável'] || '',
                     rca_id: r['ID AF'] || ''
                 };
                 newTriggers.push(trigger);
             });
 
-            // Append to existing or replace? Usually imports might be addictive. Let's append but avoid dupes if ID exists
-            saveTriggers([...existingTriggers, ...newTriggers]);
-            return { success: true, message: `Successfully imported ${newTriggers.length} triggers.` };
+            // Return merged triggers as existing logic implied full context update
+            // However, MigrationView will use saveTriggers (which replaces).
+            // So we return the MERGED status.
+            const mergedTriggers = [...existingTriggers, ...newTriggers];
+
+            return {
+                success: true,
+                message: `Successfully parsed ${newTriggers.length} new triggers.`,
+                data: mergedTriggers,
+                dataType: 'TRIGGERS'
+            };
         }
 
         if (type === 'ACTIONS') {
@@ -331,28 +344,30 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string): { succes
                 action: r.action || 'New Action',
                 responsible: r.responsible || '',
                 date: r.date || new Date().toISOString().split('T')[0],
-                status: ['1','2','3','4'].includes(r.status) ? r.status : '1',
+                status: ['1', '2', '3', '4'].includes(r.status) ? r.status : '1',
                 moc_number: r.moc_number || ''
             }));
-            
-            const existing = getActions();
-            const actionMap = new Map(existing.map(a => [a.id, a]));
-            actions.forEach(a => actionMap.set(a.id, a));
-            saveActions(Array.from(actionMap.values()));
 
-            return { success: true, message: `Successfully imported ${actions.length} actions.` };
+            const actionMap = new Map(existingActions.map(a => [a.id, a]));
+            actions.forEach(a => actionMap.set(a.id, a));
+            const mergedActions = Array.from(actionMap.values());
+
+            return {
+                success: true,
+                message: `Successfully parsed ${actions.length} actions.`,
+                data: mergedActions,
+                dataType: 'ACTIONS'
+            };
         }
 
         if (type === 'RECORDS_SUMMARY') {
-            const existing = getRecords();
-            const recordMap = new Map(existing.map(r => [r.id, r]));
+            const recordMap = new Map(existingRecords.map(r => [r.id, r]));
             let updatedCount = 0;
 
             rawData.forEach(r => {
-                if(r.id && recordMap.has(r.id)) {
+                if (r.id && recordMap.has(r.id)) {
                     const existingRec = recordMap.get(r.id)!;
-                    
-                    // Handle Participants Array
+
                     let parts: string[] = existingRec.participants;
                     if (r.participants) {
                         parts = r.participants.split('|').map((p: string) => p.trim()).filter((p: string) => p);
@@ -372,26 +387,39 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string): { succes
                     updatedCount++;
                 }
             });
-            saveRecords(Array.from(recordMap.values()));
-            return { success: true, message: `Updated ${updatedCount} records from summary.` };
+            const mergedRecords = Array.from(recordMap.values());
+
+            return {
+                success: true,
+                message: `Updated ${updatedCount} records from summary.`,
+                data: mergedRecords,
+                dataType: 'RECORDS_SUMMARY'
+            };
         }
 
-        const key = TAXONOMY_MAP[type];
-        if (key) {
-            const taxonomy = getTaxonomy();
+        const taxonomyKey = TAXONOMY_MAP[type];
+        if (taxonomyKey) {
             const newItems: TaxonomyItem[] = rawData.map(r => ({
                 id: r.id || generateId('TAX'),
                 name: r.name || 'Unnamed Item'
             }));
-            
-            // Check if parsing failed completely
+
             if (newItems.length > 0 && newItems.every(i => i.name === 'Unnamed Item')) {
-                 return { success: false, message: "Import failed: Could not read 'name' column." };
+                return { success: false, message: "Import failed: Could not read 'name' column." };
             }
 
-            taxonomy[key] = newItems;
-            saveTaxonomy(taxonomy);
-            return { success: true, message: `Successfully imported ${newItems.length} items to ${key}.` };
+            const currentTaxonomy = { ...taxonomy };
+            if (taxonomyKey in currentTaxonomy) {
+                // @ts-ignore
+                currentTaxonomy[taxonomyKey] = newItems;
+            }
+
+            return {
+                success: true,
+                message: `Successfully parsed ${newItems.length} items to ${taxonomyKey}.`,
+                data: currentTaxonomy,
+                dataType: type
+            };
         }
 
         return { success: false, message: "Unknown entity type selected." };

@@ -6,7 +6,7 @@ import { Select } from '../ui/Select';
 import { Button } from '../ui/Button';
 import { Plus, Trash2, Wand2, Loader2, AlertTriangle, UserCheck } from 'lucide-react';
 import { RcaRecord, TaxonomyConfig, IshikawaDiagram } from '../../types';
-import { generateId } from '../../services/storageService';
+import { generateId } from '../../services/utils';
 
 interface Step4Props {
     data: RcaRecord;
@@ -46,13 +46,13 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
     const addRootCause = () => {
         onChange('root_causes', [...(data.root_causes || []), { id: generateId('RC'), root_cause_m_id: '', cause: '' }]);
     };
-  
+
     const removeRootCause = (idx: number) => {
         const newList = [...data.root_causes];
         newList.splice(idx, 1);
         onChange('root_causes', newList);
     };
-  
+
     const updateRootCause = (idx: number, field: 'root_cause_m_id' | 'cause', value: string) => {
         const newList = [...data.root_causes];
         newList[idx] = { ...newList[idx], [field]: value };
@@ -122,20 +122,20 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
             {/* Ishikawa (Fishbone) */}
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 shadow-sm">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                        <h3 className="text-xl font-semibold text-gray-900">Diagrama de Ishikawa (6M)</h3>
-                        <button 
-                        onClick={onAnalyzeAI} 
-                        disabled={isAnalyzing || !data.problem_description} 
+                    <h3 className="text-xl font-semibold text-gray-900">Diagrama de Ishikawa (6M)</h3>
+                    <button
+                        onClick={onAnalyzeAI}
+                        disabled={isAnalyzing || !data.problem_description}
                         className="bg-white border border-green-300 text-green-700 hover:bg-green-100 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm disabled:opacity-50"
                     >
-                        {isAnalyzing ? <Loader2 className="animate-spin" size={16}/> : <Wand2 size={16}/>} 
+                        {isAnalyzing ? <Loader2 className="animate-spin" size={16} /> : <Wand2 size={16} />}
                         Gerar com IA
                     </button>
                 </div>
 
                 <div className="mb-8 bg-white p-4 rounded-lg border border-green-200 shadow-sm flex flex-col md:flex-row gap-3 items-end">
                     <div className="flex-1 w-full">
-                         <Select
+                        <Select
                             label="Categoria"
                             options={ishikawaCategories.map(c => ({ value: c.key, label: c.label }))}
                             value={selectedCategory}
@@ -191,15 +191,15 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-semibold text-gray-900">Definição da Causa Raiz</h3>
                     {canDefineRootCause && (
-                            <button onClick={addRootCause} className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors border border-yellow-300 text-sm">
-                            <Plus size={16}/> ADD ROOT CAUSE
+                        <button onClick={addRootCause} className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors border border-yellow-300 text-sm">
+                            <Plus size={16} /> ADD ROOT CAUSE
                         </button>
                     )}
                 </div>
 
                 {!canDefineRootCause && (
                     <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg flex items-center gap-3">
-                        <AlertTriangle className="text-yellow-600" size={20}/>
+                        <AlertTriangle className="text-yellow-600" size={20} />
                         <p className="text-sm text-yellow-800">
                             Preencha pelo menos 3 níveis dos "5 Porquês" para desbloquear esta seção
                         </p>
@@ -207,41 +207,41 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                 )}
 
                 <div className="space-y-4">
-                     {data.root_causes.length === 0 && canDefineRootCause && (
+                    {data.root_causes.length === 0 && canDefineRootCause && (
                         <p className="text-sm text-gray-500 italic text-center p-4 bg-white/50 rounded-lg border border-dashed border-yellow-200">
                             Nenhuma causa raiz definida. Clique em "Add Root Cause".
                         </p>
                     )}
 
-                     {data.root_causes.map((rc, idx) => (
+                    {data.root_causes.map((rc, idx) => (
                         <div key={rc.id} className="grid grid-cols-12 gap-4 items-start bg-white p-4 rounded-lg border border-yellow-200 shadow-sm group">
                             <div className="col-span-12 md:col-span-4">
                                 <Select
                                     label="Classificação (M)"
-                                    options={[{value: '', label: 'Selecione...'}, ...taxonomy.rootCauseMs.map(m => ({value: m.id, label: m.name}))]}
+                                    options={[{ value: '', label: 'Selecione...' }, ...taxonomy.rootCauseMs.map(m => ({ value: m.id, label: m.name }))]}
                                     value={rc.root_cause_m_id}
                                     onChange={e => updateRootCause(idx, 'root_cause_m_id', e.target.value)}
                                 />
                             </div>
                             <div className="col-span-12 md:col-span-7">
-                                <Textarea 
+                                <Textarea
                                     label="Descrição da Causa Raiz"
                                     rows={2}
-                                    value={rc.cause} 
-                                    onChange={e => updateRootCause(idx, 'cause', e.target.value)} 
-                                    placeholder="Descreva a conclusão da investigação..." 
+                                    value={rc.cause}
+                                    onChange={e => updateRootCause(idx, 'cause', e.target.value)}
+                                    placeholder="Descreva a conclusão da investigação..."
                                 />
                             </div>
                             <div className="col-span-12 md:col-span-1 flex justify-center pt-8">
                                 <button onClick={() => removeRootCause(idx)} className="text-gray-300 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-full">
-                                    <Trash2 size={18}/>
+                                    <Trash2 size={18} />
                                 </button>
                             </div>
                         </div>
                     ))}
                 </div>
 
-                 {showHra && (
+                {showHra && (
                     <div className="mt-6 p-4 bg-indigo-50 text-indigo-800 text-sm rounded-lg border border-indigo-200 flex items-start gap-3 animate-in fade-in">
                         <UserCheck size={20} className="mt-0.5 flex-shrink-0" />
                         <div>

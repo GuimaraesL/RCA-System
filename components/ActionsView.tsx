@@ -1,9 +1,8 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useActionsLogic } from '../hooks/useActionsLogic';
 import { useRcaContext } from '../context/RcaContext';
-import { AssetNode, TaxonomyConfig } from '../types';
-import { getAssets, getTaxonomy, filterAssetsByUsage } from '../services/storageService';
+import { filterAssetsByUsage } from '../services/utils';
 import { Plus, Edit2, Trash2, ExternalLink } from 'lucide-react';
 import { ActionModal } from './ActionModal';
 import { ConfirmModal } from './ConfirmModal';
@@ -16,16 +15,9 @@ interface ActionsViewProps {
 
 export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
   const { actions, rcaList, isModalOpen, setIsModalOpen, editingAction, openNew, openEdit, handleSave, handleDelete, deleteModalOpen, confirmDelete, cancelDelete } = useActionsLogic();
-  const { records } = useRcaContext();
+  const { records, assets, taxonomy } = useRcaContext(); // Consumir do Contexto (API)
 
-  // --- Data for Filters ---
-  const [assets, setAssets] = useState<AssetNode[]>([]);
-  const [taxonomy, setTaxonomy] = useState<TaxonomyConfig | null>(null);
-
-  useEffect(() => {
-    setAssets(getAssets());
-    setTaxonomy(getTaxonomy());
-  }, []);
+  // --- Persistent Filter State ---
 
   // --- Persistent Filter State ---
   const defaultFilters: FilterState = {

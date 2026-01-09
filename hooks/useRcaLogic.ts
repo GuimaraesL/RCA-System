@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { RcaRecord, AssetNode, IshikawaDiagram } from '../types';
-import { getStandardPrecisionItems, getStandardHraStruct, generateId } from '../services/storageService';
+import { getStandardPrecisionItems, getStandardHraStruct, generateId } from '../services/utils';
 import { analyzeFailure } from '../services/geminiService';
 import { useRcaContext } from '../context/RcaContext';
 

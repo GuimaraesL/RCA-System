@@ -94,21 +94,21 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setTaxonomy(tax);
         console.log('✅ Refresh completo via API');
       } else {
-        setRecords(storage.getRecords());
-        setAssets(storage.getAssets());
-        setActions(storage.getActions());
-        setTriggers(storage.getTriggers());
-        setTaxonomy(storage.getTaxonomy());
-        console.log('✅ Refresh completo via localStorage');
+        setRecords(storage.LEGACY_getRecords());
+        setAssets(storage.LEGACY_getAssets());
+        setActions(storage.LEGACY_getActions());
+        setTriggers(storage.LEGACY_getTriggers());
+        setTaxonomy(storage.LEGACY_getTaxonomy());
+        console.log('✅ Refresh completo via localStorage (LEGACY)');
       }
     } catch (error) {
       console.error('❌ Erro ao carregar dados:', error);
       // Fallback para localStorage se API falhar
-      setRecords(storage.getRecords());
-      setAssets(storage.getAssets());
-      setActions(storage.getActions());
-      setTriggers(storage.getTriggers());
-      setTaxonomy(storage.getTaxonomy());
+      setRecords(storage.LEGACY_getRecords());
+      setAssets(storage.LEGACY_getAssets());
+      setActions(storage.LEGACY_getActions());
+      setTriggers(storage.LEGACY_getTriggers());
+      setTaxonomy(storage.LEGACY_getTaxonomy());
     }
     setIsLoading(false);
   }, [useApi]);

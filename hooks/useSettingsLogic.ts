@@ -1,6 +1,6 @@
 import { useRcaContext } from '../context/RcaContext';
 import { TaxonomyConfig, TaxonomyItem } from '../types';
-import { generateId } from '../services/storageService';
+import { generateId } from '../services/utils';
 
 export const useSettingsLogic = () => {
   const { taxonomy, updateTaxonomy } = useRcaContext();
