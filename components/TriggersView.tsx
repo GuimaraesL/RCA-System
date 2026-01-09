@@ -427,7 +427,8 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                     </td>
                                 </tr>
                             )}
-                            {filteredTriggers.map(t => {
+                            {/* Performance Limit: Show only top 100 */}
+                            {filteredTriggers.slice(0, 100).map(t => {
                                 const farol = getFarol(t.start_date, t.status);
                                 const assetName = getAssetName(t.subgroup_id || t.equipment_id || t.area_id, assets);
                                 const analysisTypeName = getTaxonomyName(taxonomy.analysisTypes, t.analysis_type_id);
@@ -490,6 +491,11 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                             })}
                         </tbody>
                     </table>
+                    {filteredTriggers.length > 100 && (
+                        <div className="p-2 text-center text-xs text-slate-400 bg-slate-50 border-t border-slate-100">
+                            Mostrando 100 de {filteredTriggers.length} registros. Use os filtros para refinar.
+                        </div>
+                    )}
                 </div>
             </div>
 

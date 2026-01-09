@@ -255,7 +255,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                     </td>
                                 </tr>
                             )}
-                            {filteredRecords.map(r => {
+                            {filteredRecords.slice(0, 100).map(r => {
                                 const statusName = getName('analysisStatuses', r.status);
                                 return (
                                     <tr key={r.id} onClick={() => onEdit(r)} className="hover:bg-blue-50 cursor-pointer transition-colors group">
@@ -301,6 +301,11 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                             })}
                         </tbody>
                     </table>
+                    {filteredRecords.length > 100 && (
+                        <div className="p-2 text-center text-xs text-slate-400 bg-slate-50 border-t border-slate-100">
+                            Mostrando 100 de {filteredRecords.length} análises. Use os filtros para refinar.
+                        </div>
+                    )}
                 </div>
             </div>
 

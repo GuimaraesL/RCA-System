@@ -219,7 +219,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredActions.map(action => (
+              {filteredActions.slice(0, 100).map(action => (
                 <tr key={action.id} className="hover:bg-slate-50">
                   <td className="px-6 py-4">{getStatusBadge(action.status)}</td>
                   <td className="px-6 py-4 font-medium text-slate-800 max-w-xs truncate" title={action.action}>{action.action}</td>
@@ -249,6 +249,11 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
               )}
             </tbody>
           </table>
+          {filteredActions.length > 100 && (
+            <div className="p-2 text-center text-xs text-slate-400 bg-slate-50 border-t border-slate-100">
+              Mostrando 100 de {filteredActions.length} actions. Use os filtros para refinar.
+            </div>
+          )}
         </div>
       </div>
 
