@@ -2,10 +2,12 @@
 import React, { useState, useMemo } from 'react';
 import { useRcaContext } from '../context/RcaContext';
 import { TriggerRecord, AssetNode, TaxonomyConfig } from '../types';
-import { generateId } from '../services/storageService';
-import { Plus, Edit2, Trash2, Link, ExternalLink, AlertCircle, Clock, CheckCircle } from 'lucide-react';
+import { generateId, filterAssetsByUsage } from '../services/storageService';
+import { Plus, Edit2, Trash2, Link, ExternalLink, AlertCircle, Clock, CheckCircle, FileText } from 'lucide-react';
 import { AssetSelector } from './AssetSelector';
 import { ConfirmModal } from './ConfirmModal';
+import { FilterBar, FilterState } from './FilterBar';
+import { useFilterPersistence } from '../hooks/useFilterPersistence';
 
 interface TriggersViewProps {
     onCreateRca: (trigger: TriggerRecord) => void;
@@ -23,8 +25,28 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [triggerToDelete, setTriggerToDelete] = useState<string | null>(null);
 
-    // Filter State
-    const [statusFilter, setStatusFilter] = useState('ALL');
+    // --- Persistent Filter State ---
+    const defaultFilters: FilterState = {
+        searchTerm: '',
+        year: '',
+        months: [],
+        status: 'ALL',
+        area: 'ALL',
+        equipment: 'ALL',
+        subgroup: 'ALL',
+        specialty: 'ALL', // Not used in triggers but required by type
+        analysisType: 'ALL',
+        failureMode: 'ALL',
+        failureCategory: 'ALL',
+        componentType: 'ALL',
+        rootCause6M: 'ALL'
+    };
+
+    const { showFilters, setShowFilters, filters, setFilters, handleReset, isGlobal, toggleGlobal } = useFilterPersistence(
+        'rca_triggers_view_v1',
+        defaultFilters,
+        true
+    );
 
     // --- Helpers ---
     const getAssetName = (id: string, nodes: AssetNode[]): string => {
@@ -207,10 +229,98 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
         setEditingTrigger(update);
     };
 
+    // --- Dynamic Options for Filters ---
+    const dynamicOptions = useMemo(() => {
+        // Helper: Global filters (Date, Search)
+        const matchesGlobal = (t: TriggerRecord) => {
+            const searchLower = filters.searchTerm.toLowerCase();
+            const matchesSearch = !filters.searchTerm ||
+                t.stop_reason?.toLowerCase().includes(searchLower) ||
+                t.stop_type?.toLowerCase().includes(searchLower) ||
+                t.comments?.toLowerCase().includes(searchLower) ||
+                t.responsible?.toLowerCase().includes(searchLower) ||
+                t.id.toLowerCase().includes(searchLower);
+
+            const tDate = new Date(t.start_date);
+            const matchesYear = !filters.year || tDate.getFullYear().toString() === filters.year;
+
+            const tMonth = (tDate.getMonth() + 1).toString().padStart(2, '0');
+            const matchesMonth = filters.months.length === 0 || filters.months.includes(tMonth);
+
+            return matchesSearch && matchesYear && matchesMonth;
+        };
+
+        // Helper: Asset filters
+        const matchesAssets = (t: TriggerRecord) => {
+            if (filters.subgroup !== 'ALL' && t.subgroup_id !== filters.subgroup) return false;
+            if (filters.equipment !== 'ALL' && t.equipment_id !== filters.equipment) return false;
+            if (filters.area !== 'ALL' && t.area_id !== filters.area) return false;
+            return true;
+        };
+
+        // Helper: Attribute filters
+        const matchesAttributes = (t: TriggerRecord, ignore: 'status' | 'type' | null) => {
+            if (ignore !== 'status' && filters.status !== 'ALL' && t.status !== filters.status) return false;
+            if (ignore !== 'type' && filters.analysisType !== 'ALL' && t.analysis_type_id !== filters.analysisType) return false;
+            return true;
+        };
+
+        // 1. Assets: Match Global + Attributes
+        const triggersForAssets = triggers.filter(t => matchesGlobal(t) && matchesAttributes(t, null));
+        const usedAssetIds = new Set<string>();
+        triggersForAssets.forEach(t => {
+            if (t.area_id) usedAssetIds.add(t.area_id);
+            if (t.equipment_id) usedAssetIds.add(t.equipment_id);
+            if (t.subgroup_id) usedAssetIds.add(t.subgroup_id);
+        });
+
+        // 2. Statuses: Match Global + Assets + Attributes(ignore Status)
+        const triggersForStatuses = triggers.filter(t => matchesGlobal(t) && matchesAssets(t) && matchesAttributes(t, 'status'));
+        const usedStatuses = new Set(triggersForStatuses.map(t => t.status));
+
+        // 3. Types: Match Global + Assets + Attributes(ignore Type)
+        const triggersForTypes = triggers.filter(t => matchesGlobal(t) && matchesAssets(t) && matchesAttributes(t, 'type'));
+        const usedTypes = new Set(triggersForTypes.map(t => t.analysis_type_id));
+
+        return {
+            assets: filterAssetsByUsage(assets, usedAssetIds),
+            statuses: (taxonomy.triggerStatuses || []).filter(s => usedStatuses.has(s.id)),
+            analysisTypes: (taxonomy.analysisTypes || []).filter(t => usedTypes.has(t.id))
+        };
+    }, [triggers, assets, taxonomy, filters]);
+
     const filteredTriggers = useMemo(() => {
-        return triggers.filter(t => statusFilter === 'ALL' || t.status === statusFilter)
-            .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
-    }, [triggers, statusFilter]);
+        return triggers.filter(t => {
+            // Text Search
+            const searchLower = filters.searchTerm.toLowerCase();
+            const matchesSearch = !filters.searchTerm ||
+                t.stop_reason?.toLowerCase().includes(searchLower) ||
+                t.stop_type?.toLowerCase().includes(searchLower) ||
+                t.comments?.toLowerCase().includes(searchLower) ||
+                t.responsible?.toLowerCase().includes(searchLower) ||
+                t.id.toLowerCase().includes(searchLower);
+
+            // Date (Year Only if set)
+            const tDate = new Date(t.start_date);
+            const matchesYear = !filters.year || tDate.getFullYear().toString() === filters.year;
+
+            // Month
+            const tMonth = (tDate.getMonth() + 1).toString().padStart(2, '0');
+            const matchesMonth = filters.months.length === 0 || filters.months.includes(tMonth);
+
+            // Dropdown Filters
+            const matchesStatus = filters.status === 'ALL' || t.status === filters.status;
+            const matchesType = filters.analysisType === 'ALL' || t.analysis_type_id === filters.analysisType;
+
+            // Assets Hierarchy
+            let matchesAsset = true;
+            if (filters.subgroup !== 'ALL') matchesAsset = t.subgroup_id === filters.subgroup;
+            else if (filters.equipment !== 'ALL') matchesAsset = t.equipment_id === filters.equipment;
+            else if (filters.area !== 'ALL') matchesAsset = t.area_id === filters.area;
+
+            return matchesSearch && matchesYear && matchesMonth && matchesStatus && matchesAsset && matchesType;
+        }).sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
+    }, [triggers, filters]);
 
     return (
         <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col">
@@ -226,19 +336,29 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
             </div>
 
             {/* Filter */}
-            <div className="bg-white p-4 rounded-xl border border-slate-200 mb-6 flex gap-4 items-center shadow-sm">
-                <span className="text-sm font-bold text-slate-500 uppercase">Status Filter:</span>
-                <select
-                    className="border border-slate-300 rounded-lg px-3 py-1.5 text-sm bg-white text-slate-900"
-                    value={statusFilter}
-                    onChange={e => setStatusFilter(e.target.value)}
-                >
-                    <option value="ALL">All</option>
-                    {taxonomy.triggerStatuses?.map(s => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                </select>
-            </div>
+            <FilterBar
+                isOpen={showFilters}
+                onToggle={() => setShowFilters(!showFilters)}
+                filters={filters}
+                onFilterChange={setFilters}
+                onReset={() => handleReset(defaultFilters)}
+                totalResults={filteredTriggers.length}
+                config={{
+                    showSearch: true,
+                    showDate: true,
+                    showStatus: true,
+                    showAssetHierarchy: true,
+                    showAnalysisType: true,
+                    showSpecialty: false
+                }}
+                options={{
+                    statuses: dynamicOptions.statuses,
+                    analysisTypes: dynamicOptions.analysisTypes,
+                    assets: dynamicOptions.assets
+                }}
+                isGlobal={isGlobal}
+                onGlobalToggle={toggleGlobal}
+            />
 
             {/* Data Table */}
             <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
@@ -259,6 +379,14 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
+                            {filteredTriggers.length === 0 && (
+                                <tr>
+                                    <td colSpan={10} className="p-12 text-center text-slate-400">
+                                        <FileText size={48} className="mx-auto mb-3 opacity-20" />
+                                        No triggers found matching your criteria.
+                                    </td>
+                                </tr>
+                            )}
                             {filteredTriggers.map(t => {
                                 const farol = getFarol(t.start_date, t.status);
                                 const assetName = getAssetName(t.subgroup_id || t.equipment_id || t.area_id, assets);
@@ -401,7 +529,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                         onChange={e => setEditingTrigger({ ...editingTrigger, analysis_type_id: e.target.value })}
                                     >
                                         <option value="">Select...</option>
-                                        {taxonomy.analysisTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                        {(taxonomy.analysisTypes || []).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                                     </select>
                                 </div>
                                 <div>
@@ -422,7 +550,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                     value={editingTrigger.status}
                                     onChange={e => setEditingTrigger({ ...editingTrigger, status: e.target.value as any })}
                                 >
-                                    {taxonomy.triggerStatuses?.map(s => (
+                                    {(taxonomy.triggerStatuses || []).map(s => (
                                         <option key={s.id} value={s.id}>{s.name}</option>
                                     ))}
                                 </select>

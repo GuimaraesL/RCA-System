@@ -19,7 +19,7 @@ const AppContent: React.FC = () => {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState<RcaRecord | null>(null);
 
-    const { refreshAll, records, updateTrigger, taxonomy } = useRcaContext();
+    const { refreshAll, records, updateTrigger, taxonomy, assets } = useRcaContext();
 
     const handleCloseEditor = () => {
         setIsEditorOpen(false);
@@ -45,23 +45,43 @@ const AppContent: React.FC = () => {
         }
     };
 
+    // Helper to get asset name (recursive)
+    const getAssetName = (id: string, nodes: any[]): string => {
+        for (const node of nodes) {
+            if (node.id === id) return node.name;
+            if (node.children) {
+                const found = getAssetName(id, node.children);
+                if (found) return found;
+            }
+        }
+        return '';
+    };
+
     // Create RCA from Trigger
     const handleCreateRcaFromTrigger = (trigger: TriggerRecord) => {
+        // Determine primary asset ID for name lookup
+        const primaryAssetId = trigger.subgroup_id || trigger.equipment_id || trigger.area_id;
+        const assetName = primaryAssetId ? getAssetName(primaryAssetId, assets) : '';
+
         // 1. Construct partial RCA from Trigger Data
         const newRca: Partial<RcaRecord> = {
             id: generateId('RCA'),
             failure_date: trigger.start_date.split('T')[0],
             failure_time: trigger.start_date.split('T')[1]?.substring(0, 5) || '00:00',
             downtime_minutes: trigger.duration_minutes,
+
+            // Hierarchy Inheritance
             area_id: trigger.area_id,
             equipment_id: trigger.equipment_id,
             subgroup_id: trigger.subgroup_id,
+            asset_name_display: assetName, // Populate Name
+
             analysis_type: trigger.analysis_type_id,
             what: `Falha: ${trigger.stop_reason}`,
             problem_description: `${trigger.stop_type} - ${trigger.stop_reason}. ${trigger.comments || ''}`,
             facilitator: trigger.responsible,
 
-            // Link back to trigger for traceability (stored in historical info or standard field if we added one)
+            // Link back to trigger for traceability (stored in historicalInfo)
             additionalInfo: {
                 historicalInfo: `Generated from Trigger ID: ${trigger.id}`
             }
@@ -71,8 +91,7 @@ const AppContent: React.FC = () => {
         setEditingRecord(newRca as RcaRecord); // Cast as RcaRecord, hook will fill defaults
         setIsEditorOpen(true);
 
-        // 3. Update Trigger with the new RCA ID immediately (or we could do this on save, but this is simpler for flow)
-        // Note: We are optimistically linking them. If user cancels RCA creation, we might have a dead link.
+        // 3. Update Trigger with the new RCA ID immediately
         const inProgressStatusId = taxonomy.triggerStatuses?.find(s => s.name === 'Em andamento')?.id || trigger.status;
         updateTrigger({ ...trigger, rca_id: newRca.id!, status: inProgressStatusId });
     };

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, X, Settings as SettingsIcon, Lock } from 'lucide-react';
 import { useSettingsLogic } from '../hooks/useSettingsLogic';
 import { TaxonomyConfig, TaxonomyItem } from '../types';
+import { ConfirmModal } from './ConfirmModal';
 
 export const SettingsView: React.FC = () => {
   const { taxonomy, addItem, removeItem, updateItem } = useSettingsLogic();

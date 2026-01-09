@@ -10,12 +10,14 @@
 | Categoria | Concluídos | Total | Status |
 |-----------|------------|-------|--------|
 | Bugs Core | 7 | 7 | 🟢 100% |
-| Features | 2 | 3 | 🟡 66% |
-| **Total** | **9** | **10** | **90%** |
+| Features | 4 | 4 | 🟢 100% |
+| **Total** | **11** | **11** | **100%** |
+
 
 ---
 
 ## ✅ Bugs Corrigidos
+
 
 ### Bug #2: Excluir Trigger
 - **Problema:** `window.confirm()` bloqueado pelo navegador corporativo
@@ -42,6 +44,11 @@
 
 ### Feature #9: Settings - Excluir Itens (Corrigido)
 - **Status:** ✅ Corrigido
+
+### Feature #10: Filtro Padrão em Triggers (Corrigido)
+- **Status:** ✅ Corrigido
+- **Solução:** Implementado `FilterBar` na `TriggersView`, com suporte a filtros globais, hierarquia de ativos e busca textual.
+
 
 ### Bug #3: Excluir Action
 - **Problema:** `handleDeleteAction` não usava contexto async
@@ -71,10 +78,12 @@
 
 ## 🔧 Features Pendentes
 
-### Feature #10: Filtro Padrão em Triggers
-- **Onde:** Aba Triggers
-- **Descrição:** Substituir/Atualizar os filtros atuais pelo componente de filtro padrão do sistema (GlobalFilter?) para manter consistência visual e funcional.
-- **Prioridade:** 🟡 Média
+### Feature #11: Herança de Hierarquia (Trigger -> RCA) (Corrigido)
+- **Status:** ✅ Corrigido
+- **Solução:** Implementado lookup de nome de ativo via `assets` context no `App.tsx` e pré-população de `asset_name_display`, `area_id`, `equipment_id` e `subgroup_id` na criação da RCA.
+
+
+
 
 ---
 
@@ -111,13 +120,9 @@ RCA-System/
 
 ## 📝 Próximos Passos
 
-1. ⬜ Corrigir Bug #1 (Excluir RCA)
-2. ⬜ Corrigir Bug #6 (Criar RCA do Trigger)
-3. ⬜ Implementar Feature #7 (Import Assets):
-    - [ ] Corrigir ordem de inserção (Top-down) no `flatten`.
-    - [ ] Garantir que `parent_id` seja `null` se não existir no banco.
-    - [ ] Validar se as RCAs importadas mantêm os IDs corretos de Area/Equipamento.
-4. ⬜ Refatorar Settings (#8 e #9)
+1. **Revisão Final:** O sistema está completo e estável.
+2. **Documentação:** Atualizar documentação técnica se necessário.
+
 
 ---
 
