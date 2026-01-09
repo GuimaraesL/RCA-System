@@ -116,6 +116,60 @@ router.post('/', (req: Request, res: Response) => {
     }
 });
 
+// POST /api/rcas/bulk - Importação em massa
+router.post('/bulk', (req: Request, res: Response) => {
+    try {
+        const db = getDatabase();
+        const rcas = req.body;
+
+        if (!Array.isArray(rcas)) {
+            return res.status(400).json({ error: 'Body must be an array' });
+        }
+
+        console.log(`🔄 Bulk Importing ${rcas.length} RCAs...`);
+
+        db.exec('BEGIN TRANSACTION');
+
+        const stmt = db.prepare(`
+      INSERT OR REPLACE INTO rcas (
+        id, version, analysis_date, analysis_duration_minutes, analysis_type, status,
+        participants, facilitator, start_date, completion_date, requires_operation_support,
+        failure_date, failure_time, downtime_minutes, financial_impact, os_number,
+        area_id, equipment_id, subgroup_id, component_type, asset_name_display,
+        specialty_id, failure_mode_id, failure_category_id,
+        who, what, "when", where_description, problem_description, potential_impacts, quality_impacts,
+        five_whys, ishikawa, root_causes,
+        precision_maintenance, human_reliability,
+        containment_actions, lessons_learned, general_moc_number, additional_info
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+        for (const rca of rcas) {
+            stmt.run([
+                n(rca.id), n(rca.version), n(rca.analysis_date), n(rca.analysis_duration_minutes) || 0, n(rca.analysis_type), n(rca.status),
+                JSON.stringify(rca.participants || []), n(rca.facilitator), n(rca.start_date), n(rca.completion_date), rca.requires_operation_support ? 1 : 0,
+                n(rca.failure_date), n(rca.failure_time), n(rca.downtime_minutes) || 0, n(rca.financial_impact) || 0, n(rca.os_number),
+                n(rca.area_id), n(rca.equipment_id), n(rca.subgroup_id), n(rca.component_type), n(rca.asset_name_display),
+                n(rca.specialty_id), n(rca.failure_mode_id), n(rca.failure_category_id),
+                n(rca.who), n(rca.what), n(rca.when), n(rca.where_description), n(rca.problem_description), n(rca.potential_impacts), n(rca.quality_impacts),
+                JSON.stringify(rca.five_whys || []), JSON.stringify(rca.ishikawa || {}), JSON.stringify(rca.root_causes || []),
+                JSON.stringify(rca.precision_maintenance || []), JSON.stringify(rca.human_reliability || null),
+                JSON.stringify(rca.containment_actions || []), JSON.stringify(rca.lessons_learned || []), n(rca.general_moc_number), JSON.stringify(rca.additional_info || null)
+            ]);
+        }
+
+        stmt.free();
+        db.exec('COMMIT');
+        saveDatabase();
+
+        console.log(`✅ Bulk Import Completed: ${rcas.length} records.`);
+        res.json({ message: `Imported ${rcas.length} RCAs successfully` });
+    } catch (error) {
+        console.error('Erro no bulk import de RCAs:', error);
+        res.status(500).json({ error: 'Erro interno durante importação em massa' });
+    }
+});
+
 // PUT /api/rcas/:id - Atualizar análise
 router.put('/:id', (req: Request, res: Response) => {
     try {

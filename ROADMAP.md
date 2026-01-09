@@ -82,6 +82,21 @@
 - **Status:** ✅ Corrigido
 - **Solução:** Implementado lookup de nome de ativo via `assets` context no `App.tsx` e pré-população de `asset_name_display`, `area_id`, `equipment_id` e `subgroup_id` na criação da RCA.
 
+---
+
+## 🛠️ Correções e Melhorias Recentes (Pós-Deploy)
+
+### 1. Correção de Importação de Assets (Retroativa)
+- **Status:** ✅ Concluído
+- **Problema:** A importação quebrava dependendo se o JSON usava estrutura plana ou hierárquica.
+- **Solução:** Implementada detecção automática em `apiService.ts` para converter ou manter a estrutura conforme necessário. Ambos os formatos agora são suportados.
+
+### 2. Importação Idempotente de RCAs
+- **Status:** ✅ Concluído
+- **Descrição:** Ao reimportar um arquivo de backup, o sistema agora atualiza os dados se a AF (RCA) já existir (baseado no ID), em vez de duplicar ou falhar.
+- **Implementação:** Endpoint `/api/rcas/bulk` com `INSERT OR REPLACE`.
+
+
 
 
 

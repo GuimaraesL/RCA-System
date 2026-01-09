@@ -3,11 +3,30 @@
 
 import initSqlJs, { Database } from 'sql.js';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
 
 // Caminho do banco de dados
 const DATA_DIR = join(__dirname, '..', '..', 'data');
-const DB_PATH = join(DATA_DIR, 'rca.db');
+// Fallback: Tentar resolver baseado no CWD se o caminho relativo falhar
+const resolveDbPath = () => {
+    // 1. Tentar via __dirname (padrão)
+    let path = join(DATA_DIR, 'rca.db');
+
+    // 2. Se o diretório não existe, tentar via process.cwd()
+    if (!existsSync(dirname(path))) {
+        console.warn(`⚠️ Data dir not found at ${dirname(path)}, trying CWD...`);
+        const cwd = process.cwd();
+        if (cwd.endsWith('server')) {
+            path = join(cwd, 'data', 'rca.db');
+        } else {
+            path = join(cwd, 'server', 'data', 'rca.db');
+        }
+    }
+    return path;
+};
+
+const DB_PATH = resolveDbPath();
+console.log(`💾 Database Path Resolved: ${DB_PATH}`);
 
 let db: Database;
 
@@ -52,7 +71,12 @@ export const saveDatabase = (): void => {
     if (db) {
         const data = db.export();
         const buffer = Buffer.from(data);
-        writeFileSync(DB_PATH, buffer);
+        try {
+            writeFileSync(DB_PATH, buffer);
+            console.log(`💾 Database saved to disk: ${DB_PATH} (${buffer.length} bytes)`);
+        } catch (err) {
+            console.error(`❌ FAILED to save database to ${DB_PATH}:`, err);
+        }
     }
 };
 

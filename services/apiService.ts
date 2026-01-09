@@ -35,23 +35,39 @@ export const saveAssetToApi = async (asset: Partial<AssetNode> & { id: string })
 };
 
 export const importAssetsToApi = async (assets: any[]): Promise<void> => {
-    console.log('🔄 API: Importing', assets.length, 'assets (Top-Down)...');
+    console.log('🔄 API: Importing', assets.length, 'assets...');
 
-    // Flatten tree to list for bulk import ensuring parent comes before children
-    const flatten = (nodes: any[], parentId?: string): any[] => {
-        let result: any[] = [];
-        for (const n of nodes) {
-            // Add parent first
-            result.push({ id: n.id, name: n.name, type: n.type, parent_id: parentId || null });
-            // Then recursively add children
-            if (n.children && n.children.length > 0) {
-                result = [...result, ...flatten(n.children, n.id)];
+    // Helper: Detect if data is already flat (no nested children arrays in first few items)
+    // or if it's a tree.
+    const isAlreadyFlat = assets.some(a => a.parent_id !== undefined && (!a.children || a.children.length === 0));
+
+    let flat: any[] = [];
+
+    if (isAlreadyFlat) {
+        console.log('ℹ️ Detected Flat Asset List. Importing as-is.');
+        flat = assets.map(a => ({
+            id: a.id,
+            name: a.name,
+            type: a.type,
+            parent_id: a.parent_id || null // Keep existing parent_id
+        }));
+    } else {
+        console.log('ℹ️ Detected Asset Tree. Flattening...');
+        // Flatten tree to list for bulk import ensuring parent comes before children
+        const flatten = (nodes: any[], parentId?: string): any[] => {
+            let result: any[] = [];
+            for (const n of nodes) {
+                // Add parent first
+                result.push({ id: n.id, name: n.name, type: n.type, parent_id: parentId || null });
+                // Then recursively add children
+                if (n.children && n.children.length > 0) {
+                    result = [...result, ...flatten(n.children, n.id)];
+                }
             }
-        }
-        return result;
-    };
-
-    const flat = flatten(assets);
+            return result;
+        };
+        flat = flatten(assets);
+    }
 
     // Limpar assets atuais antes de importar para garantir integridade da árvore vinda do JSON
     console.log('🧹 API: Cleaning existing assets before import...');
@@ -232,12 +248,16 @@ export const importDataToApi = async (data: MigrationData): Promise<{ success: b
             console.log('✅ Taxonomy importada');
         }
 
-        // 3. Importar RCAs
+        // 3. Importar RCAs (Bulk Optimized)
         if (data.records && data.records.length > 0) {
-            for (const record of data.records) {
-                await saveRecordToApi(record);
-            }
-            console.log('✅ RCAs importadas:', data.records.length);
+            console.log('🔄 API: Bulk Importing RCAs...');
+            const response = await fetch(`${API_BASE}/rcas/bulk`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data.records)
+            });
+            await checkResponse(response, 'POST /rcas/bulk');
+            console.log('✅ RCAs importadas (Bulk):', data.records.length);
         }
 
         // 4. Importar Actions
