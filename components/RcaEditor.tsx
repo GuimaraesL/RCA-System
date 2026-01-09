@@ -6,6 +6,7 @@ import { useRcaContext } from '../context/RcaContext';
 import { Save, ArrowLeft, Lock, Check, ChevronDown } from 'lucide-react';
 import { useRcaLogic } from '../hooks/useRcaLogic';
 import { ActionModal } from './ActionModal';
+import { ConfirmModal } from './ConfirmModal';
 
 // Steps
 import { Step1General } from './steps/Step1General';
@@ -44,6 +45,10 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     // Modal State for Actions
     const [isActionModalOpen, setIsActionModalOpen] = useState(false);
     const [editingAction, setEditingAction] = useState<ActionRecord | null>(null);
+
+    // Modal State for Delete Confirmation
+    const [deleteActionModalOpen, setDeleteActionModalOpen] = useState(false);
+    const [actionToDelete, setActionToDelete] = useState<string | null>(null);
 
     const refreshActions = () => {
         if (formData.id) {
@@ -87,16 +92,23 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         setIsActionModalOpen(true);
     };
 
-    const handleDeleteAction = async (id: string) => {
-        if (confirm("Are you sure you want to delete this action?")) {
+    const handleDeleteAction = (id: string) => {
+        setActionToDelete(id);
+        setDeleteActionModalOpen(true);
+    };
+
+    const confirmDeleteAction = async () => {
+        if (actionToDelete) {
             try {
-                await deleteAction(id);
-                console.log('✅ Action excluída:', id);
+                await deleteAction(actionToDelete);
+                console.log('✅ Action excluída:', actionToDelete);
                 refreshActions();
             } catch (error) {
                 console.error('❌ Erro ao excluir action:', error);
             }
         }
+        setDeleteActionModalOpen(false);
+        setActionToDelete(null);
     };
 
     const handleSaveAction = async (action: ActionRecord) => {
@@ -308,13 +320,27 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
 
             </div>
 
-            {/* Action Modal (Inline) */}
             <ActionModal
                 isOpen={isActionModalOpen}
                 initialData={editingAction}
                 fixedRca={{ id: formData.id, title: formData.what }}
                 onClose={() => setIsActionModalOpen(false)}
                 onSave={handleSaveAction}
+            />
+
+            {/* Modal de Confirmação de Exclusão de Action */}
+            <ConfirmModal
+                isOpen={deleteActionModalOpen}
+                title="Excluir Action"
+                message="Tem certeza que deseja excluir esta action? Esta ação não pode ser desfeita."
+                confirmText="Excluir"
+                cancelText="Cancelar"
+                onConfirm={confirmDeleteAction}
+                onCancel={() => {
+                    setDeleteActionModalOpen(false);
+                    setActionToDelete(null);
+                }}
+                variant="danger"
             />
         </div>
     );

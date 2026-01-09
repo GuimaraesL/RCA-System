@@ -1,6 +1,6 @@
 # 🚀 RCA System - Roadmap & Tasks
 
-> **Última atualização:** 2026-01-08  
+> **Última atualização:** 2026-01-09  
 > **Status:** Backend TypeScript + SQLite ✅ Funcionando
 
 ---
@@ -9,9 +9,9 @@
 
 | Categoria | Concluídos | Total | Status |
 |-----------|------------|-------|--------|
-| Bugs Core | 7 | 7 | 🟢 100% |
+| Bugs Core | 11 | 13 | 🟡 85% |
 | Features | 4 | 4 | 🟢 100% |
-| **Total** | **11** | **11** | **100%** |
+| **Total** | **15** | **17** | **88%** |
 
 
 ---

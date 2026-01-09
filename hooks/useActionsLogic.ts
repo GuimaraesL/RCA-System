@@ -17,22 +17,26 @@ export interface ActionViewModel extends ActionRecord {
 
 // Helper to find asset name recursively by ID
 const findAssetNameById = (nodes: AssetNode[], id: string): string | undefined => {
-    for (const node of nodes) {
-        if (node.id === id) return node.name;
-        if (node.children) {
-            const found = findAssetNameById(node.children, id);
-            if (found) return found;
-        }
+  for (const node of nodes) {
+    if (node.id === id) return node.name;
+    if (node.children) {
+      const found = findAssetNameById(node.children, id);
+      if (found) return found;
     }
-    return undefined;
+  }
+  return undefined;
 };
 
 export const useActionsLogic = () => {
   const { actions: rawActions, records, assets, addAction, updateAction, deleteAction } = useRcaContext();
   const [actions, setActions] = useState<ActionViewModel[]>([]);
-  const [rcaList, setRcaList] = useState<{id: string, title: string}[]>([]);
+  const [rcaList, setRcaList] = useState<{ id: string, title: string }[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAction, setEditingAction] = useState<ActionRecord | null>(null);
+
+  // State para modal de confirmação de exclusão
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [actionToDelete, setActionToDelete] = useState<string | null>(null);
 
   // Load data and resolve relationships (ID -> Name)
   useEffect(() => {
@@ -42,7 +46,7 @@ export const useActionsLogic = () => {
     // Create ViewModel
     const resolvedActions: ActionViewModel[] = rawActions.map(a => {
       const rca = records.find(r => r.id === a.rca_id);
-      
+
       let assetName = 'Unknown Asset';
       let areaId = '';
       let equipmentId = '';
@@ -51,24 +55,24 @@ export const useActionsLogic = () => {
       let specialtyId = '';
 
       if (rca) {
-          areaId = rca.area_id || '';
-          equipmentId = rca.equipment_id || '';
-          subgroupId = rca.subgroup_id || '';
-          categoryId = rca.failure_category_id || '';
-          specialtyId = rca.specialty_id || '';
-          
-          if (rca.asset_name_display) {
-              assetName = rca.asset_name_display;
-          } else {
-              // Fallback: try to resolve via ID from assets tree
-              const targetId = rca.subgroup_id || rca.equipment_id || rca.area_id;
-              if (targetId) {
-                  const resolved = findAssetNameById(assets, targetId);
-                  assetName = resolved || targetId;
-              }
+        areaId = rca.area_id || '';
+        equipmentId = rca.equipment_id || '';
+        subgroupId = rca.subgroup_id || '';
+        categoryId = rca.failure_category_id || '';
+        specialtyId = rca.specialty_id || '';
+
+        if (rca.asset_name_display) {
+          assetName = rca.asset_name_display;
+        } else {
+          // Fallback: try to resolve via ID from assets tree
+          const targetId = rca.subgroup_id || rca.equipment_id || rca.area_id;
+          if (targetId) {
+            const resolved = findAssetNameById(assets, targetId);
+            assetName = resolved || targetId;
           }
+        }
       } else {
-          assetName = '-';
+        assetName = '-';
       }
 
       return {
@@ -88,21 +92,33 @@ export const useActionsLogic = () => {
 
   const handleSave = (action: ActionRecord) => {
     if (!action.id) action.id = generateId('ACT');
-    
+
     if (editingAction) {
-        updateAction(action);
+      updateAction(action);
     } else {
-        addAction(action);
+      addAction(action);
     }
-    
+
     setIsModalOpen(false);
     setEditingAction(null);
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Delete this action plan?')) {
-      deleteAction(id);
+    setActionToDelete(id);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (actionToDelete) {
+      deleteAction(actionToDelete);
     }
+    setDeleteModalOpen(false);
+    setActionToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setDeleteModalOpen(false);
+    setActionToDelete(null);
   };
 
   const openNew = () => {
@@ -126,6 +142,10 @@ export const useActionsLogic = () => {
     openNew,
     openEdit,
     handleSave,
-    handleDelete
+    handleDelete,
+    // Estado para modal de confirmação
+    deleteModalOpen,
+    confirmDelete,
+    cancelDelete
   };
 };

@@ -9,13 +9,22 @@ export const useAssetsLogic = () => {
   const [selectedNode, setSelectedNode] = useState<AssetNode | null>(null);
   const [parentNode, setParentNode] = useState<AssetNode | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  
+
+  // State para modal de confirmação de exclusão
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [nodeToDelete, setNodeToDelete] = useState<AssetNode | null>(null);
+
   // Form State
   const [nodeName, setNodeName] = useState('');
   const [nodeType, setNodeType] = useState<'AREA' | 'EQUIPMENT' | 'SUBGROUP'>('AREA');
 
-  const handleDelete = (nodeToDelete: AssetNode) => {
-    if (!confirm(`Are you sure you want to delete ${nodeToDelete.name}?`)) return;
+  const handleDelete = (nodeToDeleteArg: AssetNode) => {
+    setNodeToDelete(nodeToDeleteArg);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!nodeToDelete) return;
 
     const deleteNodeRecursive = (nodes: AssetNode[]): AssetNode[] => {
       return nodes.filter(n => n.id !== nodeToDelete.id).map(n => ({
@@ -27,6 +36,13 @@ export const useAssetsLogic = () => {
     updateAssets(deleteNodeRecursive(assets));
     setSelectedNode(null);
     setIsEditing(false);
+    setDeleteModalOpen(false);
+    setNodeToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setDeleteModalOpen(false);
+    setNodeToDelete(null);
   };
 
   const handleUpdate = () => {
@@ -46,13 +62,13 @@ export const useAssetsLogic = () => {
 
     updateAssets(updateNodeRecursive(assets));
     setIsEditing(false);
-    setSelectedNode({...selectedNode, name: nodeName});
+    setSelectedNode({ ...selectedNode, name: nodeName });
   };
 
   const handleAddChild = () => {
     if (!selectedNode && nodeType !== 'AREA') {
-        alert("Root nodes must be of type AREA");
-        return;
+      alert("Root nodes must be of type AREA");
+      return;
     }
 
     const prefix = nodeType === 'AREA' ? 'AREA' : nodeType === 'EQUIPMENT' ? 'EQP' : 'SUB';
@@ -82,7 +98,7 @@ export const useAssetsLogic = () => {
       };
       updateAssets(addRecursive(assets));
     }
-    
+
     setNodeName('');
     setIsEditing(false);
   };
@@ -98,11 +114,11 @@ export const useAssetsLogic = () => {
     setSelectedNode(parent);
     setParentNode(parent);
     setNodeName('');
-    
+
     if (parent?.type === 'AREA') setNodeType('EQUIPMENT');
     else if (parent?.type === 'EQUIPMENT') setNodeType('SUBGROUP');
     else setNodeType('AREA');
-    
+
     setIsEditing(true);
   };
 
@@ -117,6 +133,11 @@ export const useAssetsLogic = () => {
     handleUpdate,
     handleAddChild,
     startEdit,
-    startAdd
+    startAdd,
+    // Estado para modal de confirmação
+    deleteModalOpen,
+    nodeToDelete,
+    confirmDelete,
+    cancelDelete
   };
 };
