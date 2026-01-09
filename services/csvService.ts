@@ -42,6 +42,40 @@ const TAXONOMY_MAP: Record<string, keyof TaxonomyConfig> = {
     'TAXONOMY_TRIGGER_STATUSES': 'triggerStatuses'
 };
 
+// --- SCHEMA VALIDATION ---
+// Mapa de colunas obrigatórias para cada tipo de entidade
+const REQUIRED_HEADERS: Record<CsvEntityType, string[]> = {
+    'ASSETS': ['name', 'type'], // id e parentId podem ser gerados/opcionais
+    'ACTIONS': ['action', 'responsible'], // campos mínimos obrigatórios
+    'TRIGGERS': ['AREA', 'Equip.', 'Data/Hora Início'], // colunas chave do Excel de gatilhos
+    'RECORDS_SUMMARY': ['id'], // precisa do ID para fazer update
+    'TAXONOMY_ANALYSIS_TYPES': ['name'],
+    'TAXONOMY_STATUSES': ['name'],
+    'TAXONOMY_SPECIALTIES': ['name'],
+    'TAXONOMY_FAILURE_MODES': ['name'],
+    'TAXONOMY_FAILURE_CATEGORIES': ['name'],
+    'TAXONOMY_COMPONENT_TYPES': ['name'],
+    'TAXONOMY_ROOT_CAUSE_MS': ['name'],
+    'TAXONOMY_TRIGGER_STATUSES': ['name']
+};
+
+// Função para validar se o CSV tem as colunas esperadas
+const validateCsvSchema = (type: CsvEntityType, headers: string[]): { valid: boolean, message: string } => {
+    const required = REQUIRED_HEADERS[type];
+    if (!required) return { valid: true, message: '' };
+
+    const normalizedHeaders = headers.map(h => h.trim().toLowerCase());
+    const missing = required.filter(r => !normalizedHeaders.includes(r.toLowerCase()));
+
+    if (missing.length > 0) {
+        return {
+            valid: false,
+            message: `Schema inválido para ${type}. Colunas obrigatórias faltando: [${missing.join(', ')}]. Colunas recebidas: [${headers.join(', ')}].`
+        };
+    }
+    return { valid: true, message: '' };
+};
+
 // --- HELPERS ---
 
 // Helper to parse DD/MM/YYYY HH:mm or DD/MM/YYYY to ISO String
@@ -227,8 +261,21 @@ export const exportToCsv = (type: CsvEntityType, context: CsvContextData): strin
 
 export const importFromCsv = (type: CsvEntityType, csvContent: string, context: CsvContextData): CsvImportResult => {
     try {
+        // Extrair headers do CSV para validação
+        const lines = csvContent.split('\n').filter(l => l.trim().length > 0);
+        if (lines.length === 0) return { success: false, message: "Arquivo CSV vazio ou ilegível." };
+
+        const separator = detectSeparator(lines[0]);
+        const headers = lines[0].split(separator).map(h => h.trim().replace(/^"|"$/g, '').replace(/^\uFEFF/, ''));
+
+        // Validar schema antes de processar
+        const schemaValidation = validateCsvSchema(type, headers);
+        if (!schemaValidation.valid) {
+            return { success: false, message: schemaValidation.message };
+        }
+
         const rawData = fromCSV(csvContent) as any[];
-        if (rawData.length === 0) return { success: false, message: "Empty or unreadable CSV file." };
+        if (rawData.length === 0) return { success: false, message: "CSV vazio (apenas cabeçalho, sem dados)." };
 
         const { assets = [], taxonomy = { analysisTypes: [], analysisStatuses: [], specialties: [], failureModes: [], failureCategories: [], componentTypes: [], rootCauseMs: [], triggerStatuses: [] }, triggers: existingTriggers = [], actions: existingActions = [], records: existingRecords = [] } = context;
 
