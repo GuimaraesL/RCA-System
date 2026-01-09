@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AssetNode } from '../types';
-import { Folder, Database, Layers, Plus, Trash2, Edit2, ChevronRight, ChevronDown, Lock } from 'lucide-react';
+import { Folder, Database, Layers, Plus, Trash2, Edit2, ChevronRight, ChevronDown, Lock, GripVertical } from 'lucide-react';
 import { useAssetsLogic } from '../hooks/useAssetsLogic';
 import { ConfirmModal } from './ConfirmModal';
 
@@ -23,6 +23,52 @@ export const AssetsManager: React.FC = () => {
     confirmDelete,
     cancelDelete
   } = useAssetsLogic();
+
+  // --- Resizable Sidebar State ---
+  const MIN_WIDTH = 200;
+  const MAX_WIDTH = 600;
+  const DEFAULT_WIDTH = 350;
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH);
+  const isResizing = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    isResizing.current = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing.current || !containerRef.current) return;
+
+      // Calcula largura relativa à posição do container
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const newWidth = e.clientX - containerRect.left;
+
+      if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
+        setSidebarWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (isResizing.current) {
+        isResizing.current = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
 
   const TreeNode: React.FC<{ node: AssetNode; depth: number }> = ({ node, depth }) => {
     const [expanded, setExpanded] = useState(true);
@@ -58,9 +104,12 @@ export const AssetsManager: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full p-8 gap-8 max-w-7xl mx-auto">
-      {/* Sidebar Tree */}
-      <div className="w-1/3 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+    <div ref={containerRef} className="flex h-full p-8 gap-0 max-w-7xl mx-auto">
+      {/* Sidebar Tree - Resizable */}
+      <div
+        className="bg-white rounded-l-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden"
+        style={{ width: `${sidebarWidth}px`, minWidth: `${MIN_WIDTH}px`, maxWidth: `${MAX_WIDTH}px` }}
+      >
         <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
           <h2 className="font-bold text-slate-700">Hierarchy</h2>
           <button
@@ -76,6 +125,16 @@ export const AssetsManager: React.FC = () => {
           {assets.length === 0 && <div className="text-center p-8 text-slate-400 text-sm">No assets defined. Add a root area.</div>}
         </div>
       </div>
+
+      {/* Resize Handle */}
+      <div
+        onMouseDown={handleMouseDown}
+        className="w-2 cursor-col-resize bg-slate-100 hover:bg-blue-200 flex items-center justify-center transition-colors border-y border-slate-200"
+        title="Arraste para redimensionar"
+      >
+        <GripVertical size={12} className="text-slate-400" />
+      </div>
+
 
       {/* Editor Panel */}
       <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 p-8">
