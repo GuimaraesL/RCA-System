@@ -365,14 +365,33 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 let statusId = findTaxonomyId(taxonomy.triggerStatuses || [], statusName);
                 if (!statusId) statusId = defaultStatusId;
 
-                const areaId = findAssetId(r['AREA'], assets);
-                const equipId = findAssetId(r['Equip.'], assets);
-                const subId = findAssetId(r['Subconjunto'], assets);
+                let areaId = findAssetId(r['AREA'], assets);
+                let equipId = findAssetId(r['Equip.'], assets);
+                let subId = findAssetId(r['Subconjunto'], assets);
                 const typeId = findTaxonomyId(taxonomy.analysisTypes || [], r['Tipo AF']);
 
                 // Fix: Clean up ID AF if it contains placeholders like "-"
                 const rawRcaId = String(r['ID AF'] || '').trim();
                 const cleanRcaId = (rawRcaId && rawRcaId !== '-') ? rawRcaId : '';
+
+                // --- LINKING LOGIC (Task 29.3 & 29.4) ---
+                // Try to find the Linked RCA
+                // Priority 1: ID Match
+                let linkedRca = existingRecords.find(rec => rec.id === cleanRcaId);
+
+                // Priority 2: File Path Match (Future/Fallback) - Not fully implemented yet as RCA structure varies
+                // if (!linkedRca && r['Path']) { ... }
+
+                // --- HIERARCHY INHERITANCE ---
+                // If Trigger has missing hierarchy but is linked to an RCA, inherit from RCA
+                if (linkedRca) {
+                    if (!areaId && linkedRca.area_id) areaId = linkedRca.area_id;
+                    if (!equipId && linkedRca.equipment_id) equipId = linkedRca.equipment_id;
+                    if (!subId && linkedRca.subgroup_id) subId = linkedRca.subgroup_id;
+
+                    // Optional: If linked, ensure status reflects it? 
+                    // Keeping simple for now as per "Hierarchy Inheritance" request.
+                }
 
                 const trigger: TriggerRecord = {
                     id: generateId('TRG'),

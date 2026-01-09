@@ -349,7 +349,17 @@ export const importDataToApi = async (data: any): Promise<{ success: boolean, me
         }
 
         // 2. Importar Taxonomy (Merge com Auto-Discovery)
-        let taxonomyToSave = data.taxonomy || await fetchTaxonomy(); // Carrega existente se não vier no JSON
+        // CRITICAL FIX: Merge incoming taxonomy with EXISTING one to preserve keys like 'triggerStatuses'
+        // that might not be in the backup execution.
+        const currentTaxonomy = await fetchTaxonomy();
+        const incomingTaxonomy = data.taxonomy || {};
+
+        let taxonomyToSave: TaxonomyConfig = {
+            ...currentTaxonomy, // Start with current DB state (preserves new keys)
+            ...incomingTaxonomy, // Overwrite with backup data (preserves historical options)
+            // Explicitly ensure we don't lose triggerStatuses if explicitly missing in backup
+            triggerStatuses: incomingTaxonomy.triggerStatuses || currentTaxonomy.triggerStatuses || [],
+        };
 
         const ensureTaxonomy = (listKey: keyof TaxonomyConfig, val: string) => {
             if (!val) return null;

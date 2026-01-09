@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { useRcaContext } from '../context/RcaContext';
 import { TriggerRecord, AssetNode, TaxonomyConfig } from '../types';
 import { generateId, filterAssetsByUsage } from '../services/utils';
-import { Plus, Edit2, Trash2, Link, ExternalLink, AlertCircle, Clock, CheckCircle, FileText } from 'lucide-react';
+import { Plus, Edit2, Trash2, Link, ExternalLink, AlertCircle, Clock, CheckCircle, FileText, X } from 'lucide-react';
 import { AssetSelector } from './AssetSelector';
 import { ConfirmModal } from './ConfirmModal';
 import { FilterBar, FilterState } from './FilterBar';
@@ -17,6 +17,10 @@ interface TriggersViewProps {
 export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenRca }) => {
     const { triggers, assets, taxonomy, records, addTrigger, updateTrigger, deleteTrigger } = useRcaContext();
 
+    // Debug Overlay (Temporary)
+    // Defensive check
+    if (!taxonomy || !assets) return <div className="p-8">Loading configuration...</div>;
+
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTrigger, setEditingTrigger] = useState<TriggerRecord | null>(null);
@@ -24,6 +28,20 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
     // Confirm Delete Modal State
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [triggerToDelete, setTriggerToDelete] = useState<string | null>(null);
+
+    // Link RCA Modal State (Performance Optimization)
+    const [linkModalOpen, setLinkModalOpen] = useState(false);
+    const [triggerToLink, setTriggerToLink] = useState<TriggerRecord | null>(null);
+
+    const openLinkModal = (t: TriggerRecord) => {
+        setTriggerToLink(t);
+        setLinkModalOpen(true);
+    };
+
+    const closeLinkModal = () => {
+        setLinkModalOpen(false);
+        setTriggerToLink(null);
+    };
 
     // --- Persistent Filter State ---
     const defaultFilters: FilterState = {
@@ -197,7 +215,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
         // Find 'Concluída' or 'Em andamento' status ID? 
         // For linking, usually it implies 'Em andamento' or 'Concluída'. 
         // Let's set to 'Concluída' if available, else keep current or use logic.
-        const doneStatus = taxonomy.triggerStatuses.find(s => s.name === 'Concluída')?.id || trigger.status;
+        const doneStatus = taxonomy.triggerStatuses?.find(s => s.name === 'Concluída')?.id || trigger.status;
         updateTrigger({ ...trigger, rca_id: rcaId, status: doneStatus });
     };
 
@@ -252,7 +270,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
             const matchesYear = !filters.year || tDate.getFullYear().toString() === filters.year;
 
             const tMonth = (tDate.getMonth() + 1).toString().padStart(2, '0');
-            const matchesMonth = filters.months.length === 0 || filters.months.includes(tMonth);
+            const matchesMonth = (filters.months || []).length === 0 || (filters.months || []).includes(tMonth);
 
             return matchesSearch && matchesYear && matchesMonth;
         };
@@ -299,7 +317,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
     const filteredTriggers = useMemo(() => {
         return triggers.filter(t => {
             // Text Search
-            const searchLower = filters.searchTerm.toLowerCase();
+            const searchLower = (filters.searchTerm || '').toLowerCase();
             const matchesSearch = !filters.searchTerm ||
                 (t.stop_reason || '').toLowerCase().includes(searchLower) ||
                 (t.stop_type || '').toLowerCase().includes(searchLower) ||
@@ -309,11 +327,17 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
 
             // Date (Year Only if set)
             const tDate = new Date(t.start_date);
-            const matchesYear = !filters.year || tDate.getFullYear().toString() === filters.year;
+            const isValidDate = !isNaN(tDate.getTime());
 
-            // Month
-            const tMonth = (tDate.getMonth() + 1).toString().padStart(2, '0');
-            const matchesMonth = filters.months.length === 0 || filters.months.includes(tMonth);
+            let matchesYear = true;
+            let matchesMonth = true;
+
+            if (isValidDate) {
+                matchesYear = !filters.year || tDate.getFullYear().toString() === filters.year;
+                // Defensive check: (filters.months || [])
+                const tMonth = (tDate.getMonth() + 1).toString().padStart(2, '0');
+                matchesMonth = (filters.months || []).length === 0 || (filters.months || []).includes(tMonth);
+            }
 
             // Dropdown Filters
             const matchesStatus = filters.status === 'ALL' || t.status === filters.status;
@@ -330,7 +354,14 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
     }, [triggers, filters]);
 
     return (
-        <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col">
+        <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col relative">
+            {/* Debug Overlay (Hidden by default unless uncommented/flagged) */}
+            {/* 
+            <div className="absolute top-0 right-0 bg-slate-100 p-2 text-[10px] z-50 opacity-50 hover:opacity-100">
+                Debug: {triggers.length} Triggers | {assets.length} Assets | Tax: {!!taxonomy ? 'OK' : 'FAIL'}
+            </div>
+            */}
+
             {/* Header */}
             <div className="flex justify-between items-center mb-6 flex-shrink-0">
                 <div>
@@ -440,14 +471,13 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                                     <button onClick={() => handleCreateRca(t)} className="text-green-600 bg-green-50 hover:bg-green-100 p-1.5 rounded flex items-center gap-1" title="Create New RCA">
                                                         <Plus size={14} /> New
                                                     </button>
-                                                    <select
-                                                        className="w-24 text-[10px] border rounded bg-white text-slate-900"
-                                                        onChange={(e) => { if (e.target.value) handleLinkRca(t, e.target.value); }}
-                                                        value=""
+                                                    <button
+                                                        onClick={() => openLinkModal(t)}
+                                                        className="text-slate-500 bg-slate-50 hover:bg-slate-100 border border-slate-200 p-1.5 rounded flex items-center gap-1 text-[10px]"
+                                                        title="Vincular RCA Existente"
                                                     >
-                                                        <option value="">Link...</option>
-                                                        {records.map(r => <option key={r.id} value={r.id}>{r.id} - {r.what.substring(0, 10)}</option>)}
-                                                    </select>
+                                                        <Link size={14} /> Link...
+                                                    </button>
                                                 </div>
                                             )}
                                         </td>
@@ -567,55 +597,86 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                 </select>
                             </div>
 
-                            {/* Campo de Vínculo RCA */}
-                            <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1">RCA Vinculada</label>
-                                <select
-                                    className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={editingTrigger.rca_id || ''}
-                                    onChange={e => setEditingTrigger({ ...editingTrigger, rca_id: e.target.value || undefined })}
-                                >
-                                    <option value="">Nenhuma RCA vinculada</option>
-                                    {records.map(r => (
-                                        <option key={r.id} value={r.id}>
-                                            {r.id} - {r.what?.substring(0, 30) || 'Sem descrição'}...
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                            <option value="">Nenhuma RCA vinculada</option>
+                            {records.map(r => (
+                                <option key={r.id} value={r.id}>
+                                    {r.id} - {(r.what || '').substring(0, 30)}...
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
-                            <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1">Comentários</label>
-                                <textarea
-                                    className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none h-20"
-                                    value={editingTrigger.comments}
-                                    onChange={e => setEditingTrigger({ ...editingTrigger, comments: e.target.value })}
-                                />
-                            </div>
+                    <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Comentários</label>
+                        <textarea
+                            className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none h-20"
+                            value={editingTrigger.comments}
+                            onChange={e => setEditingTrigger({ ...editingTrigger, comments: e.target.value })}
+                        />
+                    </div>
 
-                            <div className="flex justify-end gap-3 pt-4 border-t">
-                                <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">Cancel</button>
-                                <button onClick={handleSave} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">Save Trigger</button>
-                            </div>
-                        </div>
+                    <div className="flex justify-end gap-3 pt-4 border-t">
+                        <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">Cancel</button>
+                        <button onClick={handleSave} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">Save Trigger</button>
                     </div>
                 </div>
+                    </div>
+                </div >
             )}
 
-            {/* Modal de Confirmação de Exclusão */}
-            <ConfirmModal
-                isOpen={deleteModalOpen}
-                title="Excluir Trigger"
-                message="Tem certeza que deseja excluir este trigger? Esta ação não pode ser desfeita."
-                confirmText="Excluir"
-                cancelText="Cancelar"
-                onConfirm={confirmDelete}
-                onCancel={() => {
-                    setDeleteModalOpen(false);
-                    setTriggerToDelete(null);
-                }}
-                variant="danger"
-            />
+{/* Modal de Link RCA (Performance Optimization) */ }
+{
+    linkModalOpen && triggerToLink && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95">
+                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                    <h3 className="font-bold text-lg text-slate-800">Vincular RCA</h3>
+                    <button onClick={closeLinkModal} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+                </div>
+                <div className="p-6 space-y-4">
+                    <p className="text-sm text-slate-600">Selecione a RCA para vincular ao Trigger <strong>{triggerToLink.id}</strong>:</p>
+
+                    <select
+                        className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                        onChange={(e) => {
+                            if (e.target.value) {
+                                handleLinkRca(triggerToLink, e.target.value);
+                                closeLinkModal();
+                            }
+                        }}
+                        value=""
+                    >
+                        <option value="">Selecione uma RCA...</option>
+                        {records.map(r => (
+                            <option key={r.id} value={r.id}>
+                                {r.id} - {(r.what || '').substring(0, 40)}...
+                            </option>
+                        ))}
+                    </select>
+
+                    <div className="flex justify-end pt-2">
+                        <button onClick={closeLinkModal} className="text-sm text-slate-500 hover:text-slate-700">Cancelar</button>
+                    </div>
+                </div>
+            </div>
         </div>
+    )
+}
+
+{/* Modal de Confirmação de Exclusão */ }
+<ConfirmModal
+    isOpen={deleteModalOpen}
+    title="Excluir Trigger"
+    message="Tem certeza que deseja excluir este trigger? Esta ação não pode ser desfeita."
+    confirmText="Excluir"
+    cancelText="Cancelar"
+    onConfirm={confirmDelete}
+    onCancel={() => {
+        setDeleteModalOpen(false);
+        setTriggerToDelete(null);
+    }}
+    variant="danger"
+/>
+        </div >
     );
 };
