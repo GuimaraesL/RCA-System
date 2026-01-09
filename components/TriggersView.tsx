@@ -597,86 +597,79 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                 </select>
                             </div>
 
-                            <option value="">Nenhuma RCA vinculada</option>
-                            {records.map(r => (
-                                <option key={r.id} value={r.id}>
-                                    {r.id} - {(r.what || '').substring(0, 30)}...
-                                </option>
-                            ))}
-                        </select>
-                    </div>
 
-                    <div>
-                        <label className="block text-xs font-medium text-slate-500 mb-1">Comentários</label>
-                        <textarea
-                            className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none h-20"
-                            value={editingTrigger.comments}
-                            onChange={e => setEditingTrigger({ ...editingTrigger, comments: e.target.value })}
-                        />
-                    </div>
 
-                    <div className="flex justify-end gap-3 pt-4 border-t">
-                        <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">Cancel</button>
-                        <button onClick={handleSave} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">Save Trigger</button>
-                    </div>
-                </div>
+                            <div>
+                                <label className="block text-xs font-medium text-slate-500 mb-1">Comentários</label>
+                                <textarea
+                                    className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none h-20"
+                                    value={editingTrigger.comments}
+                                    onChange={e => setEditingTrigger({ ...editingTrigger, comments: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-4 border-t">
+                                <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">Cancel</button>
+                                <button onClick={handleSave} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">Save Trigger</button>
+                            </div>
+                        </div>
                     </div>
                 </div >
             )}
 
-{/* Modal de Link RCA (Performance Optimization) */ }
-{
-    linkModalOpen && triggerToLink && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95">
-                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                    <h3 className="font-bold text-lg text-slate-800">Vincular RCA</h3>
-                    <button onClick={closeLinkModal} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
-                </div>
-                <div className="p-6 space-y-4">
-                    <p className="text-sm text-slate-600">Selecione a RCA para vincular ao Trigger <strong>{triggerToLink.id}</strong>:</p>
+            {/* Modal de Link RCA (Performance Optimization) */}
+            {
+                linkModalOpen && triggerToLink && (
+                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95">
+                            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                                <h3 className="font-bold text-lg text-slate-800">Vincular RCA</h3>
+                                <button onClick={closeLinkModal} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <p className="text-sm text-slate-600">Selecione a RCA para vincular ao Trigger <strong>{triggerToLink.id}</strong>:</p>
 
-                    <select
-                        className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                        onChange={(e) => {
-                            if (e.target.value) {
-                                handleLinkRca(triggerToLink, e.target.value);
-                                closeLinkModal();
-                            }
-                        }}
-                        value=""
-                    >
-                        <option value="">Selecione uma RCA...</option>
-                        {records.map(r => (
-                            <option key={r.id} value={r.id}>
-                                {r.id} - {(r.what || '').substring(0, 40)}...
-                            </option>
-                        ))}
-                    </select>
+                                <select
+                                    className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                    onChange={(e) => {
+                                        if (e.target.value) {
+                                            handleLinkRca(triggerToLink, e.target.value);
+                                            closeLinkModal();
+                                        }
+                                    }}
+                                    value=""
+                                >
+                                    <option value="">Selecione uma RCA...</option>
+                                    {records.map(r => (
+                                        <option key={r.id} value={r.id}>
+                                            {r.id} - {(r.what || '').substring(0, 40)}...
+                                        </option>
+                                    ))}
+                                </select>
 
-                    <div className="flex justify-end pt-2">
-                        <button onClick={closeLinkModal} className="text-sm text-slate-500 hover:text-slate-700">Cancelar</button>
+                                <div className="flex justify-end pt-2">
+                                    <button onClick={closeLinkModal} className="text-sm text-slate-500 hover:text-slate-700">Cancelar</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    )
-}
+                )
+            }
 
-{/* Modal de Confirmação de Exclusão */ }
-<ConfirmModal
-    isOpen={deleteModalOpen}
-    title="Excluir Trigger"
-    message="Tem certeza que deseja excluir este trigger? Esta ação não pode ser desfeita."
-    confirmText="Excluir"
-    cancelText="Cancelar"
-    onConfirm={confirmDelete}
-    onCancel={() => {
-        setDeleteModalOpen(false);
-        setTriggerToDelete(null);
-    }}
-    variant="danger"
-/>
+            {/* Modal de Confirmação de Exclusão */}
+            <ConfirmModal
+                isOpen={deleteModalOpen}
+                title="Excluir Trigger"
+                message="Tem certeza que deseja excluir este trigger? Esta ação não pode ser desfeita."
+                confirmText="Excluir"
+                cancelText="Cancelar"
+                onConfirm={confirmDelete}
+                onCancel={() => {
+                    setDeleteModalOpen(false);
+                    setTriggerToDelete(null);
+                }}
+                variant="danger"
+            />
         </div >
     );
 };
