@@ -87,6 +87,47 @@ router.post('/', (req: Request, res: Response) => {
     }
 });
 
+// POST /api/triggers/bulk - Importação em massa
+router.post('/bulk', (req: Request, res: Response) => {
+    try {
+        const db = getDatabase();
+        const triggers = req.body;
+
+        if (!Array.isArray(triggers)) {
+            return res.status(400).json({ error: 'Body must be an array' });
+        }
+
+        console.log(`🔄 Bulk Importing ${triggers.length} Triggers...`);
+
+        db.exec('BEGIN TRANSACTION');
+        const stmt = db.prepare(`
+            INSERT OR REPLACE INTO triggers (
+                id, area_id, equipment_id, subgroup_id, start_date, end_date,
+                duration_minutes, stop_type, stop_reason, comments, analysis_type_id,
+                status, responsible, rca_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+
+        for (const t of triggers) {
+            stmt.run([
+                n(t.id), s(t.area_id), s(t.equipment_id), s(t.subgroup_id), s(t.start_date), s(t.end_date),
+                n(t.duration_minutes), s(t.stop_type), s(t.stop_reason), s(t.comments), s(t.analysis_type_id),
+                s(t.status), s(t.responsible), s(t.rca_id)
+            ]);
+        }
+
+        stmt.free();
+        db.exec('COMMIT');
+        saveDatabase();
+
+        console.log(`✅ Bulk Import Triggers Completed: ${triggers.length} records.`);
+        res.json({ message: `Imported ${triggers.length} triggers successfully` });
+    } catch (error) {
+        console.error('Erro no bulk import de triggers:', error);
+        res.status(500).json({ error: 'Erro interno durante importação em massa' });
+    }
+});
+
 // PUT /api/triggers/:id - Atualizar gatilho
 router.put('/:id', (req: Request, res: Response) => {
     try {

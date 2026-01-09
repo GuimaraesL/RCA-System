@@ -260,20 +260,28 @@ export const importDataToApi = async (data: MigrationData): Promise<{ success: b
             console.log('✅ RCAs importadas (Bulk):', data.records.length);
         }
 
-        // 4. Importar Actions
+        // 4. Importar Actions (Bulk)
         if (data.actions && data.actions.length > 0) {
-            for (const action of data.actions) {
-                await saveActionToApi(action);
-            }
-            console.log('✅ Actions importadas:', data.actions.length);
+            console.log('🔄 API: Bulk Importing Actions...');
+            const response = await fetch(`${API_BASE}/actions/bulk`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data.actions)
+            });
+            await checkResponse(response, 'POST /actions/bulk');
+            console.log('✅ Actions importadas (Bulk):', data.actions.length);
         }
 
-        // 5. Importar Triggers
+        // 5. Importar Triggers (Bulk)
         if (data.triggers && data.triggers.length > 0) {
-            for (const trigger of data.triggers) {
-                await saveTriggerToApi(trigger);
-            }
-            console.log('✅ Triggers importados:', data.triggers.length);
+            console.log('🔄 API: Bulk Importing Triggers...');
+            const response = await fetch(`${API_BASE}/triggers/bulk`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data.triggers)
+            });
+            await checkResponse(response, 'POST /triggers/bulk');
+            console.log('✅ Triggers importados (Bulk):', data.triggers.length);
         }
 
         return {

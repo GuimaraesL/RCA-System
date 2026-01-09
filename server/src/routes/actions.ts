@@ -88,6 +88,37 @@ router.post('/', (req: Request, res: Response) => {
     }
 });
 
+// POST /api/actions/bulk - Importação em massa
+router.post('/bulk', (req: Request, res: Response) => {
+    try {
+        const db = getDatabase();
+        const actions = req.body;
+
+        if (!Array.isArray(actions)) {
+            return res.status(400).json({ error: 'Body must be an array' });
+        }
+
+        console.log(`🔄 Bulk Importing ${actions.length} Actions...`);
+
+        db.exec('BEGIN TRANSACTION');
+        const stmt = db.prepare('INSERT OR REPLACE INTO actions (id, rca_id, action, responsible, date, status, moc_number) VALUES (?, ?, ?, ?, ?, ?, ?)');
+
+        for (const a of actions) {
+            stmt.run([a.id, a.rca_id, a.action, a.responsible, a.date, a.status, a.moc_number]);
+        }
+
+        stmt.free();
+        db.exec('COMMIT');
+        saveDatabase();
+
+        console.log(`✅ Bulk Import Actions Completed: ${actions.length} records.`);
+        res.json({ message: `Imported ${actions.length} actions successfully` });
+    } catch (error) {
+        console.error('Erro no bulk import de actions:', error);
+        res.status(500).json({ error: 'Erro interno durante importação em massa' });
+    }
+});
+
 // PUT /api/actions/:id
 router.put('/:id', (req: Request, res: Response) => {
     try {

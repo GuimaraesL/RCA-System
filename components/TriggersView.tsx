@@ -171,6 +171,13 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
 
     const handleSave = () => {
         if (!editingTrigger) return;
+
+        // Validação de Campos Obrigatórios
+        if (!editingTrigger.start_date) {
+            alert("A Data de Início é obrigatória.");
+            return;
+        }
+
         const toSave = {
             ...editingTrigger,
             duration_minutes: calculateDuration(editingTrigger.start_date, editingTrigger.end_date)
@@ -235,11 +242,11 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
         const matchesGlobal = (t: TriggerRecord) => {
             const searchLower = filters.searchTerm.toLowerCase();
             const matchesSearch = !filters.searchTerm ||
-                t.stop_reason?.toLowerCase().includes(searchLower) ||
-                t.stop_type?.toLowerCase().includes(searchLower) ||
-                t.comments?.toLowerCase().includes(searchLower) ||
-                t.responsible?.toLowerCase().includes(searchLower) ||
-                t.id.toLowerCase().includes(searchLower);
+                (t.stop_reason || '').toLowerCase().includes(searchLower) ||
+                (t.stop_type || '').toLowerCase().includes(searchLower) ||
+                (t.comments || '').toLowerCase().includes(searchLower) ||
+                (t.responsible || '').toLowerCase().includes(searchLower) ||
+                (t.id || '').toLowerCase().includes(searchLower);
 
             const tDate = new Date(t.start_date);
             const matchesYear = !filters.year || tDate.getFullYear().toString() === filters.year;
@@ -294,11 +301,11 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
             // Text Search
             const searchLower = filters.searchTerm.toLowerCase();
             const matchesSearch = !filters.searchTerm ||
-                t.stop_reason?.toLowerCase().includes(searchLower) ||
-                t.stop_type?.toLowerCase().includes(searchLower) ||
-                t.comments?.toLowerCase().includes(searchLower) ||
-                t.responsible?.toLowerCase().includes(searchLower) ||
-                t.id.toLowerCase().includes(searchLower);
+                (t.stop_reason || '').toLowerCase().includes(searchLower) ||
+                (t.stop_type || '').toLowerCase().includes(searchLower) ||
+                (t.comments || '').toLowerCase().includes(searchLower) ||
+                (t.responsible || '').toLowerCase().includes(searchLower) ||
+                (t.id || '').toLowerCase().includes(searchLower);
 
             // Date (Year Only if set)
             const tDate = new Date(t.start_date);

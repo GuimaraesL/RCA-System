@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // Rotas da API
 app.use('/api/rcas', rcasRouter);
