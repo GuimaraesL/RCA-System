@@ -88,20 +88,21 @@ export interface TriggerRecord {
   area_id: string;
   equipment_id: string;
   subgroup_id: string;
-  
+
   start_date: string; // ISO Date Time
   end_date: string;   // ISO Date Time
   duration_minutes: number;
-  
+
   stop_type: string;
   stop_reason: string;
   comments: string;
-  
+
   analysis_type_id: string; // Link to Taxonomy
   status: string; // Dynamic ID from Taxonomy
   responsible: string;
-  
+
   rca_id?: string; // Link to an existing or new RCA
+  file_path?: string; // Network path to analysis file
 }
 
 // Human Reliability Analysis Types
@@ -137,9 +138,9 @@ export interface RootCauseItem {
 }
 
 export interface AdditionalInfo {
-    meetingNotes?: string;
-    comments?: string;
-    historicalInfo?: string;
+  meetingNotes?: string;
+  comments?: string;
+  historicalInfo?: string;
 }
 
 export interface RcaRecord {
@@ -153,7 +154,7 @@ export interface RcaRecord {
   status: string;
   participants: string[]; // Normalized to Array
   facilitator: string;
-  
+
   // Added fields from Excel Template
   start_date?: string;
   completion_date?: string;
@@ -171,7 +172,7 @@ export interface RcaRecord {
   equipment_id: string;
   subgroup_id: string;
   component_type: string;
-  asset_name_display?: string; 
+  asset_name_display?: string;
 
   // 4. Classificação da Falha
   specialty_id: string;
@@ -190,7 +191,7 @@ export interface RcaRecord {
   // 6. Investigação
   five_whys: FiveWhy[];
   ishikawa: IshikawaDiagram;
-  
+
   root_causes: RootCauseItem[];
 
   // 7. Manutenção de Precisão

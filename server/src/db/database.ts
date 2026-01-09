@@ -58,6 +58,18 @@ export const initDatabase = async (): Promise<Database> => {
     const schema = readFileSync(schemaPath, 'utf-8');
     db.run(schema);
 
+    // --- MIGRATIONS ---
+    try {
+        // v1.1: Add file_path to triggers
+        db.run("ALTER TABLE triggers ADD COLUMN file_path TEXT");
+        console.log("✅ Migration v1.1 applied: Added file_path to triggers");
+    } catch (e: any) {
+        // Ignore duplicate column error
+        if (!e.message.includes("duplicate column")) {
+            console.log("ℹ️ Migration v1.1 skipped or already applied.");
+        }
+    }
+
     // Salvar banco
     saveDatabase();
 

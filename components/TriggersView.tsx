@@ -376,7 +376,9 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                 <th className="px-4 py-3">Farol</th>
                                 <th className="px-4 py-3">Status</th>
                                 <th className="px-4 py-3">Data Início</th>
-                                <th className="px-4 py-3">Equipamento / Subconjunto</th>
+                                <th className="px-4 py-3">Área</th>
+                                <th className="px-4 py-3">Equipamento</th>
+                                <th className="px-4 py-3">Subconjunto</th>
                                 <th className="px-4 py-3">Duração</th>
                                 <th className="px-4 py-3">Tipo / Razão</th>
                                 <th className="px-4 py-3">Tipo AF</th>
@@ -414,7 +416,9 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 font-mono">{t.start_date?.replace('T', ' ') || '-'}</td>
-                                        <td className="px-4 py-3 max-w-[150px] truncate" title={assetName}>{assetName}</td>
+                                        <td className="px-4 py-3 max-w-[150px] truncate" title={getAssetName(t.area_id, assets)}>{getAssetName(t.area_id, assets)}</td>
+                                        <td className="px-4 py-3 max-w-[150px] truncate" title={getAssetName(t.equipment_id, assets)}>{getAssetName(t.equipment_id, assets)}</td>
+                                        <td className="px-4 py-3 max-w-[150px] truncate" title={getAssetName(t.subgroup_id, assets)}>{getAssetName(t.subgroup_id, assets)}</td>
                                         <td className="px-4 py-3 font-bold">{t.duration_minutes} min</td>
                                         <td className="px-4 py-3 max-w-[200px]">
                                             <div className="font-bold text-slate-800">{t.stop_type}</div>

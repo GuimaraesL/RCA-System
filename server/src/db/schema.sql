@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS triggers (
     status TEXT,
     responsible TEXT,
     rca_id TEXT,
+    file_path TEXT,
     
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP,

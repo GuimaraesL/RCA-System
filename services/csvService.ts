@@ -343,6 +343,24 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
             const defaultStatusId = taxonomy.triggerStatuses?.[0]?.id || 'TRG-ST-01';
 
             rawData.forEach(r => {
+                // Strict Row Validation (Fix for empty Excel rows & placeholders)
+                const isInvalid = (val: any) => {
+                    if (!val) return true;
+                    const s = String(val).trim();
+                    return s.length === 0 || s === '-' || s === '.' || s.toLowerCase() === 'n/a' || s === '0';
+                };
+
+                const invalidArea = isInvalid(r['AREA']);
+                const startDate = parseDateString(r['Data/Hora Início']);
+                const invalidDate = !startDate; // If parse returns empty string, it's invalid
+
+                // Must have BOTH valid Date and Area to be a valid trigger event
+                // Changed from && to || to be STRICT: If either is missing, skip.
+                if (invalidDate || invalidArea) {
+                    // console.log('Skipping invalid row:', { invalidDate, invalidArea, row: r });
+                    return;
+                }
+
                 const statusName = r['Status'] || '';
                 let statusId = findTaxonomyId(taxonomy.triggerStatuses || [], statusName);
                 if (!statusId) statusId = defaultStatusId;
@@ -352,12 +370,16 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 const subId = findAssetId(r['Subconjunto'], assets);
                 const typeId = findTaxonomyId(taxonomy.analysisTypes || [], r['Tipo AF']);
 
+                // Fix: Clean up ID AF if it contains placeholders like "-"
+                const rawRcaId = String(r['ID AF'] || '').trim();
+                const cleanRcaId = (rawRcaId && rawRcaId !== '-') ? rawRcaId : '';
+
                 const trigger: TriggerRecord = {
                     id: generateId('TRG'),
                     area_id: areaId,
                     equipment_id: equipId,
                     subgroup_id: subId,
-                    start_date: parseDateString(r['Data/Hora Início']),
+                    start_date: startDate, // Use parsed date directly
                     end_date: parseDateString(r['Data/Hora Fim']),
                     duration_minutes: parseInt(r['Duração (min)']) || 0,
                     stop_type: r['Tipo Parada'] || '',
@@ -366,7 +388,8 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                     analysis_type_id: typeId,
                     status: statusId,
                     responsible: r['Responsável'] || '',
-                    rca_id: r['ID AF'] || ''
+                    rca_id: cleanRcaId,
+                    file_path: r['Path'] || r['Caminho'] || r['Link'] || r['File Path'] || ''
                 };
                 newTriggers.push(trigger);
             });

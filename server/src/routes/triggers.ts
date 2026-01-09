@@ -68,14 +68,14 @@ router.post('/', (req: Request, res: Response) => {
         const t = req.body;
 
         db.run(`
-      INSERT INTO triggers (id, area_id, equipment_id, subgroup_id, start_date, end_date, duration_minutes,
-        stop_type, stop_reason, comments, analysis_type_id, status, responsible, rca_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       INSERT INTO triggers (id, area_id, equipment_id, subgroup_id, start_date, end_date, duration_minutes,
+        stop_type, stop_reason, comments, analysis_type_id, status, responsible, rca_id, file_path)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
             s(t.id), s(t.area_id), s(t.equipment_id), s(t.subgroup_id),
             s(t.start_date), s(t.end_date), n(t.duration_minutes),
             s(t.stop_type), s(t.stop_reason), s(t.comments),
-            s(t.analysis_type_id), s(t.status), s(t.responsible), s(t.rca_id)
+            s(t.analysis_type_id), s(t.status), s(t.responsible), s(t.rca_id), s(t.file_path)
         ]);
 
         saveDatabase();
@@ -104,15 +104,15 @@ router.post('/bulk', (req: Request, res: Response) => {
             INSERT OR REPLACE INTO triggers (
                 id, area_id, equipment_id, subgroup_id, start_date, end_date,
                 duration_minutes, stop_type, stop_reason, comments, analysis_type_id,
-                status, responsible, rca_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                status, responsible, rca_id, file_path
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
         for (const t of triggers) {
             stmt.run([
-                n(t.id), s(t.area_id), s(t.equipment_id), s(t.subgroup_id), s(t.start_date), s(t.end_date),
+                s(t.id), s(t.area_id), s(t.equipment_id), s(t.subgroup_id), s(t.start_date), s(t.end_date),
                 n(t.duration_minutes), s(t.stop_type), s(t.stop_reason), s(t.comments), s(t.analysis_type_id),
-                s(t.status), s(t.responsible), s(t.rca_id)
+                s(t.status), s(t.responsible), s(t.rca_id), s(t.file_path)
             ]);
         }
 
