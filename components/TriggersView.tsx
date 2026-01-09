@@ -315,6 +315,8 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
     }, [triggers, assets, taxonomy, filters]);
 
     // --- Pagination State ---
+    // Implements Client-Side Pagination to cap DOM nodes at 100.
+    // This prevents browser lag while maintaining full filtering capabilities over the entire dataset.
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 100;
 

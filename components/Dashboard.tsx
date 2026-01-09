@@ -79,6 +79,9 @@ export const Dashboard: React.FC = () => {
     };
 
     // Performance Optimization: Flatten Asset Tree to Map O(1)
+    // --- Optimization: O(1) Asset Lookup ---
+    // Instead of recursive search O(N*M) inside the loop, we flatten the tree once O(N)
+    // and use a Hash Map for instant retrieval O(1).
     const assetMap = useMemo(() => {
         const map = new Map<string, string>();
         const traverse = (nodes: AssetNode[]) => {
