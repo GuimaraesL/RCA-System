@@ -194,7 +194,7 @@ export const getCsvTemplate = (type: CsvEntityType): string => {
     switch (type) {
         case 'ASSETS': return 'id;name;type;parentId';
         case 'ACTIONS': return 'id;rca_id;action;responsible;date;status;moc_number';
-        case 'TRIGGERS': return 'AREA;Equip.;Subconjunto;Data/Hora Início;Data/Hora Fim;Duração (min);Tipo Parada;Razão Parada;Comentários;Tipo AF;Status;Responsável;ID AF';
+        case 'TRIGGERS': return 'AREA;Equip.;Subconjunto;Data/Hora Início;Data/Hora Fim;Duração (min);Tipo Parada;Razão Parada;Comentários;Tipo AF;Status;Responsável;ID AF;Path';
         case 'RECORDS_SUMMARY': return 'id;what;participants;problem_description;analysis_type;status;failure_date;downtime_minutes;financial_impact;area_id';
         default: return 'id;name';
     }
@@ -240,9 +240,10 @@ export const exportToCsv = (type: CsvEntityType, context: CsvContextData): strin
             'Tipo AF': t.analysis_type_id,
             'Status': t.status,
             'Responsável': t.responsible,
-            'ID AF': t.rca_id
+            'ID AF': t.rca_id,
+            'Path': t.file_path || ''
         }));
-        return toCSV(rows, ['AREA', 'Equip.', 'Subconjunto', 'Data/Hora Início', 'Data/Hora Fim', 'Duração (min)', 'Tipo Parada', 'Razão Parada', 'Comentários', 'Tipo AF', 'Status', 'Responsável', 'ID AF']);
+        return toCSV(rows, ['AREA', 'Equip.', 'Subconjunto', 'Data/Hora Início', 'Data/Hora Fim', 'Duração (min)', 'Tipo Parada', 'Razão Parada', 'Comentários', 'Tipo AF', 'Status', 'Responsável', 'ID AF', 'Path']);
     }
 
     if (type === 'RECORDS_SUMMARY') {
