@@ -231,15 +231,66 @@ export const deleteTriggerFromApi = async (id: string): Promise<void> => {
     await checkResponse(response, `DELETE /triggers/${id}`);
 };
 
+// --- HELPER: Extrair Assets de RCAs (Fallback) ---
+const extractAssetsFromRecords = (records: any[]): any[] => {
+    const assetsMap = new Map<string, any>();
+
+    const addAsset = (id: string, name: string, type: 'area' | 'unit' | 'system', parentId: string | null) => {
+        if (!id || assetsMap.has(id)) return;
+        assetsMap.set(id, {
+            id,
+            name: name || id,
+            type,
+            parent_id: parentId
+        });
+    };
+
+    records.forEach(r => {
+        // Nível 1: Area
+        if (r.area_id) {
+            addAsset(r.area_id, r.area_id, 'area', null);
+        }
+
+        // Nível 2: Equipment (Filho de Area)
+        if (r.equipment_id && r.area_id) {
+            addAsset(r.equipment_id, r.equipment_id, 'unit', r.area_id);
+        }
+
+        // Nível 3: Subgroup (Filho de Equipment)
+        if (r.subgroup_id && r.equipment_id) {
+            addAsset(r.subgroup_id, r.subgroup_id, 'system', r.equipment_id);
+        }
+    });
+
+    console.log(`ℹ️ Auto-extracted ${assetsMap.size} assets from RCAs records.`);
+    return Array.from(assetsMap.values());
+};
+
 // --- IMPORTAÇÃO EM MASSA ---
-export const importDataToApi = async (data: MigrationData): Promise<{ success: boolean, message: string }> => {
-    console.log('🔄 API: Importing bulk data...');
+export const importDataToApi = async (data: any): Promise<{ success: boolean, message: string }> => {
+    console.log('🔄 API: Importing bulk data...', {
+        hasAssets: !!data.assets,
+        recordsCount: data.records?.length || 0
+    });
 
     try {
-        // 1. Importar Assets
-        if (data.assets && data.assets.length > 0) {
-            await importAssetsToApi(data.assets);
-            console.log('✅ Assets importados:', data.assets.length);
+        // 1. Preparar Assets (Recuperar do JSON ou Extrair das RCAs)
+        let assetsToImport = data.assets;
+
+        if (!assetsToImport || assetsToImport.length === 0) {
+            const rcas = data.records || data.results || [];
+            if (rcas.length > 0) {
+                console.log('⚠️ JSON sem assets explícitos. Tentando extrair das RCAs...');
+                assetsToImport = extractAssetsFromRecords(rcas);
+            }
+        }
+
+        // 2. Importar Assets (se houver)
+        if (assetsToImport && assetsToImport.length > 0) {
+            await importAssetsToApi(assetsToImport);
+            console.log('✅ Assets importados/verificados:', assetsToImport.length);
+        } else {
+            console.warn('⚠️ Nenhum asset encontrado para importar.');
         }
 
         // 2. Importar Taxonomy
