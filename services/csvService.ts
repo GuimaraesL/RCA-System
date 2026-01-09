@@ -381,7 +381,7 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 let linkedRca = existingRecords.find(rec => rec.id === cleanRcaId);
 
                 // Priority 2: File Path Match (Smart Correlation)
-                // If no direct ID link, check if the file path contains an existing RCA ID or Name
+                // If no direct ID link, check if the file path matches the RCA's file path OR contains ID/OS
                 if (!linkedRca && (r['Path'] || r['file_path'])) {
                     const rawPath = String(r['Path'] || r['file_path'] || '');
 
@@ -389,19 +389,39 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                     // 1. Replace backslashes with forward slashes
                     // 2. Remove double slashes
                     // 3. Lowercase for case-insensitive check
-                    const normalize = (s: string) => s.replace(/\\/g, '/').replace(/\/\//g, '/').toLowerCase();
+                    const normalize = (s: string) => s.replace(/\\/g, '/').replace(/\/\//g, '/').trim().toLowerCase();
                     const cleanPath = normalize(rawPath);
 
                     if (cleanPath.length > 5) { // Avoid matching short noise
-                        // Search for RCA ID in Path
+                        // Search for Matching RCA
                         linkedRca = existingRecords.find(rec => {
                             if (!rec.id) return false;
+
+                            // 1. EXACT PATH MATCH (Highest Priority)
+                            if (rec.file_path) {
+                                const cleanRcaPath = normalize(rec.file_path);
+                                // Check exact match or if one ends with the other (handling relative vs absolute)
+                                if (cleanRcaPath === cleanPath || cleanPath.endsWith(cleanRcaPath) || cleanRcaPath.endsWith(cleanPath)) {
+                                    return true;
+                                }
+                            }
+
+                            // 2. Check ID in Path
                             const cleanId = normalize(rec.id);
-                            return cleanPath.includes(cleanId);
+                            if (cleanPath.includes(cleanId)) return true;
+
+                            // 3. Check OS Number in Path (Common in filenames)
+                            if (rec.os_number) {
+                                const cleanOs = normalize(rec.os_number);
+                                if (cleanOs.length > 2 && cleanPath.includes(cleanOs)) return true;
+                            }
+
+                            return false;
                         });
 
-                        // Fallback: Use OS Number if ID fails? (Optional, based on user needs)
-                        // if (!linkedRca) ...
+                        if (linkedRca) {
+                            console.log(`🔗 Smart Link Success: "${rawPath}" -> RCA ${linkedRca.id}`);
+                        }
                     }
                 }
 
