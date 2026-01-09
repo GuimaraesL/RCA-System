@@ -17,6 +17,10 @@ export const MigrationView: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'JSON' | 'CSV'>('JSON');
     const [csvType, setCsvType] = useState<CsvEntityType>('ASSETS');
 
+    // Import Options State
+    const [importMode, setImportMode] = useState<'APPEND' | 'UPDATE'>('APPEND');
+    const [inheritHierarchy, setInheritHierarchy] = useState<boolean>(false);
+
     // Refs to clear file inputs
     const jsonInputRef = useRef<HTMLInputElement>(null);
     const csvInputRef = useRef<HTMLInputElement>(null);
@@ -113,7 +117,7 @@ export const MigrationView: React.FC = () => {
 
         try {
             const content = await readFileWithEncoding(file);
-            const res = importFromCsv(csvType, content, { records, assets, actions, triggers, taxonomy });
+            const res = importFromCsv(csvType, content, { records, assets, actions, triggers, taxonomy }, { mode: importMode, inheritHierarchy });
 
             if (!res.success) {
                 setMsg({ type: 'error', text: res.message });
@@ -300,6 +304,58 @@ export const MigrationView: React.FC = () => {
                             ))}
                         </select>
                     </div>
+
+                    {/* Trigger Import Options */}
+                    {csvType === 'TRIGGERS' && (
+                        <div className="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                            <h4 className="text-sm font-semibold text-slate-800 mb-3">Import Options</h4>
+                            <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-8">
+                                {/* Import Mode */}
+                                <div className="flex items-center gap-4">
+                                    <span className="text-sm text-slate-600">Mode:</span>
+                                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="importMode"
+                                            value="APPEND"
+                                            checked={importMode === 'APPEND'}
+                                            onChange={() => setImportMode('APPEND')}
+                                            className="text-blue-600 focus:ring-blue-500"
+                                        />
+                                        Addition (Append)
+                                    </label>
+                                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="importMode"
+                                            value="UPDATE"
+                                            checked={importMode === 'UPDATE'}
+                                            onChange={() => setImportMode('UPDATE')}
+                                            className="text-blue-600 focus:ring-blue-500"
+                                        />
+                                        Update (Edit via ID)
+                                    </label>
+                                </div>
+
+                                {/* Hierarchy Inheritance */}
+                                <div className="flex items-center gap-2">
+                                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={inheritHierarchy}
+                                            onChange={e => setInheritHierarchy(e.target.checked)}
+                                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        Inherit RCA Hierarchy
+                                    </label>
+                                </div>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-2">
+                                {importMode === 'UPDATE' ? 'Update requires "ID" column. Triggers without ID will be created as new.' : 'Ignores "ID" column and creates new entries.'}
+                                {inheritHierarchy ? ' Will overwrite Area/Equipment/Subgroup with RCA values.' : ''}
+                            </p>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-100 pt-6">
                         <button

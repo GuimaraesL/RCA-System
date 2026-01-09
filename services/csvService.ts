@@ -217,7 +217,7 @@ export const getCsvTemplate = (type: CsvEntityType): string => {
     switch (type) {
         case 'ASSETS': return 'id;name;type;parentId';
         case 'ACTIONS': return 'id;rca_id;action;responsible;date;status;moc_number';
-        case 'TRIGGERS': return 'AREA;Equip.;Subconjunto;Data/Hora Início;Data/Hora Fim;Duração (min);Tipo Parada;Razão Parada;Comentários;Tipo AF;Status;Responsável;ID AF;Path';
+        case 'TRIGGERS': return 'ID;AREA;Equip.;Subconjunto;Data/Hora Início;Data/Hora Fim;Duração (min);Tipo Parada;Razão Parada;Comentários;Tipo AF;Status;Responsável;ID AF;Path';
         case 'RECORDS_SUMMARY': return 'id;what;participants;problem_description;analysis_type;status;failure_date;downtime_minutes;financial_impact;area_id';
         default: return 'id;name';
     }
@@ -251,6 +251,7 @@ export const exportToCsv = (type: CsvEntityType, context: CsvContextData): strin
     if (type === 'TRIGGERS') {
         // Map internal structure back to Excel column names
         const rows = triggers.map(t => ({
+            'ID': t.id,
             'AREA': t.area_id,
             'Equip.': t.equipment_id,
             'Subconjunto': t.subgroup_id,
@@ -283,7 +284,7 @@ export const exportToCsv = (type: CsvEntityType, context: CsvContextData): strin
 
 // --- IMPORTERS ---
 
-export const importFromCsv = (type: CsvEntityType, csvContent: string, context: CsvContextData): CsvImportResult => {
+export const importFromCsv = (type: CsvEntityType, csvContent: string, context: CsvContextData, options?: { mode: 'APPEND' | 'UPDATE', inheritHierarchy?: boolean }): CsvImportResult => {
     try {
         // Extrair headers do CSV para validação
         const lines = csvContent.split('\n').filter(l => l.trim().length > 0);
@@ -449,11 +450,13 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 }
 
                 // --- HIERARCHY INHERITANCE ---
-                // If Trigger has missing hierarchy but is linked to an RCA, inherit from RCA
+                // If Trigger has missing hierarchy OR inheritHierarchy option is true, inherit from RCA
                 if (linkedRca) {
-                    if (!areaId && linkedRca.area_id) areaId = linkedRca.area_id;
-                    if (!equipId && linkedRca.equipment_id) equipId = linkedRca.equipment_id;
-                    if (!subId && linkedRca.subgroup_id) subId = linkedRca.subgroup_id;
+                    const shouldInherit = options?.inheritHierarchy || false;
+
+                    if ((shouldInherit || !areaId) && linkedRca.area_id) areaId = linkedRca.area_id;
+                    if ((shouldInherit || !equipId) && linkedRca.equipment_id) equipId = linkedRca.equipment_id;
+                    if ((shouldInherit || !subId) && linkedRca.subgroup_id) subId = linkedRca.subgroup_id;
 
                     // Auto-fill RCA ID if found by path
                     if (!cleanRcaId) {
@@ -461,8 +464,16 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                     }
                 }
 
+
+                // Determine ID based on Mode
+                let triggerId = generateId('TRG');
+                if (options?.mode === 'UPDATE' && r['ID']) {
+                    // Update Mode: Use provided ID if present (Upsert behavior)
+                    triggerId = r['ID'];
+                }
+
                 const trigger: TriggerRecord = {
-                    id: generateId('TRG'),
+                    id: triggerId,
                     area_id: areaId,
                     equipment_id: equipId,
                     subgroup_id: subId,
