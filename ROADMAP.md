@@ -10,8 +10,8 @@
 | Categoria | Concluídos | Total | Status |
 |-----------|------------|-------|--------|
 | Bugs Core | 7 | 7 | 🟢 100% |
-| Features | 0 | 2 | 🔴 0% |
-| **Total** | **7** | **9** | **77%** |
+| Features | 2 | 3 | 🟡 66% |
+| **Total** | **9** | **10** | **90%** |
 
 ---
 
@@ -35,6 +35,12 @@
 ### Bug #7: Importação JSON - Regressão na Hierarquia de Assets (Corrigido)
 - **Problema:** Ao importar JSON, a hierarquia de ativos era perdida ou gerava erros de chave estrangeira no SQLite devido à ordem de inserção.
 - **Solução:** Implementada a ordenação Top-Down na função `flatten` (pais antes de filhos) e adicionada limpeza automática da tabela de assets antes da importação para garantir integridade.
+- **Status:** ✅ Corrigido
+
+### Feature #8: Settings - Adicionar Itens (Corrigido)
+- **Status:** ✅ Corrigido (Conectado ao hook global)
+
+### Feature #9: Settings - Excluir Itens (Corrigido)
 - **Status:** ✅ Corrigido
 
 ### Bug #3: Excluir Action
@@ -65,17 +71,10 @@
 
 ## 🔧 Features Pendentes
 
-### Feature #8: Settings - Adicionar Itens
-- **Onde:** Aba Settings → Adicionar tipo de análise, etc
-- **Sintoma:** Botão não funciona
-- **Causa:** Dados hardcoded, não conectado à API de taxonomy
-- **Prioridade:** 🟢 Baixa
-
-### Feature #9: Settings - Excluir Itens
-- **Onde:** Aba Settings → Excluir item
-- **Sintoma:** Botão não funciona
-- **Nota:** Itens são hardcoded no frontend
-- **Prioridade:** 🟢 Baixa
+### Feature #10: Filtro Padrão em Triggers
+- **Onde:** Aba Triggers
+- **Descrição:** Substituir/Atualizar os filtros atuais pelo componente de filtro padrão do sistema (GlobalFilter?) para manter consistência visual e funcional.
+- **Prioridade:** 🟡 Média
 
 ---
 
