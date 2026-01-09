@@ -314,7 +314,13 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
         };
     }, [triggers, assets, taxonomy, filters]);
 
+    // --- Pagination State ---
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 100;
+
     const filteredTriggers = useMemo(() => {
+        // Reset page when filters change (implicitly handled if we use formatted logic, 
+        // but explicit effect or key change is safer. Here we rely on useEffect)
         return triggers.filter(t => {
             // Text Search
             const searchLower = (filters.searchTerm || '').toLowerCase();
@@ -352,6 +358,11 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
             return matchesSearch && matchesYear && matchesMonth && matchesStatus && matchesAsset && matchesType;
         }).sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
     }, [triggers, filters]);
+
+    // Reset pagination when filters change
+    React.useEffect(() => {
+        setCurrentPage(1);
+    }, [filters]);
 
     return (
         <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col relative">
@@ -427,8 +438,8 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                     </td>
                                 </tr>
                             )}
-                            {/* Performance Limit: Show only top 100 */}
-                            {filteredTriggers.slice(0, 100).map(t => {
+                            {/* Pagination Logic */}
+                            {filteredTriggers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(t => {
                                 const farol = getFarol(t.start_date, t.status);
                                 const assetName = getAssetName(t.subgroup_id || t.equipment_id || t.area_id, assets);
                                 const analysisTypeName = getTaxonomyName(taxonomy.analysisTypes, t.analysis_type_id);
@@ -491,9 +502,27 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                             })}
                         </tbody>
                     </table>
-                    {filteredTriggers.length > 100 && (
-                        <div className="p-2 text-center text-xs text-slate-400 bg-slate-50 border-t border-slate-100">
-                            Mostrando 100 de {filteredTriggers.length} registros. Use os filtros para refinar.
+                    {filteredTriggers.length > 0 && (
+                        <div className="p-4 flex items-center justify-between border-t border-slate-100 bg-slate-50">
+                            <div className="text-sm text-slate-500">
+                                Mostrando <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> a <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredTriggers.length)}</span> de <span className="font-medium">{filteredTriggers.length}</span> resultados
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-3 py-1 border border-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
+                                >
+                                    Anterior
+                                </button>
+                                <button
+                                    onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredTriggers.length ? prev + 1 : prev))}
+                                    disabled={currentPage * itemsPerPage >= filteredTriggers.length}
+                                    className="px-3 py-1 border border-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
+                                >
+                                    Próxima
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>

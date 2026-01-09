@@ -190,6 +190,15 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         });
     }, [records, filters]);
 
+    // --- Pagination State ---
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 100;
+
+    // Reset pagination when filters change
+    React.useEffect(() => {
+        setCurrentPage(1);
+    }, [filters]);
+
     return (
         <div className="p-8 max-w-7xl mx-auto h-full flex flex-col">
             {/* Header */}
@@ -255,7 +264,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                     </td>
                                 </tr>
                             )}
-                            {filteredRecords.slice(0, 100).map(r => {
+                            {filteredRecords.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(r => {
                                 const statusName = getName('analysisStatuses', r.status);
                                 return (
                                     <tr key={r.id} onClick={() => onEdit(r)} className="hover:bg-blue-50 cursor-pointer transition-colors group">
@@ -301,9 +310,27 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                             })}
                         </tbody>
                     </table>
-                    {filteredRecords.length > 100 && (
-                        <div className="p-2 text-center text-xs text-slate-400 bg-slate-50 border-t border-slate-100">
-                            Mostrando 100 de {filteredRecords.length} análises. Use os filtros para refinar.
+                    {filteredRecords.length > 0 && (
+                        <div className="p-4 flex items-center justify-between border-t border-slate-100 bg-slate-50">
+                            <div className="text-sm text-slate-500">
+                                Mostrando <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> a <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredRecords.length)}</span> de <span className="font-medium">{filteredRecords.length}</span> resultados
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-3 py-1 border border-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
+                                >
+                                    Anterior
+                                </button>
+                                <button
+                                    onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredRecords.length ? prev + 1 : prev))}
+                                    disabled={currentPage * itemsPerPage >= filteredRecords.length}
+                                    className="px-3 py-1 border border-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
+                                >
+                                    Próxima
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
