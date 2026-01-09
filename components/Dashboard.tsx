@@ -78,18 +78,20 @@ export const Dashboard: React.FC = () => {
         return item ? item.name : id;
     };
 
-    const resolveAssetName = (id: string) => {
-        const findRecursive = (nodes: AssetNode[]): string | undefined => {
-            for (const n of nodes) {
-                if (n.id === id) return n.name;
-                if (n.children) {
-                    const found = findRecursive(n.children);
-                    if (found) return found;
-                }
-            }
+    // Performance Optimization: Flatten Asset Tree to Map O(1)
+    const assetMap = useMemo(() => {
+        const map = new Map<string, string>();
+        const traverse = (nodes: AssetNode[]) => {
+            nodes.forEach(n => {
+                map.set(n.id, n.name);
+                if (n.children) traverse(n.children);
+            });
         };
-        return findRecursive(assets) || id;
-    };
+        traverse(assets);
+        return map;
+    }, [assets]);
+
+    const resolveAssetName = (id: string) => assetMap.get(id) || id;
 
     // --- Strict Cross-Filtering Logic for Options ---
     const dynamicOptions = useMemo(() => {
