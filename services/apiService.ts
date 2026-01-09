@@ -235,7 +235,7 @@ export const deleteTriggerFromApi = async (id: string): Promise<void> => {
 const extractAssetsFromRecords = (records: any[]): any[] => {
     const assetsMap = new Map<string, any>();
 
-    const addAsset = (id: string, name: string, type: 'area' | 'unit' | 'system', parentId: string | null) => {
+    const addAsset = (id: string, name: string, type: 'AREA' | 'EQUIPMENT' | 'SUBGROUP', parentId: string | null) => {
         if (!id || assetsMap.has(id)) return;
         assetsMap.set(id, {
             id,
@@ -248,17 +248,17 @@ const extractAssetsFromRecords = (records: any[]): any[] => {
     records.forEach(r => {
         // Nível 1: Area
         if (r.area_id) {
-            addAsset(r.area_id, r.area_id, 'area', null);
+            addAsset(r.area_id, r.area_id, 'AREA', null);
         }
 
         // Nível 2: Equipment (Filho de Area)
         if (r.equipment_id && r.area_id) {
-            addAsset(r.equipment_id, r.equipment_id, 'unit', r.area_id);
+            addAsset(r.equipment_id, r.equipment_id, 'EQUIPMENT', r.area_id);
         }
 
         // Nível 3: Subgroup (Filho de Equipment)
         if (r.subgroup_id && r.equipment_id) {
-            addAsset(r.subgroup_id, r.subgroup_id, 'system', r.equipment_id);
+            addAsset(r.subgroup_id, r.subgroup_id, 'SUBGROUP', r.equipment_id);
         }
     });
 
