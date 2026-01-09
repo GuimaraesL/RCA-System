@@ -1,61 +1,49 @@
-
-import { useState, useEffect } from 'react';
+import { useRcaContext } from '../context/RcaContext';
 import { TaxonomyConfig, TaxonomyItem } from '../types';
 import { generateId } from '../services/storageService';
-import { useRcaContext } from '../context/RcaContext';
 
 export const useSettingsLogic = () => {
   const { taxonomy, updateTaxonomy } = useRcaContext();
-  const [localTaxonomy, setLocalTaxonomy] = useState<TaxonomyConfig>({
-    analysisTypes: [],
-    analysisStatuses: [],
-    specialties: [],
-    failureModes: [],
-    failureCategories: [],
-    componentTypes: [],
-    rootCauseMs: [],
-    triggerStatuses: []
-  });
 
-  useEffect(() => {
-    // Ensure all arrays exist even if context data is potentially partial (unlikely, but safe)
-    setLocalTaxonomy({
-      analysisTypes: taxonomy.analysisTypes || [],
-      analysisStatuses: taxonomy.analysisStatuses || [],
-      specialties: taxonomy.specialties || [],
-      failureModes: taxonomy.failureModes || [],
-      failureCategories: taxonomy.failureCategories || [],
-      componentTypes: taxonomy.componentTypes || [],
-      rootCauseMs: taxonomy.rootCauseMs || [],
-      triggerStatuses: taxonomy.triggerStatuses || []
-    });
-  }, [taxonomy]);
-
-  const handleUpdate = (field: keyof TaxonomyConfig, newItems: TaxonomyItem[]) => {
+  const handleUpdate = async (field: keyof TaxonomyConfig, newItems: TaxonomyItem[]) => {
+    console.log(`⚙️ Settings: Updating field ${field}...`);
     const newTaxonomy = { ...taxonomy, [field]: newItems };
-    updateTaxonomy(newTaxonomy);
+    try {
+      await updateTaxonomy(newTaxonomy);
+      console.log(`✅ Settings: Field ${field} updated successfully.`);
+    } catch (error) {
+      console.error(`❌ Settings: Error updating field ${field}:`, error);
+    }
   };
 
   const addItem = (field: keyof TaxonomyConfig, name: string) => {
     if (!name.trim()) return;
+
+    // Gerar prefixo baseado no campo (ex: analysisTypes -> ANT)
+    const prefix = field.substring(0, 3).toUpperCase();
     const newItem: TaxonomyItem = {
-      id: generateId(field.substring(0, 3).toUpperCase()),
+      id: generateId(prefix),
       name: name.trim()
     };
-    handleUpdate(field, [...(taxonomy[field] || []), newItem]);
+
+    const currentItems = taxonomy[field] || [];
+    handleUpdate(field, [...currentItems, newItem]);
   };
 
   const removeItem = (field: keyof TaxonomyConfig, id: string) => {
-    handleUpdate(field, (taxonomy[field] || []).filter(i => i.id !== id));
+    const currentItems = taxonomy[field] || [];
+    handleUpdate(field, currentItems.filter(i => i.id !== id));
   };
 
   const updateItem = (field: keyof TaxonomyConfig, id: string, name: string) => {
-    const updated = (taxonomy[field] || []).map(i => i.id === id ? { ...i, name } : i);
+    if (!name.trim()) return;
+    const currentItems = taxonomy[field] || [];
+    const updated = currentItems.map(i => i.id === id ? { ...i, name: name.trim() } : i);
     handleUpdate(field, updated);
   };
 
   return {
-    taxonomy: localTaxonomy,
+    taxonomy,
     addItem,
     removeItem,
     updateItem
