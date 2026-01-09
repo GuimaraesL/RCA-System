@@ -70,6 +70,17 @@ export const initDatabase = async (): Promise<Database> => {
         }
     }
 
+    try {
+        // v1.2: Add file_path to rcas
+        db.run("ALTER TABLE rcas ADD COLUMN file_path TEXT");
+        console.log("✅ Migration v1.2 applied: Added file_path to rcas");
+    } catch (e: any) {
+        // Ignore duplicate column error, means it already exists
+        if (!e.message.includes("duplicate column")) {
+            console.log("ℹ️ Migration v1.2 skipped (likely already exists) or error: " + e.message);
+        }
+    }
+
     // Salvar banco
     saveDatabase();
 

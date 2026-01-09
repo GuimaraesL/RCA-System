@@ -207,6 +207,9 @@ export interface RcaRecord {
 
   // 10. Additional Info
   additionalInfo?: AdditionalInfo;
+
+  // 11. Metadata
+  file_path?: string; // Network path to analysis file
 }
 
 export interface MigrationData {

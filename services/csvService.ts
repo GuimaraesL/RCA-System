@@ -134,57 +134,80 @@ const detectSeparator = (headerLine: string): string => {
 };
 
 const fromCSV = (csv: string): any[] => {
-    const lines = csv.split('\n').filter(l => l.trim().length > 0);
-    if (lines.length === 0) return [];
+    // Robust CSV Parser (Manual) to handle Multiline Fields
+    // 1. Detect Separator (Naive check on first line approximation)
+    let firstLineEnd = csv.indexOf('\n');
+    if (firstLineEnd === -1) firstLineEnd = csv.length;
+    const firstLine = csv.substring(0, firstLineEnd);
+    const separator = detectSeparator(firstLine);
 
-    // Auto-detect separator from first line
-    const separator = detectSeparator(lines[0]);
+    const rows: string[][] = [];
+    let currentRow: string[] = [];
+    let currentVal = '';
+    let insideQuote = false;
 
-    // Parse Headers and clean them (remove whitespace/BOM)
-    const headers = lines[0].split(separator).map(h => h.trim().replace(/^"|"$/g, '').replace(/^\uFEFF/, ''));
+    for (let i = 0; i < csv.length; i++) {
+        const char = csv[i];
+        const nextChar = csv[i + 1];
 
-    const result = [];
-
-    for (let i = 1; i < lines.length; i++) {
-        const currentLine = lines[i];
-        const values: string[] = [];
-        let currentVal = '';
-        let insideQuote = false;
-
-        for (let j = 0; j < currentLine.length; j++) {
-            const char = currentLine[j];
-            if (char === '"') {
-                if (j < currentLine.length - 1 && currentLine[j + 1] === '"') {
-                    currentVal += '"';
-                    j++;
-                } else {
-                    insideQuote = !insideQuote;
-                }
-            } else if (char === separator && !insideQuote) {
-                values.push(currentVal);
-                currentVal = '';
+        if (char === '"') {
+            if (insideQuote && nextChar === '"') {
+                // Escaped quote ("") -> Add single quote and skip next
+                currentVal += '"';
+                i++;
             } else {
-                currentVal += char;
+                // Toggle quote state
+                insideQuote = !insideQuote;
             }
-        }
-        values.push(currentVal);
-
-        const obj: any = {};
-        headers.forEach((h, index) => {
-            let val = values[index] ? values[index].trim() : '';
-            // Remove wrapping quotes from value if present
-            if (val.startsWith('"') && val.endsWith('"')) {
-                val = val.substring(1, val.length - 1).replace(/""/g, '"');
+        } else if (char === separator && !insideQuote) {
+            // End of column
+            currentRow.push(currentVal);
+            currentVal = '';
+        } else if ((char === '\r' || char === '\n') && !insideQuote) {
+            // End of row
+            // Handle \r\n or just \n
+            if (char === '\r' && nextChar === '\n') {
+                i++;
             }
-            obj[h] = val;
-        });
 
-        // Only add row if it has some data (ignore empty trailing lines)
-        if (Object.values(obj).some(v => v !== '')) {
-            result.push(obj);
+            // Push column
+            currentRow.push(currentVal);
+            // Push row if valid
+            if (currentRow.length > 0 && currentRow.some(c => c.trim().length > 0)) {
+                rows.push(currentRow);
+            }
+
+            currentRow = [];
+            currentVal = '';
+        } else {
+            currentVal += char;
         }
     }
-    return result;
+    // Push last row if exists
+    if (currentRow.length > 0 || currentVal !== '') {
+        currentRow.push(currentVal);
+        if (currentRow.some(c => c.trim().length > 0)) {
+            rows.push(currentRow);
+        }
+    }
+
+    if (rows.length === 0) return [];
+
+    // Extract Headers
+    const headers = rows[0].map(h => h.trim().replace(/^"|"$/g, '').replace(/^\uFEFF/, '')); // Remove encapsulating quotes and BOM
+    const dataRows = rows.slice(1);
+
+    return dataRows.map(rowValues => {
+        const obj: any = {};
+        headers.forEach((h, index) => {
+            // Values are already unescaped by our state machine, just trim whitespace if desired
+            // Standard CSV: Spaces around delimiters are part of the value unless quoted.
+            // We trim for safety.
+            const val = rowValues[index] || '';
+            obj[h] = val.trim();
+        });
+        return obj;
+    });
 };
 
 // --- EXPORTERS ---

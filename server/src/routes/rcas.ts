@@ -93,8 +93,8 @@ router.post('/', (req: Request, res: Response) => {
         who, what, "when", where_description, problem_description, potential_impacts, quality_impacts,
         five_whys, ishikawa, root_causes,
         precision_maintenance, human_reliability,
-        containment_actions, lessons_learned, general_moc_number, additional_info
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        containment_actions, lessons_learned, general_moc_number, additional_info, file_path
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
             n(rca.id), n(rca.version), n(rca.analysis_date), n(rca.analysis_duration_minutes) || 0, n(rca.analysis_type), n(rca.status),
             JSON.stringify(rca.participants || []), n(rca.facilitator), n(rca.start_date), n(rca.completion_date), rca.requires_operation_support ? 1 : 0,
@@ -104,7 +104,7 @@ router.post('/', (req: Request, res: Response) => {
             n(rca.who), n(rca.what), n(rca.when), n(rca.where_description), n(rca.problem_description), n(rca.potential_impacts), n(rca.quality_impacts),
             JSON.stringify(rca.five_whys || []), JSON.stringify(rca.ishikawa || {}), JSON.stringify(rca.root_causes || []),
             JSON.stringify(rca.precision_maintenance || []), JSON.stringify(rca.human_reliability || null),
-            JSON.stringify(rca.containment_actions || []), JSON.stringify(rca.lessons_learned || []), n(rca.general_moc_number), JSON.stringify(rca.additional_info || null)
+            JSON.stringify(rca.containment_actions || []), JSON.stringify(rca.lessons_learned || []), n(rca.general_moc_number), JSON.stringify(rca.additional_info || null), n(rca.file_path)
         ]);
 
         saveDatabase();
@@ -140,8 +140,8 @@ router.post('/bulk', (req: Request, res: Response) => {
         who, what, "when", where_description, problem_description, potential_impacts, quality_impacts,
         five_whys, ishikawa, root_causes,
         precision_maintenance, human_reliability,
-        containment_actions, lessons_learned, general_moc_number, additional_info
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        containment_actions, lessons_learned, general_moc_number, additional_info, file_path
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
         for (const rca of rcas) {
@@ -154,7 +154,7 @@ router.post('/bulk', (req: Request, res: Response) => {
                 n(rca.who), n(rca.what), n(rca.when), n(rca.where_description), n(rca.problem_description), n(rca.potential_impacts), n(rca.quality_impacts),
                 JSON.stringify(rca.five_whys || []), JSON.stringify(rca.ishikawa || {}), JSON.stringify(rca.root_causes || []),
                 JSON.stringify(rca.precision_maintenance || []), JSON.stringify(rca.human_reliability || null),
-                JSON.stringify(rca.containment_actions || []), JSON.stringify(rca.lessons_learned || []), n(rca.general_moc_number), JSON.stringify(rca.additional_info || null)
+                JSON.stringify(rca.containment_actions || []), JSON.stringify(rca.lessons_learned || []), n(rca.general_moc_number), JSON.stringify(rca.additional_info || null), n(rca.file_path)
             ]);
         }
 
@@ -186,7 +186,7 @@ router.put('/:id', (req: Request, res: Response) => {
         who = ?, what = ?, "when" = ?, where_description = ?, problem_description = ?, potential_impacts = ?, quality_impacts = ?,
         five_whys = ?, ishikawa = ?, root_causes = ?,
         precision_maintenance = ?, human_reliability = ?,
-        containment_actions = ?, lessons_learned = ?, general_moc_number = ?, additional_info = ?,
+        containment_actions = ?, lessons_learned = ?, general_moc_number = ?, additional_info = ?, file_path = ?,
         updated_at = datetime('now')
       WHERE id = ?
     `, [
@@ -198,7 +198,7 @@ router.put('/:id', (req: Request, res: Response) => {
             n(rca.who), n(rca.what), n(rca.when), n(rca.where_description), n(rca.problem_description), n(rca.potential_impacts), n(rca.quality_impacts),
             JSON.stringify(rca.five_whys || []), JSON.stringify(rca.ishikawa || {}), JSON.stringify(rca.root_causes || []),
             JSON.stringify(rca.precision_maintenance || []), JSON.stringify(rca.human_reliability || null),
-            JSON.stringify(rca.containment_actions || []), JSON.stringify(rca.lessons_learned || []), n(rca.general_moc_number), JSON.stringify(rca.additional_info || null),
+            JSON.stringify(rca.containment_actions || []), JSON.stringify(rca.lessons_learned || []), n(rca.general_moc_number), JSON.stringify(rca.additional_info || null), n(rca.file_path),
             req.params.id
         ]);
 
