@@ -41,6 +41,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return null;
 };
 
+const truncateLabel = (text: string, maxLength: number = 25) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+};
+
 export const Dashboard: React.FC = () => {
     const { records, assets, taxonomy } = useRcaContext();
 
@@ -381,7 +386,14 @@ export const Dashboard: React.FC = () => {
                                     })}
                                 </Pie>
                                 <Tooltip content={<CustomTooltip />} />
-                                <Legend verticalAlign="middle" align="right" layout="vertical" iconType="circle" />
+                                <Legend
+                                    verticalAlign="middle"
+                                    align="right"
+                                    layout="vertical"
+                                    iconType="circle"
+                                    onClick={(e: any) => handleChartClick('status', e.payload.id)}
+                                    wrapperStyle={{ cursor: 'pointer' }}
+                                />
                             </PieChart>
                         </ResponsiveContainer>
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">Sem dados</div>}
@@ -414,7 +426,12 @@ export const Dashboard: React.FC = () => {
                                     })}
                                 </Pie>
                                 <Tooltip content={<CustomTooltip />} />
-                                <Legend verticalAlign="bottom" height={36} />
+                                <Legend
+                                    verticalAlign="bottom"
+                                    height={36}
+                                    onClick={(e: any) => handleChartClick('analysisType', e.payload.id)}
+                                    wrapperStyle={{ cursor: 'pointer' }}
+                                />
                             </PieChart>
                         </ResponsiveContainer>
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">Sem dados</div>}
@@ -430,7 +447,7 @@ export const Dashboard: React.FC = () => {
                         >
                             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                             <XAxis type="number" allowDecimals={false} hide />
-                            <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 11, fill: '#64748b' }} />
+                            <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(value) => truncateLabel(value)} />
                             <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
                             <Bar
                                 dataKey="count"
@@ -457,7 +474,7 @@ export const Dashboard: React.FC = () => {
                         >
                             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                             <XAxis type="number" allowDecimals={false} hide />
-                            <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 11, fill: '#64748b' }} />
+                            <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(value) => truncateLabel(value)} />
                             <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
                             <Bar
                                 dataKey="count"
@@ -483,11 +500,11 @@ export const Dashboard: React.FC = () => {
                                 <Pie
                                     data={data6M}
                                     cx="50%" cy="50%"
-                                    innerRadius={40}
-                                    outerRadius={80}
+                                    innerRadius={60} // Increased inner radius for better look
+                                    outerRadius={90} // Increased outer radius
                                     paddingAngle={5}
                                     dataKey="count"
-                                    label
+                                    // Removed 'label' prop to clean up visualization
                                     onClick={(data) => handleChartClick('rootCause6M', data.id)}
                                     cursor="pointer"
                                 >
@@ -504,7 +521,10 @@ export const Dashboard: React.FC = () => {
                                     })}
                                 </Pie>
                                 <Tooltip content={<CustomTooltip />} />
-                                <Legend />
+                                <Legend
+                                    onClick={(e: any) => handleChartClick('rootCause6M', e.payload.id)}
+                                    wrapperStyle={{ cursor: 'pointer' }}
+                                />
                             </PieChart>
                         </ResponsiveContainer>
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">Sem causas raízes definidas</div>}
@@ -514,7 +534,7 @@ export const Dashboard: React.FC = () => {
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={dataComp} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                            <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748b' }} interval={0} angle={-45} textAnchor="end" height={60} />
+                            <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748b' }} interval={0} angle={-45} textAnchor="end" height={60} tickFormatter={(value) => truncateLabel(value)} />
                             <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
                             <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
                             <Bar
@@ -543,7 +563,7 @@ export const Dashboard: React.FC = () => {
                         >
                             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                             <XAxis type="number" allowDecimals={false} hide />
-                            <YAxis dataKey="name" type="category" width={140} tick={{ fontSize: 11, fill: '#64748b' }} />
+                            <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(value) => truncateLabel(value)} />
                             <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
                             <Bar
                                 dataKey="count"
@@ -571,7 +591,7 @@ export const Dashboard: React.FC = () => {
                         >
                             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                             <XAxis type="number" allowDecimals={false} hide />
-                            <YAxis dataKey="name" type="category" width={140} tick={{ fontSize: 11, fill: '#64748b' }} />
+                            <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(value) => truncateLabel(value)} />
                             <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
                             <Bar
                                 dataKey="count"
