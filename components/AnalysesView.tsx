@@ -43,11 +43,23 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         true
     );
 
-    // --- Helpers ---
+    // --- Performance Optimization: Taxonomy Maps for O(1) Lookup ---
+    const taxonomyMaps = useMemo(() => {
+        const maps: Record<string, Map<string, string>> = {};
+        if (taxonomy) {
+            Object.keys(taxonomy).forEach(key => {
+                const list = (taxonomy as any)[key];
+                if (Array.isArray(list)) {
+                    maps[key] = new Map(list.map((item: any) => [item.id, item.name]));
+                }
+            });
+        }
+        return maps;
+    }, [taxonomy]);
+
     const getName = (type: keyof TaxonomyConfig, id: string) => {
-        if (!taxonomy || !id) return id;
-        const item = (taxonomy[type] as any[]).find((t: any) => t.id === id);
-        return item ? item.name : id;
+        if (!id || !taxonomyMaps[type]) return id;
+        return taxonomyMaps[type].get(id) || id;
     };
 
     // --- Delete Handlers ---
@@ -261,9 +273,9 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${statusName === 'Concluída' ? 'bg-green-100 text-green-700' :
-                                                    statusName === 'Cancelada' ? 'bg-red-100 text-red-700' :
-                                                        statusName === 'Em Aberto' ? 'bg-slate-100 text-slate-600' :
-                                                            'bg-blue-100 text-blue-700'
+                                                statusName === 'Cancelada' ? 'bg-red-100 text-red-700' :
+                                                    statusName === 'Em Aberto' ? 'bg-slate-100 text-slate-600' :
+                                                        'bg-blue-100 text-blue-700'
                                                 }`}>
                                                 {statusName}
                                             </span>

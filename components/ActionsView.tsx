@@ -107,6 +107,11 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
     };
   }, [actions, assets, taxonomy, filters]);
 
+  // --- Performance Optimization: Map for O(1) RCA Lookup ---
+  const rcaMap = useMemo(() => {
+    return new Map(records.map(r => [r.id, r]));
+  }, [records]);
+
   // --- Filtering Logic ---
   const filteredActions = useMemo(() => {
     return actions.filter(a => {
@@ -131,7 +136,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
 
       // --- Technical Filters (Deep check on Parent RCA) ---
       // We find the parent record to check technical details not present in the ActionViewModel
-      const parent = records.find(r => r.id === a.rca_id);
+      const parent = rcaMap.get(a.rca_id);
 
       let matchesFailureMode = true;
       let matchesFailureCategory = true;
