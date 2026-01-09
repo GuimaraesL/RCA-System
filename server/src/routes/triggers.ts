@@ -137,12 +137,12 @@ router.put('/:id', (req: Request, res: Response) => {
         db.run(`
       UPDATE triggers SET area_id = ?, equipment_id = ?, subgroup_id = ?, start_date = ?, end_date = ?,
         duration_minutes = ?, stop_type = ?, stop_reason = ?, comments = ?, analysis_type_id = ?,
-        status = ?, responsible = ?, rca_id = ?, updated_at = datetime('now')
+        status = ?, responsible = ?, rca_id = ?, file_path = ?, updated_at = datetime('now')
       WHERE id = ?
     `, [
             s(t.area_id), s(t.equipment_id), s(t.subgroup_id), s(t.start_date), s(t.end_date),
             n(t.duration_minutes), s(t.stop_type), s(t.stop_reason), s(t.comments),
-            s(t.analysis_type_id), s(t.status), s(t.responsible), s(t.rca_id), req.params.id
+            s(t.analysis_type_id), s(t.status), s(t.responsible), s(t.rca_id), s(t.file_path), req.params.id
         ]);
 
         saveDatabase();
