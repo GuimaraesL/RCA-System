@@ -380,8 +380,30 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 // Priority 1: ID Match
                 let linkedRca = existingRecords.find(rec => rec.id === cleanRcaId);
 
-                // Priority 2: File Path Match (Future/Fallback) - Not fully implemented yet as RCA structure varies
-                // if (!linkedRca && r['Path']) { ... }
+                // Priority 2: File Path Match (Smart Correlation)
+                // If no direct ID link, check if the file path contains an existing RCA ID or Name
+                if (!linkedRca && (r['Path'] || r['file_path'])) {
+                    const rawPath = String(r['Path'] || r['file_path'] || '');
+
+                    // Normalization: 
+                    // 1. Replace backslashes with forward slashes
+                    // 2. Remove double slashes
+                    // 3. Lowercase for case-insensitive check
+                    const normalize = (s: string) => s.replace(/\\/g, '/').replace(/\/\//g, '/').toLowerCase();
+                    const cleanPath = normalize(rawPath);
+
+                    if (cleanPath.length > 5) { // Avoid matching short noise
+                        // Search for RCA ID in Path
+                        linkedRca = existingRecords.find(rec => {
+                            if (!rec.id) return false;
+                            const cleanId = normalize(rec.id);
+                            return cleanPath.includes(cleanId);
+                        });
+
+                        // Fallback: Use OS Number if ID fails? (Optional, based on user needs)
+                        // if (!linkedRca) ...
+                    }
+                }
 
                 // --- HIERARCHY INHERITANCE ---
                 // If Trigger has missing hierarchy but is linked to an RCA, inherit from RCA
@@ -390,8 +412,10 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                     if (!equipId && linkedRca.equipment_id) equipId = linkedRca.equipment_id;
                     if (!subId && linkedRca.subgroup_id) subId = linkedRca.subgroup_id;
 
-                    // Optional: If linked, ensure status reflects it? 
-                    // Keeping simple for now as per "Hierarchy Inheritance" request.
+                    // Auto-fill RCA ID if found by path
+                    if (!cleanRcaId) {
+                        // We don't overwrite r['ID AF'] here but we use linkedRca.id for the object
+                    }
                 }
 
                 const trigger: TriggerRecord = {
@@ -408,7 +432,7 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                     analysis_type_id: typeId,
                     status: statusId,
                     responsible: r['Responsável'] || '',
-                    rca_id: cleanRcaId,
+                    rca_id: cleanRcaId || (linkedRca ? linkedRca.id : ''), // Use discovered ID
                     file_path: r['Path'] || r['Caminho'] || r['Link'] || r['File Path'] || ''
                 };
                 newTriggers.push(trigger);
