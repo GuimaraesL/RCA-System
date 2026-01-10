@@ -60,10 +60,10 @@ export const Step5Actions: React.FC<Step5Props> = ({
 
             {/* Containment Actions (Internal) */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                <div className="flex justify-between items-center mb-4 border-b pb-2">
+                <div className="flex items-center gap-4 mb-4 border-b pb-2">
                     <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">2. Ação de Contenção (Imediata)</h3>
-                    <Button onClick={addContainment} variant="ghost" className="text-blue-600 text-xs gap-1">
-                        <Plus size={14} /> ADD
+                    <Button onClick={addContainment} variant="primary" size="sm" className="gap-2">
+                        <Plus size={14} /> ADD CONTAINMENT
                     </Button>
                 </div>
                 {data.containment_actions.map((act, idx) => (
@@ -95,7 +95,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                     <div className="flex flex-col items-center px-2"><span>4</span><span>Ef. Comprovada</span></div>
                 </div>
 
-                <div className="flex justify-between items-center mb-4 border-b pb-2 pr-48">
+                <div className="flex items-center gap-4 mb-4 border-b pb-2">
                     <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">7. Plano de Ação (Corretiva)</h3>
                     <Button onClick={onAddActionPlan} variant="primary" size="sm" className="gap-2">
                         <Plus size={14} /> ADD ACTION PLAN

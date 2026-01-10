@@ -41,7 +41,10 @@ export const useActionsLogic = () => {
   // Load data and resolve relationships (ID -> Name)
   useEffect(() => {
     // Map RCA ID to Title for dropdown
-    setRcaList(records.map(r => ({ id: r.id, title: r.what })));
+    setRcaList(records.map(r => ({
+      id: r.id,
+      title: r.what || r.id // Fallback se 'what' estiver vazio
+    })));
 
     // Create ViewModel
     const resolvedActions: ActionViewModel[] = rawActions.map(a => {

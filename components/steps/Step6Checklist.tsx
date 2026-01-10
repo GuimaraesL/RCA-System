@@ -11,15 +11,15 @@ interface Step6Props {
 export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
 
     const updatePrecision = (id: string, field: 'status' | 'comment', value: any) => {
-        const newItems = data.precision_maintenance.map(item => 
+        const newItems = data.precision_maintenance.map(item =>
             item.id === id ? { ...item, [field]: value } : item
         );
         onChange('precision_maintenance', newItems);
     };
 
-    const executedCount = data.precision_maintenance.filter(i => i.status === 'EXECUTED').length;
+    const answeredCount = data.precision_maintenance.filter(i => i.status && i.status !== '').length;
     const totalCount = data.precision_maintenance.length;
-    const percentage = Math.round((executedCount / totalCount) * 100) || 0;
+    const percentage = Math.round((answeredCount / totalCount) * 100) || 0;
 
     return (
         <div className="space-y-6 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -40,7 +40,7 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
                     />
                 </div>
                 <p className="text-sm text-gray-600 mt-2">
-                    {executedCount} de {totalCount} itens executados
+                    {answeredCount} de {totalCount} itens verificados
                 </p>
             </div>
 
@@ -67,11 +67,11 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
                                 <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'status', 'NOT_EXECUTED')} className={`p-1 rounded ${item.status === 'NOT_EXECUTED' ? 'text-red-500 bg-red-50' : 'text-slate-300'}`}>{item.status === 'NOT_EXECUTED' ? <XSquare size={18} /> : <Square size={18} />}</button></td>
                                 <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'status', 'NOT_APPLICABLE')} className={`p-1 rounded ${item.status === 'NOT_APPLICABLE' ? 'text-slate-500 bg-slate-100' : 'text-slate-300'}`}>{item.status === 'NOT_APPLICABLE' ? <CheckSquare size={18} /> : <Square size={18} />}</button></td>
                                 <td className="p-3">
-                                    <input 
-                                        type="text" 
-                                        className="w-full border-b border-slate-200 focus:border-blue-500 outline-none bg-transparent text-xs py-1 text-slate-900 placeholder:text-slate-400" 
-                                        placeholder="Add comment..." 
-                                        value={item.comment || ''} 
+                                    <input
+                                        type="text"
+                                        className="w-full border-b border-slate-200 focus:border-blue-500 outline-none bg-transparent text-xs py-1 text-slate-900 placeholder:text-slate-400"
+                                        placeholder="Add comment..."
+                                        value={item.comment || ''}
                                         onChange={(e) => updatePrecision(item.id, 'comment', e.target.value)}
                                     />
                                 </td>

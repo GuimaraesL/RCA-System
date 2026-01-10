@@ -132,7 +132,17 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
             if (!updated.human_reliability) updated.human_reliability = getStandardHraStruct();
             if (!updated.five_whys) updated.five_whys = createDefaultRecord().five_whys;
             if (!updated.ishikawa) updated.ishikawa = emptyIshikawa;
-            if (!updated.precision_maintenance) updated.precision_maintenance = getStandardPrecisionItems();
+
+            // 6. Migration: Precision Maintenance (NOT_APPLICABLE -> Empty)
+            // Ensures that old records with default 'NOT_APPLICABLE' are treated as unchecked.
+            if (!updated.precision_maintenance) {
+                updated.precision_maintenance = getStandardPrecisionItems();
+            } else {
+                updated.precision_maintenance = updated.precision_maintenance.map(item => ({
+                    ...item,
+                    status: item.status === 'NOT_APPLICABLE' ? '' : item.status
+                }));
+            }
 
             return updated;
         });

@@ -16,17 +16,17 @@ export const sanitizeString = (str: any): string => {
 };
 
 const STANDARD_PRECISION_ITEMS: PrecisionChecklistItem[] = [
-    { id: "chk_clean", activity: "Área está limpa e arrumada", question_snapshot: "Área está limpa e arrumada", status: "NOT_APPLICABLE", comment: "" },
-    { id: "chk_tol", activity: "Os ajustes e tolerâncias estão corretos", question_snapshot: "Os ajustes e tolerâncias estão corretos", status: "NOT_APPLICABLE", comment: "" },
-    { id: "chk_lube", activity: "A lubrificação é limpa, livre de contaminantes, com a quantidade e qualidade adequadas", question_snapshot: "A lubrificação é limpa, livre de contaminantes, com a quantidade e qualidade adequadas", status: "NOT_APPLICABLE", comment: "" },
-    { id: "chk_belt", activity: "A correia tem tensão e alinhamento corretos", question_snapshot: "A correia tem tensão e alinhamento corretos", status: "NOT_APPLICABLE", comment: "" },
-    { id: "chk_load", activity: "Cargas estão suportadas corretamente com montagens rígidas e suportes", question_snapshot: "Cargas estão suportadas corretamente com montagens rígidas e suportes", status: "NOT_APPLICABLE", comment: "" },
-    { id: "chk_align", activity: "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão devidamente alinhados", question_snapshot: "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão devidamente alinhados", status: "NOT_APPLICABLE", comment: "" },
-    { id: "chk_bal", activity: "Componentes rotativos estão balanceados", question_snapshot: "Componentes rotativos estão balanceados", status: "NOT_APPLICABLE", comment: "" },
-    { id: "chk_torque", activity: "Torques e Tensões estão corretos, utilizando torquímetros apropriados", question_snapshot: "Torques e Tensões estão corretos, utilizando torquímetros apropriados", status: "NOT_APPLICABLE", comment: "" },
-    { id: "chk_parts", activity: "Utilizados somente peças de acordo com a especificação para o equipamento (no BOM)", question_snapshot: "Utilizados somente peças de acordo com a especificação para o equipamento (no BOM)", status: "NOT_APPLICABLE", comment: "" },
-    { id: "chk_func", activity: "Teste Funcional executado", question_snapshot: "Teste Funcional executado", status: "NOT_APPLICABLE", comment: "" },
-    { id: "chk_doc", activity: "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)", question_snapshot: "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)", status: "NOT_APPLICABLE", comment: "" }
+    { id: "chk_clean", activity: "Área está limpa e arrumada", question_snapshot: "Área está limpa e arrumada", status: "", comment: "" },
+    { id: "chk_tol", activity: "Os ajustes e tolerâncias estão corretos", question_snapshot: "Os ajustes e tolerâncias estão corretos", status: "", comment: "" },
+    { id: "chk_lube", activity: "A lubrificação é limpa, livre de contaminantes, com a quantidade e qualidade adequadas", question_snapshot: "A lubrificação é limpa, livre de contaminantes, com a quantidade e qualidade adequadas", status: "", comment: "" },
+    { id: "chk_belt", activity: "A correia tem tensão e alinhamento corretos", question_snapshot: "A correia tem tensão e alinhamento corretos", status: "", comment: "" },
+    { id: "chk_load", activity: "Cargas estão suportadas corretamente com montagens rígidas e suportes", question_snapshot: "Cargas estão suportadas corretamente com montagens rígidas e suportes", status: "", comment: "" },
+    { id: "chk_align", activity: "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão devidamente alinhados", question_snapshot: "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão devidamente alinhados", status: "", comment: "" },
+    { id: "chk_bal", activity: "Componentes rotativos estão balanceados", question_snapshot: "Componentes rotativos estão balanceados", status: "", comment: "" },
+    { id: "chk_torque", activity: "Torques e Tensões estão corretos, utilizando torquímetros apropriados", question_snapshot: "Torques e Tensões estão corretos, utilizando torquímetros apropriados", status: "", comment: "" },
+    { id: "chk_parts", activity: "Utilizados somente peças de acordo com a especificação para o equipamento (no BOM)", question_snapshot: "Utilizados somente peças de acordo com a especificação para o equipamento (no BOM)", status: "", comment: "" },
+    { id: "chk_func", activity: "Teste Funcional executado", question_snapshot: "Teste Funcional executado", status: "", comment: "" },
+    { id: "chk_doc", activity: "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)", question_snapshot: "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)", status: "", comment: "" }
 ];
 
 export const getStandardPrecisionItems = () => JSON.parse(JSON.stringify(STANDARD_PRECISION_ITEMS));

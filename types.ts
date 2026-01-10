@@ -49,7 +49,7 @@ export interface IshikawaDiagram {
 }
 
 // 7. Manutenção de Precisão types
-export type PrecisionStatus = "EXECUTED" | "NOT_EXECUTED" | "NOT_APPLICABLE";
+export type PrecisionStatus = "EXECUTED" | "NOT_EXECUTED" | "NOT_APPLICABLE" | "";
 
 export interface PrecisionChecklistItem {
   id: string; // Semantic ID (slug) or UUID

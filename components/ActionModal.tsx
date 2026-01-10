@@ -5,8 +5,8 @@ import { ActionRecord } from '../types';
 interface ActionModalProps {
     isOpen: boolean;
     initialData: ActionRecord | null;
-    rcaList?: {id: string, title: string}[];
-    fixedRca?: {id: string, title: string};
+    rcaList?: { id: string, title: string }[];
+    fixedRca?: { id: string, title: string };
     onClose: () => void;
     onSave: (a: ActionRecord) => void;
 }
@@ -44,7 +44,11 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if(!form.rca_id) return alert('Please select a linked Analysis');
+        if (!form.rca_id) return alert('Please select a linked Analysis');
+        if (!form.action.trim()) return alert('Action Description is required');
+        if (!form.responsible.trim()) return alert('Responsible person is required');
+        if (!form.date) return alert('Due Date is required');
+
         onSave(form);
     };
 
@@ -62,11 +66,11 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                                 {fixedRca.title}
                             </div>
                         ) : (
-                            <select 
+                            <select
                                 required
                                 className="w-full border p-2 rounded text-sm bg-white text-slate-900"
                                 value={form.rca_id}
-                                onChange={e => setForm({...form, rca_id: e.target.value})}
+                                onChange={e => setForm({ ...form, rca_id: e.target.value })}
                             >
                                 <option value="">Select RCA...</option>
                                 {rcaList?.map(r => <option key={r.id} value={r.id}>{r.title}</option>)}
@@ -75,37 +79,37 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                     </div>
                     <div>
                         <label className="block text-xs font-medium text-slate-500 mb-1">Action Description <span className="text-red-500">*</span></label>
-                        <textarea 
+                        <textarea
                             required
                             className="w-full border p-2 rounded text-sm h-24 bg-white text-slate-900"
                             value={form.action}
-                            onChange={e => setForm({...form, action: e.target.value})}
+                            onChange={e => setForm({ ...form, action: e.target.value })}
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1">Responsible</label>
-                            <input type="text" required className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.responsible} onChange={e => setForm({...form, responsible: e.target.value})} />
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Responsible <span className="text-red-500">*</span></label>
+                            <input type="text" required className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.responsible} onChange={e => setForm({ ...form, responsible: e.target.value })} />
                         </div>
                         <div>
-                             <label className="block text-xs font-medium text-slate-500 mb-1">Due Date</label>
-                             <input type="date" required className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Due Date <span className="text-red-500">*</span></label>
+                            <input type="date" required className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                         <div>
+                        <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">Status (Box)</label>
-                            <select className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.status} onChange={e => setForm({...form, status: e.target.value as any})}>
+                            <select className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as any })}>
                                 <option value="1">1 - Aprovada</option>
                                 <option value="2">2 - Em Andamento</option>
                                 <option value="3">3 - Concluída</option>
                                 <option value="4">4 - Ef. Comprovada</option>
                             </select>
-                         </div>
-                         <div>
+                        </div>
+                        <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">MOC Number (Optional)</label>
-                            <input type="text" className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.moc_number || ''} onChange={e => setForm({...form, moc_number: e.target.value})} />
-                         </div>
+                            <input type="text" className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.moc_number || ''} onChange={e => setForm({ ...form, moc_number: e.target.value })} />
+                        </div>
                     </div>
 
                     <div className="flex justify-end gap-3 pt-4">

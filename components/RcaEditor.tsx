@@ -61,7 +61,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         if (step === 5 && formData.id) {
             refreshActions();
         }
-    }, [step, formData.id]);
+    }, [step, formData.id, actions]);
 
     // Generic Field Updater
     const handleChange = (field: string, value: any) => {
@@ -323,7 +323,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
             <ActionModal
                 isOpen={isActionModalOpen}
                 initialData={editingAction}
-                fixedRca={{ id: formData.id, title: formData.what }}
+                fixedRca={{ id: formData.id, title: formData.what || formData.id || 'Nova Análise' }}
                 onClose={() => setIsActionModalOpen(false)}
                 onSave={handleSaveAction}
             />
