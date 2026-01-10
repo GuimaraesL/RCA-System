@@ -19,6 +19,7 @@ export interface AssetNode {
 export interface TaxonomyItem {
   id: string;
   name: string;
+  specialty_ids?: string[]; // IDs of specialties this item belongs to
 }
 
 export interface TaxonomyConfig {

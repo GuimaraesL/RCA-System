@@ -16,13 +16,13 @@ interface Step1Props {
 }
 
 export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, taxonomy, onAssetSelect, onRefreshAssets }) => {
-    
+
     const getAssetName = (id: string, nodes: AssetNode[]): string => {
-        for(const node of nodes) {
-            if(node.id === id) return node.name;
-            if(node.children) {
+        for (const node of nodes) {
+            if (node.id === id) return node.name;
+            if (node.children) {
                 const found = getAssetName(id, node.children);
-                if(found) return found;
+                if (found) return found;
             }
         }
         return '';
@@ -42,24 +42,24 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         <RefreshCw size={12} /> Refresh Assets
                     </button>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Left: Asset Tree */}
                     <div>
-                         <label className="block text-xs font-medium text-slate-500 mb-1">Asset Selector (Select Subgroup) <span className="text-red-500">*</span></label>
-                         <div className="border rounded h-64 overflow-auto mb-2 bg-slate-50">
-                            <AssetSelector 
-                                assets={assets} 
-                                onSelect={onAssetSelect} 
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Asset Selector (Select Subgroup) <span className="text-red-500">*</span></label>
+                        <div className="border rounded h-64 overflow-auto mb-2 bg-slate-50">
+                            <AssetSelector
+                                assets={assets}
+                                onSelect={onAssetSelect}
                                 selectedAssetId={data.subgroup_id}
-                                selectableTypes={['SUBGROUP']} 
+                                selectableTypes={['SUBGROUP']}
                             />
-                         </div>
-                         <div className="p-3 bg-blue-50 rounded border border-blue-100 text-xs text-blue-800 space-y-1">
-                             <div><strong>Area:</strong> {getAssetName(data.area_id, assets) || '-'}</div>
-                             <div><strong>Equipment:</strong> {getAssetName(data.equipment_id, assets) || '-'}</div>
-                             <div><strong>Subgroup:</strong> {getAssetName(data.subgroup_id, assets) || '-'}</div>
-                         </div>
+                        </div>
+                        <div className="p-3 bg-blue-50 rounded border border-blue-100 text-xs text-blue-800 space-y-1">
+                            <div><strong>Area:</strong> {getAssetName(data.area_id, assets) || '-'}</div>
+                            <div><strong>Equipment:</strong> {getAssetName(data.equipment_id, assets) || '-'}</div>
+                            <div><strong>Subgroup:</strong> {getAssetName(data.subgroup_id, assets) || '-'}</div>
+                        </div>
                     </div>
 
                     {/* Right: Details */}
@@ -67,11 +67,11 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         <Select
                             label="Component Type (Conforme lista)"
                             required
-                            options={[{value: '', label: 'Select Type...'}, ...taxonomy.componentTypes.map(t => ({value: t.id, label: t.name}))]}
+                            options={[{ value: '', label: 'Select Type...' }, ...taxonomy.componentTypes.map(t => ({ value: t.id, label: t.name }))]}
                             value={data.component_type}
                             onChange={(e) => onChange('component_type', e.target.value)}
                         />
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                             <Input
                                 label="Failure Date"
@@ -89,26 +89,11 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                             <Input
-                                label="Downtime (min)"
-                                type="number"
-                                required
-                                value={data.downtime_minutes}
-                                onChange={(e) => onChange('downtime_minutes', Number(e.target.value))}
-                            />
-                            <Input
-                                label="Impact ($)"
-                                type="number"
-                                required
-                                value={data.financial_impact}
-                                onChange={(e) => onChange('financial_impact', Number(e.target.value))}
-                            />
-                        </div>
-                         <Input
-                                label="OS Number"
-                                value={data.os_number}
-                                onChange={(e) => onChange('os_number', e.target.value)}
+                        {/* Removed Downtime and Impact Inputs (Moved to Step 3) */}
+                        <Input
+                            label="OS Number"
+                            value={data.os_number}
+                            onChange={(e) => onChange('os_number', e.target.value)}
                         />
                     </div>
                 </div>
@@ -120,7 +105,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                     <Select
                         label="Analysis Type"
                         required
-                        options={[{value: '', label: 'Select...'}, ...taxonomy.analysisTypes.map(t => ({value: t.id, label: t.name}))]}
+                        options={[{ value: '', label: 'Select...' }, ...taxonomy.analysisTypes.map(t => ({ value: t.id, label: t.name }))]}
                         value={data.analysis_type}
                         onChange={(e) => onChange('analysis_type', e.target.value)}
                     />
@@ -128,6 +113,13 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         label="Facilitator"
                         value={data.facilitator}
                         onChange={(e) => onChange('facilitator', e.target.value)}
+                    />
+                    <Input
+                        label="Duração da Análise (min)"
+                        type="number"
+                        placeholder="Ex: 60"
+                        value={data.analysis_duration_minutes || 0}
+                        onChange={(e) => onChange('analysis_duration_minutes', Number(e.target.value))}
                     />
                     <Input
                         label="Participants"
@@ -151,8 +143,8 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         onChange={(e) => onChange('completion_date', e.target.value)}
                     />
                     <div className="flex items-center pt-6">
-                        <input 
-                            type="checkbox" 
+                        <input
+                            type="checkbox"
                             id="opSupport"
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                             checked={data.requires_operation_support || false}

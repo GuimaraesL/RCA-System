@@ -11,6 +11,25 @@ interface Step3Props {
 }
 
 export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy }) => {
+    // Dependent Dropdown Logic (Specialty -> Failure Mode)
+    // Filter modes that either have NO restriction OR include the current specialty
+    const filteredFailureModes = taxonomy.failureModes.filter(fm => {
+        if (!data.specialty_id) return true; // Show all if no specialty selected
+        if (!fm.specialty_ids || fm.specialty_ids.length === 0) return true; // Show universal modes
+        return fm.specialty_ids.includes(data.specialty_id);
+    });
+
+    // Auto-reset Failure Mode if it becomes invalid after Specialty change
+    React.useEffect(() => {
+        if (data.failure_mode_id && data.specialty_id) {
+            const isValid = filteredFailureModes.some(fm => fm.id === data.failure_mode_id);
+            if (!isValid) {
+                console.log('🔄 Auto-resetting Failure Mode due to Specialty mismatch');
+                onChange('failure_mode_id', '');
+            }
+        }
+    }, [data.specialty_id, data.failure_mode_id, filteredFailureModes, onChange]);
+
     return (
         <div className="space-y-6 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
@@ -21,7 +40,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy 
                     <Select
                         label="Especialidade"
                         required
-                        options={[{value: '', label: 'Select...'}, ...taxonomy.specialties.map(t => ({value: t.id, label: t.name}))]}
+                        options={[{ value: '', label: 'Select...' }, ...taxonomy.specialties.map(t => ({ value: t.id, label: t.name }))]}
                         value={data.specialty_id}
                         onChange={(e) => onChange('specialty_id', e.target.value)}
                     />
@@ -29,15 +48,16 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy 
                     <Select
                         label="Modo de Falha"
                         required
-                        options={[{value: '', label: 'Select...'}, ...taxonomy.failureModes.map(t => ({value: t.id, label: t.name}))]}
+                        options={[{ value: '', label: 'Select...' }, ...filteredFailureModes.map(t => ({ value: t.id, label: t.name }))]}
                         value={data.failure_mode_id}
                         onChange={(e) => onChange('failure_mode_id', e.target.value)}
+                        disabled={!data.specialty_id} // Optional: Disable until specialty selected
                     />
 
                     <Select
                         label="Categoria da Falha"
                         required
-                        options={[{value: '', label: 'Select...'}, ...taxonomy.failureCategories.map(t => ({value: t.id, label: t.name}))]}
+                        options={[{ value: '', label: 'Select...' }, ...taxonomy.failureCategories.map(t => ({ value: t.id, label: t.name }))]}
                         value={data.failure_category_id}
                         onChange={(e) => onChange('failure_category_id', e.target.value)}
                     />
@@ -59,7 +79,6 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy 
                     <Input
                         label="Impacto Financeiro (R$)"
                         type="number"
-                        required
                         placeholder="0.00"
                         step="0.01"
                         value={data.financial_impact}

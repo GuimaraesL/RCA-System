@@ -14,8 +14,8 @@ const defaultTaxonomy = {
         { id: 'AT-03', name: 'A3 Melhoria' }
     ],
     analysisStatuses: [
-        { id: 'STATUS-01', name: 'Em Aberto' },
-        { id: 'STATUS-02', name: 'Em Andamento' },
+        { id: 'STATUS-01', name: 'Em Andamento' }, // Unified (was Aberto + Andamento)
+        { id: 'STATUS-WAITING', name: 'Aguardando Verificação' }, // NEW: Validation Checkpoint
         { id: 'STATUS-03', name: 'Concluída' }
     ],
     specialties: [
@@ -24,9 +24,9 @@ const defaultTaxonomy = {
         { id: 'SPEC-03', name: 'Automação' }
     ],
     failureModes: [
-        { id: 'FM-01', name: 'Quebra' },
-        { id: 'FM-02', name: 'Desgaste' },
-        { id: 'FM-03', name: 'Falha Operacional' }
+        { id: 'FM-01', name: 'Quebra', specialty_ids: ['SPEC-01'] }, // Mecânica Only
+        { id: 'FM-02', name: 'Desgaste', specialty_ids: ['SPEC-01'] }, // Mecânica Only
+        { id: 'FM-03', name: 'Falha Operacional' } // Shared (None = All)
     ],
     failureCategories: [
         { id: 'FC-01', name: 'Mecânica' },

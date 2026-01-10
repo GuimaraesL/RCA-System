@@ -10,7 +10,7 @@ interface Step7Props {
 }
 
 export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
-    
+
     // Ensure additionalInfo exists (if migrating old record)
     const info = data.additionalInfo || { meetingNotes: '', comments: '', historicalInfo: '' };
 
@@ -75,29 +75,29 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
 
             {/* Lessons Learned */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                 <div className="flex justify-between items-center mb-4 border-b pb-2">
-                     <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">8. Lições Aprendidas</h3>
-                     <button onClick={addLesson} className="text-blue-600 text-xs font-bold flex items-center gap-1 hover:text-blue-700">
-                        <Plus size={14}/> ADD
-                     </button>
+                <div className="flex justify-between items-center mb-4 border-b pb-2">
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">8. Lições Aprendidas</h3>
+                    <button onClick={addLesson} className="text-blue-600 text-xs font-bold flex items-center gap-1 hover:text-blue-700">
+                        <Plus size={14} /> ADD
+                    </button>
                 </div>
                 <div className="space-y-3">
                     {data.lessons_learned.map((lesson, idx) => (
                         <div key={idx} className="flex gap-2">
-                            <input 
-                                type="text" 
-                                className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-slate-900 placeholder:text-slate-400" 
-                                value={lesson} 
+                            <input
+                                type="text"
+                                className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-slate-900 placeholder:text-slate-400"
+                                value={lesson}
                                 onChange={e => updateLesson(idx, e.target.value)}
                             />
                             <button onClick={() => removeLesson(idx)} className="text-slate-300 hover:text-red-500 transition-colors">
-                                <Trash2 size={16}/>
+                                <Trash2 size={16} />
                             </button>
                         </div>
                     ))}
                     {data.lessons_learned.length === 0 && <p className="text-xs text-slate-400 italic">Nenhuma lição aprendida registrada.</p>}
                 </div>
-             </div>
+            </div>
 
             <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-800">

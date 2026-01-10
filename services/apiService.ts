@@ -379,11 +379,80 @@ export const importDataToApi = async (data: any): Promise<{ success: boolean, me
 
         // 2.1 Varre RCAs para atualizar taxonomia e normalizar IDs
         const rcasToImport = data.records || data.results || [];
+        const actionsToImport = data.actions || [];
+
+        // Map RCA IDs that have at least one Action Plan item
+        const rcasWithActions = new Set<string>();
+        actionsToImport.forEach((a: any) => {
+            if (a.rca_id) rcasWithActions.add(a.rca_id);
+        });
+
+        // Auto-Discovery of Relationships (Hierarchy)
+        const discoveredRelations = new Map<string, Set<string>>(); // FailureModeID -> Set<SpecialtyID>
+
         const normalizedRcas = rcasToImport.map((rec: any) => {
             const newRec = { ...rec };
 
             // Auto-discover keys
-            if (newRec.status) newRec.status = ensureTaxonomy('analysisStatuses', newRec.status) || newRec.status;
+            // Auto-Promotion Logic (Completeness Check)
+            const mandatoryStrings = [
+                newRec.analysis_type,
+                newRec.what,
+                newRec.problem_description,
+                // newRec.asset_name_display, // Derived field, check IDs instead
+                newRec.equipment_id || newRec.subgroup_id, // Require at least one asset ID
+                newRec.who,
+                newRec.when,
+                newRec.where_description,
+                newRec.specialty_id,
+                newRec.failure_mode_id,
+                newRec.failure_category_id,
+                newRec.component_type
+            ];
+            const stringsOk = mandatoryStrings.every(s => s && String(s).trim().length > 0);
+
+            const checkArrayImport = (val: any) => {
+                if (Array.isArray(val)) return val.length > 0;
+                if (typeof val === 'string' && val.trim().length > 0) {
+                    try { const parsed = JSON.parse(val); return Array.isArray(parsed) && parsed.length > 0; } catch { return false; }
+                }
+                return false;
+            };
+            const participantsOk = checkArrayImport(newRec.participants);
+            const rootCausesOk = checkArrayImport(newRec.root_causes);
+            const impactsOk = (newRec.downtime_minutes !== undefined && newRec.downtime_minutes !== null);
+
+            // Action Plan Check: Require Containment Actions OR Main Actions
+            const hasContainment = checkArrayImport(newRec.containment_actions);
+            const hasMainActions = rcasWithActions.has(newRec.id);
+            const actionsOk = hasContainment || hasMainActions;
+
+            const isComplete = stringsOk && participantsOk && rootCausesOk && impactsOk && actionsOk;
+
+            // Normalize current status (handle Legacy strings)
+            let currentStatus = ensureTaxonomy('analysisStatuses', newRec.status) || newRec.status;
+
+            // Debug Log for specific record
+            if (newRec.id === '627bfb2a-a9c5-49b0-bd65-42a7cc7a61e9' || newRec.id === 'c02a20e2-8186-4541-ad9a-d4ad1ce10264') {
+                console.log(`🔍 DEBUG AUTO-PROMO [${newRec.id}]:`);
+                console.log(`   - Strings: ${stringsOk}`);
+                console.log(`   - Parts: ${participantsOk}, RootCauses: ${rootCausesOk}, Impacts: ${impactsOk}`);
+                console.log(`   - Actions: ${actionsOk} (Containment: ${hasContainment}, Main: ${hasMainActions})`);
+                console.log(`   - IS COMPLETE: ${isComplete}`);
+                console.log(`   - Old Status: ${currentStatus}`);
+            }
+
+            // Auto-discover keys & Status Assignment
+            // If Missing, Open, or 'Em Andamento' -> Re-evaluate based on completeness
+
+            // If Missing, Open, or 'Em Andamento' -> Re-evaluate based on completeness
+            const isOpenStatus = !currentStatus || currentStatus === '' || currentStatus === 'STATUS-01' || currentStatus === 'Em Andamento';
+
+            if (isOpenStatus) {
+                newRec.status = isComplete ? 'STATUS-WAITING' : 'STATUS-01';
+            } else {
+                newRec.status = currentStatus;
+            }
             if (newRec.specialty_id) newRec.specialty_id = ensureTaxonomy('specialties', newRec.specialty_id) || newRec.specialty_id;
             if (newRec.failure_mode_id) newRec.failure_mode_id = ensureTaxonomy('failureModes', newRec.failure_mode_id) || newRec.failure_mode_id;
             if (newRec.failure_category_id) newRec.failure_category_id = ensureTaxonomy('failureCategories', newRec.failure_category_id) || newRec.failure_category_id;
@@ -399,8 +468,31 @@ export const importDataToApi = async (data: any): Promise<{ success: boolean, me
                 });
             }
 
+            // Relationship Discovery: Failure Mode -> Specialty
+            if (newRec.failure_mode_id && newRec.specialty_id) {
+                if (!discoveredRelations.has(newRec.failure_mode_id)) {
+                    discoveredRelations.set(newRec.failure_mode_id, new Set());
+                }
+                discoveredRelations.get(newRec.failure_mode_id)?.add(newRec.specialty_id);
+            }
+
             return newRec;
         });
+
+        // Apply Discovered Relations to Taxonomy
+        if (discoveredRelations.size > 0 && taxonomyToSave.failureModes) {
+            console.log(`🔗 Auto-Learning Hierarchy for ${discoveredRelations.size} Failure Modes...`);
+            taxonomyToSave.failureModes = taxonomyToSave.failureModes.map(fm => {
+                if (discoveredRelations.has(fm.id)) {
+                    const foundSpecs = Array.from(discoveredRelations.get(fm.id)!);
+                    const existingSpecs = fm.specialty_ids || [];
+                    // Merge Unique
+                    const mergedSpecs = Array.from(new Set([...existingSpecs, ...foundSpecs]));
+                    return { ...fm, specialty_ids: mergedSpecs };
+                }
+                return fm;
+            });
+        }
 
         // 2.2 Salvar Taxonomia Atualizada
         await saveTaxonomyToApi(taxonomyToSave);

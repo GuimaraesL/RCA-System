@@ -170,23 +170,32 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         const rootCausesOk = formData.root_causes && formData.root_causes.length > 0;
 
         // Impact fields must be numbers (0 is allowed, but not undefined/null)
-        const impactsOk = (formData.financial_impact !== undefined && formData.financial_impact !== null) &&
-            (formData.downtime_minutes !== undefined && formData.downtime_minutes !== null);
+        // Note: financial_impact removed from mandatory per user request
+        const impactsOk = (formData.downtime_minutes !== undefined && formData.downtime_minutes !== null);
 
         const isComplete = stringsOk && participantsOk && rootCausesOk && impactsOk;
 
         // Resolve IDs from Taxonomy
         const doneStatusItem = taxonomy.analysisStatuses.find(s => s.name === 'Concluída');
-        const openStatusItem = taxonomy.analysisStatuses.find(s => s.name === 'Em Aberto');
+        const waitingStatusItem = taxonomy.analysisStatuses.find(s => s.id === 'STATUS-WAITING');
+        const openStatusItem = taxonomy.analysisStatuses.find(s => s.id === 'STATUS-01');
 
-        const doneStatusId = doneStatusItem ? doneStatusItem.id : 'STATUS-DONE';
+        const doneStatusId = doneStatusItem ? doneStatusItem.id : 'STATUS-03';
+        const waitingStatusId = waitingStatusItem ? waitingStatusItem.id : 'STATUS-WAITING';
         const openStatusId = openStatusItem ? openStatusItem.id : 'STATUS-01';
 
-        // Enforcement Logic: Downgrade if incomplete
-        if (!isComplete && formData.status === doneStatusId) {
-            // Prevent infinite loop by checking if it's already what we want
-            console.warn("Validation Failed: Downgrading status to Open due to missing fields.");
-            setFormData(prev => ({ ...prev, status: openStatusId }));
+        // Enforcement Logic:
+        // 1. If fields are MISSING -> Status CANNOT be 'Waiting' or 'Done'. Downgrade to 'Open'.
+        if (!isComplete) {
+            if (formData.status === doneStatusId || formData.status === waitingStatusId) {
+                console.warn("Validation Failed: Downgrading status to Open due to missing fields.");
+                setFormData(prev => ({ ...prev, status: openStatusId }));
+            }
+        } else {
+            // 2. If fields are COMPLETE -> We don't auto-upgrade, but we allow user to pick.
+            // (Optionally: Auto-upgrade Open -> Waiting can be done here, but might be annoying while typing)
+            // Strategy: Check if we are in 'Open' and everything is ready? No, let UI handle the suggestion.
+            // Just ensure we don't block valid states.
         }
     }, [
         // Dependency array listing all validated fields

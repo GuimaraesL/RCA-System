@@ -52,7 +52,7 @@ const REQUIRED_HEADERS: Record<CsvEntityType, string[]> = {
     'TAXONOMY_ANALYSIS_TYPES': ['name'],
     'TAXONOMY_STATUSES': ['name'],
     'TAXONOMY_SPECIALTIES': ['name'],
-    'TAXONOMY_FAILURE_MODES': ['name'],
+    'TAXONOMY_FAILURE_MODES': ['name', 'specialty_ids'], // Optional but good for validation
     'TAXONOMY_FAILURE_CATEGORIES': ['name'],
     'TAXONOMY_COMPONENT_TYPES': ['name'],
     'TAXONOMY_ROOT_CAUSE_MS': ['name'],
@@ -271,12 +271,24 @@ export const exportToCsv = (type: CsvEntityType, context: CsvContextData): strin
     }
 
     if (type === 'RECORDS_SUMMARY') {
-        return toCSV(records, ['id', 'what', 'participants', 'problem_description', 'analysis_type', 'status', 'failure_date', 'downtime_minutes', 'financial_impact', 'area_id']);
+        return toCSV(records, ['id', 'what', 'participants', 'problem_description', 'analysis_type', 'status', 'failure_date', 'downtime_minutes', 'financial_impact', 'analysis_duration_minutes', 'area_id']);
     }
 
     const taxonomyKey = TAXONOMY_MAP[type];
     if (taxonomyKey && taxonomy) {
-        return toCSV(taxonomy[taxonomyKey] || [], ['id', 'name']);
+        const items = taxonomy[taxonomyKey] || [];
+
+        // Custom Logic for Failure Modes with Specialty Dependency
+        if (type === 'TAXONOMY_FAILURE_MODES') {
+            const rows = items.map((i: any) => ({
+                id: i.id,
+                name: i.name,
+                specialty_ids: i.specialty_ids ? i.specialty_ids.join('|') : ''
+            }));
+            return toCSV(rows, ['id', 'name', 'specialty_ids']);
+        }
+
+        return toCSV(items, ['id', 'name']);
     }
 
     return '';
@@ -550,6 +562,7 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                         failure_date: r.failure_date || existingRec.failure_date,
                         downtime_minutes: Number(r.downtime_minutes) || existingRec.downtime_minutes,
                         financial_impact: Number(r.financial_impact) || existingRec.financial_impact,
+                        analysis_duration_minutes: Number(r.analysis_duration_minutes) || existingRec.analysis_duration_minutes,
                         area_id: r.area_id || existingRec.area_id
                     });
                     updatedCount++;
@@ -567,10 +580,22 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
 
         const taxonomyKey = TAXONOMY_MAP[type];
         if (taxonomyKey) {
-            const newItems: TaxonomyItem[] = rawData.map(r => ({
-                id: r.id || generateId('TAX'),
-                name: r.name || 'Unnamed Item'
-            }));
+            const newItems: TaxonomyItem[] = rawData.map(r => {
+                const item: TaxonomyItem = {
+                    id: r.id || generateId('TAX'),
+                    name: r.name || 'Unnamed Item'
+                };
+
+                // Handle Specialty IDs for Failure Modes
+                if (type === 'TAXONOMY_FAILURE_MODES' && r.specialty_ids) {
+                    const rawIds = String(r.specialty_ids);
+                    if (rawIds.trim()) {
+                        item.specialty_ids = rawIds.split(/[|;]/).map(id => id.trim()).filter(id => id);
+                    }
+                }
+
+                return item;
+            });
 
             if (newItems.length > 0 && newItems.every(i => i.name === 'Unnamed Item')) {
                 return { success: false, message: "Import failed: Could not read 'name' column." };
