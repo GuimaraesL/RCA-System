@@ -188,13 +188,17 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         const waitingStatusId = waitingItem?.id || 'STATUS-WAITING';
         const openStatusId = openItem?.id || 'STATUS-01';
 
-        // Current status category
-        const isClosed = [doneStatusId, 'STATUS-CANCELLED'].includes(formData.status);
-        // If already concluded, we generally don't want to revert UNLESS data became invalid?
-        // User rule: "se todos os campos... analise concluida".
-        // If the user UNCHECKS a mandatory field, it should revert to Open.
+        // Auto-Managed Statuses: The only ones we touch.
+        // If the record has a status like 'STATUS-CANCELLED' or some custom one, we DO NOT touch it.
+        const autoManagedStatuses = [openStatusId, waitingStatusId, doneStatusId, '', undefined, null];
+        const currentStatus = formData.status;
 
-        let newStatus = formData.status;
+        if (!autoManagedStatuses.includes(currentStatus)) {
+            // Protected Status (e.g. Cancelled). Do not auto-promote/demote.
+            return;
+        }
+
+        let newStatus = currentStatus;
 
         if (!isMandatoryComplete) {
             // Rule: Not complete -> In Progress (always downgrade if invalid)
