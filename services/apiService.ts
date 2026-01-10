@@ -498,6 +498,64 @@ export const importDataToApi = async (data: any): Promise<{ success: boolean, me
                 discoveredRelations.get(newRec.failure_mode_id)?.add(newRec.specialty_id);
             }
 
+            // --- AUTO-CONVERSION: Flat 5 Whys -> Hierarchical Chains (Task 55) ---
+            // If we have legacy data but no chains, we create a single linear chain.
+            if ((!newRec.five_whys_chains || newRec.five_whys_chains.length === 0) &&
+                (newRec.five_whys && newRec.five_whys.length > 0)) {
+
+                // Only convert if there is actual content
+                const validWhys = newRec.five_whys.filter((w: any) => w.answer && w.answer.trim().length > 0);
+
+                if (validWhys.length > 0) {
+                    console.log(`🌲 Converting Flat 5 Whys to Chain for RCA ${newRec.id}`);
+
+                    const rootNode: any = {
+                        id: generateId('node'),
+                        level: 0,
+                        cause_effect: newRec.problem_description || 'Problema Principal',
+                        whys: [],
+                        children: []
+                    };
+
+                    // In a linear flat list, we assume a single path.
+                    // However, the new structure groups "Whys" per node.
+                    // This mapping is tricky. A standard 5 Why flows:
+                    // Problem -> Why 1 (Answer) -> Why 2 (Answer) -> ...
+                    // In our Tree: Node 0 (Problem) -> Child Node 1 (Why 1) -> Child Node 2...
+                    // OR: Node 0 has a list of Whys?
+                    // Let's re-read the Types.
+                    // FiveWhyNode: { whys: {level, answer}[], children: FiveWhyNode[] }
+                    // Typically a Node represents a "State" and "Whys" justify the transition to Children.
+                    // BUT the displayed example showed:
+                    // Node (Causa/Efeito) -> Whys List -> Children.
+
+                    // Simplest Conversion:
+                    // One Single Chain.
+                    // Root Node (Problem).
+                    // Its "Whys" list contains ALL the flat whys.
+                    // And it has NO children (Linear).
+                    // Wait, the documentation example showed nested children.
+
+                    // Let's stick to the SIMPLEST valid migration:
+                    // A single node containing all the whys.
+                    // Because splitting them into parent/child nodes requires semantic understanding of "where the branch happens".
+                    // In a linear list, it's all one block.
+
+                    const chainId = generateId('chain');
+                    newRec.five_whys_chains = [{
+                        chain_id: chainId,
+                        cause_effect: newRec.problem_description || 'Fluxo Principal',
+                        root_node: {
+                            ...rootNode,
+                            whys: validWhys.map((w: any, idx: number) => ({
+                                level: idx + 1,
+                                answer: w.answer
+                            }))
+                        }
+                    }];
+                }
+            }
+
             return newRec;
         });
 

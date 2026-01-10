@@ -4,9 +4,10 @@ import { Input } from '../ui/Input';
 import { Textarea } from '../ui/Textarea';
 import { Select } from '../ui/Select';
 import { Button } from '../ui/Button';
-import { Plus, Trash2, Wand2, Loader2, AlertTriangle, UserCheck } from 'lucide-react';
+import { Plus, Trash2, Wand2, Loader2, AlertTriangle, UserCheck, GitBranch, Network } from 'lucide-react';
 import { RcaRecord, TaxonomyConfig, IshikawaDiagram } from '../../types';
 import { generateId } from '../../services/utils';
+import { FiveWhysEditor } from './fivewhys/FiveWhysEditor';
 
 interface Step4Props {
     data: RcaRecord;
@@ -62,6 +63,17 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
     const filledWhysCount = data.five_whys.filter(w => w.answer.trim()).length;
     const canDefineRootCause = filledWhysCount >= 3;
 
+    // --- 5 Whys Advanced Mode Logic ---
+    const hasChains = data.five_whys_chains && data.five_whys_chains?.length > 0;
+    const [useAdvancedMode, setUseAdvancedMode] = useState(hasChains);
+
+    // Initializer for empty legacy 5 whys (Bug 54 Fix)
+    const addLegacyWhy = () => {
+        const nextId = ((data.five_whys?.length || 0) + 1).toString();
+        const newWhy = { id: nextId, why_question: '', answer: '' };
+        onChange('five_whys', [...(data.five_whys || []), newWhy]);
+    };
+
     return (
         <div className="space-y-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div>
@@ -69,54 +81,99 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                 <p className="text-gray-600">Análise profunda das causas do problema</p>
             </div>
 
-            {/* 5 Whys */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 shadow-sm">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Matriz dos 5 Porquês</h3>
-                <p className="text-sm text-gray-600 mb-6">
-                    Preencha pelo menos 3 níveis para desbloquear a definição da causa raiz
-                </p>
+            {/* 5 Whys Block */}
+            <div className={`p-6 rounded-xl border shadow-sm transition-all ${useAdvancedMode ? 'bg-slate-50 border-slate-200' : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200'}`}>
+                <div className="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                            Matriz dos 5 Porquês
+                            {useAdvancedMode && <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full border border-blue-200">Modo Avançado (Árvore)</span>}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                            {useAdvancedMode
+                                ? "Mapeie múltiplos caminhos de causa e efeito."
+                                : "Preencha a sequência linear de causas."}
+                        </p>
+                    </div>
 
-                <div className="space-y-4">
-                    {data.five_whys.map((w, index) => (
-                        <div key={index} className="flex items-start gap-3">
-                            <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mt-2 shadow-sm">
-                                {index + 1}
-                            </div>
-                            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-semibold text-blue-700 mb-1 uppercase">Por que? (Efeito)</label>
-                                    <Input
-                                        value={w.why_question}
-                                        onChange={(e) => {
-                                            const newWhys = [...data.five_whys];
-                                            newWhys[index] = { ...w, why_question: e.target.value };
-                                            onChange('five_whys', newWhys);
-                                        }}
-                                        placeholder="Descreva o problema..."
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-blue-700 mb-1 uppercase">Porque... (Causa)</label>
-                                    <Input
-                                        value={w.answer}
-                                        onChange={(e) => {
-                                            const newWhys = [...data.five_whys];
-                                            newWhys[index] = { ...w, answer: e.target.value };
-                                            onChange('five_whys', newWhys);
-                                        }}
-                                        placeholder="Resposta..."
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                    <div className="flex gap-2">
+                        {!useAdvancedMode && (
+                            <Button variant="ghost" onClick={() => setUseAdvancedMode(true)} className="text-blue-600 hover:bg-blue-100">
+                                <GitBranch size={16} className="mr-2" /> Usar Modo Avançado
+                            </Button>
+                        )}
+                        {useAdvancedMode && !hasChains && (
+                            <Button variant="ghost" onClick={() => setUseAdvancedMode(false)} className="text-slate-500 hover:bg-slate-200">
+                                Voltar ao Simples
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
-                <div className="mt-4 p-3 bg-white/60 rounded-lg border border-blue-300 inline-block">
-                    <p className="text-sm font-medium text-blue-900">
-                        Níveis preenchidos: {filledWhysCount}/5
-                    </p>
-                </div>
+                {useAdvancedMode ? (
+                    <FiveWhysEditor
+                        chains={data.five_whys_chains || []}
+                        onChange={newChains => onChange('five_whys_chains', newChains)}
+                    />
+                ) : (
+                    <div className="space-y-4">
+                        {data.five_whys.length === 0 && (
+                            <div className="text-center p-8 border-2 border-dashed border-blue-200 rounded-lg bg-blue-50/50">
+                                <p className="text-blue-800 font-medium mb-2">Nenhum "Por que" iniciado.</p>
+                                <Button onClick={addLegacyWhy} variant="primary">
+                                    <Plus size={16} className="mr-2" /> Iniciar Análise
+                                </Button>
+                            </div>
+                        )}
+
+                        {data.five_whys.map((w, index) => (
+                            <div key={index} className="flex items-start gap-3">
+                                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mt-2 shadow-sm">
+                                    {index + 1}
+                                </div>
+                                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-blue-700 mb-1 uppercase">Por que? (Efeito)</label>
+                                        <Input
+                                            value={w.why_question}
+                                            onChange={(e) => {
+                                                const newWhys = [...data.five_whys];
+                                                newWhys[index] = { ...w, why_question: e.target.value };
+                                                onChange('five_whys', newWhys);
+                                            }}
+                                            placeholder="Descreva o problema..."
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-blue-700 mb-1 uppercase">Porque... (Causa)</label>
+                                        <Input
+                                            value={w.answer}
+                                            onChange={(e) => {
+                                                const newWhys = [...data.five_whys];
+                                                newWhys[index] = { ...w, answer: e.target.value };
+                                                onChange('five_whys', newWhys);
+                                            }}
+                                            placeholder="Resposta..."
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+
+                        {data.five_whys.length > 0 && (
+                            <div className="flex justify-between items-center mt-4">
+                                <div className="p-2 bg-white/60 rounded-lg border border-blue-300">
+                                    <p className="text-sm font-medium text-blue-900">
+                                        Níveis: {filledWhysCount}/5
+                                    </p>
+                                </div>
+                                <Button onClick={addLegacyWhy} variant="secondary" size="sm" className="bg-blue-100 text-blue-700 border-blue-200">
+                                    <Plus size={16} className="mr-1" /> Adicionar Nível
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Ishikawa (Fishbone) */}

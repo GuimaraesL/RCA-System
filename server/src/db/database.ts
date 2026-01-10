@@ -81,6 +81,16 @@ export const initDatabase = async (): Promise<Database> => {
         }
     }
 
+    try {
+        // v1.3: Add five_whys_chains to rcas (Task 55)
+        db.run("ALTER TABLE rcas ADD COLUMN five_whys_chains TEXT");
+        console.log("✅ Migration v1.3 applied: Added five_whys_chains to rcas");
+    } catch (e: any) {
+        if (!e.message.includes("duplicate column")) {
+            console.log("ℹ️ Migration v1.3 skipped (likely already exists).");
+        }
+    }
+
     // Salvar banco
     saveDatabase();
 

@@ -40,6 +40,22 @@ export interface FiveWhy {
   answer: string;
 }
 
+// New Hierarchical 5 Whys
+export interface FiveWhyNode {
+  id: string;
+  level: number;  // 0=Causa, 1-5=Whys
+  row?: number;
+  cause_effect?: string;
+  whys: { level: number; answer: string }[];
+  children: FiveWhyNode[];
+}
+
+export interface FiveWhyChain {
+  chain_id: string;
+  cause_effect: string;
+  root_node: FiveWhyNode;
+}
+
 export interface IshikawaDiagram {
   method: string[];
   machine: string[];
@@ -191,6 +207,7 @@ export interface RcaRecord {
 
   // 6. Investigação
   five_whys: FiveWhy[];
+  five_whys_chains?: FiveWhyChain[]; // New Hierarchical Structure
   ishikawa: IshikawaDiagram;
 
   root_causes: RootCauseItem[];

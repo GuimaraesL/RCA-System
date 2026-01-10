@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS rcas (
     quality_impacts TEXT,
     
     -- Investigação (JSON)
-    five_whys TEXT, -- JSON array
+    five_whys TEXT, -- JSON array (Legacy Flat)
+    five_whys_chains TEXT, -- JSON array (New Hierarchical Chains)
     ishikawa TEXT, -- JSON object
     root_causes TEXT, -- JSON array
     

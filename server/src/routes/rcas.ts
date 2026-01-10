@@ -29,6 +29,7 @@ const parseRcaRow = (row: any) => ({
     ...row,
     participants: JSON.parse(row.participants || '[]'),
     five_whys: JSON.parse(row.five_whys || '[]'),
+    five_whys_chains: JSON.parse(row.five_whys_chains || '[]'), // Task 55
     ishikawa: JSON.parse(row.ishikawa || '{}'),
     root_causes: JSON.parse(row.root_causes || '[]'),
     precision_maintenance: JSON.parse(row.precision_maintenance || '[]'),
@@ -91,10 +92,10 @@ router.post('/', (req: Request, res: Response) => {
         area_id, equipment_id, subgroup_id, component_type, asset_name_display,
         specialty_id, failure_mode_id, failure_category_id,
         who, what, "when", where_description, problem_description, potential_impacts, quality_impacts,
-        five_whys, ishikawa, root_causes,
+        five_whys, five_whys_chains, ishikawa, root_causes,
         precision_maintenance, human_reliability,
         containment_actions, lessons_learned, general_moc_number, additional_info, file_path
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
             n(rca.id), n(rca.version), n(rca.analysis_date), n(rca.analysis_duration_minutes) || 0, n(rca.analysis_type), n(rca.status),
             JSON.stringify(rca.participants || []), n(rca.facilitator), n(rca.start_date), n(rca.completion_date), rca.requires_operation_support ? 1 : 0,
@@ -102,7 +103,7 @@ router.post('/', (req: Request, res: Response) => {
             n(rca.area_id), n(rca.equipment_id), n(rca.subgroup_id), n(rca.component_type), n(rca.asset_name_display),
             n(rca.specialty_id), n(rca.failure_mode_id), n(rca.failure_category_id),
             n(rca.who), n(rca.what), n(rca.when), n(rca.where_description), n(rca.problem_description), n(rca.potential_impacts), n(rca.quality_impacts),
-            JSON.stringify(rca.five_whys || []), JSON.stringify(rca.ishikawa || {}), JSON.stringify(rca.root_causes || []),
+            JSON.stringify(rca.five_whys || []), JSON.stringify(rca.five_whys_chains || []), JSON.stringify(rca.ishikawa || {}), JSON.stringify(rca.root_causes || []),
             JSON.stringify(rca.precision_maintenance || []), JSON.stringify(rca.human_reliability || null),
             JSON.stringify(rca.containment_actions || []), JSON.stringify(rca.lessons_learned || []), n(rca.general_moc_number), JSON.stringify(rca.additional_info || null), n(rca.file_path)
         ]);
@@ -138,10 +139,10 @@ router.post('/bulk', (req: Request, res: Response) => {
         area_id, equipment_id, subgroup_id, component_type, asset_name_display,
         specialty_id, failure_mode_id, failure_category_id,
         who, what, "when", where_description, problem_description, potential_impacts, quality_impacts,
-        five_whys, ishikawa, root_causes,
+        five_whys, five_whys_chains, ishikawa, root_causes,
         precision_maintenance, human_reliability,
         containment_actions, lessons_learned, general_moc_number, additional_info, file_path
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
         for (const rca of rcas) {
@@ -152,7 +153,7 @@ router.post('/bulk', (req: Request, res: Response) => {
                 n(rca.area_id), n(rca.equipment_id), n(rca.subgroup_id), n(rca.component_type), n(rca.asset_name_display),
                 n(rca.specialty_id), n(rca.failure_mode_id), n(rca.failure_category_id),
                 n(rca.who), n(rca.what), n(rca.when), n(rca.where_description), n(rca.problem_description), n(rca.potential_impacts), n(rca.quality_impacts),
-                JSON.stringify(rca.five_whys || []), JSON.stringify(rca.ishikawa || {}), JSON.stringify(rca.root_causes || []),
+                JSON.stringify(rca.five_whys || []), JSON.stringify(rca.five_whys_chains || []), JSON.stringify(rca.ishikawa || {}), JSON.stringify(rca.root_causes || []),
                 JSON.stringify(rca.precision_maintenance || []), JSON.stringify(rca.human_reliability || null),
                 JSON.stringify(rca.containment_actions || []), JSON.stringify(rca.lessons_learned || []), n(rca.general_moc_number), JSON.stringify(rca.additional_info || null), n(rca.file_path)
             ]);
@@ -184,7 +185,7 @@ router.put('/:id', (req: Request, res: Response) => {
         area_id = ?, equipment_id = ?, subgroup_id = ?, component_type = ?, asset_name_display = ?,
         specialty_id = ?, failure_mode_id = ?, failure_category_id = ?,
         who = ?, what = ?, "when" = ?, where_description = ?, problem_description = ?, potential_impacts = ?, quality_impacts = ?,
-        five_whys = ?, ishikawa = ?, root_causes = ?,
+        five_whys = ?, five_whys_chains = ?, ishikawa = ?, root_causes = ?,
         precision_maintenance = ?, human_reliability = ?,
         containment_actions = ?, lessons_learned = ?, general_moc_number = ?, additional_info = ?, file_path = ?,
         updated_at = datetime('now')
@@ -196,7 +197,7 @@ router.put('/:id', (req: Request, res: Response) => {
             n(rca.area_id), n(rca.equipment_id), n(rca.subgroup_id), n(rca.component_type), n(rca.asset_name_display),
             n(rca.specialty_id), n(rca.failure_mode_id), n(rca.failure_category_id),
             n(rca.who), n(rca.what), n(rca.when), n(rca.where_description), n(rca.problem_description), n(rca.potential_impacts), n(rca.quality_impacts),
-            JSON.stringify(rca.five_whys || []), JSON.stringify(rca.ishikawa || {}), JSON.stringify(rca.root_causes || []),
+            JSON.stringify(rca.five_whys || []), JSON.stringify(rca.five_whys_chains || []), JSON.stringify(rca.ishikawa || {}), JSON.stringify(rca.root_causes || []),
             JSON.stringify(rca.precision_maintenance || []), JSON.stringify(rca.human_reliability || null),
             JSON.stringify(rca.containment_actions || []), JSON.stringify(rca.lessons_learned || []), n(rca.general_moc_number), JSON.stringify(rca.additional_info || null), n(rca.file_path),
             req.params.id
