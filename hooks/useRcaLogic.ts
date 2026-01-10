@@ -79,7 +79,7 @@ const findAssetPath = (nodes: AssetNode[], targetId: string): AssetNode[] | null
 };
 
 export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: () => void) => {
-    const { assets, taxonomy, updateRecord, addRecord } = useRcaContext();
+    const { assets, taxonomy, actions, updateRecord, addRecord } = useRcaContext();
     const [step, setStep] = useState(1);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -143,19 +143,18 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
                     status: item.status === 'NOT_APPLICABLE' ? '' : item.status
                 }));
             }
-
             return updated;
         });
     }, [existingRecord, taxonomy]); // Run when record loads or taxonomy loads
 
-    // --- Strict Validation Logic ---
+    // --- Strict Validation & Auto-Promotion Logic ---
     useEffect(() => {
-        // Define all fields that MUST be present for a "Completed" analysis
+        // 1. Mandatory Fields Check
         const mandatoryStrings = [
             formData.analysis_type,
             formData.what,
             formData.problem_description,
-            formData.asset_name_display,
+            formData.subgroup_id, // STRICT: User requires subgroup_id for eligibility
             formData.who,
             formData.when,
             formData.where_description,
@@ -170,40 +169,57 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         const rootCausesOk = formData.root_causes && formData.root_causes.length > 0;
 
         // Impact fields must be numbers (0 is allowed, but not undefined/null)
-        // Note: financial_impact removed from mandatory per user request
         const impactsOk = (formData.downtime_minutes !== undefined && formData.downtime_minutes !== null);
 
-        const isComplete = stringsOk && participantsOk && rootCausesOk && impactsOk;
+        const isMandatoryComplete = stringsOk && participantsOk && rootCausesOk && impactsOk;
 
-        // Resolve IDs from Taxonomy
-        const doneStatusItem = taxonomy.analysisStatuses.find(s => s.name === 'Concluída');
-        const waitingStatusItem = taxonomy.analysisStatuses.find(s => s.id === 'STATUS-WAITING');
-        const openStatusItem = taxonomy.analysisStatuses.find(s => s.id === 'STATUS-01');
+        // 2. Action Plan Analysis
+        const currentActions = actions.filter(a => a.rca_id === formData.id);
+        const hasMainActions = currentActions.length > 0;
+        const allActionsEffective = hasMainActions && currentActions.every(a => String(a.status) === '4');
 
-        const doneStatusId = doneStatusItem ? doneStatusItem.id : 'STATUS-03';
-        const waitingStatusId = waitingStatusItem ? waitingStatusItem.id : 'STATUS-WAITING';
-        const openStatusId = openStatusItem ? openStatusItem.id : 'STATUS-01';
+        // 3. Status Decision
+        // Get Taxonomy IDs
+        const doneItem = taxonomy.analysisStatuses.find(s => s.name === 'Concluída');
+        const waitingItem = taxonomy.analysisStatuses.find(s => s.id === 'STATUS-WAITING'); // ID match is safer
+        const openItem = taxonomy.analysisStatuses.find(s => s.id === 'STATUS-01');
 
-        // Enforcement Logic:
-        // 1. If fields are MISSING -> Status CANNOT be 'Waiting' or 'Done'. Downgrade to 'Open'.
-        if (!isComplete) {
-            if (formData.status === doneStatusId || formData.status === waitingStatusId) {
-                console.warn("Validation Failed: Downgrading status to Open due to missing fields.");
-                setFormData(prev => ({ ...prev, status: openStatusId }));
-            }
+        const doneStatusId = doneItem?.id || 'STATUS-03';
+        const waitingStatusId = waitingItem?.id || 'STATUS-WAITING';
+        const openStatusId = openItem?.id || 'STATUS-01';
+
+        // Current status category
+        const isClosed = [doneStatusId, 'STATUS-CANCELLED'].includes(formData.status);
+        // If already concluded, we generally don't want to revert UNLESS data became invalid?
+        // User rule: "se todos os campos... analise concluida".
+        // If the user UNCHECKS a mandatory field, it should revert to Open.
+
+        let newStatus = formData.status;
+
+        if (!isMandatoryComplete) {
+            // Rule: Not complete -> In Progress (always downgrade if invalid)
+            if (newStatus !== openStatusId) newStatus = openStatusId;
         } else {
-            // 2. If fields are COMPLETE -> We don't auto-upgrade, but we allow user to pick.
-            // (Optionally: Auto-upgrade Open -> Waiting can be done here, but might be annoying while typing)
-            // Strategy: Check if we are in 'Open' and everything is ready? No, let UI handle the suggestion.
-            // Just ensure we don't block valid states.
+            // Rule: Complete. Check Actions.
+            if (!hasMainActions) {
+                // Rule: Complete & No Actions -> Concluded
+                if (newStatus !== doneStatusId) newStatus = doneStatusId;
+            } else if (allActionsEffective) {
+                // Rule: Complete & All Actions Effective -> Concluded
+                if (newStatus !== doneStatusId) newStatus = doneStatusId;
+            } else {
+                // Rule: Complete & Contains Actions with Box != 4 -> Waiting Verification
+                if (newStatus !== waitingStatusId) newStatus = waitingStatusId;
+            }
         }
+
+        // Only update if changed to avoid infinite loops
+        if (newStatus !== formData.status) {
+            console.log(`Auto-Updating Status: ${formData.status} -> ${newStatus}`);
+            setFormData(prev => ({ ...prev, status: newStatus }));
+        }
+
     }, [
-        // Dependency array listing all validated fields
-        formData.analysis_type,
-        formData.what,
-        formData.problem_description,
-        formData.asset_name_display,
-        formData.who,
         formData.when,
         formData.where_description,
         formData.specialty_id,

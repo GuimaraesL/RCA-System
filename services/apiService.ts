@@ -381,10 +381,14 @@ export const importDataToApi = async (data: any): Promise<{ success: boolean, me
         const rcasToImport = data.records || data.results || [];
         const actionsToImport = data.actions || [];
 
-        // Map RCA IDs that have at least one Action Plan item
-        const rcasWithActions = new Set<string>();
+        // Map RCA IDs to their Actions (Main Actions)
+        const rcaActionsMap = new Map<string, any[]>();
         actionsToImport.forEach((a: any) => {
-            if (a.rca_id) rcasWithActions.add(a.rca_id);
+            if (a.rca_id) {
+                const list = rcaActionsMap.get(a.rca_id) || [];
+                list.push(a);
+                rcaActionsMap.set(a.rca_id, list);
+            }
         });
 
         // Auto-Discovery of Relationships (Hierarchy)
@@ -393,14 +397,12 @@ export const importDataToApi = async (data: any): Promise<{ success: boolean, me
         const normalizedRcas = rcasToImport.map((rec: any) => {
             const newRec = { ...rec };
 
-            // Auto-discover keys
-            // Auto-Promotion Logic (Completeness Check)
+            // 1. Mandatory Fields Check (Strict)
             const mandatoryStrings = [
                 newRec.analysis_type,
                 newRec.what,
                 newRec.problem_description,
-                // newRec.asset_name_display, // Derived field, check IDs instead
-                newRec.equipment_id || newRec.subgroup_id, // Require at least one asset ID
+                newRec.subgroup_id, // STRICT: User requires subgroup_id for eligibility
                 newRec.who,
                 newRec.when,
                 newRec.where_description,
@@ -422,37 +424,55 @@ export const importDataToApi = async (data: any): Promise<{ success: boolean, me
             const rootCausesOk = checkArrayImport(newRec.root_causes);
             const impactsOk = (newRec.downtime_minutes !== undefined && newRec.downtime_minutes !== null);
 
-            // Action Plan Check: Require Containment Actions OR Main Actions
-            const hasContainment = checkArrayImport(newRec.containment_actions);
-            const hasMainActions = rcasWithActions.has(newRec.id);
-            const actionsOk = hasContainment || hasMainActions;
+            const isMandatoryComplete = stringsOk && participantsOk && rootCausesOk && impactsOk;
 
-            const isComplete = stringsOk && participantsOk && rootCausesOk && impactsOk && actionsOk;
+            // 2. Action Plan Analysis
+            const mainActions = rcaActionsMap.get(newRec.id) || [];
+            const hasMainActions = mainActions.length > 0;
 
+            // Check Efficiency (Box 4 = '4')
+            // If ALL actions are '4', then it is effectively done.
+            // If ANY action is NOT '4', and we have actions, then it is Waiting Verification.
+            const allActionsEffective = hasMainActions && mainActions.every(a => String(a.status) === '4');
+            const hasPendingActions = hasMainActions && !allActionsEffective;
+
+            // 3. Status Logic
             // Normalize current status (handle Legacy strings)
             let currentStatus = ensureTaxonomy('analysisStatuses', newRec.status) || newRec.status;
+
+            // If Missing, Open, or 'Em Andamento' -> Re-evaluate based on rules
+            const isOpenStatus = !currentStatus || currentStatus === '' || currentStatus === 'STATUS-01' || currentStatus === 'Em Andamento';
+
+            if (isOpenStatus) {
+                if (!isMandatoryComplete) {
+                    // Rule: Not complete -> In Progress
+                    newRec.status = 'STATUS-01';
+                } else {
+                    // Rule: Complete. Check Actions.
+                    if (!hasMainActions) {
+                        // Rule: Complete & No Actions -> Concluded
+                        newRec.status = 'STATUS-03';
+                    } else if (allActionsEffective) {
+                        // Rule: Complete & All Actions Effective -> Concluded
+                        newRec.status = 'STATUS-03';
+                    } else {
+                        // Rule: Complete & Contains Actions with Box != 4 -> Waiting Verification
+                        newRec.status = 'STATUS-WAITING';
+                    }
+                }
+            } else {
+                newRec.status = currentStatus;
+            }
 
             // Debug Log for specific record
             if (newRec.id === '627bfb2a-a9c5-49b0-bd65-42a7cc7a61e9' || newRec.id === 'c02a20e2-8186-4541-ad9a-d4ad1ce10264') {
                 console.log(`🔍 DEBUG AUTO-PROMO [${newRec.id}]:`);
-                console.log(`   - Strings: ${stringsOk}`);
-                console.log(`   - Parts: ${participantsOk}, RootCauses: ${rootCausesOk}, Impacts: ${impactsOk}`);
-                console.log(`   - Actions: ${actionsOk} (Containment: ${hasContainment}, Main: ${hasMainActions})`);
-                console.log(`   - IS COMPLETE: ${isComplete}`);
-                console.log(`   - Old Status: ${currentStatus}`);
+                console.log(`   - Mandatory Complete: ${isMandatoryComplete} (Strings: ${stringsOk}, Subgroup: ${!!newRec.subgroup_id})`);
+                console.log(`   - Actions Count: ${mainActions.length}`);
+                console.log(`   - All Actions Effective (Box 4): ${allActionsEffective}`);
+                console.log(`   - RESULT STATUS: ${newRec.status}`);
             }
 
-            // Auto-discover keys & Status Assignment
-            // If Missing, Open, or 'Em Andamento' -> Re-evaluate based on completeness
-
-            // If Missing, Open, or 'Em Andamento' -> Re-evaluate based on completeness
-            const isOpenStatus = !currentStatus || currentStatus === '' || currentStatus === 'STATUS-01' || currentStatus === 'Em Andamento';
-
-            if (isOpenStatus) {
-                newRec.status = isComplete ? 'STATUS-WAITING' : 'STATUS-01';
-            } else {
-                newRec.status = currentStatus;
-            }
             if (newRec.specialty_id) newRec.specialty_id = ensureTaxonomy('specialties', newRec.specialty_id) || newRec.specialty_id;
             if (newRec.failure_mode_id) newRec.failure_mode_id = ensureTaxonomy('failureModes', newRec.failure_mode_id) || newRec.failure_mode_id;
             if (newRec.failure_category_id) newRec.failure_category_id = ensureTaxonomy('failureCategories', newRec.failure_category_id) || newRec.failure_category_id;
