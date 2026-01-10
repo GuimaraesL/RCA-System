@@ -95,3 +95,44 @@ Uso extensivo de `useMemo` para computações pesadas:
 2.  **Fail Fast:** Erros de API devem ser tratados no `apiService` com logs claros.
 3.  **Imutabilidade:** Nunca mutar estado diretamente; usar setters do React.
 4.  **Performance First:** Sempre validar complexidade de algoritmos dentro de `map` ou `filter`.
+
+---
+
+## 📜 Regras de Negócio (Auto-Promoção de Status)
+
+O sistema possui uma lógica autônoma para determinar o status de uma Análise (`Em Andamento`, `Aguardando Verificação` ou `Concluída`), garantindo integridade dos dados e fluxo de processo.
+
+### 1. Escopo de Gerenciamento
+A automação atua **apenas** sobre os seguintes status ("Gerenciados"):
+- `Vazio / Nulo`
+- `STATUS-01` (Em Andamento)
+- `STATUS-WAITING` (Aguardando Verificação)
+- `STATUS-03` (Concluída)
+
+⚠️ **Status Protegidos**: Status manuais ou externos (ex: `STATUS-CANCELLED`, `STATUS-PENDING-APPROVAL`) são **ignorados** pela automação. Se um usuário cancelar manualmente, o robô jamais alterará isso.
+
+### 2. Pipeline de Decisão (`useRcaLogic.ts` & `apiService.ts`)
+
+#### A. Verificação de Completude (Mandatory Check)
+Para ser elegível a qualquer promoção, o registro deve conter:
+1.  **Campos de Texto:** Título, Descrição, Quem, Quando, Onde.
+2.  **Taxonomia:** Especialidade, Modo de Falha, Categoria, Tipo Componente.
+3.  **Localização (Crítico):** `subgroup_id` (Nível Subconjunto) é obrigatório.
+4.  **Listas:** Pelo menos 1 Participante e 1 Causa Raiz.
+5.  **Impacto:** `downtime_minutes` definido (pode ser 0).
+
+🔴 **FALHA:** Se qualquer campo faltar ➔ Força Status **Em Andamento** (`STATUS-01`).
+
+#### B. Análise de Plano de Ação (Apenas se Completude OK)
+Se o registro estiver completo, o sistema avalia os Planos de Ação (Main Actions):
+
+1.  **Sem Ações:**
+    - Considerado resolvido (ex: Causa Raiz simples ou procedimental).
+    - ✅ Resultado: **Concluída** (`STATUS-03`).
+
+2.  **Com Ações (Lógica de Eficácia):**
+    - Verifica campo `status` de cada ação.
+    - **Box 4 (Eficácia Comprovada):** ID `'4'`.
+    - **Regra:**
+        - Se **TODAS** as ações forem Box 4 ➔ ✅ **Concluída** (`STATUS-03`).
+        - Se **QUALQUER** ação não for Box 4 ➔ ⏳ **Aguardando Verificação** (`STATUS-WAITING`).

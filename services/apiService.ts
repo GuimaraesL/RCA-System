@@ -398,6 +398,8 @@ export const importDataToApi = async (data: any): Promise<{ success: boolean, me
             const newRec = { ...rec };
 
             // 1. Mandatory Fields Check (Strict)
+            // REGRAS: Verifica completude de dados para decidir status inicial.
+            // Requer: subgroup_id, listas preenchidas, impacto definido.
             const mandatoryStrings = [
                 newRec.analysis_type,
                 newRec.what,

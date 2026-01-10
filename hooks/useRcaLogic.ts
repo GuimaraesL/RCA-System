@@ -147,7 +147,25 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         });
     }, [existingRecord, taxonomy]); // Run when record loads or taxonomy loads
 
-    // --- Strict Validation & Auto-Promotion Logic ---
+    // --- Lógica de Validação Estrita & Auto-Promoção de Status ---
+    // Esta lógica garante que o status da análise reflita a qualidade dos dados em tempo real.
+    // 
+    // REGRAS DE NEGÓCIO:
+    // 1. Escopo de Atuação:
+    //    - Apenas status "Gerenciados" são alterados automaticamente: 
+    //      [Em Andamento, Aguardando Verificação, Concluída, Vazio].
+    //    - Status manuais (ex: Cancelada) são PROTEGIDOS e ignorados.
+    //
+    // 2. Pré-requisitos (Mandatory):
+    //    - Todos os campos de texto, IDs de Taxonomia, Listas (Participantes/Causas).
+    //    - **Crítico:** `subgroup_id` é obrigatório.
+    //    - Se falhar: Rebaixa para 'STATUS-01' (Em Andamento).
+    //
+    // 3. Critérios de Promoção (Se Pré-requisitos OK):
+    //    - Sem Ações? -> Considera 'Concluída' (STATUS-03).
+    //    - Com Ações? -> Verifica eficácia (Box 4).
+    //      - TUDO Box 4? -> 'Concluída' (STATUS-03).
+    //      - Alguma Pendente? -> 'Aguardando Verificação' (STATUS-WAITING).
     useEffect(() => {
         // 1. Mandatory Fields Check
         const mandatoryStrings = [

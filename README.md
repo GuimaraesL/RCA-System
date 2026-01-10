@@ -26,6 +26,7 @@ Projetado para **High Performance**, o sistema renderiza instantaneamente datase
 
 ### 🔗 Integração Inteligente (Força Tarefa)
 - **Vinculação Trigger <-> RCA:** Associe eventos de parada a análises existentes com um clique.
+- **Auto-Status (Novo):** O sistema define automaticamente se a análise está "Em Andamento", "Aguardando Verificação" ou "Concluída" baseado na qualidade dos dados e eficácia do plano de ação.
 - **Herança de Dados:** RCAs novas herdam automaticamente local, data e contexto do Trigger.
 - **Auditoria de Dados:** Validação estrita de schemas na importação de CSV/JSON.
 
@@ -79,4 +80,4 @@ Para detalhes profundos sobre a arquitetura do sistema, estratégias de otimiza�
 ---
 
 **Desenvolvido por:** Time de Excelência Operacional (Com Assistência de IA Avançada)
-**Versão:** 2.1.0 (Performance Sprint)
+**Versão:** 2.2.0 (Integrity Sprint)
