@@ -432,10 +432,10 @@ export const importDataToApi = async (data: any): Promise<{ success: boolean, me
             const mainActions = rcaActionsMap.get(newRec.id) || [];
             const hasMainActions = mainActions.length > 0;
 
-            // Check Efficiency (Box 4 = '4')
-            // If ALL actions are '4', then it is effectively done.
-            // If ANY action is NOT '4', and we have actions, then it is Waiting Verification.
-            const allActionsEffective = hasMainActions && mainActions.every(a => String(a.status) === '4');
+            // Check Efficiency (Box 3='3' or Box 4='4')
+            // If ALL actions are '3' or '4', then it is effectively done.
+            // If ANY action is NOT '3' or '4', and we have actions, then it is Waiting Verification.
+            const allActionsEffective = hasMainActions && mainActions.every(a => ['3', '4'].includes(String(a.status)));
             const hasPendingActions = hasMainActions && !allActionsEffective;
 
             // 3. Status Logic

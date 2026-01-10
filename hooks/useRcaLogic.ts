@@ -163,8 +163,8 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
     //
     // 3. Critérios de Promoção (Se Pré-requisitos OK):
     //    - Sem Ações? -> Considera 'Concluída' (STATUS-03).
-    //    - Com Ações? -> Verifica eficácia (Box 4).
-    //      - TUDO Box 4? -> 'Concluída' (STATUS-03).
+    //    - Com Ações? -> Verifica eficácia (Box 3 ou 4).
+    //      - TUDO Box 3/4? -> 'Concluída' (STATUS-03).
     //      - Alguma Pendente? -> 'Aguardando Verificação' (STATUS-WAITING).
     useEffect(() => {
         // 1. Mandatory Fields Check
@@ -194,7 +194,7 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         // 2. Action Plan Analysis
         const currentActions = actions.filter(a => a.rca_id === formData.id);
         const hasMainActions = currentActions.length > 0;
-        const allActionsEffective = hasMainActions && currentActions.every(a => String(a.status) === '4');
+        const allActionsEffective = hasMainActions && currentActions.every(a => ['3', '4'].includes(String(a.status)));
 
         // 3. Status Decision
         // Get Taxonomy IDs

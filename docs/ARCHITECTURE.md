@@ -132,7 +132,7 @@ Se o registro estiver completo, o sistema avalia os Planos de Ação (Main Actio
 
 2.  **Com Ações (Lógica de Eficácia):**
     - Verifica campo `status` de cada ação.
-    - **Box 4 (Eficácia Comprovada):** ID `'4'`.
+    - **Box 3 (Eficaz)** e **Box 4 (Eficácia Comprovada):** IDs `'3'` e `'4'`.
     - **Regra:**
-        - Se **TODAS** as ações forem Box 4 ➔ ✅ **Concluída** (`STATUS-03`).
-        - Se **QUALQUER** ação não for Box 4 ➔ ⏳ **Aguardando Verificação** (`STATUS-WAITING`).
+        - Se **TODAS** as ações forem Box 3 ou 4 ➔ ✅ **Concluída** (`STATUS-03`).
+        - Se **QUALQUER** ação não for Box 3 nem 4 ➔ ⏳ **Aguardando Verificação** (`STATUS-WAITING`).
