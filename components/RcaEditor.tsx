@@ -36,7 +36,8 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         formData, setFormData,
         handleAssetSelect,
         handleAnalyzeAI,
-        handleSave
+        handleSave,
+        validationErrors // Added
     } = useRcaLogic(existingRecord || null, onSave);
 
     // Local state for actions fetched by ID
@@ -141,14 +142,19 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     );
 
     const stepsList = [
-        { id: 1, title: 'Dados Gerais', subtitle: 'Informações básicas' },
-        { id: 2, title: 'Problema', subtitle: '5W1H' },
-        { id: 3, title: 'Análise Técnica', subtitle: 'Impacto e falha' },
-        { id: 4, title: 'Investigação', subtitle: '5 Porquês e Ishikawa' },
-        { id: 5, title: 'Ações', subtitle: 'Plano de ação' },
-        { id: 6, title: 'Checklist', subtitle: 'Manutenção' },
-        { id: 7, title: 'Info. Adicionais', subtitle: 'Notas e Comentários' }
+        { id: 1, title: 'Dados Gerais', subtitle: 'Informações básicas', fields: ['subgroup_id', 'component_type', 'failure_date', 'failure_time', 'analysis_type', 'participants'] },
+        { id: 2, title: 'Problema', subtitle: '5W1H', fields: ['what', 'problem_description', 'who', 'when', 'where_description'] },
+        { id: 3, title: 'Análise Técnica', subtitle: 'Impacto e falha', fields: ['specialty_id', 'failure_mode_id', 'failure_category_id'] },
+        { id: 4, title: 'Investigação', subtitle: '5 Porquês e Ishikawa', fields: [] },
+        { id: 5, title: 'Ações', subtitle: 'Plano de ação', fields: [] },
+        { id: 6, title: 'Checklist', subtitle: 'Manutenção', fields: [] },
+        { id: 7, title: 'Info. Adicionais', subtitle: 'Notas e Comentários', fields: [] }
     ];
+
+    const hasStepError = (stepId: number) => {
+        const stepFields = stepsList.find(s => s.id === stepId)?.fields || [];
+        return stepFields.some(field => validationErrors[field]);
+    };
 
     return (
         <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-full w-full max-w-7xl mx-auto relative">
@@ -202,6 +208,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                     {stepsList.map((s, index) => {
                         const isCompleted = step > s.id;
                         const isCurrent = step === s.id;
+                        const hasError = hasStepError(s.id);
 
                         return (
                             <div key={s.id} className="flex-1 flex flex-col items-center relative group cursor-pointer" onClick={() => setStep(s.id)}>
@@ -214,7 +221,8 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all z-10
                             ${isCompleted ? 'bg-green-500 border-green-500 text-white' :
                                             isCurrent ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-110' :
-                                                'bg-white border-gray-300 text-gray-400 group-hover:border-blue-300'}`}
+                                                hasError ? 'bg-red-50 border-red-500 text-red-500' :
+                                                    'bg-white border-gray-300 text-gray-400 group-hover:border-blue-300'}`}
                                 >
                                     {isCompleted ? <Check size={16} strokeWidth={3} /> : s.id}
                                 </div>
@@ -257,6 +265,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                         taxonomy={taxonomy}
                         onAssetSelect={handleAssetSelect}
                         onRefreshAssets={refreshAssets}
+                        errors={validationErrors}
                     />
                 )}
 
@@ -264,6 +273,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                     <Step2Problem
                         data={formData}
                         onChange={handleChange}
+                        errors={validationErrors}
                     />
                 )}
 
@@ -272,6 +282,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                         data={formData}
                         onChange={handleChange}
                         taxonomy={taxonomy}
+                        errors={validationErrors}
                     />
                 )}
 

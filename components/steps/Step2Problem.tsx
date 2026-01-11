@@ -7,9 +7,10 @@ import { RcaRecord } from '../../types';
 interface Step2Props {
     data: RcaRecord;
     onChange: (field: string, value: any) => void;
+    errors?: Record<string, boolean>;
 }
 
-export const Step2Problem: React.FC<Step2Props> = ({ data, onChange }) => {
+export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, errors }) => {
     return (
         <div className="space-y-6 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
@@ -23,6 +24,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange }) => {
                         placeholder="Quem detectou o problema?"
                         value={data.who}
                         onChange={(e) => onChange('who', e.target.value)}
+                        error={errors?.who}
                     />
 
                     <Input
@@ -31,6 +33,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange }) => {
                         placeholder="Data/Hora da ocorrência detalhada"
                         value={data.when}
                         onChange={(e) => onChange('when', e.target.value)}
+                        error={errors?.when}
                     />
 
                     <Input
@@ -39,6 +42,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange }) => {
                         placeholder="Área, Equipamento, Local específico"
                         value={data.where_description}
                         onChange={(e) => onChange('where_description', e.target.value)}
+                        error={errors?.where_description}
                     />
 
                     <Input
@@ -47,6 +51,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange }) => {
                         placeholder="Descrição sucinta da falha"
                         value={data.what}
                         onChange={(e) => onChange('what', e.target.value)}
+                        error={errors?.what}
                     />
                 </div>
 
@@ -58,6 +63,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange }) => {
                         rows={6}
                         value={data.problem_description}
                         onChange={(e) => onChange('problem_description', e.target.value)}
+                        error={errors?.problem_description}
                     />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

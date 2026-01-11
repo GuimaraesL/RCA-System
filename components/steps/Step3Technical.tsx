@@ -8,9 +8,10 @@ interface Step3Props {
     data: RcaRecord;
     onChange: (field: string, value: any) => void;
     taxonomy: TaxonomyConfig;
+    errors?: Record<string, boolean>;
 }
 
-export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy }) => {
+export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy, errors }) => {
     // Dependent Dropdown Logic (Specialty -> Failure Mode)
     // Filter modes that either have NO restriction OR include the current specialty
     const filteredFailureModes = taxonomy.failureModes.filter(fm => {
@@ -43,6 +44,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy 
                         options={[{ value: '', label: 'Select...' }, ...taxonomy.specialties.map(t => ({ value: t.id, label: t.name }))]}
                         value={data.specialty_id}
                         onChange={(e) => onChange('specialty_id', e.target.value)}
+                        error={errors?.specialty_id}
                     />
 
                     <Select
@@ -52,6 +54,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy 
                         value={data.failure_mode_id}
                         onChange={(e) => onChange('failure_mode_id', e.target.value)}
                         disabled={!data.specialty_id} // Optional: Disable until specialty selected
+                        error={errors?.failure_mode_id}
                     />
 
                     <Select
@@ -60,6 +63,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy 
                         options={[{ value: '', label: 'Select...' }, ...taxonomy.failureCategories.map(t => ({ value: t.id, label: t.name }))]}
                         value={data.failure_category_id}
                         onChange={(e) => onChange('failure_category_id', e.target.value)}
+                        error={errors?.failure_category_id}
                     />
                 </div>
             </div>

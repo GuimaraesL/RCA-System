@@ -74,6 +74,12 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
         onChange('five_whys', [...(data.five_whys || []), newWhy]);
     };
 
+    const removeLegacyWhy = (index: number) => {
+        const newWhys = [...data.five_whys];
+        newWhys.splice(index, 1);
+        onChange('five_whys', newWhys);
+    };
+
     return (
         <div className="space-y-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div>
@@ -127,7 +133,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                         )}
 
                         {data.five_whys.map((w, index) => (
-                            <div key={index} className="flex items-start gap-3">
+                            <div key={index} className="flex items-start gap-3 group">
                                 <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mt-2 shadow-sm">
                                     {index + 1}
                                 </div>
@@ -157,6 +163,13 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                                         />
                                     </div>
                                 </div>
+                                <button
+                                    onClick={() => removeLegacyWhy(index)}
+                                    className="mt-8 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                                    title="Excluir nível"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
                             </div>
                         ))}
 

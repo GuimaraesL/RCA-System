@@ -13,9 +13,10 @@ interface Step1Props {
     taxonomy: TaxonomyConfig;
     onAssetSelect: (asset: AssetNode) => void;
     onRefreshAssets: () => void;
+    errors?: Record<string, boolean>;
 }
 
-export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, taxonomy, onAssetSelect, onRefreshAssets }) => {
+export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, taxonomy, onAssetSelect, onRefreshAssets, errors }) => {
 
     const getAssetName = (id: string, nodes: AssetNode[]): string => {
         for (const node of nodes) {
@@ -47,7 +48,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                     {/* Left: Asset Tree */}
                     <div>
                         <label className="block text-xs font-medium text-slate-500 mb-1">Asset Selector (Select Subgroup) <span className="text-red-500">*</span></label>
-                        <div className="border rounded h-64 overflow-auto mb-2 bg-slate-50">
+                        <div className={`border rounded h-64 overflow-auto mb-2 bg-slate-50 ${errors?.subgroup_id ? 'border-red-500 ring-2 ring-red-100' : 'border-slate-200'}`}>
                             <AssetSelector
                                 assets={assets}
                                 onSelect={onAssetSelect}
@@ -55,6 +56,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                                 selectableTypes={['SUBGROUP']}
                             />
                         </div>
+                        {errors?.subgroup_id && <span className="text-[10px] text-red-500 font-medium block mb-2">Selecione um subgrupo obrigatório</span>}
                         <div className="p-3 bg-blue-50 rounded border border-blue-100 text-xs text-blue-800 space-y-1">
                             <div><strong>Area:</strong> {getAssetName(data.area_id, assets) || '-'}</div>
                             <div><strong>Equipment:</strong> {getAssetName(data.equipment_id, assets) || '-'}</div>
@@ -70,6 +72,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                             options={[{ value: '', label: 'Select Type...' }, ...taxonomy.componentTypes.map(t => ({ value: t.id, label: t.name }))]}
                             value={data.component_type}
                             onChange={(e) => onChange('component_type', e.target.value)}
+                            error={errors?.component_type}
                         />
 
                         <div className="grid grid-cols-2 gap-4">
@@ -79,6 +82,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                                 required
                                 value={data.failure_date}
                                 onChange={(e) => onChange('failure_date', e.target.value)}
+                                error={errors?.failure_date}
                             />
                             <Input
                                 label="Time"
@@ -86,6 +90,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                                 required
                                 value={data.failure_time}
                                 onChange={(e) => onChange('failure_time', e.target.value)}
+                                error={errors?.failure_time}
                             />
                         </div>
 
@@ -108,6 +113,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         options={[{ value: '', label: 'Select...' }, ...taxonomy.analysisTypes.map(t => ({ value: t.id, label: t.name }))]}
                         value={data.analysis_type}
                         onChange={(e) => onChange('analysis_type', e.target.value)}
+                        error={errors?.analysis_type}
                     />
                     <Input
                         label="Facilitator"
@@ -127,6 +133,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         placeholder="Ademir, Lucas, Paulo (Separated by comma)"
                         value={data.participants.join(', ')}
                         onChange={(e) => handleParticipantsChange(e.target.value)}
+                        error={errors?.participants}
                     />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

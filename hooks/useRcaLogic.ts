@@ -23,7 +23,7 @@ const createDefaultRecord = (): RcaRecord => ({
     completion_date: '',
     requires_operation_support: false,
 
-    failure_date: new Date().toISOString().split('T')[0],
+    failure_date: '', // FORCE USER SELECTION (Before: new Date())
     failure_time: '00:00',
     downtime_minutes: 0,
     financial_impact: 0,
@@ -104,10 +104,8 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
                 updated.status = defaultStatus;
             }
 
-            // 2. Ensure Analysis Type is valid
-            if (!updated.analysis_type && taxonomy.analysisTypes.length > 0) {
-                updated.analysis_type = taxonomy.analysisTypes[0].id;
-            }
+            // 2. Ensure Structures (Optimisation)
+            if (!updated.human_reliability) updated.human_reliability = getStandardHraStruct();
 
             // 3. Migration: Array-ify Root Causes if missing
             if (!updated.root_causes) {
@@ -238,7 +236,16 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         // Only update if changed to avoid infinite loops
         if (newStatus !== formData.status) {
             console.log(`Auto-Updating Status: ${formData.status} -> ${newStatus}`);
-            setFormData(prev => ({ ...prev, status: newStatus }));
+
+            // Auto-set Completion Date if moving to Done
+            let completionDateUpdate = {};
+            if (newStatus === doneStatusId && !formData.completion_date) {
+                const today = new Date().toISOString().split('T')[0];
+                console.log(`✅ Auto-setting Completion Date to ${today}`);
+                completionDateUpdate = { completion_date: today };
+            }
+
+            setFormData(prev => ({ ...prev, status: newStatus, ...completionDateUpdate }));
         }
 
     }, [
@@ -297,7 +304,47 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         setIsAnalyzing(false);
     };
 
+    // Validation State
+    const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
+
+    // Lista mínima de campos para SALVAR o registro (Permite Draft)
+    // Para considerá-la "Concluída", a lógica do useEffect acima (auto-status) continua verificando a lista completa.
+    const validateForm = (): boolean => {
+        const errors: Record<string, boolean> = {};
+
+        // CAMPOS MÍNIMOS PARA SALVAR (Rascunho)
+        const minimumFieldsData = [
+            'subgroup_id',   // Necessário para localização
+            'failure_date',  // Necessário para timeline
+            'analysis_type', // Necessário para categorização básica
+            'what'           // Título/Identificador
+        ];
+
+        minimumFieldsData.forEach(field => {
+            const val = (formData as any)[field];
+            if (!val || (typeof val === 'string' && val.trim() === '')) {
+                errors[field] = true;
+            }
+        });
+
+        setValidationErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
     const handleSave = async () => {
+        // Validation (Strict on Create, visual feedback on Edit too)
+        // User requested visual feedback on "Create Only" page effectively, but strictly validating is safer.
+        // If we want to allow Drafts, we might skip this block or make it a warning.
+        // Given the request for "Visual Feedback of Mandatory Fields", stopping save is the standard trigger for feedback.
+        if (!validateForm()) {
+            console.warn('❌ Validation Failed:', validationErrors);
+            // We assume the caller (RcaEditor) will see the updated validationErrors state.
+            // But state updates are async. We should rely on the state set in validateForm.
+            // Actually, validateForm sets state.
+            // We should probably return false here to let component know.
+            return false;
+        }
+
         try {
             if (existingRecord) {
                 await updateRecord(formData);
@@ -306,8 +353,10 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
             }
             console.log('✅ RCA salva com sucesso:', formData.id);
             onSaveCallback();
+            return true;
         } catch (error) {
             console.error('❌ Erro ao salvar RCA:', error);
+            return false;
         }
     };
 
@@ -319,6 +368,7 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         formData, setFormData,
         handleAssetSelect,
         handleAnalyzeAI,
-        handleSave
+        handleSave,
+        validationErrors // Exposed
     };
 };

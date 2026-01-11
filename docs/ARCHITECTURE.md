@@ -136,3 +136,33 @@ Se o registro estiver completo, o sistema avalia os Planos de Ação (Main Actio
     - **Regra:**
         - Se **TODAS** as ações forem Box 3 ou 4 ➔ ✅ **Concluída** (`STATUS-03`).
         - Se **QUALQUER** ação não for Box 3 nem 4 ➔ ⏳ **Aguardando Verificação** (`STATUS-WAITING`).
+
+---
+
+## 🤖 Regras de Negócio e Automação
+
+### 1. Campos Mínimos e "Rascunhos" (Draft Mode) e Inicialização "Limpa"
+Diferente da validação para conclusão (Status), a operação de **Salvar** possui regras mais flexíveis para permitir o trabalho em progresso.
+Para evitar dados "sujos" ou placeholders padrão, certos campos iniciam vazios propositalmente.
+
+- **Campos "Zerados" (Start Empty):**
+  - **Tipo de Análise:** Inicia vazio (antes: "Falha Crítica"). Força o usuário a categorizar manualmente.
+  - **Data da Falha:** Inicia vazia (antes: Hoje). Evita datas incorretas por esquecimento.
+
+- **Requisitos Mínimos para Salvar:**
+  Para persistir um registro no banco (mesmo como Rascunho), exige-se apenas:
+  1.  **Subgrupo (`subgroup_id`):** Necessário para vincular o registro à árvore de ativos.
+  2.  **Data da Falha (`failure_date`):** Necessário para ordenação cronológica.
+  3.  **Tipo de Análise (`analysis_type`):** Necessário para filtros básicos.
+  4.  **Título (`what`):** Identificador legível do registro.
+
+> **Nota:** O botão de salvar ficará bloqueado (com feedback visual vermelho) se estes 4 campos não estiverem preenchidos. Outros campos (Participantes, Descrição, 5 Porquês) podem ficar vazios durante a fase de rascunho.
+
+### 2. Automação de Data de Conclusão (`completion_date`)
+O sistema gerencia automaticamente a data de encerramento para garantir a precisão do KPI de *Lead Time*.
+
+- **Gatilho:** Quando o Status da análise muda para **Concluída** (`STATUS-03`).
+- **Ação:**
+  - Se o campo `completion_date` estiver vazio ➔ O sistema insere a **Data de Hoje**.
+  - Se já houver data ➔ Mantém a data existente (preserva histórico se for uma reedição menor).
+- **Reset:** Se a análise for reaberta (voltar para "Em Andamento"), a data **não** é apagada automaticamente para manter o registro de quando foi concluída pela primeira vez, mas pode ser sobrescrita se concluída novamente no futuro (dependendo da implementação específica de overwrite). *Atualmente implementado para setar apenas se vazio.*
