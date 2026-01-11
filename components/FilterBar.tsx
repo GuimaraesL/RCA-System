@@ -2,6 +2,7 @@
 import React, { useMemo } from 'react';
 import { Search, Filter, RefreshCw, ChevronUp, ChevronDown, Calendar, X, MapPin, Tag, Globe, Lock } from 'lucide-react';
 import { AssetNode } from '../types';
+import { useLanguage } from '../context/LanguageDefinition'; // i18n
 
 export interface FilterState {
     searchTerm: string;
@@ -63,6 +64,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     isGlobal,
     onGlobalToggle
 }) => {
+    const { t } = useLanguage();
+
     const {
         showSearch = true,
         showAssetHierarchy = true,
@@ -116,10 +119,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
     const years = ['2023', '2024', '2025', '2026'];
     const monthsList = [
-        { id: '01', label: 'Jan' }, { id: '02', label: 'Fev' }, { id: '03', label: 'Mar' },
-        { id: '04', label: 'Abr' }, { id: '05', label: 'Mai' }, { id: '06', label: 'Jun' },
-        { id: '07', label: 'Jul' }, { id: '08', label: 'Ago' }, { id: '09', label: 'Set' },
-        { id: '10', label: 'Out' }, { id: '11', label: 'Nov' }, { id: '12', label: 'Dez' },
+        { id: '01', label: t('filters.monthsList.jan') }, { id: '02', label: t('filters.monthsList.feb') }, { id: '03', label: t('filters.monthsList.mar') },
+        { id: '04', label: t('filters.monthsList.apr') }, { id: '05', label: t('filters.monthsList.may') }, { id: '06', label: t('filters.monthsList.jun') },
+        { id: '07', label: t('filters.monthsList.jul') }, { id: '08', label: t('filters.monthsList.aug') }, { id: '09', label: t('filters.monthsList.sep') },
+        { id: '10', label: t('filters.monthsList.oct') }, { id: '11', label: t('filters.monthsList.nov') }, { id: '12', label: t('filters.monthsList.dec') },
     ];
 
     // Helper to resolve names for chips
@@ -128,13 +131,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
     // --- Active Filters Chips Logic ---
     const activeFilters = [
-        filters.year ? { label: `Ano: ${filters.year}`, onRemove: () => handleChange('year', '') } : null,
-        (filters.months || []).length > 0 ? { label: `Meses: ${(filters.months || []).length}`, onRemove: () => handleChange('months', []) } : null,
-        filters.area !== 'ALL' ? { label: `Área: ${getAssetName(filters.area, areas)}`, onRemove: () => handleChange('area', 'ALL') } : null,
-        filters.equipment !== 'ALL' ? { label: `Eq: ${getAssetName(filters.equipment, equipments)}`, onRemove: () => handleChange('equipment', 'ALL') } : null,
-        filters.status !== 'ALL' ? { label: `Status: ${getOptionName(filters.status, statuses)}`, onRemove: () => handleChange('status', 'ALL') } : null,
-        filters.specialty !== 'ALL' ? { label: `Esp: ${getOptionName(filters.specialty, specialties)}`, onRemove: () => handleChange('specialty', 'ALL') } : null,
-        filters.analysisType !== 'ALL' ? { label: `Tipo: ${getOptionName(filters.analysisType, analysisTypes)}`, onRemove: () => handleChange('analysisType', 'ALL') } : null,
+        filters.year ? { label: `${t('filters.year')}: ${filters.year}`, onRemove: () => handleChange('year', '') } : null,
+        (filters.months || []).length > 0 ? { label: `${t('filters.month')}: ${(filters.months || []).length}`, onRemove: () => handleChange('months', []) } : null,
+        filters.area !== 'ALL' ? { label: `${t('filters.area')}: ${getAssetName(filters.area, areas)}`, onRemove: () => handleChange('area', 'ALL') } : null,
+        filters.equipment !== 'ALL' ? { label: `${t('filters.equipment')}: ${getAssetName(filters.equipment, equipments)}`, onRemove: () => handleChange('equipment', 'ALL') } : null,
+        filters.status !== 'ALL' ? { label: `${t('filters.status')}: ${getOptionName(filters.status, statuses)}`, onRemove: () => handleChange('status', 'ALL') } : null,
+        filters.specialty !== 'ALL' ? { label: `${t('filters.specialty')}: ${getOptionName(filters.specialty, specialties)}`, onRemove: () => handleChange('specialty', 'ALL') } : null,
+        filters.analysisType !== 'ALL' ? { label: `${t('filters.analysisType')}: ${getOptionName(filters.analysisType, analysisTypes)}`, onRemove: () => handleChange('analysisType', 'ALL') } : null,
         filters.searchTerm ? { label: `Busca: "${filters.searchTerm}"`, onRemove: () => handleChange('searchTerm', '') } : null,
 
         // New Technical Filters Chips (Usually hidden in dropdown but shown as chips when clicked on charts)
@@ -156,7 +159,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         className={`text-sm font-semibold flex items-center gap-2 px-4 py-2 rounded-lg transition-all border ${isOpen ? 'bg-slate-100 text-slate-800 border-slate-200' : 'bg-blue-600 text-white border-blue-600 shadow-md hover:bg-blue-700'}`}
                     >
                         <Filter size={16} />
-                        Filtros
+                        {t('dashboard.filters')}
                         {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </button>
 
@@ -169,7 +172,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     ))}
 
                     {!isOpen && activeFilters.length === 0 && (
-                        <span className="text-sm text-slate-400 italic ml-2">Nenhum filtro aplicado.</span>
+                        <span className="text-sm text-slate-400 italic ml-2">{t('filters.noFilters')}</span>
                     )}
                 </div>
 
@@ -186,19 +189,19 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                 title={isGlobal ? "Modo Global Ativo: Filtros aplicados em todo o sistema" : "Modo Local: Filtros apenas nesta página"}
                             >
                                 <Globe size={14} className={isGlobal ? "animate-pulse" : ""} />
-                                {isGlobal ? 'Global On' : 'Global Off'}
+                                {isGlobal ? t('filters.globalModeOn') : t('filters.globalModeOff')}
                             </button>
                         </div>
                     )}
 
                     {totalResults !== undefined && (
                         <div className="text-right">
-                            <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">Registros</div>
+                            <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">{t('filters.totalRecords')}</div>
                             <div className="text-lg font-bold text-slate-800 leading-none">{totalResults}</div>
                         </div>
                     )}
                     {(activeFilters.length > 0 || isOpen) && (
-                        <button onClick={onReset} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Limpar Filtros">
+                        <button onClick={onReset} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title={t('filters.clear')}>
                             <RefreshCw size={18} />
                         </button>
                     )}
@@ -214,12 +217,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         {showSearch && (
                             <div className="md:col-span-4">
                                 <label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase mb-2">
-                                    <Search size={14} /> Busca Textual
+                                    <Search size={14} /> {t('filters.searchLabel')}
                                 </label>
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        placeholder="Título, ID, Problema..."
+                                        placeholder={t('filters.searchPlaceholder')}
                                         className="w-full pl-3 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                                         value={filters.searchTerm}
                                         onChange={e => handleChange('searchTerm', e.target.value)}
@@ -231,19 +234,19 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                             <div className="md:col-span-8 flex flex-col md:flex-row gap-4">
                                 <div className="w-full md:w-40">
                                     <label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase mb-2">
-                                        <Calendar size={14} /> Ano Fiscal
+                                        <Calendar size={14} /> {t('filters.year')}
                                     </label>
                                     <select
                                         value={filters.year}
                                         onChange={e => handleChange('year', e.target.value)}
                                         className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg p-2.5 font-semibold focus:ring-2 focus:ring-blue-500 outline-none"
                                     >
-                                        <option value="">Todos</option>
+                                        <option value="">{t('filters.options.all')}</option>
                                         {years.map(y => <option key={y} value={y}>{y}</option>)}
                                     </select>
                                 </div>
                                 <div className="flex-1">
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Mês de Ocorrência</label>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">{t('filters.month')}</label>
                                     <div className="flex flex-wrap gap-1">
                                         {monthsList.map(m => {
                                             const isActive = (filters.months || []).includes(m.id);
@@ -264,7 +267,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                             onClick={() => handleChange('months', [])}
                                             className="px-2 text-xs text-slate-400 hover:text-blue-500 underline ml-auto"
                                         >
-                                            Limpar
+                                            {t('filters.clear')}
                                         </button>
                                     </div>
                                 </div>
@@ -278,41 +281,41 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         {showAssetHierarchy && (
                             <div className="space-y-4">
                                 <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                    <MapPin size={16} className="text-slate-400" /> Localização Técnica
+                                    <MapPin size={16} className="text-slate-400" /> {t('filters.sections.location')}
                                 </h4>
                                 <div className="bg-slate-50 p-4 rounded-lg space-y-3 border border-slate-100">
                                     <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Área</label>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.area')}</label>
                                         <select
                                             className="w-full border border-slate-200 rounded-lg p-2 text-sm bg-white hover:border-blue-300 transition-colors"
                                             value={filters.area}
                                             onChange={e => handleChange('area', e.target.value)}
                                         >
-                                            <option value="ALL">Todas as Áreas</option>
+                                            <option value="ALL">{t('filters.options.allAreas')}</option>
                                             {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Equipamento</label>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.equipment')}</label>
                                         <select
                                             className="w-full border border-slate-200 rounded-lg p-2 text-sm bg-white disabled:opacity-50 hover:border-blue-300 transition-colors"
                                             value={filters.equipment}
                                             onChange={e => handleChange('equipment', e.target.value)}
                                             disabled={filters.area === 'ALL'}
                                         >
-                                            <option value="ALL">Todos os Equipamentos</option>
+                                            <option value="ALL">{t('filters.options.allEquipments')}</option>
                                             {equipments.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Subgrupo</label>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.subgroup')}</label>
                                         <select
                                             className="w-full border border-slate-200 rounded-lg p-2 text-sm bg-white disabled:opacity-50 hover:border-blue-300 transition-colors"
                                             value={filters.subgroup}
                                             onChange={e => handleChange('subgroup', e.target.value)}
                                             disabled={filters.equipment === 'ALL'}
                                         >
-                                            <option value="ALL">Todos os Subgrupos</option>
+                                            <option value="ALL">{t('filters.options.allSubgroups')}</option>
                                             {subgroups.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                         </select>
                                     </div>
@@ -324,51 +327,51 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         {(showAnalysisType || showSpecialty || showStatus) && (
                             <div className="space-y-4 lg:col-span-2">
                                 <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                    <Tag size={16} className="text-slate-400" /> Classificação e Status
+                                    <Tag size={16} className="text-slate-400" /> {t('filters.sections.classification')}
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {showAnalysisType && (
                                         <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tipo de Análise</label>
+                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.analysisType')}</label>
                                             <select
                                                 className="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white"
                                                 value={filters.analysisType}
                                                 onChange={e => handleChange('analysisType', e.target.value)}
                                             >
-                                                <option value="ALL">Todos</option>
+                                                <option value="ALL">{t('filters.options.allTypes')}</option>
                                                 {analysisTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                                             </select>
                                         </div>
                                     )}
                                     {showSpecialty && (
                                         <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Especialidade</label>
+                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.specialty')}</label>
                                             <select
                                                 className="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white"
                                                 value={filters.specialty}
                                                 onChange={e => handleChange('specialty', e.target.value)}
                                             >
-                                                <option value="ALL">Todas</option>
+                                                <option value="ALL">{t('filters.options.allSpecialties')}</option>
                                                 {specialties.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                             </select>
                                         </div>
                                     )}
                                     {showStatus && (
                                         <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status Atual</label>
+                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.status')}</label>
                                             <select
                                                 className="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white font-medium text-slate-700"
                                                 value={filters.status}
                                                 onChange={e => handleChange('status', e.target.value)}
                                             >
-                                                <option value="ALL">Todos</option>
+                                                <option value="ALL">{t('filters.options.allStatus')}</option>
                                                 {statuses.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                             </select>
                                         </div>
                                     )}
                                 </div>
                                 <p className="text-xs text-slate-400 mt-2">
-                                    * Filtros adicionais (Modo de Falha, Categoria, Componente, 6M) podem ser ativados clicando diretamente nos gráficos do painel.
+                                    {t('filters.additionalFiltersHint')}
                                 </p>
                             </div>
                         )}

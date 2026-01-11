@@ -21,11 +21,14 @@ const getStatusBadge = (status: string) => {
   }
 };
 
+import { useLanguage } from '../context/LanguageDefinition'; // i18n
+
 interface ActionsViewProps {
   onOpenRca?: (rcaId: string) => void;
 }
 
 export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
+  const { t, formatDate } = useLanguage();
   const { actions, rcaList, isModalOpen, setIsModalOpen, editingAction, openNew, openEdit, handleSave, handleDelete, deleteModalOpen, confirmDelete, cancelDelete } = useActionsLogic();
   const { records, assets, taxonomy } = useRcaContext();
 
@@ -151,11 +154,11 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
       {/* Header */}
       <div className="flex justify-between items-center mb-6 flex-shrink-0">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Action Plans</h1>
+          <h1 className="text-3xl font-bold text-slate-900">{t('sidebar.actions')}</h1>
           <p className="text-slate-500 mt-1">Manage corrective actions linked to Root Cause Analyses.</p>
         </div>
         <button onClick={openNew} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 shadow-sm">
-          <Plus size={18} /> New Action Plan
+          <Plus size={18} /> {t('table.actions')}
         </button>
       </div>
 
@@ -189,12 +192,12 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
           <table className="w-full text-left text-sm text-slate-600">
             <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 bg-slate-50 group z-10">
               <tr>
-                <SortHeader label="Status (Box)" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
-                <SortHeader label="Action Description" sortKey="action" currentSort={sortConfig} onSort={handleSort} />
-                <SortHeader label="Responsible" sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
-                <SortHeader label="Due Date" sortKey="date" currentSort={sortConfig} onSort={handleSort} />
-                <SortHeader label="Linked Analysis (RCA)" sortKey="rcaTitle" currentSort={sortConfig} onSort={handleSort} />
-                <th className="px-6 py-3 text-right">Actions</th>
+                <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} />
+                <SortHeader label={t('table.what')} sortKey="action" currentSort={sortConfig} onSort={handleSort} />
+                <SortHeader label={t('table.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
+                <SortHeader label={t('table.dueDate')} sortKey="date" currentSort={sortConfig} onSort={handleSort} />
+                <SortHeader label={t('sidebar.analyses')} sortKey="rcaTitle" currentSort={sortConfig} onSort={handleSort} />
+                <th className="px-6 py-3 text-right">{t('table.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -203,7 +206,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
                   <td className="px-6 py-4">{getStatusBadge(action.status)}</td>
                   <td className="px-6 py-4 font-medium text-slate-800 max-w-xs truncate" title={action.action}>{action.action}</td>
                   <td className="px-6 py-4">{action.responsible}</td>
-                  <td className="px-6 py-4 font-mono">{action.date}</td>
+                  <td className="px-6 py-4 font-mono">{formatDate(action.date)}</td>
                   <td className="px-6 py-4">
                     <button
                       onClick={() => onOpenRca && onOpenRca(action.rca_id)}
@@ -231,7 +234,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
           {filteredActions.length > 0 && (
             <div className="p-4 flex items-center justify-between border-t border-slate-100 bg-slate-50">
               <div className="text-sm text-slate-500">
-                Mostrando <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> a <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredActions.length)}</span> de <span className="font-medium">{filteredActions.length}</span> resultados
+                {t('pagination.showing')} <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredActions.length)}</span> {t('pagination.of')} <span className="font-medium">{filteredActions.length}</span> {t('pagination.results')}
               </div>
               <div className="flex gap-2">
                 <button
@@ -239,14 +242,14 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
                   disabled={currentPage === 1}
                   className="px-3 py-1 border border-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
                 >
-                  Anterior
+                  {t('pagination.previous')}
                 </button>
                 <button
                   onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredActions.length ? prev + 1 : prev))}
                   disabled={currentPage * itemsPerPage >= filteredActions.length}
                   className="px-3 py-1 border border-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
                 >
-                  Próxima
+                  {t('pagination.next')}
                 </button>
               </div>
             </div>
@@ -266,10 +269,10 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
       {/* Modal de Confirmação de Exclusão */}
       <ConfirmModal
         isOpen={deleteModalOpen}
-        title="Excluir Action"
-        message="Tem certeza que deseja excluir esta action? Esta ação não pode ser desfeita."
-        confirmText="Excluir"
-        cancelText="Cancelar"
+        title={t('modals.deleteTitle')}
+        message={t('modals.deleteActionMessage')}
+        confirmText={t('modals.confirm')}
+        cancelText={t('modals.cancel')}
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
         variant="danger"

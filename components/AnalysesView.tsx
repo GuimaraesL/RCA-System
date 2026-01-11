@@ -14,7 +14,10 @@ interface AnalysesViewProps {
     onEdit: (rec: RcaRecord) => void;
 }
 
+import { useLanguage } from '../context/LanguageDefinition'; // i18n
+
 export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => {
+    const { t, formatDate } = useLanguage();
     const { records, assets, taxonomy, deleteRecord } = useRcaContext();
 
     // Delete Modal State
@@ -264,13 +267,13 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                     <table className="w-full text-left text-sm text-slate-600">
                         <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 z-10 group">
                             <tr>
-                                <SortHeader label="ID / Type" sortKey="id" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Title / Problem" sortKey="what" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Asset Location" sortKey="asset_name_display" currentSort={sortConfig} onSort={handleSort} width="w-48" />
-                                <SortHeader label="Status" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Impact" sortKey="financial_impact" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Date" sortKey="failure_date" currentSort={sortConfig} onSort={handleSort} width="w-32" />
-                                <th className="px-6 py-4 w-16">Actions</th>
+                                <SortHeader label={t('table.id') + " / " + t('table.type')} sortKey="id" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('table.what') + " / " + t('table.description')} sortKey="what" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('filters.sections.location')} sortKey="asset_name_display" currentSort={sortConfig} onSort={handleSort} width="w-48" />
+                                <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('table.impact')} sortKey="financial_impact" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('table.date')} sortKey="failure_date" currentSort={sortConfig} onSort={handleSort} width="w-32" />
+                                <th className="px-6 py-4 w-16">{t('table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -312,7 +315,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                             <div className="text-xs text-slate-400">{r.downtime_minutes} min</div>
                                         </td>
                                         <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
-                                            {r.failure_date}
+                                            {formatDate(r.failure_date)}
                                         </td>
                                         <td className="px-6 py-4">
                                             <button
@@ -331,7 +334,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                     {filteredRecords.length > 0 && (
                         <div className="p-4 flex items-center justify-between border-t border-slate-100 bg-slate-50">
                             <div className="text-sm text-slate-500">
-                                Mostrando <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> a <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredRecords.length)}</span> de <span className="font-medium">{filteredRecords.length}</span> resultados
+                                {t('pagination.showing')} <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredRecords.length)}</span> {t('pagination.of')} <span className="font-medium">{filteredRecords.length}</span> {t('pagination.results')}
                             </div>
                             <div className="flex gap-2">
                                 <button
@@ -339,14 +342,14 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                     disabled={currentPage === 1}
                                     className="px-3 py-1 border border-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
                                 >
-                                    Anterior
+                                    {t('pagination.previous')}
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredRecords.length ? prev + 1 : prev))}
                                     disabled={currentPage * itemsPerPage >= filteredRecords.length}
                                     className="px-3 py-1 border border-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
                                 >
-                                    Próxima
+                                    {t('pagination.next')}
                                 </button>
                             </div>
                         </div>
@@ -359,10 +362,10 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                 isOpen={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
-                title="Excluir Análise RCA"
-                message="Tem certeza que deseja excluir esta análise RCA? Esta ação não pode ser desfeita."
-                confirmText="Excluir"
+                title={t('modals.deleteTitle')}
+                message={t('modals.deleteRcaMessage')}
+                confirmText={t('modals.delete')}
             />
-        </div>
+        </div >
     );
 };

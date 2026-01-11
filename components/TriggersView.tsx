@@ -11,12 +11,15 @@ import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { useSorting } from '../hooks/useSorting';
 import { SortHeader } from './ui/SortHeader';
 
+import { useLanguage } from '../context/LanguageDefinition'; // i18n
+
 interface TriggersViewProps {
     onCreateRca: (trigger: TriggerRecord) => void;
     onOpenRca: (rcaId: string) => void;
 }
 
 export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenRca }) => {
+    const { t, formatDate } = useLanguage();
     const { triggers, assets, taxonomy, records, addTrigger, updateTrigger, deleteTrigger } = useRcaContext();
 
     // Debug Overlay (Temporary)
@@ -383,11 +386,11 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
             {/* Header */}
             <div className="flex justify-between items-center mb-6 flex-shrink-0">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">Trigger Analysis Control</h1>
+                    <h1 className="text-3xl font-bold text-slate-900">{t('sidebar.triggers')}</h1>
                     <p className="text-slate-500 mt-1">Manage downtime events and convert triggers to Root Cause Analyses.</p>
                 </div>
                 <button onClick={handleNew} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 shadow-sm">
-                    <Plus size={18} /> New Trigger
+                    <Plus size={18} /> {t('filters.options.all') === 'Todos' ? 'Novo Gatilho' : 'New Trigger'}
                 </button>
             </div>
 
@@ -423,17 +426,17 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                         <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 z-10 group">
                             <tr>
                                 <SortHeader label="Farol" sortKey="start_date" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Status" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Data Início" sortKey="start_date" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Área" sortKey="area_id" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Equipamento" sortKey="equipment_id" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Subconjunto" sortKey="subgroup_id" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Duração" sortKey="duration_minutes" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('table.date')} sortKey="start_date" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('filters.area')} sortKey="area_id" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('filters.equipment')} sortKey="equipment_id" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('filters.subgroup')} sortKey="subgroup_id" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('table.duration')} sortKey="duration_minutes" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label="Tipo / Razão" sortKey="stop_type" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Tipo AF" sortKey="analysis_type_id" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Responsável" sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="RCA Link (ID AF)" sortKey="rca_id" currentSort={sortConfig} onSort={handleSort} />
-                                <th className="px-4 py-3 text-right">Actions</th>
+                                <SortHeader label={t('table.type')} sortKey="analysis_type_id" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('table.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="RCA Link" sortKey="rca_id" currentSort={sortConfig} onSort={handleSort} />
+                                <th className="px-4 py-3 text-right">{t('table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -465,7 +468,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                                 {statusName}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 font-mono">{t.start_date?.replace('T', ' ') || '-'}</td>
+                                        <td className="px-4 py-3 font-mono">{formatDate(t.start_date)}</td>
                                         <td className="px-4 py-3 max-w-[150px] truncate" title={getAssetName(t.area_id, assets)}>{getAssetName(t.area_id, assets)}</td>
                                         <td className="px-4 py-3 max-w-[150px] truncate" title={getAssetName(t.equipment_id, assets)}>{getAssetName(t.equipment_id, assets)}</td>
                                         <td className="px-4 py-3 max-w-[150px] truncate" title={getAssetName(t.subgroup_id, assets)}>{getAssetName(t.subgroup_id, assets)}</td>
@@ -512,7 +515,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                     {filteredTriggers.length > 0 && (
                         <div className="p-4 flex items-center justify-between border-t border-slate-100 bg-slate-50">
                             <div className="text-sm text-slate-500">
-                                Mostrando <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> a <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredTriggers.length)}</span> de <span className="font-medium">{filteredTriggers.length}</span> resultados
+                                {t('pagination.showing')} <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredTriggers.length)}</span> {t('pagination.of')} <span className="font-medium">{filteredTriggers.length}</span> {t('pagination.results')}
                             </div>
                             <div className="flex gap-2">
                                 <button
@@ -520,14 +523,14 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                     disabled={currentPage === 1}
                                     className="px-3 py-1 border border-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
                                 >
-                                    Anterior
+                                    {t('pagination.previous')}
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredTriggers.length ? prev + 1 : prev))}
                                     disabled={currentPage * itemsPerPage >= filteredTriggers.length}
                                     className="px-3 py-1 border border-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
                                 >
-                                    Próxima
+                                    {t('pagination.next')}
                                 </button>
                             </div>
                         </div>
@@ -540,13 +543,13 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95">
                         <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                            <h3 className="font-bold text-lg text-slate-800">Edit Trigger Event</h3>
+                            <h3 className="font-bold text-lg text-slate-800">{t('triggerModal.title')}</h3>
                         </div>
                         <div className="p-6 space-y-4">
                             {/* Dates */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Data/Hora Início</label>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.startDate')}</label>
                                     <input
                                         type="datetime-local"
                                         className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -555,7 +558,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Data/Hora Fim</label>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.endDate')}</label>
                                     <input
                                         type="datetime-local"
                                         className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -567,7 +570,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
 
                             {/* Asset Selection (Simplified) */}
                             <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1">Subconjunto / Equipamento (Select)</label>
+                                <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.subgroupSelect')}</label>
                                 <div className="border rounded h-32 overflow-auto bg-slate-50 mb-2">
                                     <AssetSelector
                                         assets={assets}
@@ -577,14 +580,14 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                     />
                                 </div>
                                 <div className="text-xs text-blue-600">
-                                    Selected: {getAssetName(editingTrigger.subgroup_id || editingTrigger.equipment_id || editingTrigger.area_id, assets)}
+                                    {t('triggerModal.selected')} {getAssetName(editingTrigger.subgroup_id || editingTrigger.equipment_id || editingTrigger.area_id, assets)}
                                 </div>
                             </div>
 
                             {/* Details */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Tipo Parada</label>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.stopType')}</label>
                                     <input
                                         type="text"
                                         className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -593,7 +596,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Razão Parada</label>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.stopReason')}</label>
                                     <input
                                         type="text"
                                         className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -605,18 +608,18 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Tipo AF</label>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.analysisType')}</label>
                                     <select
                                         className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
                                         value={editingTrigger.analysis_type_id}
                                         onChange={e => setEditingTrigger({ ...editingTrigger, analysis_type_id: e.target.value })}
                                     >
-                                        <option value="">Select...</option>
+                                        <option value="">{t('triggerModal.selectPlaceholder')}</option>
                                         {(taxonomy.analysisTypes || []).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Responsável</label>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.responsible')}</label>
                                     <input
                                         type="text"
                                         className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -627,7 +630,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                             </div>
 
                             <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1">Status</label>
+                                <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.status')}</label>
                                 <select
                                     className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
                                     value={editingTrigger.status}
@@ -642,7 +645,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
 
 
                             <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1">Comentários</label>
+                                <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.comments')}</label>
                                 <textarea
                                     className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none h-20"
                                     value={editingTrigger.comments}
@@ -651,8 +654,8 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                             </div>
 
                             <div className="flex justify-end gap-3 pt-4 border-t">
-                                <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">Cancel</button>
-                                <button onClick={handleSave} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">Save Trigger</button>
+                                <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">{t('triggerModal.cancel')}</button>
+                                <button onClick={handleSave} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">{t('triggerModal.save')}</button>
                             </div>
                         </div>
                     </div>
@@ -665,11 +668,11 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                         <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95">
                             <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                                <h3 className="font-bold text-lg text-slate-800">Vincular RCA</h3>
+                                <h3 className="font-bold text-lg text-slate-800">{t('modals.linkRcaTitle')}</h3>
                                 <button onClick={closeLinkModal} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
                             </div>
                             <div className="p-6 space-y-4">
-                                <p className="text-sm text-slate-600">Selecione a RCA para vincular ao Trigger <strong>{triggerToLink.id}</strong>:</p>
+                                <p className="text-sm text-slate-600">{t('modals.linkRcaMessage')} <strong>{triggerToLink.id}</strong>:</p>
 
                                 <select
                                     className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -681,7 +684,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                     }}
                                     value=""
                                 >
-                                    <option value="">Selecione uma RCA...</option>
+                                    <option value="">{t('modals.selectRcaPlaceholder')}</option>
                                     {records.map(r => (
                                         <option key={r.id} value={r.id}>
                                             {r.id} - {(r.what || '').substring(0, 40)}...
@@ -690,7 +693,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                 </select>
 
                                 <div className="flex justify-end pt-2">
-                                    <button onClick={closeLinkModal} className="text-sm text-slate-500 hover:text-slate-700">Cancelar</button>
+                                    <button onClick={closeLinkModal} className="text-sm text-slate-500 hover:text-slate-700">{t('modals.cancel')}</button>
                                 </div>
                             </div>
                         </div>
@@ -701,10 +704,10 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
             {/* Modal de Confirmação de Exclusão */}
             <ConfirmModal
                 isOpen={deleteModalOpen}
-                title="Excluir Trigger"
-                message="Tem certeza que deseja excluir este trigger? Esta ação não pode ser desfeita."
-                confirmText="Excluir"
-                cancelText="Cancelar"
+                title={t('modals.deleteTitle')}
+                message={t('modals.deleteTriggerMessage')}
+                confirmText={t('modals.confirm')}
+                cancelText={t('modals.cancel')}
                 onConfirm={confirmDelete}
                 onCancel={() => {
                     setDeleteModalOpen(false);

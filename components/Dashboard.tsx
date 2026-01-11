@@ -6,6 +6,7 @@ import { Clock, TrendingUp, AlertCircle, CheckCircle, PieChart as PieIcon, Activ
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { useRcaContext } from '../context/RcaContext';
+import { useLanguage } from '../context/LanguageDefinition'; // i18n
 import { filterAssetsByUsage } from '../services/utils';
 
 // Professional Color Palette (Cool Tones + Accents)
@@ -48,10 +49,11 @@ const truncateLabel = (text: string, maxLength: number = 25) => {
 
 export const Dashboard: React.FC = () => {
     const { records, assets, taxonomy } = useRcaContext();
+    const { t, language } = useLanguage();
 
     const defaultFilters: FilterState = {
         searchTerm: '',
-        year: new Date().getFullYear().toString(),
+        year: '',
         months: [],
         status: 'ALL',
         area: 'ALL',
@@ -319,9 +321,9 @@ export const Dashboard: React.FC = () => {
             <div className="flex justify-between items-end">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                        <Activity className="text-blue-600" /> Painel Geral
+                        <Activity className="text-blue-600" /> {t('dashboard.title')}
                     </h1>
-                    <p className="text-slate-500 mt-1">Visão consolidada de falhas, custos e performance.</p>
+                    <p className="text-slate-500 mt-1">{t('dashboard.description')}</p>
                 </div>
             </div>
 
@@ -348,25 +350,25 @@ export const Dashboard: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="bg-gradient-to-br from-white to-blue-50 p-6 rounded-2xl shadow-sm border border-blue-100 relative overflow-hidden group">
                     <div className="absolute right-0 top-0 w-24 h-24 bg-blue-100 rounded-full -mr-8 -mt-8 opacity-50 group-hover:scale-110 transition-transform"></div>
-                    <div className="text-xs text-blue-600 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><Clock size={14} /> Duração (Min)</div>
-                    <div className="text-4xl font-bold text-slate-800 relative z-10">{totalDowntimeMin.toLocaleString()}</div>
+                    <div className="text-xs text-blue-600 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><Clock size={14} /> {t('dashboard.kpi.durationMin')}</div>
+                    <div className="text-4xl font-bold text-slate-800 relative z-10">{totalDowntimeMin.toLocaleString(language === 'pt' ? 'pt-BR' : 'en-US')}</div>
                 </div>
                 <div className="bg-gradient-to-br from-white to-indigo-50 p-6 rounded-2xl shadow-sm border border-indigo-100 relative overflow-hidden group">
                     <div className="absolute right-0 top-0 w-24 h-24 bg-indigo-100 rounded-full -mr-8 -mt-8 opacity-50 group-hover:scale-110 transition-transform"></div>
-                    <div className="text-xs text-indigo-600 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><Clock size={14} /> Duração (Horas)</div>
-                    <div className="text-4xl font-bold text-slate-800 relative z-10">{totalDowntimeHours}</div>
+                    <div className="text-xs text-indigo-600 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><Clock size={14} /> {t('dashboard.kpi.durationHours')}</div>
+                    <div className="text-4xl font-bold text-slate-800 relative z-10">{totalDowntimeHours.replace('.', language === 'pt' ? ',' : '.')}</div>
                 </div>
                 <div className="bg-gradient-to-br from-white to-emerald-50 p-6 rounded-2xl shadow-sm border border-emerald-100 relative overflow-hidden group">
                     <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-100 rounded-full -mr-8 -mt-8 opacity-50 group-hover:scale-110 transition-transform"></div>
-                    <div className="text-xs text-emerald-600 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><TrendingUp size={14} /> Custo Total Est.</div>
+                    <div className="text-xs text-emerald-600 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><TrendingUp size={14} /> {t('dashboard.kpi.totalCost')}</div>
                     <div className="text-4xl font-bold text-slate-800 relative z-10">
-                        ${totalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        {totalCost.toLocaleString(language === 'pt' ? 'pt-BR' : 'en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}
                     </div>
                 </div>
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden group">
-                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><PieIcon size={14} /> Total RCAs</div>
+                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><PieIcon size={14} /> {t('dashboard.kpi.totalRcas')}</div>
                     <div className="text-4xl font-bold text-slate-800 relative z-10">{filteredRecords.length}</div>
-                    <div className="text-xs text-slate-400 mt-2">Registros filtrados</div>
+                    <div className="text-xs text-slate-400 mt-2">{t('dashboard.kpi.filteredRecords')}</div>
                 </div>
             </div>
 
@@ -374,7 +376,7 @@ export const Dashboard: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 {/* Row 1: High Level Distribution (Interactive) */}
-                <ChartCard title="Total por Status" icon={<CheckCircle size={16} />} isInteractive>
+                <ChartCard title={t('dashboard.charts.totalByStatus')} icon={<CheckCircle size={16} />} isInteractive>
                     {dataStatus.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -414,7 +416,7 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">Sem dados</div>}
                 </ChartCard>
 
-                <ChartCard title="Total por Tipo de Análise" icon={<PieIcon size={16} />} isInteractive>
+                <ChartCard title={t('dashboard.charts.totalByType')} icon={<PieIcon size={16} />} isInteractive>
                     {dataType.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -453,7 +455,7 @@ export const Dashboard: React.FC = () => {
                 </ChartCard>
 
                 {/* Row 2: Assets (Interactive) */}
-                <ChartCard title="Top Equipamentos (Pareto)" icon={<TrendingUp size={16} />} isInteractive>
+                <ChartCard title={t('dashboard.charts.topEquipments')} icon={<TrendingUp size={16} />} isInteractive>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                             data={dataEquip}
@@ -480,7 +482,7 @@ export const Dashboard: React.FC = () => {
                     </ResponsiveContainer>
                 </ChartCard>
 
-                <ChartCard title="Top Subgrupos" icon={<TrendingUp size={16} />} isInteractive>
+                <ChartCard title={t('dashboard.charts.topSubgroups')} icon={<TrendingUp size={16} />} isInteractive>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                             data={dataSub}
@@ -508,7 +510,7 @@ export const Dashboard: React.FC = () => {
                 </ChartCard>
 
                 {/* Row 3: Technical Details (Interactive) */}
-                <ChartCard title="Distribuição 6M (Causas Raízes)" icon={<AlertCircle size={16} />} isInteractive>
+                <ChartCard title={t('dashboard.charts.rootCauses6M')} icon={<AlertCircle size={16} />} isInteractive>
                     {data6M.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -542,10 +544,10 @@ export const Dashboard: React.FC = () => {
                                 />
                             </PieChart>
                         </ResponsiveContainer>
-                    ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">Sem causas raízes definidas</div>}
+                    ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard title="Total por Componente" icon={<AlertCircle size={16} />} isInteractive>
+                <ChartCard title={t('dashboard.charts.totalByComponent')} icon={<AlertCircle size={16} />} isInteractive>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={dataComp} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -569,7 +571,7 @@ export const Dashboard: React.FC = () => {
                     </ResponsiveContainer>
                 </ChartCard>
 
-                <ChartCard title="Modo de Falha" icon={<AlertCircle size={16} />} isInteractive>
+                <ChartCard title={t('dashboard.charts.failureMode')} icon={<AlertCircle size={16} />} isInteractive>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                             data={dataMode}
@@ -597,7 +599,7 @@ export const Dashboard: React.FC = () => {
                     </ResponsiveContainer>
                 </ChartCard>
 
-                <ChartCard title="Categoria da Falha" icon={<AlertCircle size={16} />} isInteractive>
+                <ChartCard title={t('dashboard.charts.failureCategory')} icon={<AlertCircle size={16} />} isInteractive>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                             data={dataCat}

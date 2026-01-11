@@ -5,7 +5,10 @@ import { Folder, Database, Layers, Plus, Trash2, Edit2, ChevronRight, ChevronDow
 import { useAssetsLogic } from '../hooks/useAssetsLogic';
 import { ConfirmModal } from './ConfirmModal';
 
+import { useLanguage } from '../context/LanguageDefinition'; // i18n
+
 export const AssetsManager: React.FC = () => {
+  const { t } = useLanguage();
   const {
     assets,
     selectedNode, setSelectedNode,
@@ -111,7 +114,7 @@ export const AssetsManager: React.FC = () => {
         style={{ width: `${sidebarWidth}px`, minWidth: `${MIN_WIDTH}px`, maxWidth: `${MAX_WIDTH}px` }}
       >
         <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-          <h2 className="font-bold text-slate-700">Hierarchy</h2>
+          <h2 className="font-bold text-slate-700">{t('assets.hierarchy')}</h2>
           <button
             onClick={() => { setSelectedNode(null); startAdd(null); }}
             className="p-2 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
@@ -158,20 +161,20 @@ export const AssetsManager: React.FC = () => {
                 onClick={() => startEdit(selectedNode)}
                 className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-lg font-medium transition-colors"
               >
-                <Edit2 size={18} /> Rename / Edit
+                <Edit2 size={18} /> {t('assets.rename')}
               </button>
               <button
                 onClick={() => handleDelete(selectedNode)}
                 className="flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-lg font-medium transition-colors"
               >
-                <Trash2 size={18} /> Delete Node
+                <Trash2 size={18} /> {t('assets.delete')}
               </button>
               {selectedNode.type !== 'SUBGROUP' && (
                 <button
                   onClick={() => startAdd(selectedNode)}
                   className="col-span-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors shadow-sm"
                 >
-                  <Plus size={18} /> Add Child {selectedNode.type === 'AREA' ? 'Equipment' : 'Subgroup'}
+                  <Plus size={18} /> {t('assets.addChild')} ({selectedNode.type === 'AREA' ? t('filters.equipment') : t('filters.subgroup')})
                 </button>
               )}
             </div>
@@ -179,7 +182,7 @@ export const AssetsManager: React.FC = () => {
         ) : isEditing ? (
           <div className="h-full flex flex-col max-w-lg mx-auto justify-center">
             <h2 className="text-2xl font-bold mb-6 text-slate-800">
-              {parentNode || (!selectedNode && !parentNode) ? 'Add New Asset' : 'Edit Asset'}
+              {parentNode || (!selectedNode && !parentNode) ? t('assets.new') : t('assets.edit')}
             </h2>
 
             <div className="space-y-4">
@@ -198,7 +201,7 @@ export const AssetsManager: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1">Asset Name</label>
+                <label className="block text-sm font-medium text-slate-600 mb-1">{t('assets.name')}</label>
                 <input
                   type="text"
                   value={nodeName}
@@ -251,10 +254,10 @@ export const AssetsManager: React.FC = () => {
       {/* Modal de Confirmação de Exclusão de Asset */}
       <ConfirmModal
         isOpen={deleteModalOpen}
-        title="Excluir Asset"
-        message={`Tem certeza que deseja excluir "${nodeToDelete?.name}"? Esta ação não pode ser desfeita.`}
-        confirmText="Excluir"
-        cancelText="Cancelar"
+        title={t('modals.deleteAssetTitle')}
+        message={t('modals.deleteAssetMessage')}
+        confirmText={t('modals.confirm')}
+        cancelText={t('modals.cancel')}
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
         variant="danger"

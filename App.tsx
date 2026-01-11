@@ -12,9 +12,13 @@ import { SettingsView } from './components/SettingsView';
 import { MigrationView } from './components/MigrationView';
 import { DocumentationView } from './components/DocumentationView';
 import { RcaProvider, useRcaContext } from './context/RcaContext';
+import { LanguageProvider } from './context/LanguageContext';
+import { useLanguage } from './context/LanguageDefinition';
+import { LanguageSelector } from './components/LanguageSelector'; // i18n
 import { generateId } from './services/utils';
 
 const AppContent: React.FC = () => {
+    const { t } = useLanguage();
     const [view, setView] = useState<'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'TRIGGERS' | 'ASSETS' | 'SETTINGS' | 'MIGRATION' | 'DOCS'>('DASHBOARD');
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState<RcaRecord | null>(null);
@@ -113,31 +117,31 @@ const AppContent: React.FC = () => {
                         onClick={() => setView('DASHBOARD')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'DASHBOARD' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
                     >
-                        <LayoutDashboard size={20} /> Dashboard
+                        <LayoutDashboard size={20} /> {t('sidebar.dashboard')}
                     </button>
                     <button
                         onClick={() => setView('TRIGGERS')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'TRIGGERS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
                     >
-                        <Siren size={20} /> Triggers
+                        <Siren size={20} /> {t('sidebar.triggers')}
                     </button>
                     <button
                         onClick={() => setView('ANALYSES')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'ANALYSES' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
                     >
-                        <List size={20} /> Analyses
+                        <List size={20} /> {t('sidebar.analyses')}
                     </button>
                     <button
                         onClick={() => setView('ACTIONS')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'ACTIONS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
                     >
-                        <CheckSquare size={20} /> Action Plans
+                        <CheckSquare size={20} /> {t('sidebar.actions')}
                     </button>
                     <button
                         onClick={() => setView('ASSETS')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'ASSETS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
                     >
-                        <Database size={20} /> Assets
+                        <Database size={20} /> {t('sidebar.assets')}
                     </button>
 
                     <div className="pt-4 mt-4 border-t border-slate-800">
@@ -145,25 +149,28 @@ const AppContent: React.FC = () => {
                             onClick={() => setView('DOCS')}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'DOCS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
                         >
-                            <Book size={20} /> Documentation
+                            <Book size={20} /> {t('sidebar.docs')}
                         </button>
                         <button
                             onClick={() => setView('SETTINGS')}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'SETTINGS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
                         >
-                            <Settings size={20} /> Settings
+                            <Settings size={20} /> {t('sidebar.settings')}
                         </button>
                         <button
                             onClick={() => setView('MIGRATION')}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'MIGRATION' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
                         >
-                            <Upload size={20} /> Migration
+                            <Upload size={20} /> {t('sidebar.migration')}
                         </button>
                     </div>
                 </nav>
                 <div className="p-6 border-t border-slate-800 text-xs text-slate-500">
                     v17.2 Context API<br />
                     Running on React 18
+                    <div className="mt-4 pt-4 border-t border-slate-800">
+                        <LanguageSelector />
+                    </div>
                 </div>
             </aside>
 
@@ -214,8 +221,10 @@ const AppContent: React.FC = () => {
 
 export default function App() {
     return (
-        <RcaProvider>
-            <AppContent />
-        </RcaProvider>
+        <LanguageProvider>
+            <RcaProvider>
+                <AppContent />
+            </RcaProvider>
+        </LanguageProvider>
     );
 }
