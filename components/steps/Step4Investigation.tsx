@@ -4,10 +4,11 @@ import { Input } from '../ui/Input';
 import { Textarea } from '../ui/Textarea';
 import { Select } from '../ui/Select';
 import { Button } from '../ui/Button';
-import { Plus, Trash2, Wand2, Loader2, AlertTriangle, UserCheck, GitBranch, Network } from 'lucide-react';
+import { Plus, Trash2, Wand2, Loader2, AlertTriangle, UserCheck, GitBranch } from 'lucide-react';
 import { RcaRecord, TaxonomyConfig, IshikawaDiagram } from '../../types';
 import { generateId } from '../../services/utils';
 import { FiveWhysEditor } from './fivewhys/FiveWhysEditor';
+import { useLanguage } from '../../context/LanguageDefinition';
 
 interface Step4Props {
     data: RcaRecord;
@@ -19,16 +20,17 @@ interface Step4Props {
 }
 
 export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAnalyzeAI, isAnalyzing, taxonomy, showHra }) => {
+    const { t } = useLanguage();
     const [newIshikawaItem, setNewIshikawaItem] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<keyof IshikawaDiagram>('method');
 
     const ishikawaCategories = [
-        { key: 'method', label: 'Método', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-        { key: 'machine', label: 'Máquina', color: 'bg-green-100 text-green-800 border-green-200' },
-        { key: 'manpower', label: 'Mão de Obra', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-        { key: 'material', label: 'Material', color: 'bg-red-100 text-red-800 border-red-200' },
-        { key: 'measurement', label: 'Medida', color: 'bg-purple-100 text-purple-800 border-purple-200' },
-        { key: 'environment', label: 'Meio Ambiente', color: 'bg-orange-100 text-orange-800 border-orange-200' }
+        { key: 'method', label: t('wizard.step4.ishikawaCategories.method'), color: 'bg-blue-100 text-blue-800 border-blue-200' },
+        { key: 'machine', label: t('wizard.step4.ishikawaCategories.machine'), color: 'bg-green-100 text-green-800 border-green-200' },
+        { key: 'manpower', label: t('wizard.step4.ishikawaCategories.manpower'), color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+        { key: 'material', label: t('wizard.step4.ishikawaCategories.material'), color: 'bg-red-100 text-red-800 border-red-200' },
+        { key: 'measurement', label: t('wizard.step4.ishikawaCategories.measurement'), color: 'bg-purple-100 text-purple-800 border-purple-200' },
+        { key: 'environment', label: t('wizard.step4.ishikawaCategories.environment'), color: 'bg-orange-100 text-orange-800 border-orange-200' }
     ];
 
     const addIshikawaItem = () => {
@@ -67,7 +69,6 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
     const hasChains = data.five_whys_chains && data.five_whys_chains?.length > 0;
     const [useAdvancedMode, setUseAdvancedMode] = useState(hasChains);
 
-    // Initializer for empty legacy 5 whys (Bug 54 Fix)
     const addLegacyWhy = () => {
         const nextId = ((data.five_whys?.length || 0) + 1).toString();
         const newWhy = { id: nextId, why_question: '', answer: '' };
@@ -83,8 +84,8 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
     return (
         <div className="space-y-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Investigação (5 Porquês e Ishikawa)</h2>
-                <p className="text-gray-600">Análise profunda das causas do problema</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('wizard.step4.title')}</h2>
+                <p className="text-gray-600">{t('wizard.step4.subtitle')}</p>
             </div>
 
             {/* 5 Whys Block */}
@@ -92,25 +93,25 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                 <div className="flex justify-between items-center mb-6">
                     <div>
                         <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                            Matriz dos 5 Porquês
-                            {useAdvancedMode && <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full border border-blue-200">Modo Avançado (Árvore)</span>}
+                            {t('wizard.step4.fiveWhysTitle')}
+                            {useAdvancedMode && <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full border border-blue-200">{t('wizard.step4.advancedMode')}</span>}
                         </h3>
                         <p className="text-sm text-gray-600">
                             {useAdvancedMode
-                                ? "Mapeie múltiplos caminhos de causa e efeito."
-                                : "Preencha a sequência linear de causas."}
+                                ? t('wizard.step4.advancedModeDesc')
+                                : t('wizard.step4.linearModeDesc')}
                         </p>
                     </div>
 
                     <div className="flex gap-2">
                         {!useAdvancedMode && (
                             <Button variant="ghost" onClick={() => setUseAdvancedMode(true)} className="text-blue-600 hover:bg-blue-100">
-                                <GitBranch size={16} className="mr-2" /> Usar Modo Avançado
+                                <GitBranch size={16} className="mr-2" /> {t('wizard.step4.switchToAdvanced')}
                             </Button>
                         )}
                         {useAdvancedMode && !hasChains && (
                             <Button variant="ghost" onClick={() => setUseAdvancedMode(false)} className="text-slate-500 hover:bg-slate-200">
-                                Voltar ao Simples
+                                {t('wizard.step4.switchToLinear')}
                             </Button>
                         )}
                     </div>
@@ -125,9 +126,9 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                     <div className="space-y-4">
                         {data.five_whys.length === 0 && (
                             <div className="text-center p-8 border-2 border-dashed border-blue-200 rounded-lg bg-blue-50/50">
-                                <p className="text-blue-800 font-medium mb-2">Nenhum "Por que" iniciado.</p>
+                                <p className="text-blue-800 font-medium mb-2">{t('wizard.step4.addWhy')}</p>
                                 <Button onClick={addLegacyWhy} variant="primary">
-                                    <Plus size={16} className="mr-2" /> Iniciar Análise
+                                    <Plus size={16} className="mr-2" /> {t('wizard.add')}
                                 </Button>
                             </div>
                         )}
@@ -147,7 +148,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                                                 newWhys[index] = { ...w, why_question: e.target.value };
                                                 onChange('five_whys', newWhys);
                                             }}
-                                            placeholder="Descreva o problema..."
+                                            placeholder="..."
                                         />
                                     </div>
                                     <div>
@@ -159,14 +160,13 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                                                 newWhys[index] = { ...w, answer: e.target.value };
                                                 onChange('five_whys', newWhys);
                                             }}
-                                            placeholder="Resposta..."
+                                            placeholder="..."
                                         />
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => removeLegacyWhy(index)}
                                     className="mt-8 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
-                                    title="Excluir nível"
                                 >
                                     <Trash2 size={16} />
                                 </button>
@@ -177,11 +177,11 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                             <div className="flex justify-between items-center mt-4">
                                 <div className="p-2 bg-white/60 rounded-lg border border-blue-300">
                                     <p className="text-sm font-medium text-blue-900">
-                                        Níveis: {filledWhysCount}/5
+                                        {filledWhysCount}/5
                                     </p>
                                 </div>
                                 <Button onClick={addLegacyWhy} variant="secondary" size="sm" className="bg-blue-100 text-blue-700 border-blue-200">
-                                    <Plus size={16} className="mr-1" /> Adicionar Nível
+                                    <Plus size={16} className="mr-1" /> {t('wizard.step4.addWhy')}
                                 </Button>
                             </div>
                         )}
@@ -192,21 +192,21 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
             {/* Ishikawa (Fishbone) */}
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 shadow-sm">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                    <h3 className="text-xl font-semibold text-gray-900">Diagrama de Ishikawa (6M)</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">{t('wizard.step4.ishikawaTitle')}</h3>
                     <button
                         onClick={onAnalyzeAI}
                         disabled={isAnalyzing || !data.problem_description}
                         className="bg-white border border-green-300 text-green-700 hover:bg-green-100 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm disabled:opacity-50"
                     >
                         {isAnalyzing ? <Loader2 className="animate-spin" size={16} /> : <Wand2 size={16} />}
-                        Gerar com IA
+                        AI
                     </button>
                 </div>
 
                 <div className="mb-8 bg-white p-4 rounded-lg border border-green-200 shadow-sm flex flex-col md:flex-row gap-3 items-end">
                     <div className="flex-1 w-full">
                         <Select
-                            label="Categoria"
+                            label={t('wizard.step4.ishikawaSubtitle')}
                             options={ishikawaCategories.map(c => ({ value: c.key, label: c.label }))}
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value as any)}
@@ -214,8 +214,8 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                     </div>
                     <div className="flex-[2] w-full">
                         <Input
-                            label="Novo Item"
-                            placeholder="Adicionar causa..."
+                            label={t('wizard.step4.addItem')}
+                            placeholder="..."
                             value={newIshikawaItem}
                             onChange={(e) => setNewIshikawaItem(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && addIshikawaItem()}
@@ -223,7 +223,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                     </div>
                     <Button onClick={addIshikawaItem} className="gap-2 w-full md:w-auto" variant="primary">
                         <Plus className="w-4 h-4" />
-                        Adicionar
+                        {t('wizard.add')}
                     </Button>
                 </div>
 
@@ -247,7 +247,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                                 ))}
                                 {data.ishikawa[category.key as keyof IshikawaDiagram].length === 0 && (
                                     <li className="text-gray-300 text-xs italic py-2 text-center border border-dashed border-gray-200 rounded">
-                                        Nenhum item adicionado
+                                        -
                                     </li>
                                 )}
                             </ul>
@@ -259,10 +259,10 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
             {/* Root Cause Definition */}
             <div className={`p-6 rounded-xl border-2 shadow-sm transition-all ${canDefineRootCause ? 'bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-300' : 'bg-gray-100 border-gray-300'}`}>
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-semibold text-gray-900">Definição da Causa Raiz</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">{t('wizard.step4.rootCausesTitle')}</h3>
                     {canDefineRootCause && (
                         <button onClick={addRootCause} className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors border border-yellow-300 text-sm">
-                            <Plus size={16} /> ADD ROOT CAUSE
+                            <Plus size={16} /> {t('wizard.step4.addRootCause')}
                         </button>
                     )}
                 </div>
@@ -271,7 +271,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                     <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg flex items-center gap-3">
                         <AlertTriangle className="text-yellow-600" size={20} />
                         <p className="text-sm text-yellow-800">
-                            Preencha pelo menos 3 níveis dos "5 Porquês" para desbloquear esta seção
+                            {t('wizard.step4.rootCausesSubtitle')}
                         </p>
                     </div>
                 )}
@@ -279,7 +279,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                 <div className="space-y-4">
                     {data.root_causes.length === 0 && canDefineRootCause && (
                         <p className="text-sm text-gray-500 italic text-center p-4 bg-white/50 rounded-lg border border-dashed border-yellow-200">
-                            Nenhuma causa raiz definida. Clique em "Add Root Cause".
+                            {t('wizard.step4.addRootCause')}
                         </p>
                     )}
 
@@ -287,19 +287,19 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                         <div key={rc.id} className="grid grid-cols-12 gap-4 items-start bg-white p-4 rounded-lg border border-yellow-200 shadow-sm group">
                             <div className="col-span-12 md:col-span-4">
                                 <Select
-                                    label="Classificação (M)"
-                                    options={[{ value: '', label: 'Selecione...' }, ...taxonomy.rootCauseMs.map(m => ({ value: m.id, label: m.name }))]}
+                                    label={t('wizard.step4.sixMFactor')}
+                                    options={[{ value: '', label: t('wizard.select') }, ...taxonomy.rootCauseMs.map(m => ({ value: m.id, label: m.name }))]}
                                     value={rc.root_cause_m_id}
                                     onChange={e => updateRootCause(idx, 'root_cause_m_id', e.target.value)}
                                 />
                             </div>
                             <div className="col-span-12 md:col-span-7">
                                 <Textarea
-                                    label="Descrição da Causa Raiz"
+                                    label={t('wizard.step4.causeDescription')}
                                     rows={2}
                                     value={rc.cause}
                                     onChange={e => updateRootCause(idx, 'cause', e.target.value)}
-                                    placeholder="Descreva a conclusão da investigação..."
+                                    placeholder="..."
                                 />
                             </div>
                             <div className="col-span-12 md:col-span-1 flex justify-center pt-8">
@@ -315,8 +315,8 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                     <div className="mt-6 p-4 bg-indigo-50 text-indigo-800 text-sm rounded-lg border border-indigo-200 flex items-start gap-3 animate-in fade-in">
                         <UserCheck size={20} className="mt-0.5 flex-shrink-0" />
                         <div>
-                            <span className="font-bold block mb-1">Análise de Confiabilidade Humana Disponível</span>
-                            <span>Uma ou mais causas raízes foram identificadas como <strong>Método</strong> ou <strong>Mão de Obra</strong>. A aba "Human Reliability" está agora acessível.</span>
+                            <span className="font-bold block mb-1">{t('wizard.stepHRA.hraAvailableTitle')}</span>
+                            <span>{t('wizard.stepHRA.hraAvailableMessage')}</span>
                         </div>
                     </div>
                 )}

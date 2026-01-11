@@ -3,6 +3,7 @@ import React from 'react';
 import { Textarea } from '../ui/Textarea';
 import { RcaRecord } from '../../types';
 import { Plus, Trash2 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageDefinition';
 
 interface Step7Props {
     data: RcaRecord;
@@ -10,6 +11,7 @@ interface Step7Props {
 }
 
 export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
+    const { t } = useLanguage();
 
     // Ensure additionalInfo exists (if migrating old record)
     const info = data.additionalInfo || { meetingNotes: '', comments: '', historicalInfo: '' };
@@ -37,15 +39,15 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
     return (
         <div className="space-y-6 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Informações Adicionais</h2>
-                <p className="text-gray-600">Documentação complementar e lições aprendidas</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('wizard.step7.title')}</h2>
+                <p className="text-gray-600">{t('wizard.step7.subtitle')}</p>
             </div>
 
             <div className="space-y-6">
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <Textarea
-                        label="Notas de Reunião"
-                        placeholder="Registre pontos importantes discutidos..."
+                        label={t('wizard.step7.meetingNotes')}
+                        placeholder={t('wizard.step7.meetingNotesPlaceholder')}
                         rows={6}
                         value={info.meetingNotes}
                         onChange={(e) => updateInfo('meetingNotes', e.target.value)}
@@ -54,8 +56,8 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
 
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <Textarea
-                        label="Comentários Gerais"
-                        placeholder="Outras observações..."
+                        label={t('wizard.step7.generalComments')}
+                        placeholder={t('wizard.step7.generalCommentsPlaceholder')}
                         rows={6}
                         value={info.comments}
                         onChange={(e) => updateInfo('comments', e.target.value)}
@@ -64,8 +66,8 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
 
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <Textarea
-                        label="Informações Históricas"
-                        placeholder="Contexto histórico relevante..."
+                        label={t('wizard.step7.historicalInfo')}
+                        placeholder={t('wizard.step7.historicalInfoPlaceholder')}
                         rows={8}
                         value={info.historicalInfo}
                         onChange={(e) => updateInfo('historicalInfo', e.target.value)}
@@ -76,9 +78,9 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
             {/* Lessons Learned */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                 <div className="flex justify-between items-center mb-4 border-b pb-2">
-                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">8. Lições Aprendidas</h3>
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">{t('wizard.step7.lessonsLearned')}</h3>
                     <button onClick={addLesson} className="text-blue-600 text-xs font-bold flex items-center gap-1 hover:text-blue-700">
-                        <Plus size={14} /> ADD
+                        <Plus size={14} /> {t('wizard.add')}
                     </button>
                 </div>
                 <div className="space-y-3">
@@ -95,14 +97,13 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
                             </button>
                         </div>
                     ))}
-                    {data.lessons_learned.length === 0 && <p className="text-xs text-slate-400 italic">Nenhuma lição aprendida registrada.</p>}
+                    {data.lessons_learned.length === 0 && <p className="text-xs text-slate-400 italic">{t('wizard.step7.lessonsEmpty')}</p>}
                 </div>
             </div>
 
             <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-800">
-                    <strong>💡 Dica:</strong> Use estas seções para documentar discussões importantes,
-                    lições aprendidas e contexto histórico relevante para futuras análises.
+                    <strong>{t('wizard.step7.tip')}</strong> {t('wizard.step7.tipText')}
                 </p>
             </div>
         </div>

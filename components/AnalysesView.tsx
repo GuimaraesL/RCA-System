@@ -225,14 +225,14 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
             {/* Header */}
             <div className="flex justify-between items-center mb-6 flex-shrink-0">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">Failure Analyses</h1>
-                    <p className="text-slate-500 mt-1">Manage, search, and edit reliability records.</p>
+                    <h1 className="text-3xl font-bold text-slate-900">{t('analysesPage.title')}</h1>
+                    <p className="text-slate-500 mt-1">{t('analysesPage.subtitle')}</p>
                 </div>
                 <button
                     onClick={onNew}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 shadow-sm transition-colors"
                 >
-                    <Plus size={18} /> New Analysis
+                    <Plus size={18} /> {t('analysesPage.newButton')}
                 </button>
             </div>
 

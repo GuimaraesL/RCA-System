@@ -6,6 +6,7 @@ import { useRcaContext } from '../context/RcaContext';
 import { Save, ArrowLeft, Lock, Check, ChevronDown } from 'lucide-react';
 import { useRcaLogic } from '../hooks/useRcaLogic';
 import { ActionModal } from './ActionModal';
+import { useLanguage } from '../context/LanguageDefinition';
 import { ConfirmModal } from './ConfirmModal';
 
 // Steps
@@ -25,6 +26,7 @@ interface RcaEditorProps {
 }
 
 export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, onSave }) => {
+    const { t } = useLanguage();
     // Contexto para Actions
     const { actions, addAction, updateAction, deleteAction } = useRcaContext();
 
@@ -142,13 +144,13 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     );
 
     const stepsList = [
-        { id: 1, title: 'Dados Gerais', subtitle: 'Informações básicas', fields: ['subgroup_id', 'component_type', 'failure_date', 'failure_time', 'analysis_type', 'participants'] },
-        { id: 2, title: 'Problema', subtitle: '5W1H', fields: ['what', 'problem_description', 'who', 'when', 'where_description'] },
-        { id: 3, title: 'Análise Técnica', subtitle: 'Impacto e falha', fields: ['specialty_id', 'failure_mode_id', 'failure_category_id'] },
-        { id: 4, title: 'Investigação', subtitle: '5 Porquês e Ishikawa', fields: [] },
-        { id: 5, title: 'Ações', subtitle: 'Plano de ação', fields: [] },
-        { id: 6, title: 'Checklist', subtitle: 'Manutenção', fields: [] },
-        { id: 7, title: 'Info. Adicionais', subtitle: 'Notas e Comentários', fields: [] }
+        { id: 1, title: t('wizard.stepNames.step1.title'), subtitle: t('wizard.stepNames.step1.subtitle'), fields: ['subgroup_id', 'component_type', 'failure_date', 'failure_time', 'analysis_type', 'participants'] },
+        { id: 2, title: t('wizard.stepNames.step2.title'), subtitle: t('wizard.stepNames.step2.subtitle'), fields: ['what', 'problem_description', 'who', 'when', 'where_description'] },
+        { id: 3, title: t('wizard.stepNames.step3.title'), subtitle: t('wizard.stepNames.step3.subtitle'), fields: ['specialty_id', 'failure_mode_id', 'failure_category_id'] },
+        { id: 4, title: t('wizard.stepNames.step4.title'), subtitle: t('wizard.stepNames.step4.subtitle'), fields: [] },
+        { id: 5, title: t('wizard.stepNames.step5.title'), subtitle: t('wizard.stepNames.step5.subtitle'), fields: [] },
+        { id: 6, title: t('wizard.stepNames.step6.title'), subtitle: t('wizard.stepNames.step6.subtitle'), fields: [] },
+        { id: 7, title: t('wizard.stepNames.step7.title'), subtitle: t('wizard.stepNames.step7.subtitle'), fields: [] }
     ];
 
     const hasStepError = (stepId: number) => {
@@ -165,7 +167,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                         <ArrowLeft size={20} />
                     </button>
                     <div>
-                        <h2 className="text-xl font-bold text-slate-800">{formData.what || 'Nova Análise'}</h2>
+                        <h2 className="text-xl font-bold text-slate-800">{formData.what || t('analysesPage.newTitle')}</h2>
                         <div className="text-xs text-slate-500 flex gap-2">
                             <span className="font-mono">{formData.id}</span>
                             <span>•</span>
@@ -197,7 +199,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                         className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
                     >
                         <Save size={16} />
-                        Salvar Registro
+                        {t('analysesPage.saveButton')}
                     </button>
                 </div>
             </div>

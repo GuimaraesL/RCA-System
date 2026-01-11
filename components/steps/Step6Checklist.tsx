@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { RcaRecord } from '../../types';
-import { ListChecks, Plus, Trash2, CheckSquare, Square, XSquare } from 'lucide-react';
-import { Textarea } from '../ui/Textarea';
+import { ListChecks, CheckSquare, Square, XSquare } from 'lucide-react';
 import { useSorting } from '../../hooks/useSorting';
 import { SortHeader } from '../ui/SortHeader';
+import { useLanguage } from '../../context/LanguageDefinition';
 
 interface Step6Props {
     data: RcaRecord;
@@ -12,6 +12,7 @@ interface Step6Props {
 }
 
 export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
+    const { t } = useLanguage();
 
     const updatePrecision = (id: string, field: 'status' | 'comment', value: any) => {
         if (!data.precision_maintenance) return;
@@ -29,7 +30,7 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
     // Sorting
     const { sortedItems: precisionMaintenance, sortConfig, handleSort } = useSorting(data.precision_maintenance || [], { key: 'id', direction: 'asc' });
 
-    if (!data.precision_maintenance) return null; // Should be initialized in App or hook
+    if (!data.precision_maintenance) return null;
 
     return (
         <div className="space-y-6 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -40,15 +41,15 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
                         <ListChecks size={24} />
                     </div>
                     <div>
-                        <h2 className="text-lg font-bold text-slate-800">Precision Maintenance Checklist</h2>
-                        <p className="text-sm text-slate-500">Ensure all standard maintenance criteria are met during the repair.</p>
+                        <h2 className="text-lg font-bold text-slate-800">{t('wizard.step6.title')}</h2>
+                        <p className="text-sm text-slate-500">{t('wizard.step6.subtitle')}</p>
                     </div>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="w-1/3">
                     <div className="flex justify-between text-xs mb-1 font-medium">
-                        <span className="text-slate-500">Completion Status</span>
+                        <span className="text-slate-500">{t('wizard.step6.completionStatus')}</span>
                         <span className="text-indigo-600">{percent}% ({completed}/{total})</span>
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
@@ -65,11 +66,11 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
                     <thead>
                         <tr className="bg-slate-50 text-slate-500 border-b group">
                             <SortHeader label="ID" sortKey="id" currentSort={sortConfig} onSort={handleSort} className="text-center w-32" />
-                            <SortHeader label="Atividade" sortKey="activity" currentSort={sortConfig} onSort={handleSort} />
-                            <th className="p-3 w-24 text-center">Executado</th>
-                            <th className="p-3 w-24 text-center">Não Exec.</th>
-                            <th className="p-3 w-24 text-center">N/A</th>
-                            <SortHeader label="Comentário" sortKey="comment" currentSort={sortConfig} onSort={handleSort} />
+                            <SortHeader label={t('wizard.step6.activity')} sortKey="activity" currentSort={sortConfig} onSort={handleSort} />
+                            <th className="p-3 w-24 text-center">{t('wizard.step6.executed')}</th>
+                            <th className="p-3 w-24 text-center">{t('wizard.step6.notExecuted')}</th>
+                            <th className="p-3 w-24 text-center">{t('wizard.step6.notApplicable')}</th>
+                            <SortHeader label={t('wizard.step6.comment')} sortKey="comment" currentSort={sortConfig} onSort={handleSort} />
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -86,7 +87,7 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
                                     <input
                                         type="text"
                                         className="w-full border-b border-slate-200 focus:border-blue-500 outline-none bg-transparent text-xs py-1 text-slate-900 placeholder:text-slate-400"
-                                        placeholder="Add comment..."
+                                        placeholder={t('wizard.step6.addComment')}
                                         value={item.comment || ''}
                                         onChange={(e) => updatePrecision(item.id, 'comment', e.target.value)}
                                     />
