@@ -266,10 +266,10 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                             <tr>
                                 <SortHeader label="ID / Type" sortKey="id" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label="Title / Problem" sortKey="what" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Asset Location" sortKey="asset_name_display" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Asset Location" sortKey="asset_name_display" currentSort={sortConfig} onSort={handleSort} width="w-48" />
                                 <SortHeader label="Status" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label="Impact" sortKey="financial_impact" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Date" sortKey="failure_date" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Date" sortKey="failure_date" currentSort={sortConfig} onSort={handleSort} width="w-32" />
                                 <th className="px-6 py-4 w-16">Actions</th>
                             </tr>
                         </thead>

@@ -223,5 +223,35 @@ router.delete('/:id', (req: Request, res: Response) => {
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
 });
+// POST /api/rcas/bulk-delete - Exclusão em massa
+router.post('/bulk-delete', (req: Request, res: Response) => {
+    try {
+        const db = getDatabase();
+        const { ids } = req.body;
+
+        if (!ids || !Array.isArray(ids)) {
+            return res.status(400).json({ error: 'Body must contain "ids" array' });
+        }
+
+        console.log(`🗑️ Bulk Deleting ${ids.length} RCAs...`);
+
+        db.exec('BEGIN TRANSACTION');
+        const stmt = db.prepare('DELETE FROM rcas WHERE id = ?');
+
+        for (const id of ids) {
+            stmt.run([id]);
+        }
+
+        stmt.free();
+        db.exec('COMMIT');
+        saveDatabase();
+
+        console.log(`✅ Bulk Delete Completed: ${ids.length} records.`);
+        res.json({ message: `Deleted ${ids.length} RCAs successfully` });
+    } catch (error) {
+        console.error('Erro no bulk delete de RCAs:', error);
+        res.status(500).json({ error: 'Erro interno durante exclusão em massa' });
+    }
+});
 
 export default router;

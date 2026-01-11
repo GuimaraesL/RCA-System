@@ -18,7 +18,7 @@ export const MigrationView: React.FC = () => {
     const [csvType, setCsvType] = useState<CsvEntityType>('ASSETS');
 
     // Import Options State
-    const [importMode, setImportMode] = useState<'APPEND' | 'UPDATE'>('APPEND');
+    const [importMode, setImportMode] = useState<'APPEND' | 'UPDATE' | 'REPLACE'>('APPEND');
     const [inheritHierarchy, setInheritHierarchy] = useState<boolean>(false);
 
     // Refs to clear file inputs
@@ -63,10 +63,10 @@ export const MigrationView: React.FC = () => {
             let res: { success: boolean, message: string };
 
             if (useApi) {
-                console.log('🔄 Importando via API...');
-                res = await importDataToApi(data);
+                console.log('🔄 Importando via API...', importMode);
+                res = await importDataToApi(data, importMode);
             } else {
-                res = importData(content);
+                res = importData(content); // LocalStorage logic stays simple (Replace) or we update it later if needed. Default is usually Replace.
             }
 
             setMsg({ type: res.success ? 'success' : 'error', text: res.message });
@@ -269,6 +269,30 @@ export const MigrationView: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Import Options (JSON) */}
+                    <div className="col-span-1 md:col-span-2 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                        <h4 className="text-sm font-semibold text-slate-800 mb-3 text-center">JSON Import Mode</h4>
+                        <div className="flex justify-center gap-6">
+                            <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                                <input type="radio" name="jsonMode" value="APPEND" checked={importMode === 'APPEND'} onChange={() => setImportMode('APPEND')} className="text-blue-600 focus:ring-blue-500" />
+                                Addition (Append)
+                            </label>
+                            <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                                <input type="radio" name="jsonMode" value="UPDATE" checked={importMode === 'UPDATE'} onChange={() => setImportMode('UPDATE')} className="text-blue-600 focus:ring-blue-500" />
+                                Update (Merge by ID)
+                            </label>
+                            <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                                <input type="radio" name="jsonMode" value="REPLACE" checked={importMode === 'REPLACE'} onChange={() => setImportMode('REPLACE')} className="text-red-600 focus:ring-red-500" />
+                                <span className="text-red-700 font-bold">Replace (Wipe & Restore)</span>
+                            </label>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-2 text-center">
+                            {importMode === 'APPEND' && "Creates new copies of all records (new IDs)."}
+                            {importMode === 'UPDATE' && "Overwrites records with matching IDs. Creates new if ID not found."}
+                            {importMode === 'REPLACE' && "⚠️ WARNING: Deletes ALL existing data before importing."}
+                        </p>
+                    </div>
+
                     <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm text-center hover:border-blue-300 transition-colors">
                         <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-600">
                             <Download size={32} />
@@ -389,7 +413,8 @@ export const MigrationView: React.FC = () => {
                         Note: Excel files may use semicolons (;) or commas (,) depending on your region. The system auto-detects this.
                     </p>
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 };
