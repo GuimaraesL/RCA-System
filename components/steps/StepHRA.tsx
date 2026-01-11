@@ -3,6 +3,8 @@ import React from 'react';
 import { RcaRecord } from '../../types';
 import { UserCheck, CheckSquare, Square, XSquare } from 'lucide-react';
 import { Textarea } from '../ui/Textarea';
+import { useSorting } from '../../hooks/useSorting';
+import { SortHeader } from '../ui/SortHeader';
 
 interface StepHRAProps {
     data: RcaRecord;
@@ -10,22 +12,25 @@ interface StepHRAProps {
 }
 
 export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
-    
+
     const updateHraQuestion = (id: string, field: 'answer' | 'comment', value: any) => {
         if (!data.human_reliability) return;
-        const newQuestions = data.human_reliability.questions.map(q => 
+        const newQuestions = data.human_reliability.questions.map(q =>
             q.id === id ? { ...q, [field]: value } : q
         );
         onChange('human_reliability', { ...data.human_reliability, questions: newQuestions });
     };
-  
+
     const updateHraConclusion = (id: string, field: 'selected' | 'description', value: any) => {
-       if (!data.human_reliability) return;
-       const newConclusions = data.human_reliability.conclusions.map(c => 
-           c.id === id ? { ...c, [field]: value } : c
-       );
-       onChange('human_reliability', { ...data.human_reliability, conclusions: newConclusions });
+        if (!data.human_reliability) return;
+        const newConclusions = data.human_reliability.conclusions.map(c =>
+            c.id === id ? { ...c, [field]: value } : c
+        );
+        onChange('human_reliability', { ...data.human_reliability, conclusions: newConclusions });
     };
+
+    // Sorting
+    const { sortedItems: questions, sortConfig, handleSort } = useSorting(data.human_reliability?.questions || [], { key: 'id', direction: 'asc' });
 
     if (!data.human_reliability) return null;
 
@@ -43,16 +48,16 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Questionnaire</h3>
                 <table className="w-full text-sm text-left">
                     <thead>
-                        <tr className="bg-slate-50 text-slate-500 border-b">
-                            <th className="p-3 w-16">ID</th>
-                            <th className="p-3">Question</th>
+                        <tr className="bg-slate-50 text-slate-500 border-b group">
+                            <SortHeader label="ID" sortKey="id" currentSort={sortConfig} onSort={handleSort} className="w-16" />
+                            <SortHeader label="Question" sortKey="question" currentSort={sortConfig} onSort={handleSort} />
                             <th className="p-3 w-24 text-center">Yes</th>
                             <th className="p-3 w-24 text-center">No</th>
-                            <th className="p-3 w-1/3">Comments</th>
+                            <SortHeader label="Comments" sortKey="comment" currentSort={sortConfig} onSort={handleSort} className="w-1/3" />
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                        {data.human_reliability.questions.map(q => (
+                        {questions.map(q => (
                             <tr key={q.id} className="hover:bg-slate-50">
                                 <td className="p-3 font-mono text-xs text-slate-400 max-w-[80px] truncate" title={q.id}>{q.id}</td>
                                 <td className="p-3">
@@ -72,7 +77,7 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
 
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">8. Conclusion (Possible Causes)</h3>
-                
+
                 <div className="space-y-4">
                     {data.human_reliability.conclusions.map(c => (
                         <div key={c.id} className={`p-4 rounded border ${c.selected ? 'border-indigo-300 bg-indigo-50/20' : 'border-slate-200'}`}>
@@ -84,8 +89,8 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                             </div>
                             {c.selected && (
                                 <div className="pl-8 animate-in fade-in slide-in-from-top-1">
-                                    <Textarea 
-                                        placeholder="Descreva brevemente..." 
+                                    <Textarea
+                                        placeholder="Descreva brevemente..."
                                         rows={2}
                                         value={c.description}
                                         onChange={e => updateHraConclusion(c.id, 'description', e.target.value)}
@@ -103,26 +108,26 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                     <div className="flex-1">
                         <label className="block text-xs font-medium text-slate-500 mb-1">O coordenador da máquina valida a análise realizada?</label>
                         <div className="flex gap-4 mt-2">
-                            <button 
-                                onClick={() => onChange('human_reliability', {...data.human_reliability!, validation: {...data.human_reliability!.validation, isValidated: 'YES'}} )} 
+                            <button
+                                onClick={() => onChange('human_reliability', { ...data.human_reliability!, validation: { ...data.human_reliability!.validation, isValidated: 'YES' } })}
                                 className={`flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium ${data.human_reliability!.validation.isValidated === 'YES' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-white border-slate-300 text-slate-600'}`}
                             >
-                                <CheckSquare size={16}/> YES
+                                <CheckSquare size={16} /> YES
                             </button>
-                            <button 
-                                onClick={() => onChange('human_reliability', {...data.human_reliability!, validation: {...data.human_reliability!.validation, isValidated: 'NO'}} )}
+                            <button
+                                onClick={() => onChange('human_reliability', { ...data.human_reliability!, validation: { ...data.human_reliability!.validation, isValidated: 'NO' } })}
                                 className={`flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium ${data.human_reliability!.validation.isValidated === 'NO' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-slate-300 text-slate-600'}`}
                             >
-                                <XSquare size={16}/> NO
+                                <XSquare size={16} /> NO
                             </button>
                         </div>
                     </div>
                     <div className="flex-[2]">
                         <label className="block text-xs font-medium text-slate-500 mb-1">Comentários do Coordenador</label>
-                        <Textarea 
+                        <Textarea
                             rows={3}
                             value={data.human_reliability!.validation.comment}
-                            onChange={e => onChange('human_reliability', {...data.human_reliability!, validation: {...data.human_reliability!.validation, comment: e.target.value}} )}
+                            onChange={e => onChange('human_reliability', { ...data.human_reliability!, validation: { ...data.human_reliability!.validation, comment: e.target.value } })}
                         />
                     </div>
                 </div>

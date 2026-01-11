@@ -100,9 +100,9 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                         <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">Status (Box)</label>
                             <select className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as any })}>
-                                <option value="1">1 - Aprovada</option>
+                                <option value="1">1 - Aprovado</option>
                                 <option value="2">2 - Em Andamento</option>
-                                <option value="3">3 - Concluída</option>
+                                <option value="3">3 - Concluído</option>
                                 <option value="4">4 - Ef. Comprovada</option>
                             </select>
                         </div>

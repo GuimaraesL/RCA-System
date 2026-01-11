@@ -1,9 +1,10 @@
-
 import React, { useMemo, useState } from 'react';
-import { RcaRecord, AssetNode, TaxonomyConfig } from '../types';
+import { RcaRecord, TaxonomyConfig } from '../types';
 import { Plus, FileText, Trash2 } from 'lucide-react';
+import { SortHeader } from './ui/SortHeader';
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
+import { useSorting } from '../hooks/useSorting';
 import { useRcaContext } from '../context/RcaContext';
 import { filterAssetsByUsage } from '../services/utils';
 import { ConfirmModal } from './ConfirmModal';
@@ -20,10 +21,12 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
 
-    // --- Persistent Filter State (Updated) ---
+
+
+    // --- Persistent Filter State ---
     const defaultFilters: FilterState = {
         searchTerm: '',
-        year: '', // Optional in list view
+        year: '',
         months: [],
         status: 'ALL',
         area: 'ALL',
@@ -82,7 +85,6 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
     };
 
     // --- Strict Cross-Filtering Logic for Options ---
-    // Same logic as Dashboard to ensure consistency across the app.
     const dynamicOptions = useMemo(() => {
         // Helper: Global filters (Date, Search)
         const matchesGlobal = (r: any) => {
@@ -91,7 +93,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                 r.what?.toLowerCase().includes(searchLower) ||
                 r.problem_description?.toLowerCase().includes(searchLower) ||
                 r.id.toLowerCase().includes(searchLower) ||
-                // Extended Search (Task 44)
+                // Extended Search
                 r.who?.toLowerCase().includes(searchLower) ||
                 r.where_description?.toLowerCase().includes(searchLower) ||
                 r.participants?.some((p: string) => p.toLowerCase().includes(searchLower)) ||
@@ -151,8 +153,9 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         };
     }, [records, assets, taxonomy, filters]);
 
-    // --- Filtering Logic (View) ---
-    const filteredRecords = useMemo(() => {
+    // --- Filtering Logic (View) --- 
+    // Just the filtering part first, we'll pipe it into sorting next
+    const filteredContent = useMemo(() => {
         return records.filter(r => {
             // Text Search
             const searchLower = filters.searchTerm.toLowerCase();
@@ -200,6 +203,9 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         });
     }, [records, filters]);
 
+    // Use the Hook!
+    const { sortedItems: filteredRecords, sortConfig, handleSort } = useSorting(filteredContent, { key: 'failure_date', direction: 'desc' });
+
     // --- Pagination State ---
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 100;
@@ -208,6 +214,8 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
     React.useEffect(() => {
         setCurrentPage(1);
     }, [filters]);
+
+
 
     return (
         <div className="p-8 max-w-7xl mx-auto h-full flex flex-col">
@@ -254,14 +262,14 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
             <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
                 <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
                     <table className="w-full text-left text-sm text-slate-600">
-                        <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 z-10">
+                        <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 z-10 group">
                             <tr>
-                                <th className="px-6 py-4">ID / Type</th>
-                                <th className="px-6 py-4">Title / Problem</th>
-                                <th className="px-6 py-4">Asset Location</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4">Impact</th>
-                                <th className="px-6 py-4">Date</th>
+                                <SortHeader label="ID / Type" sortKey="id" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Title / Problem" sortKey="what" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Asset Location" sortKey="asset_name_display" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Status" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Impact" sortKey="financial_impact" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Date" sortKey="failure_date" currentSort={sortConfig} onSort={handleSort} />
                                 <th className="px-6 py-4 w-16">Actions</th>
                             </tr>
                         </thead>

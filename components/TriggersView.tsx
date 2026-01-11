@@ -8,6 +8,8 @@ import { AssetSelector } from './AssetSelector';
 import { ConfirmModal } from './ConfirmModal';
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
+import { useSorting } from '../hooks/useSorting';
+import { SortHeader } from './ui/SortHeader';
 
 interface TriggersViewProps {
     onCreateRca: (trigger: TriggerRecord) => void;
@@ -320,7 +322,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 100;
 
-    const filteredTriggers = useMemo(() => {
+    const filteredContent = useMemo(() => {
         // Reset page when filters change (implicitly handled if we use formatted logic, 
         // but explicit effect or key change is safer. Here we rely on useEffect)
         return triggers.filter(t => {
@@ -358,8 +360,11 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
             else if (filters.area !== 'ALL') matchesAsset = t.area_id === filters.area;
 
             return matchesSearch && matchesYear && matchesMonth && matchesStatus && matchesAsset && matchesType;
-        }).sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
+        });
     }, [triggers, filters]);
+
+    // Sorting
+    const { sortedItems: filteredTriggers, sortConfig, handleSort } = useSorting(filteredContent, { key: 'start_date', direction: 'desc' });
 
     // Reset pagination when filters change
     React.useEffect(() => {
@@ -415,19 +420,19 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
             <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
                 <div className="overflow-auto flex-1 custom-scrollbar">
                     <table className="w-full text-left text-xs text-slate-600">
-                        <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 z-10">
+                        <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 z-10 group">
                             <tr>
-                                <th className="px-4 py-3">Farol</th>
-                                <th className="px-4 py-3">Status</th>
-                                <th className="px-4 py-3">Data Início</th>
-                                <th className="px-4 py-3">Área</th>
-                                <th className="px-4 py-3">Equipamento</th>
-                                <th className="px-4 py-3">Subconjunto</th>
-                                <th className="px-4 py-3">Duração</th>
-                                <th className="px-4 py-3">Tipo / Razão</th>
-                                <th className="px-4 py-3">Tipo AF</th>
-                                <th className="px-4 py-3">Responsável</th>
-                                <th className="px-4 py-3">RCA Link (ID AF)</th>
+                                <SortHeader label="Farol" sortKey="start_date" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Status" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Data Início" sortKey="start_date" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Área" sortKey="area_id" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Equipamento" sortKey="equipment_id" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Subconjunto" sortKey="subgroup_id" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Duração" sortKey="duration_minutes" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Tipo / Razão" sortKey="stop_type" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Tipo AF" sortKey="analysis_type_id" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Responsável" sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="RCA Link (ID AF)" sortKey="rca_id" currentSort={sortConfig} onSort={handleSort} />
                                 <th className="px-4 py-3 text-right">Actions</th>
                             </tr>
                         </thead>

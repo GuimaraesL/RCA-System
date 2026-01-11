@@ -1,174 +1,151 @@
-import React, { useState, useMemo } from 'react';
-import { AssetNode, TaxonomyConfig, ActionRecord } from '../types';
-import { useRcaContext } from '../context/RcaContext';
-import { Printer, AlertCircle, Filter, Search, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+
+import React, { useMemo } from 'react';
+import { RcaRecord, ActionRecord } from '../types';
+import { ArrowUp, ArrowDown, Activity, AlertCircle, Calendar, CheckCircle2 } from 'lucide-react';
+import { FilterBar, FilterState } from './FilterBar';
+import { useFilterPersistence } from '../hooks/useFilterPersistence';
+import { useSorting } from '../hooks/useSorting';
+import { SortHeader } from './ui/SortHeader';
 
 interface ReportsViewProps {
-    // records agora vem do contexto também, mas a prop pode ser mantida se quem chama já filtra. 
-    // No entando, para consistência, vamos pegar tudo do contexto se possível, mas como a prop existe, vamos respeitar.
-    records: import('../types').RcaRecord[];
+    records: RcaRecord[];
 }
 
 export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
-    const { assets, taxonomy, actions: allSystemActions } = useRcaContext();
 
-    const [showFilters, setShowFilters] = useState(true);
-
-    // Filter States
-    const [searchTerm, setSearchTerm] = useState('');
-    const [dateStart, setDateStart] = useState('');
-    const [dateEnd, setDateEnd] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>('ALL');
-    const [areaFilter, setAreaFilter] = useState<string>('ALL');
-    const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
-    const [componentTypeFilter, setComponentTypeFilter] = useState<string>('ALL');
-
-    // --- Helpers ---
-    const getName = (type: keyof TaxonomyConfig, id: string) => {
-        if (!taxonomy || !id) return id;
-        const item = taxonomy[type].find(t => t.id === id);
-        return item ? item.name : id;
+    const defaultFilters: FilterState = {
+        searchTerm: '',
+        year: '',
+        months: [],
+        status: 'ALL',
+        area: 'ALL',
+        equipment: 'ALL',
+        subgroup: 'ALL',
+        specialty: 'ALL',
+        analysisType: 'ALL',
+        failureMode: 'ALL',
+        failureCategory: 'ALL',
+        componentType: 'ALL',
+        rootCause6M: 'ALL'
     };
 
-    const getStatusName = (id: string) => getName('analysisStatuses', id);
+    const { filters, setFilters, showFilters, setShowFilters, handleReset } = useFilterPersistence(
+        'rca_reports_view',
+        defaultFilters,
+        false
+    );
 
-    // Derived Lists
-    const availableAreas = useMemo(() => {
-        const areas: { id: string, name: string }[] = [];
-        const traverse = (nodes: AssetNode[]) => {
-            nodes.forEach(n => {
-                if (n.type === 'AREA') areas.push({ id: n.id, name: n.name });
-                if (n.children) traverse(n.children);
-            });
-        };
-        traverse(assets);
-        return areas;
-    }, [assets]);
-
-    const availableCategories = taxonomy?.failureCategories || [];
-    const availableComponentTypes = taxonomy?.componentTypes || [];
-    const availableStatuses = taxonomy?.analysisStatuses || [];
-
-    // Filtering Logic
+    // Apply Filters to get Base Records
     const filteredRecords = useMemo(() => {
         return records.filter(r => {
-            const searchLower = searchTerm.toLowerCase();
-            const matchesSearch = !searchTerm ||
+            const searchLower = filters.searchTerm.toLowerCase();
+            const matchesSearch = !filters.searchTerm ||
                 r.what?.toLowerCase().includes(searchLower) ||
                 r.problem_description?.toLowerCase().includes(searchLower) ||
-                r.id.toLowerCase().includes(searchLower) ||
-                r.os_number?.toLowerCase().includes(searchLower) ||
-                r.asset_name_display?.toLowerCase().includes(searchLower);
+                r.id.toLowerCase().includes(searchLower);
 
             const rDate = new Date(r.failure_date);
-            const start = dateStart ? new Date(dateStart) : null;
-            const end = dateEnd ? new Date(dateEnd) : null;
-            const matchesDate = (!start || rDate >= start) && (!end || rDate <= end);
+            const matchesYear = !filters.year || rDate.getFullYear().toString() === filters.year;
 
-            const matchesStatus = statusFilter === 'ALL' || r.status === statusFilter;
-            const matchesArea = areaFilter === 'ALL' || r.area_id === areaFilter;
-            const matchesCategory = categoryFilter === 'ALL' || r.failure_category_id === categoryFilter;
-            const matchesComponent = componentTypeFilter === 'ALL' || r.component_type === componentTypeFilter;
+            const rMonth = (rDate.getMonth() + 1).toString().padStart(2, '0');
+            const matchesMonth = filters.months.length === 0 || filters.months.includes(rMonth);
 
-            return matchesSearch && matchesDate && matchesStatus && matchesArea && matchesCategory && matchesComponent;
+            const matchesStatus = filters.status === 'ALL' || r.status === filters.status;
+            const matchesType = filters.analysisType === 'ALL' || r.analysis_type === filters.analysisType;
+
+            // Simplified Asset Matches for Report (Can expand if needed)
+            let matchesAsset = true;
+            if (filters.subgroup !== 'ALL') matchesAsset = r.subgroup_id === filters.subgroup;
+            else if (filters.equipment !== 'ALL') matchesAsset = r.equipment_id === filters.equipment;
+            else if (filters.area !== 'ALL') matchesAsset = r.area_id === filters.area;
+
+            return matchesSearch && matchesYear && matchesMonth && matchesStatus && matchesType && matchesAsset;
         });
-    }, [records, searchTerm, dateStart, dateEnd, statusFilter, areaFilter, categoryFilter, componentTypeFilter]);
+    }, [records, filters]);
 
-    const clearFilters = () => {
-        setSearchTerm('');
-        setDateStart('');
-        setDateEnd('');
-        setStatusFilter('ALL');
-        setAreaFilter('ALL');
-        setCategoryFilter('ALL');
-        setComponentTypeFilter('ALL');
-    };
 
-    // KPI Calculations
-    const totalCost = filteredRecords.reduce((acc, r) => acc + (r.financial_impact || 0), 0);
-    const totalDowntime = filteredRecords.reduce((acc, r) => acc + (r.downtime_minutes || 0), 0);
+    // KPI Calculation
+    const totalOpen = filteredRecords.filter(r => r.status !== 'Concluída' && r.status !== 'Ef. Comprovada').length;
+    const totalClosed = filteredRecords.filter(r => r.status === 'Concluída' || r.status === 'Ef. Comprovada').length;
+    const avgDuration = 15; // Placeholder
+
+    // Extract ALL Actions from ALL Records (for comprehensive analysis, or filtered?)
+    // Decision: Show actions linked to the FILTERED records.
+    const allSystemActions = records.flatMap(r =>
+        (r.root_causes || []).flatMap(rc =>
+            (rc.actions || []).map(a => ({ ...a, rca_id: r.id, rca_title: r.what }))
+        )
+    );
 
     // Resolve Actions for Filtered Records Only
     const filteredRecordIds = new Set(filteredRecords.map(r => r.id));
     const relevantActions = allSystemActions.filter(a => filteredRecordIds.has(a.rca_id));
 
     // Open: Status not 3 (Concluída) and not 4 (Ef. Comprovada)
-    const openActions = relevantActions.filter(a => a.status !== '3' && a.status !== '4');
+    const openActionsRaw = useMemo(() =>
+        relevantActions.filter(a => a.status !== '3' && a.status !== '4'),
+        [relevantActions]);
+
+    // Sorting
+    const { sortedItems: openActions, sortConfig, handleSort } = useSorting(openActionsRaw, { key: 'date', direction: 'asc' });
+
     const overdueActions = openActions.filter(a => new Date(a.date) < new Date());
 
     return (
         <div className="p-8 max-w-7xl mx-auto space-y-6">
-            {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">Reports & Insights</h1>
-                    <p className="text-slate-500 mt-1">Operational impact and action tracking summary.</p>
+                    <h1 className="text-2xl font-bold text-slate-800">Reports & Insights</h1>
+                    <p className="text-slate-500">Performance metrics and open action tracking</p>
                 </div>
-                <div className="flex gap-2">
-                    <button onClick={() => setShowFilters(!showFilters)} className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 border transition-colors ${showFilters ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-300 text-slate-700'}`}>
-                        <Filter size={18} /> Filters {showFilters ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    </button>
-                    <button onClick={() => window.print()} className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-medium flex items-center gap-2 hover:bg-slate-50">
-                        <Printer size={18} /> Print
-                    </button>
+                <div className="text-sm text-slate-400">
+                    Last updated: {new Date().toLocaleDateString()}
                 </div>
             </div>
 
-            {/* Filters */}
-            {showFilters && (
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-in fade-in slide-in-from-top-2">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center gap-2"><Search size={16} /> Advanced Search</h3>
-                        <button onClick={clearFilters} className="text-xs text-slate-500 hover:text-red-500 flex items-center gap-1"><RefreshCw size={12} /> Reset Filters</button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="col-span-1 md:col-span-2">
-                            <label className="block text-xs font-medium text-slate-500 mb-1">Search Keywords</label>
-                            <div className="relative">
-                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                <input type="text" placeholder="Search..." className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1">Date Range</label>
-                            <div className="flex gap-2 items-center">
-                                <input type="date" className="w-full border border-slate-300 rounded-lg p-2 text-sm" value={dateStart} onChange={e => setDateStart(e.target.value)} />
-                                <span className="text-slate-400">-</span>
-                                <input type="date" className="w-full border border-slate-300 rounded-lg p-2 text-sm" value={dateEnd} onChange={e => setDateEnd(e.target.value)} />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1">Status</label>
-                            <select className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                                <option value="ALL">All Statuses</option>
-                                {availableStatuses.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <FilterBar
+                isOpen={showFilters}
+                onToggle={() => setShowFilters(!showFilters)}
+                filters={filters}
+                onFilterChange={setFilters}
+                onReset={() => handleReset(defaultFilters)}
+                totalResults={filteredRecords.length}
+                config={{ showDate: true, showStatus: true, showSearch: true, showAnalysisType: true, showAssetHierarchy: true }}
+            />
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <div className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Total Financial Impact</div>
-                    <div className="text-2xl font-bold text-slate-800">${(totalCost || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <div className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Total Downtime</div>
-                    <div className="text-2xl font-bold text-slate-800">{totalDowntime} <span className="text-sm text-slate-400 font-normal">min</span></div>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <div className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Open Actions</div>
-                    <div className="text-2xl font-bold text-blue-600">{openActions.length}</div>
-                    <div className="text-xs text-slate-400 mt-1">{overdueActions.length} overdue</div>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <div className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Completion Rate</div>
-                    <div className="text-2xl font-bold text-green-600">
-                        {filteredRecords.length > 0 ? Math.round((filteredRecords.filter(r => getStatusName(r.status) === 'Concluída').length / filteredRecords.length) * 100) : 0}%
+                    <div className="flex justify-between items-start mb-2">
+                        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Activity size={20} /></div>
+                        {overdueActions.length > 0 && <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded-full animate-pulse">{overdueActions.length} LATE</span>}
                     </div>
+                    <div className="text-3xl font-bold text-slate-800">{filteredRecords.length}</div>
+                    <div className="text-sm text-slate-500 font-medium">Total Analyses</div>
+                </div>
+
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <div className="flex justify-between items-start mb-2">
+                        <div className="p-2 bg-amber-50 text-amber-600 rounded-lg"><AlertCircle size={20} /></div>
+                    </div>
+                    <div className="text-3xl font-bold text-slate-800">{totalOpen}</div>
+                    <div className="text-sm text-slate-500 font-medium">Open Analyses</div>
+                </div>
+
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <div className="flex justify-between items-start mb-2">
+                        <div className="p-2 bg-green-50 text-green-600 rounded-lg"><CheckCircle2 size={20} /></div>
+                    </div>
+                    <div className="text-3xl font-bold text-slate-800">{totalClosed}</div>
+                    <div className="text-sm text-slate-500 font-medium">Concluded</div>
+                </div>
+
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <div className="flex justify-between items-start mb-2">
+                        <div className="p-2 bg-purple-50 text-purple-600 rounded-lg"><Calendar size={20} /></div>
+                    </div>
+                    <div className="text-3xl font-bold text-slate-800">{openActions.length}</div>
+                    <div className="text-sm text-slate-500 font-medium">Pending Actions</div>
                 </div>
             </div>
 
@@ -179,12 +156,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-slate-600">
-                        <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
+                        <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 group">
                             <tr>
-                                <th className="px-6 py-3">Due Date</th>
-                                <th className="px-6 py-3">Action</th>
-                                <th className="px-6 py-3">Responsible</th>
-                                <th className="px-6 py-3">Box</th>
+                                <SortHeader label="Due Date" sortKey="date" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Action" sortKey="action" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Responsible" sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label="Box" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">

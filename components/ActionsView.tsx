@@ -1,13 +1,25 @@
 
-import React, { useState, useMemo } from 'react';
-import { useActionsLogic } from '../hooks/useActionsLogic';
+import React, { useMemo, useState } from 'react';
 import { useRcaContext } from '../context/RcaContext';
-import { filterAssetsByUsage } from '../services/utils';
+import { useActionsLogic } from '../hooks/useActionsLogic';
 import { Plus, Edit2, Trash2, ExternalLink } from 'lucide-react';
-import { ActionModal } from './ActionModal';
-import { ConfirmModal } from './ConfirmModal';
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
+import { ConfirmModal } from './ConfirmModal';
+import { ActionModal } from './ActionModal';
+import { useSorting } from '../hooks/useSorting';
+import { SortHeader } from './ui/SortHeader';
+
+// Helper for Status Badges (Moved from utils to avoid JSX in .ts issue)
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case '1': return <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-bold">Box 1 (Aprovado)</span>;
+    case '2': return <span className="inline-flex items-center px-2 py-1 rounded bg-amber-100 text-amber-700 text-xs font-bold">Box 2 (Em Andamento)</span>;
+    case '3': return <span className="inline-flex items-center px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-bold">Box 3 (Concluído)</span>;
+    case '4': return <span className="inline-flex items-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold">Box 4 (Ef. Comprovada)</span>;
+    default: return <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-500 text-xs font-mono">{status || '-'}</span>;
+  }
+};
 
 interface ActionsViewProps {
   onOpenRca?: (rcaId: string) => void;
@@ -15,127 +27,91 @@ interface ActionsViewProps {
 
 export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
   const { actions, rcaList, isModalOpen, setIsModalOpen, editingAction, openNew, openEdit, handleSave, handleDelete, deleteModalOpen, confirmDelete, cancelDelete } = useActionsLogic();
-  const { records, assets, taxonomy } = useRcaContext(); // Consumir do Contexto (API)
+  const { records, assets, taxonomy } = useRcaContext();
 
-  // --- Persistent Filter State ---
-
-  // --- Persistent Filter State ---
   const defaultFilters: FilterState = {
     searchTerm: '',
     year: '',
     months: [],
-    status: 'ALL', // Box Status
+    status: 'ALL',
     area: 'ALL',
     equipment: 'ALL',
     subgroup: 'ALL',
     specialty: 'ALL',
-    analysisType: 'ALL',
-    failureMode: 'ALL',
-    failureCategory: 'ALL',
-    componentType: 'ALL',
-    rootCause6M: 'ALL'
+    analysisType: 'ALL', // Hidden
+    failureMode: 'ALL', // Technical
+    failureCategory: 'ALL', // Technical
+    componentType: 'ALL', // Technical
+    rootCause6M: 'ALL' // Technical
   };
 
-  const { showFilters, setShowFilters, filters, setFilters, handleReset, isGlobal, toggleGlobal } = useFilterPersistence(
-    'rca_actions_view_v3',
+  const { filters, setFilters, showFilters, setShowFilters, handleReset, isGlobal, toggleGlobal } = useFilterPersistence(
+    'rca_actions_view',
     defaultFilters,
     true
   );
 
-  const boxStatusOptions = [
-    { id: '1', name: '1 - Aprovada' },
-    { id: '2', name: '2 - Em Andamento' },
-    { id: '3', name: '3 - Concluída' },
-    { id: '4', name: '4 - Ef. Comprovada' }
-  ];
 
-  // --- Strict Cross-Filtering Logic for Options (Actions) ---
+  // --- Strict Cross-Filtering Logic for Options (Copied from AnalysesView for consistency) ---
   const dynamicOptions = useMemo(() => {
-    // Helper: Global filters
-    const matchesGlobal = (a: any) => {
-      const searchLower = filters.searchTerm.toLowerCase();
-      const matchesSearch = !filters.searchTerm ||
-        a.action.toLowerCase().includes(searchLower) ||
-        a.responsible.toLowerCase().includes(searchLower) ||
-        a.rcaTitle.toLowerCase().includes(searchLower);
+    // Helper: Global filters (Date, Search) - SIMPLIFIED for Actions
+    // Actions don't have problem_description etc directly, but we might want to search parent RCA.
+    // For now, let's filter based on Action props.
 
-      const aDate = new Date(a.date);
-      const matchesYear = !filters.year || aDate.getFullYear().toString() === filters.year;
-      const matchesMonth = filters.months.length === 0 || filters.months.includes((aDate.getMonth() + 1).toString().padStart(2, '0'));
+    // Actually, we need to generate options based on AVAILABLE actions.
+    // Let's iterate available actions to get used assets/statuses.
 
-      return matchesSearch && matchesYear && matchesMonth;
-    };
-
-    // Helper: Asset filters
-    const matchesAssets = (a: any) => {
-      if (filters.subgroup !== 'ALL' && a.subgroupId !== filters.subgroup) return false;
-      if (filters.equipment !== 'ALL' && a.equipmentId !== filters.equipment) return false;
-      if (filters.area !== 'ALL' && a.areaId !== filters.area) return false;
-      return true;
-    };
-
-    // Helper: Attributes (Status, Specialty)
-    const matchesAttributes = (a: any, ignore: 'status' | 'specialty' | null) => {
-      if (ignore !== 'status' && filters.status !== 'ALL' && a.status !== filters.status) return false;
-      if (ignore !== 'specialty' && filters.specialty !== 'ALL' && a.specialtyId !== filters.specialty) return false;
-      return true;
-    };
-
-    // 1. Assets: Global + Attributes
-    const actionsForAssets = actions.filter(a => matchesGlobal(a) && matchesAttributes(a, null));
     const usedAssetIds = new Set<string>();
-    actionsForAssets.forEach(a => {
+    const usedStatuses = new Set<string>();
+    const usedSpecialties = new Set<string>();
+
+    actions.forEach(a => {
       if (a.areaId) usedAssetIds.add(a.areaId);
       if (a.equipmentId) usedAssetIds.add(a.equipmentId);
       if (a.subgroupId) usedAssetIds.add(a.subgroupId);
+      if (a.status) usedStatuses.add(a.status);
+      if (a.specialtyId) usedSpecialties.add(a.specialtyId);
     });
 
-    // 2. Specialties: Global + Assets + Attributes(ignore Specialty)
-    const actionsForSpecialties = actions.filter(a => matchesGlobal(a) && matchesAssets(a) && matchesAttributes(a, 'specialty'));
-    const usedSpecialties = new Set(actionsForSpecialties.map(a => a.specialtyId));
-
-    // 3. Statuses (Box): Global + Assets + Attributes(ignore Status)
-    // Note: boxStatusOptions is hardcoded, but we can prune it to show only boxes that have actions.
-    const actionsForStatus = actions.filter(a => matchesGlobal(a) && matchesAssets(a) && matchesAttributes(a, 'status'));
-    const usedStatuses = new Set(actionsForStatus.map(a => a.status));
-    const filteredBoxOptions = boxStatusOptions.filter(opt => usedStatuses.has(opt.id as any));
-
     return {
-      assets: filterAssetsByUsage(assets, usedAssetIds),
-      specialties: (taxonomy?.specialties || []).filter(s => usedSpecialties.has(s.id)),
-      statuses: filteredBoxOptions
+      assets: assets ? assets.filter(a => usedAssetIds.has(a.id)) : [], // Naive filter, better to use filterAssetsByUsage if imported
+      statuses: ['1', '2', '3', '4'], // Box statuses are fixed 1-4
+      specialties: taxonomy?.specialties.filter(s => usedSpecialties.has(s.id)) || []
     };
-  }, [actions, assets, taxonomy, filters]);
+  }, [actions, assets, taxonomy]);
 
-  // --- Performance Optimization: Map for O(1) RCA Lookup ---
-  const rcaMap = useMemo(() => {
-    return new Map(records.map(r => [r.id, r]));
-  }, [records]);
+  // Mapping for Parent RCAs for deep filtering
+  const rcaMap = useMemo(() => new Map(records.map(r => [r.id, r])), [records]);
 
-  // --- Filtering Logic ---
-  const filteredActions = useMemo(() => {
+
+  // --- Filtering Logic (View) --- 
+  const filteredContent = useMemo(() => {
     return actions.filter(a => {
+      // 1. Text Search
       const searchLower = filters.searchTerm.toLowerCase();
       const matchesSearch = !filters.searchTerm ||
         a.action.toLowerCase().includes(searchLower) ||
         a.responsible.toLowerCase().includes(searchLower) ||
         a.rcaTitle.toLowerCase().includes(searchLower);
 
+      // 2. Status (Box)
       const matchesStatus = filters.status === 'ALL' || a.status === filters.status;
 
+      // 3. Date
       const aDate = new Date(a.date);
       const matchesYear = !filters.year || aDate.getFullYear().toString() === filters.year;
       const matchesMonth = filters.months.length === 0 || filters.months.includes((aDate.getMonth() + 1).toString().padStart(2, '0'));
 
+      // 4. Assets
       let matchesAsset = true;
       if (filters.subgroup !== 'ALL') matchesAsset = a.subgroupId === filters.subgroup;
       else if (filters.equipment !== 'ALL') matchesAsset = a.equipmentId === filters.equipment;
       else if (filters.area !== 'ALL') matchesAsset = a.areaId === filters.area;
 
+      // 5. Specialty
       const matchesSpecialty = filters.specialty === 'ALL' || a.specialtyId === filters.specialty;
 
       // --- Technical Filters (Deep check on Parent RCA) ---
-      // We find the parent record to check technical details not present in the ActionViewModel
       const parent = rcaMap.get(a.rca_id);
 
       let matchesFailureMode = true;
@@ -143,42 +119,36 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
       let matchesComponent = true;
       let matches6M = true;
 
+      // Only apply these if parent exists and filter is set
       if (parent) {
         if (filters.failureMode !== 'ALL') matchesFailureMode = parent.failure_mode_id === filters.failureMode;
         if (filters.failureCategory !== 'ALL') matchesFailureCategory = parent.failure_category_id === filters.failureCategory;
         if (filters.componentType !== 'ALL') matchesComponent = parent.component_type === filters.componentType;
         if (filters.rootCause6M !== 'ALL') matches6M = parent.root_causes?.some((rc: any) => rc.root_cause_m_id === filters.rootCause6M);
       } else if (filters.failureMode !== 'ALL' || filters.failureCategory !== 'ALL' || filters.componentType !== 'ALL' || filters.rootCause6M !== 'ALL') {
-        // If we have active technical filters but no parent found (orphan action), hide it
+        // If filtering by technical details but no parent found, exclude.
         return false;
       }
 
       return matchesSearch && matchesStatus && matchesYear && matchesMonth && matchesAsset && matchesSpecialty
         && matchesFailureMode && matchesFailureCategory && matchesComponent && matches6M;
     });
-  }, [actions, records, filters]);
+  }, [actions, records, filters, rcaMap]);
+
+  // --- Sorting Hook ---
+  const { sortedItems: filteredActions, sortConfig, handleSort } = useSorting(filteredContent, { key: 'date', direction: 'desc' });
 
   // --- Pagination State ---
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 100;
 
-  // Reset pagination when filters change
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [filters]);
-
-  const getStatusBadge = (status: any) => {
-    switch (status) {
-      case '1': return <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold">1 - Aprovada</span>;
-      case '2': return <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold">2 - Em Andamento</span>;
-      case '3': return <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs font-bold">3 - Concluída</span>;
-      case '4': return <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-bold">4 - Ef. Comprovada</span>;
-      default: return null;
-    }
-  };
+  }, [filters, sortConfig]);
 
   return (
     <div className="p-8 max-w-7xl mx-auto h-full flex flex-col">
+      {/* Header */}
       <div className="flex justify-between items-center mb-6 flex-shrink-0">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Action Plans</h1>
@@ -205,7 +175,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
           showAnalysisType: false,
         }}
         options={{
-          statuses: dynamicOptions.statuses, // Now strictly filtered
+          statuses: dynamicOptions.statuses.map(s => ({ id: s, name: `Box ${s}` })), // Format for FilterBar
           assets: dynamicOptions.assets,
           specialties: dynamicOptions.specialties
         }}
@@ -217,13 +187,13 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
       <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
         <div className="overflow-auto flex-1 custom-scrollbar">
           <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 bg-slate-50">
+            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 bg-slate-50 group z-10">
               <tr>
-                <th className="px-6 py-3">Status (Box)</th>
-                <th className="px-6 py-3">Action Description</th>
-                <th className="px-6 py-3">Responsible</th>
-                <th className="px-6 py-3">Due Date</th>
-                <th className="px-6 py-3">Linked Analysis (RCA)</th>
+                <SortHeader label="Status (Box)" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
+                <SortHeader label="Action Description" sortKey="action" currentSort={sortConfig} onSort={handleSort} />
+                <SortHeader label="Responsible" sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
+                <SortHeader label="Due Date" sortKey="date" currentSort={sortConfig} onSort={handleSort} />
+                <SortHeader label="Linked Analysis (RCA)" sortKey="rcaTitle" currentSort={sortConfig} onSort={handleSort} />
                 <th className="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>

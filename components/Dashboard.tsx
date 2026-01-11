@@ -104,7 +104,12 @@ export const Dashboard: React.FC = () => {
             const matchesSearch = !filters.searchTerm ||
                 r.what?.toLowerCase().includes(searchLower) ||
                 r.problem_description?.toLowerCase().includes(searchLower) ||
-                r.id.toLowerCase().includes(searchLower);
+                r.id.toLowerCase().includes(searchLower) ||
+                // Extended Search (Task 44/53)
+                r.who?.toLowerCase().includes(searchLower) ||
+                r.where_description?.toLowerCase().includes(searchLower) ||
+                r.participants?.some((p: string) => p.toLowerCase().includes(searchLower)) ||
+                r.root_causes?.some((rc: any) => rc.cause.toLowerCase().includes(searchLower));
 
             const rDate = new Date(r.failure_date);
             const rYear = rDate.getFullYear().toString();
@@ -174,7 +179,12 @@ export const Dashboard: React.FC = () => {
             const matchesSearch = !filters.searchTerm ||
                 r.what?.toLowerCase().includes(searchLower) ||
                 r.problem_description?.toLowerCase().includes(searchLower) ||
-                r.id.toLowerCase().includes(searchLower);
+                r.id.toLowerCase().includes(searchLower) ||
+                // Extended Search (Task 44/53)
+                r.who?.toLowerCase().includes(searchLower) ||
+                r.where_description?.toLowerCase().includes(searchLower) ||
+                r.participants?.some((p: string) => p.toLowerCase().includes(searchLower)) ||
+                r.root_causes?.some((rc: any) => rc.cause.toLowerCase().includes(searchLower));
 
             const rDate = new Date(r.failure_date);
             const rYear = rDate.getFullYear().toString();
