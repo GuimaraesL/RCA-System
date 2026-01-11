@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { RcaRecord, ActionRecord } from '../types';
 import { generateId } from '../services/utils';
 import { useRcaContext } from '../context/RcaContext';
@@ -8,6 +8,7 @@ import { useRcaLogic } from '../hooks/useRcaLogic';
 import { ActionModal } from './ActionModal';
 import { useLanguage } from '../context/LanguageDefinition';
 import { ConfirmModal } from './ConfirmModal';
+import { animateModalEnter } from '../services/animations'; // Animation
 
 // Steps
 import { Step1General } from './steps/Step1General';
@@ -52,6 +53,15 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     // Modal State for Delete Confirmation
     const [deleteActionModalOpen, setDeleteActionModalOpen] = useState(false);
     const [actionToDelete, setActionToDelete] = useState<string | null>(null);
+
+    // Animation Ref
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (containerRef.current) {
+            animateModalEnter(containerRef.current);
+        }
+    }, []);
 
     const refreshActions = () => {
         if (formData.id) {
@@ -159,7 +169,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-full w-full max-w-7xl mx-auto relative">
+        <div ref={containerRef} className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-full w-full max-w-7xl mx-auto relative opacity-0"> {/* Initial opacity 0 for animejs */}
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white z-10">
                 <div className="flex items-center gap-3">

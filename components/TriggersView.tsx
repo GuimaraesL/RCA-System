@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useRcaContext } from '../context/RcaContext';
 import { TriggerRecord, AssetNode, TaxonomyConfig } from '../types';
 import { generateId, filterAssetsByUsage } from '../services/utils';
@@ -10,6 +10,8 @@ import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { useSorting } from '../hooks/useSorting';
 import { SortHeader } from './ui/SortHeader';
+import { useEnterAnimation } from '../hooks/useEnterAnimation'; // Animation
+import { animateModalEnter } from '../services/animations';
 
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
 
@@ -17,6 +19,139 @@ interface TriggersViewProps {
     onCreateRca: (trigger: TriggerRecord) => void;
     onOpenRca: (rcaId: string) => void;
 }
+
+// Inline Trigger Modal Component for Animation
+const TriggerModal = ({ editingTrigger, setEditingTrigger, setIsModalOpen, handleSave, t, assets, taxonomy, handleAssetSelect, getAssetName }) => {
+    const modalRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (modalRef.current) {
+            animateModalEnter(modalRef.current);
+        }
+    }, []);
+
+    return (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div ref={modalRef} className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden opacity-0">
+                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                    <h3 className="font-bold text-lg text-slate-800">{t('triggerModal.title')}</h3>
+                </div>
+                <div className="p-6 space-y-4">
+                    {/* Dates */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.startDate')}</label>
+                            <input
+                                type="datetime-local"
+                                className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                value={editingTrigger.start_date}
+                                onChange={e => setEditingTrigger({ ...editingTrigger, start_date: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.endDate')}</label>
+                            <input
+                                type="datetime-local"
+                                className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                value={editingTrigger.end_date}
+                                onChange={e => setEditingTrigger({ ...editingTrigger, end_date: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Asset Selection (Simplified) */}
+                    <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.subgroupSelect')}</label>
+                        <div className="border rounded h-32 overflow-auto bg-slate-50 mb-2">
+                            <AssetSelector
+                                assets={assets}
+                                onSelect={handleAssetSelect}
+                                selectedAssetId={editingTrigger.subgroup_id || editingTrigger.equipment_id}
+                                selectableTypes={['SUBGROUP']}
+                            />
+                        </div>
+                        <div className="text-xs text-blue-600">
+                            {t('triggerModal.selected')} {getAssetName(editingTrigger.subgroup_id || editingTrigger.equipment_id || editingTrigger.area_id, assets)}
+                        </div>
+                    </div>
+
+                    {/* Details */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.stopType')}</label>
+                            <input
+                                type="text"
+                                className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                value={editingTrigger.stop_type}
+                                onChange={e => setEditingTrigger({ ...editingTrigger, stop_type: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.stopReason')}</label>
+                            <input
+                                type="text"
+                                className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                value={editingTrigger.stop_reason}
+                                onChange={e => setEditingTrigger({ ...editingTrigger, stop_reason: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.analysisType')}</label>
+                            <select
+                                className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                value={editingTrigger.analysis_type_id}
+                                onChange={e => setEditingTrigger({ ...editingTrigger, analysis_type_id: e.target.value })}
+                            >
+                                <option value="">{t('triggerModal.selectPlaceholder')}</option>
+                                {(taxonomy.analysisTypes || []).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.responsible')}</label>
+                            <input
+                                type="text"
+                                className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                value={editingTrigger.responsible}
+                                onChange={e => setEditingTrigger({ ...editingTrigger, responsible: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.status')}</label>
+                        <select
+                            className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                            value={editingTrigger.status}
+                            onChange={e => setEditingTrigger({ ...editingTrigger, status: e.target.value as any })}
+                        >
+                            {(taxonomy.triggerStatuses || []).map(s => (
+                                <option key={s.id} value={s.id}>{s.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.comments')}</label>
+                        <textarea
+                            className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none h-20"
+                            value={editingTrigger.comments}
+                            onChange={e => setEditingTrigger({ ...editingTrigger, comments: e.target.value })}
+                        />
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t">
+                        <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">{t('triggerModal.cancel')}</button>
+                        <button onClick={handleSave} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">{t('triggerModal.save')}</button>
+                    </div>
+                </div>
+            </div>
+        </div >
+    );
+};
+
 
 export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenRca }) => {
     const { t, formatDate } = useLanguage();
@@ -374,53 +509,52 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
         setCurrentPage(1);
     }, [filters]);
 
+    // Animation Ref
+    // Provide dependencies so animation re-runs when page or list changes
+    const listRef = useEnterAnimation([filteredTriggers, currentPage]);
+
     return (
         <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col relative">
-            {/* Debug Overlay (Hidden by default unless uncommented/flagged) */}
-            {/* 
-            <div className="absolute top-0 right-0 bg-slate-100 p-2 text-[10px] z-50 opacity-50 hover:opacity-100">
-                Debug: {triggers.length} Triggers | {assets.length} Assets | Tax: {!!taxonomy ? 'OK' : 'FAIL'}
-            </div>
-            */}
-
             {/* Header */}
-            <div className="flex justify-between items-center mb-6 flex-shrink-0">
+            <div className="flex justify-between items-center mb-6 flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-500">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900">{t('sidebar.triggers')}</h1>
                     <p className="text-slate-500 mt-1">Manage downtime events and convert triggers to Root Cause Analyses.</p>
                 </div>
-                <button onClick={handleNew} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 shadow-sm">
+                <button onClick={handleNew} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 shadow-sm transition-colors">
                     <Plus size={18} /> {t('filters.options.all') === 'Todos' ? 'Novo Gatilho' : 'New Trigger'}
                 </button>
             </div>
 
             {/* Filter */}
-            <FilterBar
-                isOpen={showFilters}
-                onToggle={() => setShowFilters(!showFilters)}
-                filters={filters}
-                onFilterChange={setFilters}
-                onReset={() => handleReset(defaultFilters)}
-                totalResults={filteredTriggers.length}
-                config={{
-                    showSearch: true,
-                    showDate: true,
-                    showStatus: true,
-                    showAssetHierarchy: true,
-                    showAnalysisType: true,
-                    showSpecialty: false
-                }}
-                options={{
-                    statuses: dynamicOptions.statuses,
-                    analysisTypes: dynamicOptions.analysisTypes,
-                    assets: dynamicOptions.assets
-                }}
-                isGlobal={isGlobal}
-                onGlobalToggle={toggleGlobal}
-            />
+            <div className="animate-in fade-in slide-in-from-top-4 duration-500 delay-100">
+                <FilterBar
+                    isOpen={showFilters}
+                    onToggle={() => setShowFilters(!showFilters)}
+                    filters={filters}
+                    onFilterChange={setFilters}
+                    onReset={() => handleReset(defaultFilters)}
+                    totalResults={filteredTriggers.length}
+                    config={{
+                        showSearch: true,
+                        showDate: true,
+                        showStatus: true,
+                        showAssetHierarchy: true,
+                        showAnalysisType: true,
+                        showSpecialty: false
+                    }}
+                    options={{
+                        statuses: dynamicOptions.statuses,
+                        analysisTypes: dynamicOptions.analysisTypes,
+                        assets: dynamicOptions.assets
+                    }}
+                    isGlobal={isGlobal}
+                    onGlobalToggle={toggleGlobal}
+                />
+            </div>
 
             {/* Data Table */}
-            <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
+            <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-700 delay-200">
                 <div className="overflow-auto flex-1 custom-scrollbar">
                     <table className="w-full text-left text-xs text-slate-600">
                         <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 z-10 group">
@@ -439,7 +573,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                 <th className="px-4 py-3 text-right">{t('table.actions')}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody ref={listRef as any} className="divide-y divide-slate-100">
                             {filteredTriggers.length === 0 && (
                                 <tr>
                                     <td colSpan={10} className="p-12 text-center text-slate-400">
@@ -457,7 +591,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                 const statusName = getTaxonomyName(taxonomy.triggerStatuses, t.status);
 
                                 return (
-                                    <tr key={t.id} className="hover:bg-slate-50 group">
+                                    <tr key={t.id} className="hover:bg-slate-50 group opacity-0">
                                         <td className="px-4 py-3">
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${farol.color}`}>
                                                 {farol.days}
@@ -540,126 +674,17 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
 
             {/* Modal */}
             {isModalOpen && editingTrigger && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95">
-                        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                            <h3 className="font-bold text-lg text-slate-800">{t('triggerModal.title')}</h3>
-                        </div>
-                        <div className="p-6 space-y-4">
-                            {/* Dates */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.startDate')}</label>
-                                    <input
-                                        type="datetime-local"
-                                        className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                        value={editingTrigger.start_date}
-                                        onChange={e => setEditingTrigger({ ...editingTrigger, start_date: e.target.value })}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.endDate')}</label>
-                                    <input
-                                        type="datetime-local"
-                                        className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                        value={editingTrigger.end_date}
-                                        onChange={e => setEditingTrigger({ ...editingTrigger, end_date: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Asset Selection (Simplified) */}
-                            <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.subgroupSelect')}</label>
-                                <div className="border rounded h-32 overflow-auto bg-slate-50 mb-2">
-                                    <AssetSelector
-                                        assets={assets}
-                                        onSelect={handleAssetSelect}
-                                        selectedAssetId={editingTrigger.subgroup_id || editingTrigger.equipment_id}
-                                        selectableTypes={['SUBGROUP']}
-                                    />
-                                </div>
-                                <div className="text-xs text-blue-600">
-                                    {t('triggerModal.selected')} {getAssetName(editingTrigger.subgroup_id || editingTrigger.equipment_id || editingTrigger.area_id, assets)}
-                                </div>
-                            </div>
-
-                            {/* Details */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.stopType')}</label>
-                                    <input
-                                        type="text"
-                                        className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                        value={editingTrigger.stop_type}
-                                        onChange={e => setEditingTrigger({ ...editingTrigger, stop_type: e.target.value })}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.stopReason')}</label>
-                                    <input
-                                        type="text"
-                                        className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                        value={editingTrigger.stop_reason}
-                                        onChange={e => setEditingTrigger({ ...editingTrigger, stop_reason: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.analysisType')}</label>
-                                    <select
-                                        className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                        value={editingTrigger.analysis_type_id}
-                                        onChange={e => setEditingTrigger({ ...editingTrigger, analysis_type_id: e.target.value })}
-                                    >
-                                        <option value="">{t('triggerModal.selectPlaceholder')}</option>
-                                        {(taxonomy.analysisTypes || []).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.responsible')}</label>
-                                    <input
-                                        type="text"
-                                        className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                        value={editingTrigger.responsible}
-                                        onChange={e => setEditingTrigger({ ...editingTrigger, responsible: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.status')}</label>
-                                <select
-                                    className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={editingTrigger.status}
-                                    onChange={e => setEditingTrigger({ ...editingTrigger, status: e.target.value as any })}
-                                >
-                                    {(taxonomy.triggerStatuses || []).map(s => (
-                                        <option key={s.id} value={s.id}>{s.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-
-
-                            <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.comments')}</label>
-                                <textarea
-                                    className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none h-20"
-                                    value={editingTrigger.comments}
-                                    onChange={e => setEditingTrigger({ ...editingTrigger, comments: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="flex justify-end gap-3 pt-4 border-t">
-                                <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">{t('triggerModal.cancel')}</button>
-                                <button onClick={handleSave} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">{t('triggerModal.save')}</button>
-                            </div>
-                        </div>
-                    </div>
-                </div >
+                <TriggerModal
+                    editingTrigger={editingTrigger}
+                    setEditingTrigger={setEditingTrigger}
+                    setIsModalOpen={setIsModalOpen}
+                    handleSave={handleSave}
+                    t={t}
+                    assets={assets}
+                    taxonomy={taxonomy}
+                    handleAssetSelect={handleAssetSelect}
+                    getAssetName={getAssetName}
+                />
             )}
 
             {/* Modal de Link RCA (Performance Optimization) */}

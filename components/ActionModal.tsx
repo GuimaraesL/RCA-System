@@ -1,7 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ActionRecord } from '../types';
 import { useLanguage } from '../context/LanguageDefinition';
+import { animateModalEnter } from '../services/animations';
 
 interface ActionModalProps {
     isOpen: boolean;
@@ -24,6 +25,8 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
         moc_number: ''
     });
 
+    const containerRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         if (isOpen) {
             if (initialData) {
@@ -38,6 +41,10 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                     status: '1',
                     moc_number: ''
                 });
+            }
+            // Trigger Animation
+            if (containerRef.current) {
+                animateModalEnter(containerRef.current);
             }
         }
     }, [isOpen, initialData, fixedRca]);
@@ -56,7 +63,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
 
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95">
+            <div ref={containerRef} className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden opacity-0">
                 <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                     <h3 className="font-bold text-lg text-slate-800">{initialData ? t('actionModal.titleEdit') : t('actionModal.titleNew')}</h3>
                 </div>

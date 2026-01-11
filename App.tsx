@@ -187,7 +187,9 @@ const AppContent: React.FC = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="flex-1 overflow-auto bg-slate-50/50">
+                    // We use key={view} and animate-in class to trigger animation on view switch
+                    // CSS classes 'animate-in fade-in slide-in-from-bottom-2 duration-300' create the effect
+                    <div key={view} className="flex-1 overflow-auto bg-slate-50/50 animate-in fade-in slide-in-from-bottom-2 duration-300">
                         {view === 'DASHBOARD' && (
                             <Dashboard />
                         )}

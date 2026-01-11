@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { RcaRecord, ActionRecord } from '../../types';
 import { ClipboardList, Plus, Target, CheckCircle2, AlertTriangle, Edit2, Trash2 } from 'lucide-react';
 import { useSorting } from '../../hooks/useSorting';
 import { SortHeader } from '../ui/SortHeader';
 import { useLanguage } from '../../context/LanguageDefinition';
+import { useEnterAnimation } from '../../hooks/useEnterAnimation'; // Animation Hook
 
 interface Step5Props {
     data: RcaRecord;
@@ -41,6 +42,9 @@ export const Step5Actions: React.FC<Step5Props> = ({
         const list = data.containment_actions.filter((_, i) => i !== index);
         onChange('containment_actions', list);
     };
+
+    // Animation for Table Rows
+    const listRef = useEnterAnimation([sortedActions]);
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -138,7 +142,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                                 <th className="px-4 py-2 text-right"></th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody ref={listRef as any} className="divide-y divide-slate-100">
                             {sortedActions.length === 0 && (
                                 <tr>
                                     <td colSpan={5} className="p-4 text-center text-slate-400 italic bg-slate-50/50">
@@ -147,7 +151,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                                 </tr>
                             )}
                             {sortedActions.map(act => (
-                                <tr key={act.id} className="hover:bg-slate-50">
+                                <tr key={act.id} className="hover:bg-slate-50 opacity-0"> {/* opacity-0 for staggered animation */}
                                     <td className="px-4 py-2 font-bold text-center border-r border-slate-100 bg-slate-50/50 w-16">{act.status}</td>
                                     <td className="px-4 py-2">{act.action}</td>
                                     <td className="px-4 py-2">{act.responsible}</td>

@@ -1,8 +1,9 @@
 // Modal de Confirmação Customizado
 // Substitui window.confirm() que é bloqueado em alguns ambientes corporativos
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
+import { animateModalEnter } from '../services/animations';
 
 interface ConfirmModalProps {
     isOpen: boolean;
@@ -25,6 +26,14 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     onCancel,
     variant = 'danger'
 }) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (isOpen && containerRef.current) {
+            animateModalEnter(containerRef.current);
+        }
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
     const variantColors = {
@@ -48,8 +57,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     const colors = variantColors[variant];
 
     return (
-        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-150">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+            <div ref={containerRef} className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden opacity-0">
                 {/* Header */}
                 <div className={`px-6 py-4 ${colors.bg} flex items-center gap-3`}>
                     <AlertTriangle className={`${colors.icon}`} size={24} />

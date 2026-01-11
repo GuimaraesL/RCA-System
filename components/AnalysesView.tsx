@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from 'react';
 import { RcaRecord, TaxonomyConfig } from '../types';
 import { Plus, FileText, Trash2 } from 'lucide-react';
@@ -8,13 +9,13 @@ import { useSorting } from '../hooks/useSorting';
 import { useRcaContext } from '../context/RcaContext';
 import { filterAssetsByUsage } from '../services/utils';
 import { ConfirmModal } from './ConfirmModal';
+import { useEnterAnimation } from '../hooks/useEnterAnimation';
+import { useLanguage } from '../context/LanguageDefinition'; // i18n
 
 interface AnalysesViewProps {
     onNew: () => void;
     onEdit: (rec: RcaRecord) => void;
 }
-
-import { useLanguage } from '../context/LanguageDefinition'; // i18n
 
 export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => {
     const { t, formatDate } = useLanguage();
@@ -23,8 +24,6 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
     // Delete Modal State
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
-
-
 
     // --- Persistent Filter State ---
     const defaultFilters: FilterState = {
@@ -157,7 +156,6 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
     }, [records, assets, taxonomy, filters]);
 
     // --- Filtering Logic (View) --- 
-    // Just the filtering part first, we'll pipe it into sorting next
     const filteredContent = useMemo(() => {
         return records.filter(r => {
             // Text Search
@@ -218,12 +216,14 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         setCurrentPage(1);
     }, [filters]);
 
-
+    // Animation Ref
+    // Provide dependencies so animation re-runs when page or list changes
+    const listRef = useEnterAnimation([filteredRecords, currentPage]);
 
     return (
         <div className="p-8 max-w-7xl mx-auto h-full flex flex-col">
             {/* Header */}
-            <div className="flex justify-between items-center mb-6 flex-shrink-0">
+            <div className="flex justify-between items-center mb-6 flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-500">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900">{t('analysesPage.title')}</h1>
                     <p className="text-slate-500 mt-1">{t('analysesPage.subtitle')}</p>
@@ -236,33 +236,35 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                 </button>
             </div>
 
-            <FilterBar
-                isOpen={showFilters}
-                onToggle={() => setShowFilters(!showFilters)}
-                filters={filters}
-                onFilterChange={setFilters}
-                onReset={() => handleReset(defaultFilters)}
-                totalResults={filteredRecords.length}
-                config={{
-                    showSearch: true,
-                    showDate: true,
-                    showStatus: true,
-                    showAssetHierarchy: true,
-                    showAnalysisType: true,
-                    showSpecialty: true
-                }}
-                options={{
-                    statuses: dynamicOptions.statuses,
-                    analysisTypes: dynamicOptions.analysisTypes,
-                    specialties: dynamicOptions.specialties,
-                    assets: dynamicOptions.assets
-                }}
-                isGlobal={isGlobal}
-                onGlobalToggle={toggleGlobal}
-            />
+            <div className="animate-in fade-in slide-in-from-top-4 duration-500 delay-100">
+                <FilterBar
+                    isOpen={showFilters}
+                    onToggle={() => setShowFilters(!showFilters)}
+                    filters={filters}
+                    onFilterChange={setFilters}
+                    onReset={() => handleReset(defaultFilters)}
+                    totalResults={filteredRecords.length}
+                    config={{
+                        showSearch: true,
+                        showDate: true,
+                        showStatus: true,
+                        showAssetHierarchy: true,
+                        showAnalysisType: true,
+                        showSpecialty: true
+                    }}
+                    options={{
+                        statuses: dynamicOptions.statuses,
+                        analysisTypes: dynamicOptions.analysisTypes,
+                        specialties: dynamicOptions.specialties,
+                        assets: dynamicOptions.assets
+                    }}
+                    isGlobal={isGlobal}
+                    onGlobalToggle={toggleGlobal}
+                />
+            </div>
 
             {/* Data Table */}
-            <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
+            <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-700 delay-200">
                 <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
                     <table className="w-full text-left text-sm text-slate-600">
                         <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 z-10 group">
@@ -276,7 +278,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                 <th className="px-6 py-4 w-16">{t('table.actions')}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody ref={listRef as any} className="divide-y divide-slate-100">
                             {filteredRecords.length === 0 && (
                                 <tr>
                                     <td colSpan={7} className="p-12 text-center text-slate-400">
@@ -288,7 +290,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                             {filteredRecords.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(r => {
                                 const statusName = getName('analysisStatuses', r.status);
                                 return (
-                                    <tr key={r.id} onClick={() => onEdit(r)} className="hover:bg-blue-50 cursor-pointer transition-colors group">
+                                    <tr key={r.id} onClick={() => onEdit(r)} className="hover:bg-blue-50 cursor-pointer transition-colors group opacity-0">
                                         <td className="px-6 py-4">
                                             <div className="font-mono text-xs text-slate-500">{r.id}</div>
                                             <div className="text-xs font-bold text-blue-600">{getName('analysisTypes', r.analysis_type)}</div>

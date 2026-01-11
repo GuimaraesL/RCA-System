@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { useRcaContext } from '../context/RcaContext';
 import { useActionsLogic } from '../hooks/useActionsLogic';
 import { Plus, Edit2, Trash2, ExternalLink } from 'lucide-react';
@@ -9,6 +9,8 @@ import { ConfirmModal } from './ConfirmModal';
 import { ActionModal } from './ActionModal';
 import { useSorting } from '../hooks/useSorting';
 import { SortHeader } from './ui/SortHeader';
+import { useLanguage } from '../context/LanguageDefinition'; // i18n
+import { useEnterAnimation } from '../hooks/useEnterAnimation'; // Animation
 
 // Helper for Status Badges (Moved from utils to avoid JSX in .ts issue)
 const getStatusBadge = (status: string) => {
@@ -20,8 +22,6 @@ const getStatusBadge = (status: string) => {
     default: return <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-500 text-xs font-mono">{status || '-'}</span>;
   }
 };
-
-import { useLanguage } from '../context/LanguageDefinition'; // i18n
 
 interface ActionsViewProps {
   onOpenRca?: (rcaId: string) => void;
@@ -149,10 +149,13 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
     setCurrentPage(1);
   }, [filters, sortConfig]);
 
+  // Animation Ref
+  const listRef = useEnterAnimation([filteredActions, currentPage]);
+
   return (
     <div className="p-8 max-w-7xl mx-auto h-full flex flex-col">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6 flex-shrink-0">
+      <div className="flex justify-between items-center mb-6 flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-500">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">{t('sidebar.actions')}</h1>
           <p className="text-slate-500 mt-1">Manage corrective actions linked to Root Cause Analyses.</p>
@@ -162,32 +165,34 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
         </button>
       </div>
 
-      <FilterBar
-        isOpen={showFilters}
-        onToggle={() => setShowFilters(!showFilters)}
-        filters={filters}
-        onFilterChange={setFilters}
-        onReset={() => handleReset(defaultFilters)}
-        totalResults={filteredActions.length}
-        config={{
-          showSearch: true,
-          showDate: true,
-          showStatus: true,
-          showAssetHierarchy: true,
-          showSpecialty: true,
-          showAnalysisType: false,
-        }}
-        options={{
-          statuses: dynamicOptions.statuses.map(s => ({ id: s, name: `Box ${s}` })), // Format for FilterBar
-          assets: dynamicOptions.assets,
-          specialties: dynamicOptions.specialties
-        }}
-        isGlobal={isGlobal}
-        onGlobalToggle={toggleGlobal}
-      />
+      <div className="animate-in fade-in slide-in-from-top-4 duration-500 delay-100">
+        <FilterBar
+          isOpen={showFilters}
+          onToggle={() => setShowFilters(!showFilters)}
+          filters={filters}
+          onFilterChange={setFilters}
+          onReset={() => handleReset(defaultFilters)}
+          totalResults={filteredActions.length}
+          config={{
+            showSearch: true,
+            showDate: true,
+            showStatus: true,
+            showAssetHierarchy: true,
+            showSpecialty: true,
+            showAnalysisType: false,
+          }}
+          options={{
+            statuses: dynamicOptions.statuses.map(s => ({ id: s, name: `Box ${s}` })), // Format for FilterBar
+            assets: dynamicOptions.assets,
+            specialties: dynamicOptions.specialties
+          }}
+          isGlobal={isGlobal}
+          onGlobalToggle={toggleGlobal}
+        />
+      </div>
 
       {/* Data Grid */}
-      <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0">
+      <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-700 delay-200">
         <div className="overflow-auto flex-1 custom-scrollbar">
           <table className="w-full text-left text-sm text-slate-600">
             <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 bg-slate-50 group z-10">
@@ -200,9 +205,9 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
                 <th className="px-6 py-3 text-right">{t('table.actions')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody ref={listRef as any} className="divide-y divide-slate-100">
               {filteredActions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(action => (
-                <tr key={action.id} className="hover:bg-slate-50">
+                <tr key={action.id} className="hover:bg-slate-50 opacity-0">
                   <td className="px-6 py-4">{getStatusBadge(action.status)}</td>
                   <td className="px-6 py-4 font-medium text-slate-800 max-w-xs truncate" title={action.action}>{action.action}</td>
                   <td className="px-6 py-4">{action.responsible}</td>
