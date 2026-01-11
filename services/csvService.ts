@@ -218,7 +218,7 @@ export const getCsvTemplate = (type: CsvEntityType): string => {
         case 'ASSETS': return 'id;name;type;parentId';
         case 'ACTIONS': return 'id;rca_id;action;responsible;date;status;moc_number';
         case 'TRIGGERS': return 'ID;AREA;Equip.;Subconjunto;Data/Hora Início;Data/Hora Fim;Duração (min);Tipo Parada;Razão Parada;Comentários;Tipo AF;Status;Responsável;ID AF;Path';
-        case 'RECORDS_SUMMARY': return 'id;what;participants;problem_description;analysis_type;status;failure_date;downtime_minutes;financial_impact;area_id';
+        case 'RECORDS_SUMMARY': return 'id;what;issue_description;analysis_type;status;failure_date;failure_time;downtime_minutes;analysis_duration_minutes;financial_impact;area_id;equipment_id;subgroup_id;component_type;who;when;where_description;problem_description;participants;root_causes;potential_impacts;lessons_learned;version;file_path;specialty_id;failure_mode_id;failure_category_id';
         default: return 'id;name';
     }
 };
@@ -271,7 +271,24 @@ export const exportToCsv = (type: CsvEntityType, context: CsvContextData): strin
     }
 
     if (type === 'RECORDS_SUMMARY') {
-        return toCSV(records, ['id', 'what', 'participants', 'problem_description', 'analysis_type', 'status', 'failure_date', 'downtime_minutes', 'financial_impact', 'analysis_duration_minutes', 'area_id']);
+        const header = ['id', 'what', 'problem_description', 'analysis_type', 'status', 'failure_date', 'failure_time', 'downtime_minutes', 'analysis_duration_minutes', 'financial_impact', 'area_id', 'equipment_id', 'subgroup_id', 'component_type', 'who', 'when', 'where_description', 'participants', 'root_causes', 'potential_impacts', 'lessons_learned', 'version', 'file_path', 'specialty_id', 'failure_mode_id', 'failure_category_id'];
+
+        // Custom Mapper for Complex Fields
+        const rows = records.map(r => {
+            // Helper for Lists
+            const joinList = (val: any) => Array.isArray(val) ? val.map(v => typeof v === 'object' ? JSON.stringify(v) : v).join('|') : String(val || '');
+            const rootCauses = Array.isArray(r.root_causes) ? r.root_causes.map(rc => rc.cause).join('|') : '';
+
+            return {
+                ...r,
+                participants: joinList(r.participants),
+                root_causes: rootCauses,
+                potential_impacts: joinList(r.potential_impacts),
+                lessons_learned: joinList(r.lessons_learned)
+            };
+        });
+
+        return toCSV(rows, header);
     }
 
     const taxonomyKey = TAXONOMY_MAP[type];

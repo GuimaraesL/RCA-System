@@ -222,6 +222,49 @@ export const deleteActionFromApi = async (id: string): Promise<void> => {
     await checkResponse(response, `DELETE /actions/${id}`);
 };
 
+
+// --- HELPER: Recalcular Status da RCA ---
+export const recalculateRcaStatus = async (rcaId: string, taxonomy?: TaxonomyConfig): Promise<void> => {
+    if (!rcaId) return;
+    try {
+        // Optimization: Fetch taxonomy only if not provided
+        const tax = taxonomy || await fetchTaxonomy();
+
+        // Parallelize these independent fetches
+        const [rca, actions] = await Promise.all([
+            fetchRecordById(rcaId),
+            fetchActionsByRca(rcaId)
+        ]);
+
+        if (!rca) return;
+
+        // IDs de Status
+        const statusConcluido = tax.analysisStatuses.find(s => s.name === 'Concluída')?.id || 'STATUS-03';
+        const statusEmAndamento = tax.analysisStatuses.find(s => s.name === 'Em Andamento')?.id || 'STATUS-01';
+
+        const hasActions = actions.length > 0;
+        const allCompleted = hasActions && actions.every(a => ['3', '4', 'Concluída', 'Eficaz'].includes(String(a.status)) || String(a.status) === statusConcluido);
+        const anyInProgress = hasActions && actions.some(a => ['2', 'Em Andamento'].includes(String(a.status)) || String(a.status) === statusEmAndamento);
+
+        let newStatus = rca.status;
+
+        if (allCompleted) {
+            newStatus = statusConcluido;
+        } else if (anyInProgress) {
+            newStatus = statusEmAndamento;
+        } else if (!hasActions && rca.status === statusConcluido) {
+            newStatus = statusEmAndamento;
+        }
+
+        if (newStatus !== rca.status) {
+            console.log(`🔄 Status Update [RCA ${rcaId}]: ${rca.status} -> ${newStatus}`);
+            await saveRecordToApi({ ...rca, status: newStatus });
+        }
+    } catch (error) {
+        console.error(`❌ Failed to recalculate status for RCA ${rcaId}`, error);
+    }
+};
+
 export const importActionsToApi = async (actions: ActionRecord[]): Promise<void> => {
     console.log('🔄 API: Importing', actions.length, 'actions...');
     const response = await fetch(`${API_BASE}/actions/bulk`, {
@@ -230,6 +273,21 @@ export const importActionsToApi = async (actions: ActionRecord[]): Promise<void>
         body: JSON.stringify(actions)
     });
     await checkResponse(response, 'POST /actions/bulk');
+
+    // Trigger Status Recalculation for affected RCAs
+    const affectedRcas = new Set(actions.map(a => a.rca_id).filter(id => !!id));
+    if (affectedRcas.size > 0) {
+        console.log(`🔄 Recalculating status for ${affectedRcas.size} RCAs (Parallel)...`);
+
+        // Optimization: Fetch taxonomy once and reuse
+        const taxonomy = await fetchTaxonomy();
+
+        // Process in parallel with Promise.all
+        // This is much faster than sequential awaiting
+        await Promise.all(
+            Array.from(affectedRcas).map(rcaId => recalculateRcaStatus(rcaId, taxonomy))
+        );
+    }
 };
 
 
@@ -363,10 +421,11 @@ const deleteAllTriggers = async () => {
 };
 
 // --- IMPORTAÇÃO EM MASSA ---
-export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'REPLACE' = 'REPLACE'): Promise<{ success: boolean, message: string }> => {
+export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'REPLACE' = 'REPLACE', taxonomyFilters?: string[]): Promise<{ success: boolean, message: string }> => {
     console.log(`🔄 API: Importing bulk data [Mode: ${mode}]...`, {
         hasAssets: !!data.assets,
-        recordsCount: data.records?.length || 0
+        recordsCount: data.records?.length || 0,
+        filters: taxonomyFilters
     });
 
     try {
@@ -391,9 +450,6 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
         }
 
         // 2. Importar Assets (sempre substitui se houver assets no JSON)
-        // Note: importAssetsToApi deletes existing 'flat' assets. Use with caution in APPEND/UPDATE if not intended to wipe assets.
-        // However, Architecture defines Assets as Reference Data. Syncing usually means "Match Source".
-        // We will stick to standard behavior for Assets for now (Replace).
         if (assetsToImport && assetsToImport.length > 0) {
             await importAssetsToApi(assetsToImport);
             console.log('✅ Assets importados/verificados:', assetsToImport.length);
@@ -401,15 +457,29 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
             console.warn('⚠️ Nenhum asset encontrado para importar.');
         }
 
-        // 2. Importar Taxonomy (Merge com Auto-Discovery)
+        // 2. Importar Taxonomy (Merge com Auto-Discovery e Filtros)
         const currentTaxonomy = await fetchTaxonomy();
         const incomingTaxonomy = data.taxonomy || {};
 
-        let taxonomyToSave: TaxonomyConfig = {
-            ...currentTaxonomy, // Start with current DB state
-            ...incomingTaxonomy, // Overwrite with backup data
-            triggerStatuses: incomingTaxonomy.triggerStatuses || currentTaxonomy.triggerStatuses || [],
-        };
+        // Start with current DB state
+        let taxonomyToSave: TaxonomyConfig = { ...currentTaxonomy };
+
+        // Determine which keys to import
+        // If filters are provided, strict filter. If not provided (legacy), import ALL from incoming.
+        const keysToProcess = taxonomyFilters && taxonomyFilters.length > 0
+            ? taxonomyFilters
+            : Object.keys(incomingTaxonomy);
+
+        console.log('Applying Taxonomy Filters:', keysToProcess);
+
+        keysToProcess.forEach((key: string) => {
+            // Type safety check: only import if it exists in incoming data
+            // We cast key to keyof TaxonomyConfig for assignment
+            if (key in incomingTaxonomy) {
+                // @ts-ignore - Dynamic assignment
+                taxonomyToSave[key as keyof TaxonomyConfig] = incomingTaxonomy[key];
+            }
+        });
 
         const ensureTaxonomy = (listKey: keyof TaxonomyConfig, val: string) => {
             if (!val) return null;
