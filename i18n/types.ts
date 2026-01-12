@@ -104,6 +104,10 @@ export interface TranslationSchema {
         saveButton: string;
         newTitle: string;
     };
+    actionsPage: {
+        title: string;
+        subtitle: string;
+    };
     table: {
         id: string;
         date: string;

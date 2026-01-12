@@ -106,6 +106,10 @@ export const pt: TranslationSchema = {
         saveButton: "Salvar Registro",
         newTitle: "Nova Análise"
     },
+    actionsPage: {
+        title: "Planos de Ação",
+        subtitle: "Gerencie ações corretivas vinculadas a Análises de Causa Raiz."
+    },
     table: {
         id: "ID",
         date: "Data",

@@ -106,6 +106,10 @@ export const en: TranslationSchema = {
         saveButton: "Save Record",
         newTitle: "New Analysis"
     },
+    actionsPage: {
+        title: "Action Plans",
+        subtitle: "Manage corrective actions linked to Root Cause Analyses."
+    },
     table: {
         id: "ID",
         date: "Date",

@@ -158,7 +158,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
       <div className="flex justify-between items-center mb-6 flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-500">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">{t('sidebar.actions')}</h1>
-          <p className="text-slate-500 mt-1">Manage corrective actions linked to Root Cause Analyses.</p>
+          <p className="text-slate-500 mt-1">{t('actionsPage.subtitle')}</p>
         </div>
         <button onClick={openNew} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 shadow-sm">
           <Plus size={18} /> {t('table.actions')}
