@@ -193,14 +193,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 shadow-sm">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                     <h3 className="text-xl font-semibold text-gray-900">{t('wizard.step4.ishikawaTitle')}</h3>
-                    <button
-                        onClick={onAnalyzeAI}
-                        disabled={isAnalyzing || !data.problem_description}
-                        className="bg-white border border-green-300 text-green-700 hover:bg-green-100 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm disabled:opacity-50"
-                    >
-                        {isAnalyzing ? <Loader2 className="animate-spin" size={16} /> : <Wand2 size={16} />}
-                        AI
-                    </button>
+
                 </div>
 
                 <div className="mb-8 bg-white p-4 rounded-lg border border-green-200 shadow-sm flex flex-col md:flex-row gap-3 items-end">

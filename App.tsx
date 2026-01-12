@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Book, Siren } from 'lucide-react';
+import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Siren } from 'lucide-react';
 import { RcaRecord, TriggerRecord } from './types';
 import { RcaEditor } from './components/RcaEditor';
 import { AssetsManager } from './components/AssetsManager';
@@ -10,7 +10,7 @@ import { ActionsView } from './components/ActionsView';
 import { TriggersView } from './components/TriggersView';
 import { SettingsView } from './components/SettingsView';
 import { MigrationView } from './components/MigrationView';
-import { DocumentationView } from './components/DocumentationView';
+
 import { RcaProvider, useRcaContext } from './context/RcaContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { useLanguage } from './context/LanguageDefinition';
@@ -145,12 +145,7 @@ const AppContent: React.FC = () => {
                     </button>
 
                     <div className="pt-4 mt-4 border-t border-slate-800">
-                        <button
-                            onClick={() => setView('DOCS')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'DOCS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
-                        >
-                            <Book size={20} /> {t('sidebar.docs')}
-                        </button>
+
                         <button
                             onClick={() => setView('SETTINGS')}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'SETTINGS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
@@ -211,9 +206,7 @@ const AppContent: React.FC = () => {
                         {view === 'MIGRATION' && (
                             <MigrationView />
                         )}
-                        {view === 'DOCS' && (
-                            <DocumentationView />
-                        )}
+
                     </div>
                 )}
             </main>
