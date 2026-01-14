@@ -3,7 +3,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useRcaContext } from '../context/RcaContext';
 import { TriggerRecord, AssetNode, TaxonomyConfig } from '../types';
 import { generateId, filterAssetsByUsage } from '../services/utils';
-import { Plus, Edit2, Trash2, Link, ExternalLink, AlertCircle, Clock, CheckCircle, FileText, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Link, ExternalLink, AlertCircle, Clock, CheckCircle, Check, FileText, X } from 'lucide-react';
 import { AssetSelector } from './AssetSelector';
 import { ConfirmModal } from './ConfirmModal';
 import { FilterBar, FilterState } from './FilterBar';
@@ -246,6 +246,11 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
 
         // Lookup status name to determine behavior
         const statusName = getTaxonomyName(taxonomy.triggerStatuses, statusId);
+
+        // NEW LOGIC: If Concluded, show Checkmark and Green
+        if (statusName === 'Concluída' || statusName === 'Concluido') {
+            return { days: <Check size={16} strokeWidth={3} />, color: 'bg-green-100 text-green-700 border border-green-200' };
+        }
 
         // Stop counting if Concluded or Removed
         const isClosed = statusName === 'Concluída' || statusName === 'Removido' || statusName === 'Ignorada' || statusName === 'CONVERTED';
