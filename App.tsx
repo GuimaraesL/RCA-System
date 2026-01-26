@@ -1,15 +1,18 @@
 
-import React, { useState } from 'react';
-import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Siren } from 'lucide-react';
+import React, { useState, Suspense, lazy } from 'react';
+import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Siren, Loader2 } from 'lucide-react';
 import { RcaRecord, TriggerRecord } from './types';
-import { RcaEditor } from './components/RcaEditor';
-import { AssetsManager } from './components/AssetsManager';
-import { Dashboard } from './components/Dashboard';
-import { AnalysesView } from './components/AnalysesView';
-import { ActionsView } from './components/ActionsView';
-import { TriggersView } from './components/TriggersView';
-import { SettingsView } from './components/SettingsView';
-import { MigrationView } from './components/MigrationView';
+
+// Lazy Loading: Code Splitting para performance
+// Cada componente é carregado apenas quando necessário
+const RcaEditor = lazy(() => import('./components/RcaEditor').then(m => ({ default: m.RcaEditor })));
+const AssetsManager = lazy(() => import('./components/AssetsManager').then(m => ({ default: m.AssetsManager })));
+const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
+const AnalysesView = lazy(() => import('./components/AnalysesView').then(m => ({ default: m.AnalysesView })));
+const ActionsView = lazy(() => import('./components/ActionsView').then(m => ({ default: m.ActionsView })));
+const TriggersView = lazy(() => import('./components/TriggersView').then(m => ({ default: m.TriggersView })));
+const SettingsView = lazy(() => import('./components/SettingsView').then(m => ({ default: m.SettingsView })));
+const MigrationView = lazy(() => import('./components/MigrationView').then(m => ({ default: m.MigrationView })));
 
 import { RcaProvider, useRcaContext } from './context/RcaContext';
 import { LanguageProvider } from './context/LanguageContext';
@@ -171,44 +174,53 @@ const AppContent: React.FC = () => {
 
             {/* Main Content */}
             <main className="flex-1 overflow-hidden relative flex flex-col">
-                {isEditorOpen ? (
-                    <div className="absolute inset-0 bg-slate-50 p-0 z-20 overflow-hidden flex flex-col">
-                        <div className="flex-1 p-6 overflow-hidden">
-                            <RcaEditor
-                                existingRecord={editingRecord}
-                                onClose={handleCloseEditor}
-                                onSave={handleCloseEditor}
-                            />
+                {/* Suspense: Fallback exibido enquanto o componente lazy é carregado */}
+                <Suspense fallback={
+                    <div className="flex-1 flex items-center justify-center bg-slate-50/50">
+                        <div className="flex flex-col items-center gap-3 text-slate-400">
+                            <Loader2 className="animate-spin" size={32} />
+                            <span className="text-sm font-medium">Carregando...</span>
                         </div>
                     </div>
-                ) : (
-                    // We use key={view} and animate-in class to trigger animation on view switch
-                    // CSS classes 'animate-in fade-in slide-in-from-bottom-2 duration-300' create the effect
-                    <div key={view} className="flex-1 overflow-auto bg-slate-50/50 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        {view === 'DASHBOARD' && (
-                            <Dashboard />
-                        )}
-                        {view === 'TRIGGERS' && (
-                            <TriggersView onCreateRca={handleCreateRcaFromTrigger} onOpenRca={handleOpenRca} />
-                        )}
-                        {view === 'ANALYSES' && (
-                            <AnalysesView onNew={openNew} onEdit={openEdit} />
-                        )}
-                        {view === 'ACTIONS' && (
-                            <ActionsView onOpenRca={handleOpenRca} />
-                        )}
-                        {view === 'ASSETS' && (
-                            <AssetsManager />
-                        )}
-                        {view === 'SETTINGS' && (
-                            <SettingsView />
-                        )}
-                        {view === 'MIGRATION' && (
-                            <MigrationView />
-                        )}
-
-                    </div>
-                )}
+                }>
+                    {isEditorOpen ? (
+                        <div className="absolute inset-0 bg-slate-50 p-0 z-20 overflow-hidden flex flex-col">
+                            <div className="flex-1 p-6 overflow-hidden">
+                                <RcaEditor
+                                    existingRecord={editingRecord}
+                                    onClose={handleCloseEditor}
+                                    onSave={handleCloseEditor}
+                                />
+                            </div>
+                        </div>
+                    ) : (
+                        // We use key={view} and animate-in class to trigger animation on view switch
+                        // CSS classes 'animate-in fade-in slide-in-from-bottom-2 duration-300' create the effect
+                        <div key={view} className="flex-1 overflow-auto bg-slate-50/50 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            {view === 'DASHBOARD' && (
+                                <Dashboard />
+                            )}
+                            {view === 'TRIGGERS' && (
+                                <TriggersView onCreateRca={handleCreateRcaFromTrigger} onOpenRca={handleOpenRca} />
+                            )}
+                            {view === 'ANALYSES' && (
+                                <AnalysesView onNew={openNew} onEdit={openEdit} />
+                            )}
+                            {view === 'ACTIONS' && (
+                                <ActionsView onOpenRca={handleOpenRca} />
+                            )}
+                            {view === 'ASSETS' && (
+                                <AssetsManager />
+                            )}
+                            {view === 'SETTINGS' && (
+                                <SettingsView />
+                            )}
+                            {view === 'MIGRATION' && (
+                                <MigrationView />
+                            )}
+                        </div>
+                    )}
+                </Suspense>
             </main>
         </div>
     );
