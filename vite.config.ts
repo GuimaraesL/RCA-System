@@ -18,6 +18,19 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, '.'),
       }
+    },
+    // Otimização de Build: Separação de chunks para melhor caching
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Separa bibliotecas de vendor em chunks próprios
+            'vendor-react': ['react', 'react-dom'],
+            'vendor-charts': ['recharts'],
+            'vendor-icons': ['lucide-react'],
+          }
+        }
+      }
     }
   };
 });
