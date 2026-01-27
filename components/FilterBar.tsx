@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Search, Filter, RefreshCw, ChevronUp, ChevronDown, Calendar, X, MapPin, Tag, Globe, Lock } from 'lucide-react';
 import { AssetNode } from '../types';
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
@@ -65,6 +65,24 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     onGlobalToggle
 }) => {
     const { t } = useLanguage();
+
+    // --- Debounced Search State (Fix: Issue #11 - Performance com 16k registros) ---
+    const [localSearch, setLocalSearch] = useState(filters.searchTerm);
+
+    // Debounce: propaga searchTerm após 300ms sem digitação
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (localSearch !== filters.searchTerm) {
+                onFilterChange({ ...filters, searchTerm: localSearch });
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [localSearch]);
+
+    // Sincroniza quando filtros externos mudam (ex: reset)
+    useEffect(() => {
+        setLocalSearch(filters.searchTerm);
+    }, [filters.searchTerm]);
 
     const {
         showSearch = true,
@@ -224,8 +242,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                         type="text"
                                         placeholder={t('filters.searchPlaceholder')}
                                         className="w-full pl-3 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                        value={filters.searchTerm}
-                                        onChange={e => handleChange('searchTerm', e.target.value)}
+                                        value={localSearch}
+                                        onChange={e => setLocalSearch(e.target.value)}
                                     />
                                 </div>
                             </div>

@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 rca-system/
+.env
+.env.*
+*.pem
+*.key
+secrets/
