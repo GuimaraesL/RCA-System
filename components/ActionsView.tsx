@@ -212,7 +212,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
                     <button
                       onClick={() => onOpenRca && onOpenRca(action.rca_id)}
                       className="group text-left focus:outline-none"
-                      title="Click to view RCA details"
+                      title={t('common.tooltips.viewDetails')}
                     >
                       <div className="text-xs font-bold text-blue-600 truncate max-w-[200px] flex items-center gap-1 group-hover:underline">
                         {action.rcaTitle}

@@ -14,7 +14,12 @@ export const en: TranslationSchema = {
         actions: "Actions",
         status: "Status",
         date: "Date",
-        confirm: "Confirm"
+        confirm: "Confirm",
+        tooltips: {
+            deleteKey: "Remove this level",
+            resize: "Drag to resize",
+            viewDetails: "Click to view RCA details"
+        }
     },
     filters: {
         searchPlaceholder: "Title, ID, Problem...",
@@ -89,6 +94,10 @@ export const en: TranslationSchema = {
             failureMode: "Failure Mode",
             failureCategory: "Failure Category",
             noData: "No data"
+        },
+        tooltips: {
+            records: "records",
+            clickToFilter: "Click to filter"
         }
     },
     status: {
@@ -104,7 +113,10 @@ export const en: TranslationSchema = {
         subtitle: "Manage, search, and edit reliability records.",
         newButton: "New Analysis",
         saveButton: "Save Record",
-        newTitle: "New Analysis"
+        newTitle: "New Analysis",
+        tooltips: {
+            deleteRca: "Delete RCA"
+        }
     },
     actionsPage: {
         title: "Action Plans",
@@ -134,7 +146,10 @@ export const en: TranslationSchema = {
         edit: "Edit",
         delete: "Delete",
         addChild: "Add Child",
-        rename: "Rename / Edit"
+        rename: "Rename / Edit",
+        tooltips: {
+            addRootArea: "Add Root Area"
+        }
     },
     migration: {
         title: "Data Migration",
@@ -268,6 +283,33 @@ export const en: TranslationSchema = {
         selectPlaceholder: "Select...",
         save: "Save Trigger",
         cancel: "Cancel"
+    },
+    triggersPage: {
+        title: "Trigger Management",
+        manageDowntime: "Manage downtime events or potential failures requiring RCAs.",
+        noTriggers: "No triggers found matching your criteria.",
+        newTrigger: "New Trigger",
+        linkTrigger: "Link...",
+        table: {
+            status: "Status",
+            typeReason: "Type / Reason",
+            rcaLink: "RCA Link",
+            actions: "Actions"
+        },
+        tooltips: {
+            openRca: "Click to open RCA",
+            createRca: "Create New RCA",
+            linkRca: "Link Existing RCA",
+            edit: "Edit",
+            delete: "Delete"
+        },
+        buttons: {
+            new: "New"
+        },
+        alerts: {
+            startDateRequired: "Start Date is required.",
+            triggerSaved: "Trigger saved successfully!"
+        }
     },
     wizard: {
         select: "Select...",

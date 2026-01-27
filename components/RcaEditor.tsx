@@ -354,7 +354,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
             {/* Modal de Confirmação de Exclusão de Action */}
             <ConfirmModal
                 isOpen={deleteActionModalOpen}
-                title="Excluir Action"
+                title={t('common.delete')}
                 message="Tem certeza que deseja excluir esta action? Esta ação não pode ser desfeita."
                 confirmText="Excluir"
                 cancelText="Cancelar"

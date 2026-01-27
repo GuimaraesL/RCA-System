@@ -28,3 +28,5 @@ rca-system/
 *.pem
 *.key
 secrets/
+.agent/
+.claude/

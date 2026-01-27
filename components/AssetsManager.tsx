@@ -88,7 +88,7 @@ export const AssetsManager: React.FC = () => {
           <button
             onClick={() => { setSelectedNode(null); startAdd(null); }}
             className="p-2 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
-            title="Add Root Area"
+            title={t('assets.tooltips.addRootArea')}
           >
             <Plus size={18} />
           </button>
@@ -116,7 +116,7 @@ export const AssetsManager: React.FC = () => {
       <div
         onMouseDown={handleMouseDown}
         className="w-2 cursor-col-resize bg-slate-100 hover:bg-blue-200 flex items-center justify-center transition-colors border-y border-slate-200"
-        title="Arraste para redimensionar"
+        title={t('common.tooltips.resize')}
       >
         <GripVertical size={12} className="text-slate-400" />
       </div>

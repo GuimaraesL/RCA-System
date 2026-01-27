@@ -321,7 +321,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                             <button
                                                 onClick={(e) => handleDelete(e, r.id)}
                                                 className="text-slate-400 hover:text-red-600 p-1 rounded transition-colors"
-                                                title="Excluir RCA"
+                                                title={t('analysesPage.tooltips.deleteRca')}
                                             >
                                                 <Trash2 size={16} />
                                             </button>

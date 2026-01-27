@@ -13,6 +13,11 @@ export interface TranslationSchema {
         status: string;
         date: string;
         confirm: string;
+        tooltips: {
+            deleteKey: string;
+            resize: string;
+            viewDetails: string;
+        };
     };
     filters: {
         searchPlaceholder: string;
@@ -88,6 +93,10 @@ export interface TranslationSchema {
             failureCategory: string;
             noData: string;
         };
+        tooltips: {
+            records: string;
+            clickToFilter: string;
+        };
     };
     status: {
         inProgress: string;
@@ -103,6 +112,9 @@ export interface TranslationSchema {
         newButton: string;
         saveButton: string;
         newTitle: string;
+        tooltips: {
+            deleteRca: string;
+        };
     };
     actionsPage: {
         title: string;
@@ -133,6 +145,9 @@ export interface TranslationSchema {
         delete: string;
         addChild: string;
         rename: string;
+        tooltips: {
+            addRootArea: string;
+        };
     },
     migration: {
         title: string;
@@ -266,6 +281,33 @@ export interface TranslationSchema {
         selectPlaceholder: string;
         save: string;
         cancel: string;
+    };
+    triggersPage: {
+        title: string;
+        manageDowntime: string;
+        noTriggers: string;
+        newTrigger: string;
+        linkTrigger: string;
+        table: {
+            status: string;
+            typeReason: string;
+            rcaLink: string;
+            actions: string;
+        };
+        tooltips: {
+            openRca: string;
+            createRca: string;
+            linkRca: string;
+            edit: string;
+            delete: string;
+        };
+        buttons: { // new was handled by newTrigger in main page, but table has "New"
+            new: string;
+        };
+        alerts: {
+            startDateRequired: string;
+            triggerSaved: string;
+        };
     };
     wizard: {
         // Common

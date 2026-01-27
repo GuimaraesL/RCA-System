@@ -14,7 +14,12 @@ export const pt: TranslationSchema = {
         actions: "Ações",
         status: "Status",
         date: "Data",
-        confirm: "Confirmar"
+        confirm: "Confirmar",
+        tooltips: {
+            deleteKey: "Remover este nível",
+            resize: "Arraste para redimensionar",
+            viewDetails: "Clique para ver detalhes da RCA"
+        }
     },
     filters: {
         searchPlaceholder: "Título, ID, Problema...",
@@ -89,6 +94,10 @@ export const pt: TranslationSchema = {
             failureMode: "Modo de Falha",
             failureCategory: "Categoria da Falha",
             noData: "Sem dados"
+        },
+        tooltips: {
+            records: "registros",
+            clickToFilter: "Clique para filtrar"
         }
     },
     status: {
@@ -104,7 +113,10 @@ export const pt: TranslationSchema = {
         subtitle: "Gerencie, pesquise e edite registros de confiabilidade.",
         newButton: "Nova Análise",
         saveButton: "Salvar Registro",
-        newTitle: "Nova Análise"
+        newTitle: "Nova Análise",
+        tooltips: {
+            deleteRca: "Excluir RCA"
+        }
     },
     actionsPage: {
         title: "Planos de Ação",
@@ -134,7 +146,10 @@ export const pt: TranslationSchema = {
         edit: "Editar",
         delete: "Excluir",
         addChild: "Adicionar Filho",
-        rename: "Renomear / Editar"
+        rename: "Renomear / Editar",
+        tooltips: {
+            addRootArea: "Adicionar Área Raiz"
+        }
     },
     migration: {
         title: "Migração de Dados",
@@ -268,6 +283,33 @@ export const pt: TranslationSchema = {
         selectPlaceholder: "Selecionar...",
         save: "Salvar Gatilho",
         cancel: "Cancelar"
+    },
+    triggersPage: {
+        title: "Gerenciamento de Gatilhos",
+        manageDowntime: "Gerencie eventos de parada ou falhas potenciais que requerem RCAs.",
+        noTriggers: "Nenhum gatilho encontrado com os critérios atuais.",
+        newTrigger: "Novo Gatilho",
+        linkTrigger: "Vincular...",
+        table: {
+            status: "Farol",
+            typeReason: "Tipo / Razão",
+            rcaLink: "RCA Link",
+            actions: "Ações"
+        },
+        tooltips: {
+            openRca: "Clique para abrir a RCA",
+            createRca: "Criar Nova RCA",
+            linkRca: "Vincular RCA Existente",
+            edit: "Editar",
+            delete: "Excluir"
+        },
+        buttons: {
+            new: "Novo" // Used in table action
+        },
+        alerts: {
+            startDateRequired: "A Data de Início é obrigatória.",
+            triggerSaved: "Gatilho salvo com sucesso!"
+        }
     },
     wizard: {
         select: "Selecionar...",

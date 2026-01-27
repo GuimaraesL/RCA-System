@@ -337,7 +337,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
 
         // Validação de Campos Obrigatórios
         if (!editingTrigger.start_date) {
-            alert("A Data de Início é obrigatória.");
+            alert(t('triggersPage.alerts.startDateRequired'));
             return;
         }
 
@@ -534,11 +534,11 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
             {/* Header */}
             <div className="flex justify-between items-center mb-6 flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-500">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">{t('sidebar.triggers')}</h1>
-                    <p className="text-slate-500 mt-1">Manage downtime events and convert triggers to Root Cause Analyses.</p>
+                    <h1 className="text-3xl font-bold text-slate-900">{t('triggersPage.title')}</h1>
+                    <p className="text-slate-500 mt-1">{t('triggersPage.manageDowntime')}</p>
                 </div>
                 <button onClick={handleNew} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 shadow-sm transition-colors">
-                    <Plus size={18} /> {t('filters.options.all') === 'Todos' ? 'Novo Gatilho' : 'New Trigger'}
+                    <Plus size={18} /> {t('triggersPage.newTrigger')}
                 </button>
             </div>
 
@@ -575,18 +575,18 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                     <table className="w-full text-left text-xs text-slate-600">
                         <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 z-10 group">
                             <tr>
-                                <SortHeader label="Farol" sortKey="start_date" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('triggersPage.table.status')} sortKey="start_date" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label={t('table.date')} sortKey="start_date" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label={t('filters.area')} sortKey="area_id" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label={t('filters.equipment')} sortKey="equipment_id" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label={t('filters.subgroup')} sortKey="subgroup_id" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label={t('table.duration')} sortKey="duration_minutes" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Tipo / Razão" sortKey="stop_type" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('triggersPage.table.typeReason')} sortKey="stop_type" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label={t('table.type')} sortKey="analysis_type_id" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label={t('table.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="RCA Link" sortKey="rca_id" currentSort={sortConfig} onSort={handleSort} />
-                                <th className="px-4 py-3 text-right">{t('table.actions')}</th>
+                                <SortHeader label={t('triggersPage.table.rcaLink')} sortKey="rca_id" currentSort={sortConfig} onSort={handleSort} />
+                                <th className="px-4 py-3 text-right">{t('triggersPage.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -594,7 +594,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                 <tr>
                                     <td colSpan={10} className="p-12 text-center text-slate-400">
                                         <FileText size={48} className="mx-auto mb-3 opacity-20" />
-                                        No triggers found matching your criteria.
+                                        {t('triggersPage.noTriggers')}
                                     </td>
                                 </tr>
                             )}
@@ -634,21 +634,21 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                                 <div
                                                     className="flex items-center gap-1 text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded w-fit cursor-pointer hover:bg-blue-100 transition-colors"
                                                     onClick={() => onOpenRca(t.rca_id!)}
-                                                    title="Clique para abrir a RCA"
+                                                    title={t('triggersPage.tooltips.openRca')}
                                                 >
                                                     <Link size={12} /> {linkedRca?.what ? linkedRca.what.substring(0, 15) + '...' : t.rca_id}
                                                 </div>
                                             ) : (
                                                 <div className="flex gap-2">
-                                                    <button onClick={() => handleCreateRca(t)} className="text-green-600 bg-green-50 hover:bg-green-100 p-1.5 rounded flex items-center gap-1" title="Create New RCA">
-                                                        <Plus size={14} /> New
+                                                    <button onClick={() => handleCreateRca(t)} className="text-green-600 bg-green-50 hover:bg-green-100 p-1.5 rounded flex items-center gap-1" title={t('triggersPage.tooltips.createRca')}>
+                                                        <Plus size={14} /> {t('triggersPage.buttons.new')}
                                                     </button>
                                                     <button
                                                         onClick={() => openLinkModal(t)}
                                                         className="text-slate-500 bg-slate-50 hover:bg-slate-100 border border-slate-200 p-1.5 rounded flex items-center gap-1 text-[10px]"
-                                                        title="Vincular RCA Existente"
+                                                        title={t('triggersPage.tooltips.linkRca')}
                                                     >
-                                                        <Link size={14} /> Link...
+                                                        <Link size={14} /> {t('triggersPage.linkTrigger')}
                                                     </button>
                                                 </div>
                                             )}

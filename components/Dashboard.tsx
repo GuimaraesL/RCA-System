@@ -26,16 +26,17 @@ const COLORS = [
 ];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
+    const { t } = useLanguage();
     if (active && payload && payload.length) {
         return (
             <div className="bg-white/95 backdrop-blur-sm p-3 border border-slate-200 shadow-lg rounded-lg text-sm z-50">
                 <p className="font-bold text-slate-800 mb-1">{label || payload[0].payload.name}</p>
                 <p className="text-blue-600 font-medium">
-                    {payload[0].value} <span className="text-slate-500 text-xs">registros</span>
+                    {payload[0].value} <span className="text-slate-500 text-xs">{t('dashboard.tooltips.records')}</span>
                 </p>
                 {payload[0].payload.id && (
                     <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wide">
-                        Click to filter
+                        {t('dashboard.tooltips.clickToFilter')}
                     </p>
                 )}
             </div>

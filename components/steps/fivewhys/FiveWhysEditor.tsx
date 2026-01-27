@@ -137,7 +137,7 @@ const NodeEditor: React.FC<{
                                     size="sm"
                                     onClick={() => deleteWhy(why.level)}
                                     className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity px-2"
-                                    title="Remover este nível"
+                                    title={t('common.tooltips.deleteKey')}
                                 >
                                     <Trash2 size={14} />
                                 </Button>
