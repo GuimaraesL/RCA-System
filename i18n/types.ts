@@ -247,6 +247,22 @@ export interface TranslationSchema {
         linkRcaMessage: string;
         selectRcaPlaceholder: string;
     };
+    rcaSelector: {
+        searchPlaceholder: string;
+        resultsFound: string;
+        manyResults: string;
+        noResults: string;
+        showingFirst: string;
+        cancel: string;
+        filters: {
+            areas: string;
+            equipments: string;
+            subgroups: string;
+            year: string;
+            month: string;
+            clear: string;
+        };
+    };
     actionModal: {
         titleEdit: string;
         titleNew: string;

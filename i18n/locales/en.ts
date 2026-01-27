@@ -249,6 +249,22 @@ export const en: TranslationSchema = {
         linkRcaMessage: "Select RCA to link to Trigger",
         selectRcaPlaceholder: "Select an RCA..."
     },
+    rcaSelector: {
+        searchPlaceholder: "Search RCA by ID, Title or OS...",
+        resultsFound: "{0} analyses found",
+        manyResults: "Many results, please refine your search.",
+        noResults: "No analysis found.",
+        showingFirst: "Showing first {0} results of {1}.",
+        cancel: "Cancel",
+        filters: {
+            areas: "Areas (All)",
+            equipments: "Equipments",
+            subgroups: "Subgroups",
+            year: "Year",
+            month: "Month",
+            clear: "Clear Filters"
+        }
+    },
     actionModal: {
         titleEdit: "Edit Action Plan",
         titleNew: "New Action Plan",

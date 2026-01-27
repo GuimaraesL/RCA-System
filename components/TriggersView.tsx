@@ -5,6 +5,7 @@ import { TriggerRecord, AssetNode, TaxonomyConfig } from '../types';
 import { generateId, filterAssetsByUsage } from '../services/utils';
 import { Plus, Edit2, Trash2, Link, ExternalLink, AlertCircle, Clock, CheckCircle, Check, FileText, X } from 'lucide-react';
 import { AssetSelector } from './AssetSelector';
+import { RcaSelector } from './RcaSelector';
 import { ConfirmModal } from './ConfirmModal';
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
@@ -756,36 +757,17 @@ const TriggersViewBase: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenRca 
             {
                 linkModalOpen && triggerToLink && (
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                        <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95">
-                            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                                <h3 className="font-bold text-lg text-slate-800">{t('modals.linkRcaTitle')}</h3>
-                                <button onClick={closeLinkModal} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
-                            </div>
-                            <div className="p-6 space-y-4">
-                                <p className="text-sm text-slate-600">{t('modals.linkRcaMessage')} <strong>{triggerToLink.id}</strong>:</p>
-
-                                <select
-                                    className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                                    onChange={(e) => {
-                                        if (e.target.value) {
-                                            handleLinkRca(triggerToLink, e.target.value);
-                                            closeLinkModal();
-                                        }
-                                    }}
-                                    value=""
-                                >
-                                    <option value="">{t('modals.selectRcaPlaceholder')}</option>
-                                    {records.map(r => (
-                                        <option key={r.id} value={r.id}>
-                                            {r.id} - {(r.what || '').substring(0, 40)}...
-                                        </option>
-                                    ))}
-                                </select>
-
-                                <div className="flex justify-end pt-2">
-                                    <button onClick={closeLinkModal} className="text-sm text-slate-500 hover:text-slate-700">{t('modals.cancel')}</button>
-                                </div>
-                            </div>
+                        {/* Wrapper to control max size/centering */}
+                        <div className="w-full max-w-2xl">
+                            <RcaSelector
+                                records={records}
+                                assets={assets}
+                                onSelect={(rcaId) => {
+                                    handleLinkRca(triggerToLink, rcaId);
+                                    closeLinkModal();
+                                }}
+                                onCancel={closeLinkModal}
+                            />
                         </div>
                     </div>
                 )

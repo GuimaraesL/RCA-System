@@ -249,6 +249,22 @@ export const pt: TranslationSchema = {
         linkRcaMessage: "Selecione a RCA para vincular ao Gatilho",
         selectRcaPlaceholder: "Selecione uma RCA..."
     },
+    rcaSelector: {
+        searchPlaceholder: "Buscar RCA por ID, Título ou OS...",
+        resultsFound: "{0} análises encontradas",
+        manyResults: "Muitos resultados, refine sua busca.",
+        noResults: "Nenhuma análise encontrada.",
+        showingFirst: "Mostrando os primeiros {0} resultados de {1}.",
+        cancel: "Cancelar",
+        filters: {
+            areas: "Áreas (Todas)",
+            equipments: "Equipamentos",
+            subgroups: "Subconjuntos",
+            year: "Ano",
+            month: "Mês",
+            clear: "Limpar Filtros"
+        }
+    },
     actionModal: {
         titleEdit: "Editar Plano de Ação",
         titleNew: "Novo Plano de Ação",
