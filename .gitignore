@@ -30,3 +30,4 @@ rca-system/
 secrets/
 .agent/
 .claude/
+rca.db 
