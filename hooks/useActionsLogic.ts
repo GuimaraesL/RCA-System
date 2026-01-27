@@ -12,7 +12,11 @@ export interface ActionViewModel extends ActionRecord {
   equipmentId: string;
   subgroupId: string;
   categoryId: string;
-  specialtyId: string; // Added for dynamic filtering
+  specialtyId: string;
+  // Pre-computed fields for optimized filtering (Issue #11)
+  searchContext: string; // Pre-lowercased search text
+  yearStr: string;       // e.g. "2024"
+  monthStr: string;      // e.g. "01", "02"
 }
 
 // Helper to find asset name recursively by ID
@@ -78,15 +82,28 @@ export const useActionsLogic = () => {
         assetName = '-';
       }
 
+      // Pre-compute search context and date parts for optimized filtering
+      const rcaTitle = rca ? (rca.what || 'Unknown Analysis') : 'Unknown Analysis';
+      const aDate = new Date(a.date);
+      const yearStr = isNaN(aDate.getTime()) ? '' : aDate.getFullYear().toString();
+      const monthStr = isNaN(aDate.getTime()) ? '' : (aDate.getMonth() + 1).toString().padStart(2, '0');
+      const searchContext = `${a.action || ''} ${a.responsible || ''} ${rcaTitle}`
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
       return {
         ...a,
-        rcaTitle: rca ? rca.what : 'Unknown Analysis',
+        rcaTitle,
         assetName: assetName,
         areaId,
         equipmentId,
         subgroupId,
         categoryId,
-        specialtyId
+        specialtyId,
+        searchContext,
+        yearStr,
+        monthStr
       };
     });
 

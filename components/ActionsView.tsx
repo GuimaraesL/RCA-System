@@ -10,7 +10,7 @@ import { ActionModal } from './ActionModal';
 import { useSorting } from '../hooks/useSorting';
 import { SortHeader } from './ui/SortHeader';
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
-import { useEnterAnimation } from '../hooks/useEnterAnimation'; // Animation
+// useEnterAnimation disabled for performance (Issue #11)
 
 // Helper for Status Badges (Moved from utils to avoid JSX in .ts issue)
 const getStatusBadge = (status: string) => {
@@ -89,21 +89,18 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
 
   // --- Filtering Logic (View) --- 
   const filteredContent = useMemo(() => {
+    const searchLower = filters.searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
     return actions.filter(a => {
-      // 1. Text Search
-      const searchLower = filters.searchTerm.toLowerCase();
-      const matchesSearch = !filters.searchTerm ||
-        a.action.toLowerCase().includes(searchLower) ||
-        a.responsible.toLowerCase().includes(searchLower) ||
-        a.rcaTitle.toLowerCase().includes(searchLower);
+      // 1. Text Search - using pre-computed searchContext (Issue #11 optimization)
+      const matchesSearch = !filters.searchTerm || a.searchContext.includes(searchLower);
 
       // 2. Status (Box)
       const matchesStatus = filters.status === 'ALL' || a.status === filters.status;
 
-      // 3. Date
-      const aDate = new Date(a.date);
-      const matchesYear = !filters.year || aDate.getFullYear().toString() === filters.year;
-      const matchesMonth = filters.months.length === 0 || filters.months.includes((aDate.getMonth() + 1).toString().padStart(2, '0'));
+      // 3. Date - using pre-computed yearStr/monthStr (Issue #11 optimization)
+      const matchesYear = !filters.year || a.yearStr === filters.year;
+      const matchesMonth = filters.months.length === 0 || filters.months.includes(a.monthStr);
 
       // 4. Assets
       let matchesAsset = true;
@@ -149,8 +146,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
     setCurrentPage(1);
   }, [filters, sortConfig]);
 
-  // Animation Ref
-  const listRef = useEnterAnimation([filteredActions, currentPage]);
+  // Animation disabled for performance with large datasets (Issue #11)
 
   return (
     <div className="p-8 max-w-7xl mx-auto h-full flex flex-col">
@@ -205,9 +201,9 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
                 <th className="px-6 py-3 text-right">{t('table.actions')}</th>
               </tr>
             </thead>
-            <tbody ref={listRef as any} className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100">
               {filteredActions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(action => (
-                <tr key={action.id} className="hover:bg-slate-50 opacity-0">
+                <tr key={action.id} className="hover:bg-slate-50">
                   <td className="px-6 py-4">{getStatusBadge(action.status)}</td>
                   <td className="px-6 py-4 font-medium text-slate-800 max-w-xs truncate" title={action.action}>{action.action}</td>
                   <td className="px-6 py-4">{action.responsible}</td>
