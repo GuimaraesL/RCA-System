@@ -82,18 +82,63 @@ const validateCsvSchema = (type: CsvEntityType, headers: string[]): { valid: boo
 const parseDateString = (dateStr: string): string => {
     if (!dateStr) return '';
     try {
-        const parts = dateStr.trim().split(' ');
+        const cleanStr = String(dateStr).trim();
+
+        // 1. Detect Excel Serial Date (e.g. "45848" or "45848,48681")
+        // Regex allows integer or float with dot/comma
+        if (/^\d+([.,]\d+)?$/.test(cleanStr)) {
+            const serial = parseFloat(cleanStr.replace(',', '.'));
+            // Excel base date: Dec 30 1899 (approx 25569 days offset from Unix Epoch)
+            // 25569 is the offset for 1970-01-01.
+            // Check sanity: > 20000 ensures roughly > 1954 year.
+            if (!isNaN(serial) && serial > 20000) {
+                // Excel days -> key: (serial - 25569) * 86400 * 1000
+                // Adjust for Excel leap year bug 1900 if necessary (usually ignored for modern dates)
+                const utcDays = Math.floor(serial - 25569);
+                const utcValue = utcDays * 86400; // seconds
+                const dateInfo = new Date(utcValue * 1000);
+
+                // Add fractional part (Time)
+                const fractionalDay = serial - Math.floor(serial) + 0.0000001;
+                const totalSeconds = Math.floor(86400 * fractionalDay);
+
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+
+                dateInfo.setUTCHours(hours, minutes, seconds);
+                return dateInfo.toISOString();
+            }
+        }
+
+        // 2. Standard Formats (DD/MM/YYYY)
+        const parts = cleanStr.split(' ');
         const dateParts = parts[0].split('/');
 
         if (dateParts.length === 3) {
             const day = dateParts[0].padStart(2, '0');
             const month = dateParts[1].padStart(2, '0');
             const year = dateParts[2];
+
+            // Validate limits
+            if (parseInt(month) > 12 || parseInt(day) > 31) return '';
+
             const time = parts[1] || '00:00';
+            // Construct ISO for local time or UTC? Ideally project uses simplified strings
+            // Using logic to force ISO format YYYY-MM-DDTHH:mm:ss.sssZ
+            // But manually constructing string is safer for "YYYY-MM-DDTHH:mm"
             return `${year}-${month}-${day}T${time}`;
         }
-        return new Date(dateStr).toISOString(); // Fallback
+
+        // 3. Last Resort: Date Constructor
+        const fallback = new Date(cleanStr);
+        if (!isNaN(fallback.getTime())) {
+            return fallback.toISOString();
+        }
+
+        return '';
     } catch (e) {
+        console.warn('Date Parse Error:', dateStr, e);
         return '';
     }
 };
@@ -398,9 +443,16 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
 
             rawData.forEach(r => {
                 // Strict Row Validation (Fix for empty Excel rows & placeholders)
+                const sanitizeValue = (val: any): string => {
+                    if (!val) return '';
+                    let s = String(val).trim();
+                    // Remove " or ' if that is the ONLY content (artifact of bad parsing)
+                    if (s === '"' || s === "'" || s === '""' || s === "''") return '';
+                    return s;
+                };
+
                 const isInvalid = (val: any) => {
-                    if (!val) return true;
-                    const s = String(val).trim();
+                    const s = sanitizeValue(val);
                     return s.length === 0 || s === '-' || s === '.' || s.toLowerCase() === 'n/a' || s === '0';
                 };
 
@@ -415,13 +467,17 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                     return;
                 }
 
-                const statusName = r['Status'] || '';
+                const statusName = sanitizeValue(r['Status']);
                 let statusId = findTaxonomyId(taxonomy.triggerStatuses || [], statusName);
                 if (!statusId) statusId = defaultStatusId;
 
-                let areaId = findAssetId(r['AREA'], assets);
-                let equipId = findAssetId(r['Equip.'], assets);
-                let subId = findAssetId(r['Subconjunto'], assets);
+                const areaName = sanitizeValue(r['AREA']);
+                const equipName = sanitizeValue(r['Equip.']);
+                const subName = sanitizeValue(r['Subconjunto']);
+
+                let areaId = findAssetId(areaName, assets);
+                let equipId = findAssetId(equipName, assets);
+                let subId = findAssetId(subName, assets);
                 const typeId = findTaxonomyId(taxonomy.analysisTypes || [], r['Tipo AF']);
 
                 // Fix: Clean up ID AF if it contains placeholders like "-"

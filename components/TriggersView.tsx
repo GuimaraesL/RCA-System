@@ -12,6 +12,7 @@ import { useSorting } from '../hooks/useSorting';
 import { SortHeader } from './ui/SortHeader';
 // useEnterAnimation disabled for performance (Issue #11)
 import { animateModalEnter } from '../services/animations';
+import { GenericErrorBoundary } from './GenericErrorBoundary';
 
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
 
@@ -153,7 +154,7 @@ const TriggerModal = ({ editingTrigger, setEditingTrigger, setIsModalOpen, handl
 };
 
 
-export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenRca }) => {
+const TriggersViewBase: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenRca }) => {
     const { t, formatDate } = useLanguage();
     const { triggers, assets, taxonomy, records, addTrigger, updateTrigger, deleteTrigger } = useRcaContext();
 
@@ -207,12 +208,35 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
     );
 
     // --- Helpers ---
+    // Refactored to Iterative BFS to prevent Maximum Call Stack Size Exceeded (Stack Overflow)
     const getAssetName = (id: string, nodes: AssetNode[]): string => {
-        for (const node of nodes) {
+        if (!id) return '';
+        if (!nodes || nodes.length === 0) return id;
+
+        const queue = [...nodes];
+        // Use Set to prevent infinite loops in case of circular references in data
+        const visited = new Set<string>();
+        let safetyCounter = 0;
+
+        while (queue.length > 0) {
+            safetyCounter++;
+            if (safetyCounter > 50000) {
+                console.warn('getAssetName hit safety limit (possible cycle):', id);
+                return id;
+            }
+
+            const node = queue.shift();
+            if (!node) continue;
+
+            if (visited.has(node.id)) continue;
+            visited.add(node.id);
+
             if (node.id === id) return node.name;
-            if (node.children) {
-                const found = getAssetName(id, node.children);
-                if (found) return found;
+
+            if (node.children && node.children.length > 0) {
+                for (const child of node.children) {
+                    queue.push(child);
+                }
             }
         }
         return id; // fallback to ID if not found
@@ -244,32 +268,39 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
     const getFarol = (startDate: string, statusId: string) => {
         if (!startDate) return { days: 0, color: 'bg-gray-100 text-gray-500' };
 
-        // Lookup status name to determine behavior
-        const statusName = getTaxonomyName(taxonomy.triggerStatuses, statusId);
+        try {
+            // Lookup status name to determine behavior
+            const statusName = getTaxonomyName(taxonomy.triggerStatuses, statusId);
 
-        // NEW LOGIC: If Concluded, show Checkmark and Green
-        if (statusName === 'Concluída' || statusName === 'Concluido') {
-            return { days: <Check size={16} strokeWidth={3} />, color: 'bg-green-100 text-green-700 border border-green-200' };
+            // NEW LOGIC: If Concluded, show Checkmark and Green
+            if (statusName === 'Concluída' || statusName === 'Concluido') {
+                return { days: <Check size={16} strokeWidth={3} />, color: 'bg-green-100 text-green-700 border border-green-200' };
+            }
+
+            // Stop counting if Concluded or Removed
+            const isClosed = statusName === 'Concluída' || statusName === 'Removido' || statusName === 'Ignorada' || statusName === 'CONVERTED';
+
+            // Styling based on time open
+            const start = new Date(startDate);
+            if (isNaN(start.getTime())) return { days: 0, color: 'bg-gray-100 text-gray-500' }; // Handle invalid date
+
+            const now = new Date();
+            const diffTime = Math.abs(now.getTime() - start.getTime());
+            const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            let color = 'bg-green-100 text-green-700';
+            if (days >= 3) color = 'bg-yellow-100 text-yellow-700';
+            if (days >= 7) color = 'bg-red-100 text-red-700';
+
+            if (isClosed) {
+                color = 'bg-gray-100 text-gray-400'; // Dimmed for closed items
+            }
+
+            return { days, color };
+        } catch (e) {
+            console.error("Error calculating Farol:", e);
+            return { days: 0, color: 'bg-red-500 text-white' };
         }
-
-        // Stop counting if Concluded or Removed
-        const isClosed = statusName === 'Concluída' || statusName === 'Removido' || statusName === 'Ignorada' || statusName === 'CONVERTED';
-
-        // Styling based on time open
-        const start = new Date(startDate);
-        const now = new Date();
-        const diffTime = Math.abs(now.getTime() - start.getTime());
-        const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-        let color = 'bg-green-100 text-green-700';
-        if (days >= 3) color = 'bg-yellow-100 text-yellow-700';
-        if (days >= 7) color = 'bg-red-100 text-red-700';
-
-        if (isClosed) {
-            color = 'bg-gray-100 text-gray-400'; // Dimmed for closed items
-        }
-
-        return { days, color };
     };
 
     // Helper to get status badge color based on name (Hardcoded map for known statuses, fallback for others)
@@ -461,20 +492,38 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
 
     // --- Optimization: Pre-compute Search Context (Issue #11) ---
     const triggersWithContext = useMemo(() => {
+        if (!Array.isArray(triggers)) {
+            console.error("Triggers is not an array:", triggers);
+            return [];
+        }
+
         return triggers.map(t => {
-            const rcaTitle = t.rca_id ? (records.find(r => r.id === t.rca_id)?.what || t.rca_id) : '';
-            const searchContext = `${t.stop_reason || ''} ${t.stop_type || ''} ${t.comments || ''} ${t.responsible || ''} ${t.id || ''} ${rcaTitle}`
-                .toLowerCase()
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "");
+            try {
+                // Defensive: Ensure t exists
+                if (!t) return null;
 
-            const tDate = new Date(t.start_date);
-            const isValidDate = !isNaN(tDate.getTime());
-            const yearStr = isValidDate ? tDate.getFullYear().toString() : '';
-            const monthStr = isValidDate ? (tDate.getMonth() + 1).toString().padStart(2, '0') : '';
+                const rcaTitle = t.rca_id && Array.isArray(records) ? (records.find(r => r.id === t.rca_id)?.what || t.rca_id) : '';
+                const searchContext = `${t.stop_reason || ''} ${t.stop_type || ''} ${t.comments || ''} ${t.responsible || ''} ${t.id || ''} ${rcaTitle}`
+                    .toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "");
 
-            return { ...t, searchContext, yearStr, monthStr };
-        });
+                let yearStr = '';
+                let monthStr = '';
+
+                if (t.start_date) {
+                    const tDate = new Date(t.start_date);
+                    const isValidDate = !isNaN(tDate.getTime());
+                    yearStr = isValidDate ? tDate.getFullYear().toString() : '';
+                    monthStr = isValidDate ? (tDate.getMonth() + 1).toString().padStart(2, '0') : '';
+                }
+
+                return { ...t, searchContext, yearStr, monthStr };
+            } catch (err) {
+                console.error("Error processing trigger for context:", t, err);
+                return { ...t, searchContext: '', yearStr: '', monthStr: '' };
+            }
+        }).filter(t => t !== null) as (TriggerRecord & { searchContext: string, yearStr: string, monthStr: string })[];
     }, [triggers, records]);
 
     // --- Pagination State ---
@@ -599,52 +648,52 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                 </tr>
                             )}
                             {/* Pagination Logic */}
-                            {filteredTriggers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(t => {
-                                const farol = getFarol(t.start_date, t.status);
-                                const assetName = getAssetName(t.subgroup_id || t.equipment_id || t.area_id, assets);
-                                const analysisTypeName = getTaxonomyName(taxonomy.analysisTypes, t.analysis_type_id);
-                                const linkedRca = records.find(r => r.id === t.rca_id);
-                                const statusName = getTaxonomyName(taxonomy.triggerStatuses, t.status);
+                            {filteredTriggers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(trigger => {
+                                const farol = getFarol(trigger.start_date, trigger.status);
+                                const assetName = getAssetName(trigger.subgroup_id || trigger.equipment_id || trigger.area_id, assets);
+                                const analysisTypeName = getTaxonomyName(taxonomy.analysisTypes, trigger.analysis_type_id);
+                                const linkedRca = records.find(r => r.id === trigger.rca_id);
+                                const statusName = getTaxonomyName(taxonomy.triggerStatuses, trigger.status);
 
                                 return (
-                                    <tr key={t.id} className="hover:bg-slate-50 group">
+                                    <tr key={trigger.id} className="hover:bg-slate-50 group">
                                         <td className="px-4 py-3">
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${farol.color}`}>
                                                 {farol.days}
                                             </div>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${getStatusColor(t.status)}`}>
+                                            <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${getStatusColor(trigger.status)}`}>
                                                 {statusName}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 font-mono">{formatDate(t.start_date)}</td>
-                                        <td className="px-4 py-3 max-w-[150px] truncate" title={getAssetName(t.area_id, assets)}>{getAssetName(t.area_id, assets)}</td>
-                                        <td className="px-4 py-3 max-w-[150px] truncate" title={getAssetName(t.equipment_id, assets)}>{getAssetName(t.equipment_id, assets)}</td>
-                                        <td className="px-4 py-3 max-w-[150px] truncate" title={getAssetName(t.subgroup_id, assets)}>{getAssetName(t.subgroup_id, assets)}</td>
-                                        <td className="px-4 py-3 font-bold">{t.duration_minutes} min</td>
+                                        <td className="px-4 py-3 font-mono">{formatDate(trigger.start_date)}</td>
+                                        <td className="px-4 py-3 max-w-[150px] truncate" title={getAssetName(trigger.area_id, assets)}>{getAssetName(trigger.area_id, assets)}</td>
+                                        <td className="px-4 py-3 max-w-[150px] truncate" title={getAssetName(trigger.equipment_id, assets)}>{getAssetName(trigger.equipment_id, assets)}</td>
+                                        <td className="px-4 py-3 max-w-[150px] truncate" title={getAssetName(trigger.subgroup_id, assets)}>{getAssetName(trigger.subgroup_id, assets)}</td>
+                                        <td className="px-4 py-3 font-bold">{trigger.duration_minutes} min</td>
                                         <td className="px-4 py-3 max-w-[200px]">
-                                            <div className="font-bold text-slate-800">{t.stop_type}</div>
-                                            <div className="truncate text-slate-400" title={t.stop_reason}>{t.stop_reason}</div>
+                                            <div className="font-bold text-slate-800">{trigger.stop_type}</div>
+                                            <div className="truncate text-slate-400" title={trigger.stop_reason}>{trigger.stop_reason}</div>
                                         </td>
                                         <td className="px-4 py-3">{analysisTypeName}</td>
-                                        <td className="px-4 py-3">{t.responsible}</td>
+                                        <td className="px-4 py-3">{trigger.responsible}</td>
                                         <td className="px-4 py-3">
-                                            {t.rca_id ? (
+                                            {trigger.rca_id ? (
                                                 <div
                                                     className="flex items-center gap-1 text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded w-fit cursor-pointer hover:bg-blue-100 transition-colors"
-                                                    onClick={() => onOpenRca(t.rca_id!)}
+                                                    onClick={() => onOpenRca(trigger.rca_id!)}
                                                     title={t('triggersPage.tooltips.openRca')}
                                                 >
-                                                    <Link size={12} /> {linkedRca?.what ? linkedRca.what.substring(0, 15) + '...' : t.rca_id}
+                                                    <Link size={12} /> {linkedRca?.what ? linkedRca.what.substring(0, 15) + '...' : trigger.rca_id}
                                                 </div>
                                             ) : (
                                                 <div className="flex gap-2">
-                                                    <button onClick={() => handleCreateRca(t)} className="text-green-600 bg-green-50 hover:bg-green-100 p-1.5 rounded flex items-center gap-1" title={t('triggersPage.tooltips.createRca')}>
+                                                    <button onClick={() => handleCreateRca(trigger)} className="text-green-600 bg-green-50 hover:bg-green-100 p-1.5 rounded flex items-center gap-1" title={t('triggersPage.tooltips.createRca')}>
                                                         <Plus size={14} /> {t('triggersPage.buttons.new')}
                                                     </button>
                                                     <button
-                                                        onClick={() => openLinkModal(t)}
+                                                        onClick={() => openLinkModal(trigger)}
                                                         className="text-slate-500 bg-slate-50 hover:bg-slate-100 border border-slate-200 p-1.5 rounded flex items-center gap-1 text-[10px]"
                                                         title={t('triggersPage.tooltips.linkRca')}
                                                     >
@@ -654,8 +703,8 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-right">
-                                            <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-blue-600 mr-2"><Edit2 size={16} /></button>
-                                            <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-600"><Trash2 size={16} /></button>
+                                            <button onClick={() => handleEdit(trigger)} className="text-slate-400 hover:text-blue-600 mr-2"><Edit2 size={16} /></button>
+                                            <button onClick={() => handleDelete(trigger.id)} className="text-slate-400 hover:text-red-600"><Trash2 size={16} /></button>
                                         </td>
                                     </tr>
                                 );
@@ -759,3 +808,9 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
         </div >
     );
 };
+
+export const TriggersView: React.FC<TriggersViewProps> = (props) => (
+    <GenericErrorBoundary componentName="TriggersView">
+        <TriggersViewBase {...props} />
+    </GenericErrorBoundary>
+);
