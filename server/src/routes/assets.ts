@@ -53,6 +53,7 @@ router.get('/', (req: Request, res: Response) => {
     }
 });
 
+
 // GET /api/assets/flat - Lista plana
 router.get('/flat', (req: Request, res: Response) => {
     try {
@@ -65,18 +66,78 @@ router.get('/flat', (req: Request, res: Response) => {
     }
 });
 
+// GET /api/assets/:id - Obter asset específico (Faltava este endpoint)
+router.get('/:id', (req: Request, res: Response) => {
+    try {
+        const db = getDatabase();
+        const stmt = db.prepare('SELECT * FROM assets WHERE id = ?');
+        stmt.bind([req.params.id]);
+
+        if (stmt.step()) {
+            const row = stmt.get();
+            const columns = stmt.getColumnNames();
+            const asset: any = {};
+            columns.forEach((col, i) => { asset[col] = row[i]; });
+
+            stmt.free();
+            res.json(asset);
+        } else {
+            stmt.free();
+            res.status(404).json({ error: 'Asset não encontrado' });
+        }
+    } catch (error) {
+        console.error('Erro ao buscar asset:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
+import { randomUUID } from 'crypto';
+
 // POST /api/assets
 router.post('/', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
-        const a = req.body;
-        db.run('INSERT INTO assets (id, name, type, parent_id) VALUES (?, ?, ?, ?)',
-            [a.id, a.name, a.type, a.parent_id || null]);
-        saveDatabase();
-        res.status(201).json({ id: a.id, message: 'Asset criado com sucesso' });
+        const { id, name, type, parent_id } = req.body;
+
+        // 1. Validação de Input
+        if (!name || typeof name !== 'string' || !name.trim()) {
+            return res.status(400).json({ error: 'Campo "name" é obrigatório.' });
+        }
+        if (!type || typeof type !== 'string' || !type.trim()) {
+            return res.status(400).json({ error: 'Campo "type" é obrigatório.' });
+        }
+
+        // 2. Geração de ID se não fornecido
+        const finalId = id || randomUUID();
+
+        // 3. Inserção
+        try {
+            db.run('INSERT INTO assets (id, name, type, parent_id) VALUES (?, ?, ?, ?)',
+                [finalId, name, type, parent_id || null]);
+
+            saveDatabase();
+            res.status(201).json({
+                id: finalId,
+                name,
+                type,
+                parent_id: parent_id || null,
+                message: 'Asset criado com sucesso'
+            });
+        } catch (dbError: any) {
+            // Tratar erro de constraint (Unique)
+            if (dbError.message && dbError.message.includes('UNIQUE constraint failed')) {
+                return res.status(409).json({ error: 'Asset com este ID já existe.' });
+            }
+            // Tratar erro de FK
+            if (dbError.message && dbError.message.includes('FOREIGN KEY constraint failed')) {
+                return res.status(400).json({ error: 'Parent ID inválido não encontrado.' });
+            }
+            throw dbError; // Repassar para catch externo
+        }
+
     } catch (error) {
         console.error('Erro ao criar asset:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        res.status(500).json({ error: 'Erro interno do servidor ao criar asset' });
     }
 });
 
@@ -121,7 +182,13 @@ router.put('/:id', (req: Request, res: Response) => {
         db.run('UPDATE assets SET name = ?, type = ?, parent_id = ? WHERE id = ?',
             [a.name, a.type, a.parent_id || null, req.params.id]);
         saveDatabase();
-        res.json({ message: 'Asset atualizado com sucesso' });
+        res.json({
+            id: req.params.id,
+            name: a.name,
+            type: a.type,
+            parent_id: a.parent_id || null,
+            message: 'Asset atualizado com sucesso'
+        });
     } catch (error) {
         console.error('Erro ao atualizar asset:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });

@@ -1,0 +1,58 @@
+{
+    "tech_stack": [
+        "TypeScript",
+        "Express",
+        "SQLite (sql.js)"
+    ],
+    "features": [
+        {
+            "name": "Server Entry",
+            "description": "Main entry point for the Express server, setting up middleware and routes.",
+            "files": [
+                "server/src/index.ts"
+            ]
+        },
+        {
+            "name": "Triggers Management",
+            "description": "API endpoints for creating, retrieving, and updating trigger events (stop events).",
+            "files": [
+                "server/src/routes/triggers.ts"
+            ]
+        },
+        {
+            "name": "RCA Management",
+            "description": "API endpoints for managing Root Cause Analyses, including creation, updates, and status tracking.",
+            "files": [
+                "server/src/routes/rcas.ts"
+            ]
+        },
+        {
+            "name": "Actions Management",
+            "description": "API endpoints for managing corrective action plans linked to RCAs.",
+            "files": [
+                "server/src/routes/actions.ts"
+            ]
+        },
+        {
+            "name": "Assets Management",
+            "description": "API endpoints for handling asset data.",
+            "files": [
+                "server/src/routes/assets.ts"
+            ]
+        },
+        {
+            "name": "Taxonomy Management",
+            "description": "API endpoints for handling system taxonomy (categories, definitions).",
+            "files": [
+                "server/src/routes/taxonomy.ts"
+            ]
+        },
+        {
+            "name": "Database Layer",
+            "description": "Database connection and initializing logic using sql.js.",
+            "files": [
+                "server/src/db/index.ts"
+            ]
+        }
+    ]
+}
