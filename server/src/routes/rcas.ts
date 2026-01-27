@@ -78,11 +78,16 @@ router.get('/:id', (req: Request, res: Response) => {
     }
 });
 
+import { randomUUID } from 'crypto';
+
 // POST /api/rcas - Criar nova análise
 router.post('/', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
         const rca = req.body;
+
+        // Ensure ID
+        const finalId = (rca.id && rca.id.trim()) ? rca.id : randomUUID();
 
         db.run(`
       INSERT INTO rcas (
@@ -97,7 +102,7 @@ router.post('/', (req: Request, res: Response) => {
         containment_actions, lessons_learned, general_moc_number, additional_info, file_path
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
-            n(rca.id), n(rca.version), n(rca.analysis_date), n(rca.analysis_duration_minutes) || 0, n(rca.analysis_type), n(rca.status),
+            finalId, n(rca.version), n(rca.analysis_date), n(rca.analysis_duration_minutes) || 0, n(rca.analysis_type), n(rca.status),
             JSON.stringify(rca.participants || []), n(rca.facilitator), n(rca.start_date), n(rca.completion_date), rca.requires_operation_support ? 1 : 0,
             n(rca.failure_date), n(rca.failure_time), n(rca.downtime_minutes) || 0, n(rca.financial_impact) || 0, n(rca.os_number),
             n(rca.area_id), n(rca.equipment_id), n(rca.subgroup_id), n(rca.component_type), n(rca.asset_name_display),
@@ -109,8 +114,8 @@ router.post('/', (req: Request, res: Response) => {
         ]);
 
         saveDatabase();
-        console.log('✅ RCA criada:', rca.id);
-        res.status(201).json({ id: rca.id, message: 'RCA criada com sucesso' });
+        console.log('✅ RCA criada:', finalId);
+        res.status(201).json({ id: finalId, message: 'RCA criada com sucesso', ...rca });
     } catch (error) {
         console.error('Erro ao criar RCA:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
