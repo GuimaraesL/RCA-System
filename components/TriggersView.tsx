@@ -10,7 +10,7 @@ import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { useSorting } from '../hooks/useSorting';
 import { SortHeader } from './ui/SortHeader';
-import { useEnterAnimation } from '../hooks/useEnterAnimation'; // Animation
+// useEnterAnimation disabled for performance (Issue #11)
 import { animateModalEnter } from '../services/animations';
 
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
@@ -459,6 +459,24 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
         };
     }, [triggers, assets, taxonomy, filters]);
 
+    // --- Optimization: Pre-compute Search Context (Issue #11) ---
+    const triggersWithContext = useMemo(() => {
+        return triggers.map(t => {
+            const rcaTitle = t.rca_id ? (records.find(r => r.id === t.rca_id)?.what || t.rca_id) : '';
+            const searchContext = `${t.stop_reason || ''} ${t.stop_type || ''} ${t.comments || ''} ${t.responsible || ''} ${t.id || ''} ${rcaTitle}`
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+
+            const tDate = new Date(t.start_date);
+            const isValidDate = !isNaN(tDate.getTime());
+            const yearStr = isValidDate ? tDate.getFullYear().toString() : '';
+            const monthStr = isValidDate ? (tDate.getMonth() + 1).toString().padStart(2, '0') : '';
+
+            return { ...t, searchContext, yearStr, monthStr };
+        });
+    }, [triggers, records]);
+
     // --- Pagination State ---
     // Implements Client-Side Pagination to cap DOM nodes at 100.
     // This prevents browser lag while maintaining full filtering capabilities over the entire dataset.
@@ -468,28 +486,21 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
     const filteredContent = useMemo(() => {
         // Reset page when filters change (implicitly handled if we use formatted logic, 
         // but explicit effect or key change is safer. Here we rely on useEffect)
-        return triggers.filter(t => {
-            // Text Search
-            const searchLower = (filters.searchTerm || '').toLowerCase();
-            const matchesSearch = !filters.searchTerm ||
-                (t.stop_reason || '').toLowerCase().includes(searchLower) ||
-                (t.stop_type || '').toLowerCase().includes(searchLower) ||
-                (t.comments || '').toLowerCase().includes(searchLower) ||
-                (t.responsible || '').toLowerCase().includes(searchLower) ||
-                (t.id || '').toLowerCase().includes(searchLower);
+
+        // 1. Prepare Search Term (Normalized)
+        const searchLower = (filters.searchTerm || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+        return triggersWithContext.filter(t => {
+            // Text Search - O(1) check on pre-computed context
+            const matchesSearch = !filters.searchTerm || t.searchContext.includes(searchLower);
 
             // Date (Year Only if set)
-            const tDate = new Date(t.start_date);
-            const isValidDate = !isNaN(tDate.getTime());
-
             let matchesYear = true;
             let matchesMonth = true;
 
-            if (isValidDate) {
-                matchesYear = !filters.year || tDate.getFullYear().toString() === filters.year;
-                // Defensive check: (filters.months || [])
-                const tMonth = (tDate.getMonth() + 1).toString().padStart(2, '0');
-                matchesMonth = (filters.months || []).length === 0 || (filters.months || []).includes(tMonth);
+            if (t.yearStr) {
+                matchesYear = !filters.year || t.yearStr === filters.year;
+                matchesMonth = (filters.months || []).length === 0 || (filters.months || []).includes(t.monthStr);
             }
 
             // Dropdown Filters
@@ -504,7 +515,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
 
             return matchesSearch && matchesYear && matchesMonth && matchesStatus && matchesAsset && matchesType;
         });
-    }, [triggers, filters]);
+    }, [triggersWithContext, filters]);
 
     // Sorting
     const { sortedItems: filteredTriggers, sortConfig, handleSort } = useSorting(filteredContent, { key: 'start_date', direction: 'desc' });
@@ -515,8 +526,8 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
     }, [filters]);
 
     // Animation Ref
-    // Provide dependencies so animation re-runs when page or list changes
-    const listRef = useEnterAnimation([filteredTriggers, currentPage]);
+    // Animation Disabled (Performance Optimization)
+    // const listRef = useEnterAnimation([filteredTriggers, currentPage]);
 
     return (
         <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col relative">
@@ -578,7 +589,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                 <th className="px-4 py-3 text-right">{t('table.actions')}</th>
                             </tr>
                         </thead>
-                        <tbody ref={listRef as any} className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-100">
                             {filteredTriggers.length === 0 && (
                                 <tr>
                                     <td colSpan={10} className="p-12 text-center text-slate-400">
@@ -596,7 +607,7 @@ export const TriggersView: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenR
                                 const statusName = getTaxonomyName(taxonomy.triggerStatuses, t.status);
 
                                 return (
-                                    <tr key={t.id} className="hover:bg-slate-50 group opacity-0">
+                                    <tr key={t.id} className="hover:bg-slate-50 group">
                                         <td className="px-4 py-3">
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${farol.color}`}>
                                                 {farol.days}

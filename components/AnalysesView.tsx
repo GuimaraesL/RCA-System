@@ -9,7 +9,7 @@ import { useSorting } from '../hooks/useSorting';
 import { useRcaContext } from '../context/RcaContext';
 import { filterAssetsByUsage } from '../services/utils';
 import { ConfirmModal } from './ConfirmModal';
-import { useEnterAnimation } from '../hooks/useEnterAnimation';
+// useEnterAnimation disabled for performance with large datasets
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
 
 interface AnalysesViewProps {
@@ -87,25 +87,33 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
     };
 
     // --- Strict Cross-Filtering Logic for Options ---
-    const dynamicOptions = useMemo(() => {
-        // Helper: Global filters (Date, Search)
-        const matchesGlobal = (r: any) => {
-            const searchLower = filters.searchTerm.toLowerCase();
-            const matchesSearch = !filters.searchTerm ||
-                r.what?.toLowerCase().includes(searchLower) ||
-                r.problem_description?.toLowerCase().includes(searchLower) ||
-                r.id.toLowerCase().includes(searchLower) ||
-                // Extended Search
-                r.who?.toLowerCase().includes(searchLower) ||
-                r.where_description?.toLowerCase().includes(searchLower) ||
-                r.participants?.some((p: string) => p.toLowerCase().includes(searchLower)) ||
-                r.root_causes?.some((rc: any) => rc.cause.toLowerCase().includes(searchLower));
+    // --- Optimization: Pre-compute Search Context ---
+    const recordsWithContext = useMemo(() => {
+        return records.map(r => {
+            const searchContext = `${r.what || ''} ${r.problem_description || ''} ${r.id || ''} ${r.who || ''} ${r.where_description || ''} ${r.participants?.join(' ') || ''} ${r.root_causes?.map((rc: any) => rc.cause).join(' ') || ''}`
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
 
             const rDate = new Date(r.failure_date);
-            const matchesYear = !filters.year || rDate.getFullYear().toString() === filters.year;
+            const isValidDate = !isNaN(rDate.getTime());
+            const yearStr = isValidDate ? rDate.getFullYear().toString() : '';
+            const monthStr = isValidDate ? (rDate.getMonth() + 1).toString().padStart(2, '0') : '';
 
-            const rMonth = (rDate.getMonth() + 1).toString().padStart(2, '0');
-            const matchesMonth = filters.months.length === 0 || filters.months.includes(rMonth);
+            return { ...r, searchContext, yearStr, monthStr };
+        });
+    }, [records]);
+
+    const dynamicOptions = useMemo(() => {
+        // Helper: Global filters (Date, Search)
+        const matchesGlobal = (r: typeof recordsWithContext[0]) => {
+            // Text Search
+            const searchLower = filters.searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const matchesSearch = !filters.searchTerm || r.searchContext.includes(searchLower);
+
+            // Date
+            const matchesYear = !filters.year || r.yearStr === filters.year;
+            const matchesMonth = filters.months.length === 0 || filters.months.includes(r.monthStr);
 
             return matchesSearch && matchesYear && matchesMonth;
         };
@@ -127,7 +135,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         };
 
         // 1. Assets: Match Global + Attributes
-        const recordsForAssets = records.filter(r => matchesGlobal(r) && matchesAttributes(r, null));
+        const recordsForAssets = recordsWithContext.filter(r => matchesGlobal(r) && matchesAttributes(r, null));
         const usedAssetIds = new Set<string>();
         recordsForAssets.forEach(r => {
             if (r.area_id) usedAssetIds.add(r.area_id);
@@ -136,15 +144,15 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         });
 
         // 2. Statuses: Match Global + Assets + Attributes(ignore Status)
-        const recordsForStatuses = records.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'status'));
+        const recordsForStatuses = recordsWithContext.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'status'));
         const usedStatuses = new Set(recordsForStatuses.map(r => r.status));
 
         // 3. Specialties: Match Global + Assets + Attributes(ignore Specialty)
-        const recordsForSpecialties = records.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'specialty'));
+        const recordsForSpecialties = recordsWithContext.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'specialty'));
         const usedSpecialties = new Set(recordsForSpecialties.map(r => r.specialty_id));
 
         // 4. Types: Match Global + Assets + Attributes(ignore Type)
-        const recordsForTypes = records.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'type'));
+        const recordsForTypes = recordsWithContext.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'type'));
         const usedTypes = new Set(recordsForTypes.map(r => r.analysis_type));
 
         return {
@@ -153,30 +161,20 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
             specialties: taxonomy.specialties.filter(s => usedSpecialties.has(s.id)),
             analysisTypes: taxonomy.analysisTypes.filter(t => usedTypes.has(t.id))
         };
-    }, [records, assets, taxonomy, filters]);
+    }, [recordsWithContext, assets, taxonomy, filters]);
 
     // --- Filtering Logic (View) --- 
     const filteredContent = useMemo(() => {
-        return records.filter(r => {
-            // Text Search
-            const searchLower = filters.searchTerm.toLowerCase();
-            const matchesSearch = !filters.searchTerm ||
-                r.what?.toLowerCase().includes(searchLower) ||
-                r.problem_description?.toLowerCase().includes(searchLower) ||
-                r.id.toLowerCase().includes(searchLower) ||
-                // Extended Search (Task 44)
-                r.who?.toLowerCase().includes(searchLower) ||
-                r.where_description?.toLowerCase().includes(searchLower) ||
-                r.participants?.some(p => p.toLowerCase().includes(searchLower)) ||
-                r.root_causes?.some(rc => rc.cause.toLowerCase().includes(searchLower));
+        // 1. Prepare Search Term (Normalized)
+        const searchLower = filters.searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-            // Date (Year Only if set)
-            const rDate = new Date(r.failure_date);
-            const matchesYear = !filters.year || rDate.getFullYear().toString() === filters.year;
+        return recordsWithContext.filter(r => {
+            // Text Search - O(1)
+            const matchesSearch = !filters.searchTerm || r.searchContext.includes(searchLower);
 
-            // Month
-            const rMonth = (rDate.getMonth() + 1).toString().padStart(2, '0');
-            const matchesMonth = filters.months.length === 0 || filters.months.includes(rMonth);
+            // Date - O(1)
+            const matchesYear = !filters.year || r.yearStr === filters.year;
+            const matchesMonth = filters.months.length === 0 || filters.months.includes(r.monthStr);
 
             // Dropdown Filters
             const matchesStatus = filters.status === 'ALL' || r.status === filters.status;
@@ -202,7 +200,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
             return matchesSearch && matchesYear && matchesMonth && matchesStatus && matchesAsset && matchesType && matchesSpecialty
                 && matchesFailureMode && matchesFailureCategory && matchesComponent && matches6M;
         });
-    }, [records, filters]);
+    }, [recordsWithContext, filters]);
 
     // Use the Hook!
     const { sortedItems: filteredRecords, sortConfig, handleSort } = useSorting(filteredContent, { key: 'failure_date', direction: 'desc' });
@@ -217,8 +215,8 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
     }, [filters]);
 
     // Animation Ref
-    // Provide dependencies so animation re-runs when page or list changes
-    const listRef = useEnterAnimation([filteredRecords, currentPage]);
+    // Animation Disabled (Performance Optimization)
+    // const listRef = useEnterAnimation([filteredRecords, currentPage]);
 
     return (
         <div className="p-8 max-w-7xl mx-auto h-full flex flex-col">
@@ -278,7 +276,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                 <th className="px-6 py-4 w-16">{t('table.actions')}</th>
                             </tr>
                         </thead>
-                        <tbody ref={listRef as any} className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-100">
                             {filteredRecords.length === 0 && (
                                 <tr>
                                     <td colSpan={7} className="p-12 text-center text-slate-400">
@@ -290,7 +288,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                             {filteredRecords.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(r => {
                                 const statusName = getName('analysisStatuses', r.status);
                                 return (
-                                    <tr key={r.id} onClick={() => onEdit(r)} className="hover:bg-blue-50 cursor-pointer transition-colors group opacity-0">
+                                    <tr key={r.id} onClick={() => onEdit(r)} className="hover:bg-blue-50 cursor-pointer transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="font-mono text-xs text-slate-500">{r.id}</div>
                                             <div className="text-xs font-bold text-blue-600">{getName('analysisTypes', r.analysis_type)}</div>

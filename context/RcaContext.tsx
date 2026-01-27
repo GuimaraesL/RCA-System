@@ -315,29 +315,40 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  const contextValue = React.useMemo(() => ({
+    records,
+    assets,
+    actions,
+    triggers,
+    taxonomy,
+    isLoading,
+    useApi,
+    addRecord,
+    updateRecord,
+    deleteRecord,
+    updateAssets,
+    addAction,
+    updateAction,
+    deleteAction: deleteActionInternal,
+    addTrigger,
+    updateTrigger,
+    deleteTrigger: deleteTriggerInternal,
+    updateTaxonomy: updateTaxonomyInternal,
+    refreshAll,
+    setUseApi
+  }), [
+    records, assets, actions, triggers, taxonomy, isLoading, useApi,
+    refreshAll // Other functions are stable (API wrappers) or should be if they were useCallback'ed. 
+    // Ideally all wrapper functions above should be useCallback or defined outside if stateless, 
+    // but preventing the object recreation is step 1. 
+    // To be perfectly strict, we should useCallback the wrappers too, but simply memoizing the object 
+    // prevents render-loop if state didn't change but Parent re-rendered.
+    // However, since wrappers depend on nothing or useApi (which is in dep array), 
+    // they might be recreated. Let's fix that too effectively.
+  ]);
+
   return (
-    <RcaContext.Provider value={{
-      records,
-      assets,
-      actions,
-      triggers,
-      taxonomy,
-      isLoading,
-      useApi,
-      addRecord,
-      updateRecord,
-      deleteRecord,
-      updateAssets,
-      addAction,
-      updateAction,
-      deleteAction: deleteActionInternal,
-      addTrigger,
-      updateTrigger,
-      deleteTrigger: deleteTriggerInternal,
-      updateTaxonomy: updateTaxonomyInternal,
-      refreshAll,
-      setUseApi
-    }}>
+    <RcaContext.Provider value={contextValue}>
       {children}
     </RcaContext.Provider>
   );
