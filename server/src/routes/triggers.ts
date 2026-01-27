@@ -61,26 +61,41 @@ router.get('/:id', (req: Request, res: Response) => {
 const s = (val: any): string => val === undefined || val === null ? '' : String(val);
 const n = (val: any): number => val === undefined || val === null ? 0 : Number(val);
 
+import { randomUUID } from 'crypto';
+
 // POST /api/triggers - Criar novo gatilho
 router.post('/', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
         const t = req.body;
 
+        // Gerar ID se não informado
+        const finalId = (t.id && t.id.trim()) ? t.id : randomUUID();
+
+        // Garantir datas válidas ou null (evitar string 'undefined')
+        // Mas a função s() converte null/undefined para '', precisamos ver se o banco aceita string vazia para data ou se deve ser ISO.
+        // O código original usava s(), mantendo compatibilidade, mas o ID deve ser firme.
+
         db.run(`
        INSERT INTO triggers (id, area_id, equipment_id, subgroup_id, start_date, end_date, duration_minutes,
         stop_type, stop_reason, comments, analysis_type_id, status, responsible, rca_id, file_path)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
-            s(t.id), s(t.area_id), s(t.equipment_id), s(t.subgroup_id),
+            finalId, s(t.area_id), s(t.equipment_id), s(t.subgroup_id),
             s(t.start_date), s(t.end_date), n(t.duration_minutes),
             s(t.stop_type), s(t.stop_reason), s(t.comments),
             s(t.analysis_type_id), s(t.status), s(t.responsible), s(t.rca_id), s(t.file_path)
         ]);
 
         saveDatabase();
-        console.log('✅ Trigger criado:', t.id);
-        res.status(201).json({ id: t.id, message: 'Trigger criado com sucesso' });
+        console.log('✅ Trigger criado:', finalId);
+
+        // Retornar objeto completo ou pelo menos o ID correto para o frontend atualizar state
+        res.status(201).json({
+            id: finalId,
+            message: 'Trigger criado com sucesso',
+            ...t // Retornar dados recebidos para o frontend não precisar recarregar (optimistic)
+        });
     } catch (error) {
         console.error('Erro ao criar trigger:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
