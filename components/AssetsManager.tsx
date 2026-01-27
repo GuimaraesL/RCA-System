@@ -4,6 +4,7 @@ import { AssetNode } from '../types';
 import { Folder, Database, Layers, Plus, Trash2, Edit2, ChevronRight, ChevronDown, Lock, GripVertical } from 'lucide-react';
 import { useAssetsLogic } from '../hooks/useAssetsLogic';
 import { ConfirmModal } from './ConfirmModal';
+import { AssetTreeNode } from './AssetTreeNode';
 
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
 
@@ -73,38 +74,7 @@ export const AssetsManager: React.FC = () => {
     };
   }, []);
 
-  const TreeNode: React.FC<{ node: AssetNode; depth: number }> = ({ node, depth }) => {
-    const [expanded, setExpanded] = useState(true);
-    const hasChildren = node.children && node.children.length > 0;
-
-    return (
-      <div className="select-none">
-        <div
-          className={`flex items-center justify-between py-2 px-3 cursor-pointer rounded-md mb-1 transition-colors ${selectedNode?.id === node.id && !isEditing ? 'bg-blue-100 text-blue-700' : 'hover:bg-slate-100'}`}
-          style={{ marginLeft: `${depth * 20}px` }}
-          onClick={() => {
-            setSelectedNode(node);
-            setParentNode(null);
-            setIsEditing(false);
-          }}
-        >
-          <div className="flex items-center">
-            <div
-              onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-              className={`mr-2 p-1 rounded hover:bg-slate-200 ${hasChildren ? 'visible' : 'invisible'}`}
-            >
-              {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-            </div>
-            {node.type === 'AREA' && <Folder size={16} className="mr-2 text-slate-400" />}
-            {node.type === 'EQUIPMENT' && <Database size={16} className="mr-2 text-blue-500" />}
-            {node.type === 'SUBGROUP' && <Layers size={16} className="mr-2 text-indigo-500" />}
-            <span className="text-sm font-medium whitespace-nowrap">{node.name}</span>
-          </div>
-        </div>
-        {expanded && node.children?.map(child => <TreeNode key={child.id} node={child} depth={depth + 1} />)}
-      </div>
-    );
-  };
+  /* TreeNode component moved to AssetTreeNode.tsx */
 
   return (
     <div ref={containerRef} className="flex h-full p-8 gap-0 max-w-7xl mx-auto">
@@ -124,7 +94,20 @@ export const AssetsManager: React.FC = () => {
           </button>
         </div>
         <div className="flex-1 overflow-y-auto overflow-x-auto p-2">
-          {assets.map(asset => <TreeNode key={asset.id} node={asset} depth={0} />)}
+          {assets.map(asset => (
+            <AssetTreeNode
+              key={asset.id}
+              node={asset}
+              depth={0}
+              selectedNodeId={selectedNode?.id}
+              onSelect={(node) => {
+                setSelectedNode(node);
+                setParentNode(null);
+                setIsEditing(false);
+              }}
+              isEditing={isEditing}
+            />
+          ))}
           {assets.length === 0 && <div className="text-center p-8 text-slate-400 text-sm">No assets defined. Add a root area.</div>}
         </div>
       </div>
