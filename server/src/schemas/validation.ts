@@ -68,28 +68,29 @@ export const rcaSchema = z.object({
 
 // Schema for Trigger
 // Triggers are events, so they MUST have a time and a reason.
+// User requirement: All fields mandatory except comments.
 export const triggerSchema = z.object({
     id: z.string().uuid().optional(),
-    area_id: z.string().nullish(),
-    equipment_id: z.string().nullish(),
-    subgroup_id: z.string().nullish(),
+    area_id: z.string().min(1, "Área é obrigatória"),
+    equipment_id: z.string().min(1, "Equipamento é obrigatório"),
+    subgroup_id: z.string().min(1, "Subgrupo é obrigatório"),
 
     // Mandatory for valid event logging
     start_date: z.string().min(1, { message: "Data de início é obrigatória" }),
 
-    end_date: z.string().nullish(),
+    end_date: z.string().min(1, "Data de fim é obrigatória"),
     duration_minutes: z.coerce.number().optional().default(0),
 
-    stop_type: z.string().nullish(),
+    stop_type: z.string().min(1, "Tipo de parada é obrigatório"),
 
     // Mandatory description
     stop_reason: z.string().min(1, { message: "Motivo da parada é obrigatório" }),
 
-    comments: z.string().nullish(),
-    analysis_type_id: z.string().nullish(),
+    comments: z.string().nullish(), // Optional as requested
+    analysis_type_id: z.string().min(1, "Tipo de análise é obrigatório"),
     status: z.string().optional(),
-    responsible: z.string().nullish(),
-    rca_id: z.string().nullish(), // UUID or null
+    responsible: z.string().min(1, "Responsável é obrigatório"),
+    rca_id: z.string().nullish(), // UUID or null (can be linked later)
     file_path: z.string().nullish()
 });
 

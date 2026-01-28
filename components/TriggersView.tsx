@@ -23,7 +23,7 @@ interface TriggersViewProps {
 }
 
 // Inline Trigger Modal Component for Animation
-const TriggerModal = ({ editingTrigger, setEditingTrigger, setIsModalOpen, handleSave, t, assets, taxonomy, handleAssetSelect, getAssetName }) => {
+const TriggerModal = ({ editingTrigger, setEditingTrigger, setIsModalOpen, handleSave, t, assets, taxonomy, handleAssetSelect, getAssetName, validationErrors = [] }) => {
     const modalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -45,7 +45,7 @@ const TriggerModal = ({ editingTrigger, setEditingTrigger, setIsModalOpen, handl
                             <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.startDate')}</label>
                             <input
                                 type="datetime-local"
-                                className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none ${validationErrors.includes('start_date') ? 'border-red-500 bg-red-50' : 'border-slate-300'}`}
                                 value={editingTrigger.start_date}
                                 onChange={e => setEditingTrigger({ ...editingTrigger, start_date: e.target.value })}
                             />
@@ -54,7 +54,7 @@ const TriggerModal = ({ editingTrigger, setEditingTrigger, setIsModalOpen, handl
                             <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.endDate')}</label>
                             <input
                                 type="datetime-local"
-                                className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none ${validationErrors.includes('end_date') ? 'border-red-500 bg-red-50' : 'border-slate-300'}`}
                                 value={editingTrigger.end_date}
                                 onChange={e => setEditingTrigger({ ...editingTrigger, end_date: e.target.value })}
                             />
@@ -63,8 +63,8 @@ const TriggerModal = ({ editingTrigger, setEditingTrigger, setIsModalOpen, handl
 
                     {/* Asset Selection (Simplified) */}
                     <div>
-                        <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.subgroupSelect')}</label>
-                        <div className="border rounded h-32 overflow-auto bg-slate-50 mb-2">
+                        <label className={`block text-xs font-medium mb-1 ${validationErrors.includes('area_id') || validationErrors.includes('equipment_id') ? 'text-red-600' : 'text-slate-500'}`}>{t('triggerModal.subgroupSelect')}</label>
+                        <div className={`border rounded h-32 overflow-auto bg-slate-50 mb-2 ${validationErrors.includes('area_id') || validationErrors.includes('equipment_id') ? 'border-red-500' : ''}`}>
                             <AssetSelector
                                 assets={assets}
                                 onSelect={handleAssetSelect}
@@ -83,7 +83,7 @@ const TriggerModal = ({ editingTrigger, setEditingTrigger, setIsModalOpen, handl
                             <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.stopType')}</label>
                             <input
                                 type="text"
-                                className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none ${validationErrors.includes('stop_type') ? 'border-red-500 bg-red-50' : 'border-slate-300'}`}
                                 value={editingTrigger.stop_type}
                                 onChange={e => setEditingTrigger({ ...editingTrigger, stop_type: e.target.value })}
                             />
@@ -92,7 +92,7 @@ const TriggerModal = ({ editingTrigger, setEditingTrigger, setIsModalOpen, handl
                             <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.stopReason')}</label>
                             <input
                                 type="text"
-                                className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none ${validationErrors.includes('stop_reason') ? 'border-red-500 bg-red-50' : 'border-slate-300'}`}
                                 value={editingTrigger.stop_reason}
                                 onChange={e => setEditingTrigger({ ...editingTrigger, stop_reason: e.target.value })}
                             />
@@ -103,7 +103,7 @@ const TriggerModal = ({ editingTrigger, setEditingTrigger, setIsModalOpen, handl
                         <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.analysisType')}</label>
                             <select
-                                className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none ${validationErrors.includes('analysis_type_id') ? 'border-red-500 bg-red-50' : 'border-slate-300'}`}
                                 value={editingTrigger.analysis_type_id}
                                 onChange={e => setEditingTrigger({ ...editingTrigger, analysis_type_id: e.target.value })}
                             >
@@ -115,7 +115,7 @@ const TriggerModal = ({ editingTrigger, setEditingTrigger, setIsModalOpen, handl
                             <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.responsible')}</label>
                             <input
                                 type="text"
-                                className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none ${validationErrors.includes('responsible') ? 'border-red-500 bg-red-50' : 'border-slate-300'}`}
                                 value={editingTrigger.responsible}
                                 onChange={e => setEditingTrigger({ ...editingTrigger, responsible: e.target.value })}
                             />
@@ -364,14 +364,37 @@ const TriggersViewBase: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenRca 
         setTriggerToDelete(null);
     };
 
+    const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
     const handleSave = () => {
         if (!editingTrigger) return;
 
-        // Validação de Campos Obrigatórios
-        if (!editingTrigger.start_date) {
-            alert(t('triggersPage.alerts.startDateRequired'));
+        // Validação de Campos Obrigatórios (Client-Side)
+        const requiredFields = [
+            { field: 'start_date' },
+            { field: 'end_date' },
+            { field: 'area_id' },
+            { field: 'equipment_id' },
+            { field: 'stop_reason' },
+            { field: 'stop_type' },
+            { field: 'responsible' },
+            { field: 'analysis_type_id' }
+        ];
+
+        const errors: string[] = [];
+        for (const req of requiredFields) {
+            if (!editingTrigger[req.field as keyof TriggerRecord]) {
+                errors.push(req.field);
+            }
+        }
+
+        if (errors.length > 0) {
+            setValidationErrors(errors);
             return;
         }
+
+        // Clear errors if valid
+        setValidationErrors([]);
 
         const toSave = {
             ...editingTrigger,
@@ -750,6 +773,7 @@ const TriggersViewBase: React.FC<TriggersViewProps> = ({ onCreateRca, onOpenRca 
                     taxonomy={taxonomy}
                     handleAssetSelect={handleAssetSelect}
                     getAssetName={getAssetName}
+                    validationErrors={validationErrors}
                 />
             )}
 
