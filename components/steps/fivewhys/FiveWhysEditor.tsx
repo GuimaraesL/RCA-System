@@ -4,6 +4,7 @@ import { Input } from '../../ui/Input';
 import { Button } from '../../ui/Button';
 import { Plus, Trash2, ChevronRight, ChevronDown, CornerDownRight } from 'lucide-react';
 import { generateId } from '../../../services/utils';
+import { useLanguage } from '../../../context/LanguageDefinition';
 
 interface FiveWhysEditorProps {
     chains: FiveWhyChain[];
@@ -17,12 +18,13 @@ const NodeEditor: React.FC<{
     onDelete: () => void;
     canDelete: boolean;
 }> = ({ node, depth, onUpdate, onDelete, canDelete }) => {
+    const { t } = useLanguage();
 
-    const isActive = node.whys.length < 5; // Can add more whys?
+    const isActive = (node.whys || []).length < 5; // Can add more whys?
 
     // Update a specific why level
     const updateWhy = (level: number, text: string) => {
-        const newWhys = [...node.whys];
+        const newWhys = [...(node.whys || [])];
         const whyIndex = newWhys.findIndex(w => w.level === level);
 
         if (whyIndex >= 0) {
@@ -36,7 +38,7 @@ const NodeEditor: React.FC<{
 
     // Delete a specific why level
     const deleteWhy = (levelToDelete: number) => {
-        const filtered = node.whys.filter(w => w.level !== levelToDelete);
+        const filtered = (node.whys || []).filter(w => w.level !== levelToDelete);
         // Re-index levels to ensure continuity (1, 2, 3...)
         const reIndexed = filtered.map((w, index) => ({
             ...w,
@@ -47,12 +49,12 @@ const NodeEditor: React.FC<{
 
     // Add next why level
     const addWhy = () => {
-        const nextLevel = node.whys.length + 1;
+        const nextLevel = (node.whys || []).length + 1;
         if (nextLevel > 5) return;
 
         onUpdate({
             ...node,
-            whys: [...node.whys, { level: nextLevel, answer: '' }]
+            whys: [...(node.whys || []), { level: nextLevel, answer: '' }]
         });
     };
 
@@ -65,18 +67,18 @@ const NodeEditor: React.FC<{
             whys: [{ level: 1, answer: '' }],
             children: []
         };
-        onUpdate({ ...node, children: [...node.children, newNode] });
+        onUpdate({ ...node, children: [...(node.children || []), newNode] });
     };
 
     // Update child nodes locally
     const updateChild = (childIdx: number, newChild: FiveWhyNode) => {
-        const newChildren = [...node.children];
+        const newChildren = [...(node.children || [])];
         newChildren[childIdx] = newChild;
         onUpdate({ ...node, children: newChildren });
     };
 
     const deleteChild = (childIdx: number) => {
-        const newChildren = node.children.filter((_, i) => i !== childIdx);
+        const newChildren = (node.children || []).filter((_, i) => i !== childIdx);
         onUpdate({ ...node, children: newChildren });
     };
 
@@ -104,7 +106,7 @@ const NodeEditor: React.FC<{
 
             {/* List of Whys for this Node */}
             <div className="space-y-3 bg-white p-4 rounded-lg border border-slate-200 shadow-sm mb-4">
-                {node.whys.map((why, idx) => (
+                {(node.whys || []).map((why, idx) => (
                     <div key={idx} className="flex gap-3 items-start group">
                         <div className={`
                             flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
@@ -118,7 +120,7 @@ const NodeEditor: React.FC<{
                         </div>
                         <div className="flex-1">
                             <label className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">
-                                {why.level === 1 ? 'Por que o problema ocorreu?' : `Por que "${node.whys[idx - 1]?.answer.substring(0, 20)}..."?`}
+                                {why.level === 1 ? 'Por que o problema ocorreu?' : `Por que "${node.whys?.[idx - 1]?.answer?.substring(0, 20) || ''}..."?`}
                             </label>
                             <div className="flex gap-2">
                                 <Input
@@ -147,13 +149,13 @@ const NodeEditor: React.FC<{
                 ))}
 
                 <div className="flex gap-2 pt-2">
-                    {node.whys.length < 5 && (
+                    {(node.whys || []).length < 5 && (
                         <Button variant="secondary" size="sm" onClick={addWhy} className="text-xs">
                             <Plus size={14} className="mr-1" /> Mais um "Por que"
                         </Button>
                     )}
-                    {node.whys.length >= 1 && (
-                        <Button variant="outline" size="sm" onClick={addChild} className="text-xs border-dashed text-slate-500">
+                    {(node.whys || []).length >= 1 && (
+                        <Button variant="secondary" size="sm" onClick={addChild} className="text-xs border-dashed text-slate-500">
                             <CornerDownRight size={14} className="mr-1" /> Ramificar (Nova Causa)
                         </Button>
                     )}
@@ -161,7 +163,7 @@ const NodeEditor: React.FC<{
             </div>
 
             {/* Recursion for Children */}
-            {node.children.map((child, idx) => (
+            {(node.children || []).map((child, idx) => (
                 <NodeEditor
                     key={child.id}
                     node={child}

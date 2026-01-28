@@ -54,6 +54,7 @@ const createDefaultRecord = (): RcaRecord => ({
         { id: '4', why_question: '', answer: '' },
         { id: '5', why_question: '', answer: '' }
     ],
+    five_whys_chains: [],
     ishikawa: emptyIshikawa,
 
     root_causes: [],
@@ -129,6 +130,7 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
             // 5. Ensure structures
             if (!updated.human_reliability) updated.human_reliability = getStandardHraStruct();
             if (!updated.five_whys) updated.five_whys = createDefaultRecord().five_whys;
+            if (!updated.five_whys_chains) updated.five_whys_chains = [];
             if (!updated.ishikawa) updated.ishikawa = emptyIshikawa;
 
             // 6. Migration: Precision Maintenance (NOT_APPLICABLE -> Empty)

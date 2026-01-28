@@ -35,14 +35,14 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
 
     const addIshikawaItem = () => {
         if (newIshikawaItem.trim()) {
-            const currentItems = data.ishikawa[selectedCategory];
+            const currentItems = data.ishikawa?.[selectedCategory] || [];
             onChange(`ishikawa.${selectedCategory}`, [...currentItems, newIshikawaItem.trim()]);
             setNewIshikawaItem('');
         }
     };
 
     const removeIshikawaItem = (category: keyof IshikawaDiagram, index: number) => {
-        const currentItems = data.ishikawa[category];
+        const currentItems = data.ishikawa?.[category] || [];
         onChange(`ishikawa.${category}`, currentItems.filter((_, i) => i !== index));
     };
 
@@ -62,7 +62,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
         onChange('root_causes', newList);
     };
 
-    const filledWhysCount = data.five_whys.filter(w => w.answer.trim()).length;
+    const filledWhysCount = (data.five_whys || []).filter(w => w.answer.trim()).length;
     const canDefineRootCause = filledWhysCount >= 3;
 
     // --- 5 Whys Advanced Mode Logic ---
@@ -124,7 +124,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                     />
                 ) : (
                     <div className="space-y-4">
-                        {data.five_whys.length === 0 && (
+                        {(data.five_whys || []).length === 0 && (
                             <div className="text-center p-8 border-2 border-dashed border-blue-200 rounded-lg bg-blue-50/50">
                                 <p className="text-blue-800 font-medium mb-2">{t('wizard.step4.addWhy')}</p>
                                 <Button onClick={addLegacyWhy} variant="primary">
@@ -133,7 +133,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                             </div>
                         )}
 
-                        {data.five_whys.map((w, index) => (
+                        {(data.five_whys || []).map((w, index) => (
                             <div key={index} className="flex items-start gap-3 group">
                                 <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mt-2 shadow-sm">
                                     {index + 1}
@@ -144,7 +144,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                                         <Input
                                             value={w.why_question}
                                             onChange={(e) => {
-                                                const newWhys = [...data.five_whys];
+                                                const newWhys = [...(data.five_whys || [])];
                                                 newWhys[index] = { ...w, why_question: e.target.value };
                                                 onChange('five_whys', newWhys);
                                             }}
@@ -156,7 +156,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                                         <Input
                                             value={w.answer}
                                             onChange={(e) => {
-                                                const newWhys = [...data.five_whys];
+                                                const newWhys = [...(data.five_whys || [])];
                                                 newWhys[index] = { ...w, answer: e.target.value };
                                                 onChange('five_whys', newWhys);
                                             }}
@@ -173,7 +173,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                             </div>
                         ))}
 
-                        {data.five_whys.length > 0 && (
+                        {(data.five_whys || []).length > 0 && (
                             <div className="flex justify-between items-center mt-4">
                                 <div className="p-2 bg-white/60 rounded-lg border border-blue-300">
                                     <p className="text-sm font-medium text-blue-900">
@@ -227,7 +227,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                                 {category.label}
                             </h4>
                             <ul className="space-y-2">
-                                {data.ishikawa[category.key as keyof IshikawaDiagram].map((item, index) => (
+                                {(data.ishikawa?.[category.key as keyof IshikawaDiagram] || []).map((item, index) => (
                                     <li key={index} className="flex items-center justify-between gap-2 text-sm bg-gray-50 p-2 rounded border border-gray-100">
                                         <span className="text-gray-700 break-words flex-1">{item}</span>
                                         <button
@@ -238,7 +238,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                                         </button>
                                     </li>
                                 ))}
-                                {data.ishikawa[category.key as keyof IshikawaDiagram].length === 0 && (
+                                {(data.ishikawa?.[category.key as keyof IshikawaDiagram] || []).length === 0 && (
                                     <li className="text-gray-300 text-xs italic py-2 text-center border border-dashed border-gray-200 rounded">
                                         -
                                     </li>
@@ -270,18 +270,18 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                 )}
 
                 <div className="space-y-4">
-                    {data.root_causes.length === 0 && canDefineRootCause && (
+                    {(data.root_causes || []).length === 0 && canDefineRootCause && (
                         <p className="text-sm text-gray-500 italic text-center p-4 bg-white/50 rounded-lg border border-dashed border-yellow-200">
                             {t('wizard.step4.addRootCause')}
                         </p>
                     )}
 
-                    {data.root_causes.map((rc, idx) => (
+                    {(data.root_causes || []).map((rc, idx) => (
                         <div key={rc.id} className="grid grid-cols-12 gap-4 items-start bg-white p-4 rounded-lg border border-yellow-200 shadow-sm group">
                             <div className="col-span-12 md:col-span-4">
                                 <Select
                                     label={t('wizard.step4.sixMFactor')}
-                                    options={[{ value: '', label: t('wizard.select') }, ...taxonomy.rootCauseMs.map(m => ({ value: m.id, label: m.name }))]}
+                                    options={[{ value: '', label: t('wizard.select') }, ...(taxonomy?.rootCauseMs || []).map(m => ({ value: m.id, label: m.name }))]}
                                     value={rc.root_cause_m_id}
                                     onChange={e => updateRootCause(idx, 'root_cause_m_id', e.target.value)}
                                 />
