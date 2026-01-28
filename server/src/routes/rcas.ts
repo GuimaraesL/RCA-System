@@ -3,6 +3,7 @@
 
 import { Router, Request, Response } from 'express';
 import { getDatabase, saveDatabase } from '../db/database';
+import { rcaSchema } from '../schemas/validation';
 
 const router = Router();
 
@@ -84,7 +85,13 @@ import { randomUUID } from 'crypto';
 router.post('/', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
-        const rca = req.body;
+
+        const parse = rcaSchema.safeParse(req.body);
+        if (!parse.success) {
+            return res.status(400).json({ error: 'Dados inválidos', details: parse.error.format() });
+        }
+
+        const rca = parse.data;
 
         // Ensure ID
         const finalId = (rca.id && rca.id.trim()) ? rca.id : randomUUID();
@@ -126,11 +133,17 @@ router.post('/', (req: Request, res: Response) => {
 router.post('/bulk', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
-        const rcas = req.body;
+        const rcasRaw = req.body;
 
-        if (!Array.isArray(rcas)) {
+        if (!Array.isArray(rcasRaw)) {
             return res.status(400).json({ error: 'Body must be an array' });
         }
+
+        const parse = z.array(rcaSchema).safeParse(rcasRaw);
+        if (!parse.success) {
+            return res.status(400).json({ error: 'Dados inválidos no array', details: parse.error.format() });
+        }
+        const rcas = parse.data;
 
         console.log(`🔄 Bulk Importing ${rcas.length} RCAs...`);
 
@@ -180,7 +193,12 @@ router.post('/bulk', (req: Request, res: Response) => {
 router.put('/:id', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
-        const rca = req.body;
+
+        const parse = rcaSchema.safeParse(req.body);
+        if (!parse.success) {
+            return res.status(400).json({ error: 'Dados inválidos', details: parse.error.format() });
+        }
+        const rca = parse.data;
 
         db.run(`
       UPDATE rcas SET

@@ -3,6 +3,7 @@
 
 import { Router, Request, Response } from 'express';
 import { getDatabase, saveDatabase } from '../db/database';
+import { triggerSchema } from '../schemas/validation';
 
 const router = Router();
 
@@ -67,7 +68,12 @@ import { randomUUID } from 'crypto';
 router.post('/', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
-        const t = req.body;
+
+        const parse = triggerSchema.safeParse(req.body);
+        if (!parse.success) {
+            return res.status(400).json({ error: 'Dados inválidos', details: parse.error.format() });
+        }
+        const t = parse.data;
 
         // Gerar ID se não informado
         const finalId = (t.id && t.id.trim()) ? t.id : randomUUID();
@@ -106,11 +112,17 @@ router.post('/', (req: Request, res: Response) => {
 router.post('/bulk', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
-        const triggers = req.body;
+        const triggersRaw = req.body;
 
-        if (!Array.isArray(triggers)) {
+        if (!Array.isArray(triggersRaw)) {
             return res.status(400).json({ error: 'Body must be an array' });
         }
+
+        const parse = triggerSchema.array().safeParse(triggersRaw);
+        if (!parse.success) {
+            return res.status(400).json({ error: 'Dados inválidos no array', details: parse.error.format() });
+        }
+        const triggers = parse.data;
 
         console.log(`🔄 Bulk Importing ${triggers.length} Triggers...`);
 
@@ -147,7 +159,12 @@ router.post('/bulk', (req: Request, res: Response) => {
 router.put('/:id', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
-        const t = req.body;
+
+        const parse = triggerSchema.safeParse(req.body);
+        if (!parse.success) {
+            return res.status(400).json({ error: 'Dados inválidos', details: parse.error.format() });
+        }
+        const t = parse.data;
 
         db.run(`
       UPDATE triggers SET area_id = ?, equipment_id = ?, subgroup_id = ?, start_date = ?, end_date = ?,
