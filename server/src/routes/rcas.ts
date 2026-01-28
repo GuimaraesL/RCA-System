@@ -4,6 +4,7 @@
 import { Router, Request, Response } from 'express';
 import { getDatabase, saveDatabase } from '../db/database';
 import { rcaSchema } from '../schemas/validation';
+import { z } from 'zod';
 
 const router = Router();
 
