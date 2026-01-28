@@ -3,6 +3,8 @@
 
 import { Router, Request, Response } from 'express';
 import { getDatabase, saveDatabase } from '../db/database';
+import { actionSchema } from '../schemas/validation';
+import { z } from 'zod';
 
 const router = Router();
 
@@ -77,7 +79,12 @@ router.get('/:id', (req: Request, res: Response) => {
 router.post('/', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
-        const a = req.body;
+
+        const parse = actionSchema.safeParse(req.body);
+        if (!parse.success) {
+            return res.status(400).json({ error: 'Dados inválidos', details: parse.error.format() });
+        }
+        const a = parse.data;
         db.run('INSERT INTO actions (id, rca_id, action, responsible, date, status, moc_number) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [a.id, a.rca_id, a.action, a.responsible, a.date, a.status, a.moc_number]);
         saveDatabase();
@@ -92,11 +99,17 @@ router.post('/', (req: Request, res: Response) => {
 router.post('/bulk', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
-        const actions = req.body;
+        const actionsRaw = req.body;
 
-        if (!Array.isArray(actions)) {
+        if (!Array.isArray(actionsRaw)) {
             return res.status(400).json({ error: 'Body must be an array' });
         }
+
+        const parse = z.array(actionSchema).safeParse(actionsRaw);
+        if (!parse.success) {
+            return res.status(400).json({ error: 'Dados inválidos no array', details: parse.error.format() });
+        }
+        const actions = parse.data;
 
         console.log(`🔄 Bulk Importing ${actions.length} Actions...`);
 
@@ -123,7 +136,12 @@ router.post('/bulk', (req: Request, res: Response) => {
 router.put('/:id', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
-        const a = req.body;
+
+        const parse = actionSchema.safeParse(req.body);
+        if (!parse.success) {
+            return res.status(400).json({ error: 'Dados inválidos', details: parse.error.format() });
+        }
+        const a = parse.data;
         db.run('UPDATE actions SET rca_id = ?, action = ?, responsible = ?, date = ?, status = ?, moc_number = ?, updated_at = datetime("now") WHERE id = ?',
             [a.rca_id, a.action, a.responsible, a.date, a.status, a.moc_number, req.params.id]);
         saveDatabase();

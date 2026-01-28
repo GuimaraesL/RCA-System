@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // Helper for JSON fields which might come as strings or objects
 // In POST/PUT, frontend usually sends JSON objects/arrays. We validate them as such or loose types.
-const jsonStruct = z.union([z.record(z.any()), z.array(z.any()), z.null()]).optional();
+const jsonStruct = z.union([z.record(z.string(), z.any()), z.array(z.any()), z.null()]).optional();
 
 // Schema for RCA
 // We enforce data types but keep many fields optional as RCAs are often "works in progress"
@@ -95,3 +95,22 @@ export const triggerSchema = z.object({
 
 export type RcaInput = z.infer<typeof rcaSchema>;
 export type TriggerInput = z.infer<typeof triggerSchema>;
+
+// Schema for Action
+export const actionSchema = z.object({
+    id: z.string().uuid().optional(),
+    rca_id: z.string().uuid().optional(),
+    action: z.string().min(1, "Ação não pode ser vazia"),
+    responsible: z.string().nullish(),
+    date: z.string().nullish(),
+    status: z.string().optional(),
+    moc_number: z.string().nullish()
+});
+
+// Schema for Asset
+export const assetSchema = z.object({
+    id: z.string().uuid().optional(),
+    name: z.string().min(1, "Nome do ativo é obrigatório"),
+    type: z.string().min(1, "Tipo do ativo é obrigatório"),
+    parent_id: z.string().uuid().nullish()
+});

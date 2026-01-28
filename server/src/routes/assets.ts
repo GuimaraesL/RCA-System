@@ -3,6 +3,8 @@
 
 import { Router, Request, Response } from 'express';
 import { getDatabase, saveDatabase } from '../db/database';
+import { assetSchema } from '../schemas/validation';
+import { z } from 'zod';
 
 const router = Router();
 
@@ -97,15 +99,12 @@ import { randomUUID } from 'crypto';
 router.post('/', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
-        const { id, name, type, parent_id } = req.body;
 
-        // 1. Validação de Input
-        if (!name || typeof name !== 'string' || !name.trim()) {
-            return res.status(400).json({ error: 'Campo "name" é obrigatório.' });
+        const parse = assetSchema.safeParse(req.body);
+        if (!parse.success) {
+            return res.status(400).json({ error: 'Dados inválidos', details: parse.error.format() });
         }
-        if (!type || typeof type !== 'string' || !type.trim()) {
-            return res.status(400).json({ error: 'Campo "type" é obrigatório.' });
-        }
+        const { id, name, type, parent_id } = parse.data;
 
         // 2. Geração de ID se não fornecido
         const finalId = id || randomUUID();
@@ -151,13 +150,22 @@ router.post('/bulk', (req: Request, res: Response) => {
 
         // Recomendado: Usar transação para sql.js se disponível via run('BEGIN;'),
         // por enquanto iteramos com segurança.
-        assets.forEach((a: any) => {
+
+        // Validação item a item para permitir importação parcial
+        assets.forEach((item: any) => {
             try {
+                const parse = assetSchema.safeParse(item);
+                if (!parse.success) {
+                    errorCount++;
+                    return;
+                }
+                const a = parse.data;
+
                 db.run('INSERT OR REPLACE INTO assets (id, name, type, parent_id) VALUES (?, ?, ?, ?)',
                     [a.id, a.name, a.type, a.parent_id || null]);
                 successCount++;
             } catch (err) {
-                console.error(`❌ Erro ao importar asset individual [${a.id}]:`, err);
+                console.error(`❌ Erro ao importar asset individual [${item.id}]:`, err);
                 errorCount++;
             }
         });
@@ -178,7 +186,12 @@ router.post('/bulk', (req: Request, res: Response) => {
 router.put('/:id', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
-        const a = req.body;
+
+        const parse = assetSchema.safeParse(req.body);
+        if (!parse.success) {
+            return res.status(400).json({ error: 'Dados inválidos', details: parse.error.format() });
+        }
+        const a = parse.data;
         db.run('UPDATE assets SET name = ?, type = ?, parent_id = ? WHERE id = ?',
             [a.name, a.type, a.parent_id || null, req.params.id]);
         saveDatabase();
