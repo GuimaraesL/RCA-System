@@ -7,7 +7,7 @@ const jsonStruct = z.union([z.record(z.string(), z.any()), z.array(z.any()), z.n
 // Schema for RCA
 // We enforce data types but keep many fields optional as RCAs are often "works in progress"
 export const rcaSchema = z.object({
-    id: z.string().uuid().optional(),
+    id: z.string().optional(), // Relaxed to string for safety
     version: z.union([z.string(), z.number()]).optional(),
     analysis_date: z.string().nullish(), // ISO Date string
     analysis_duration_minutes: z.coerce.number().optional().default(0),
@@ -20,7 +20,7 @@ export const rcaSchema = z.object({
 
     start_date: z.string().nullish(),
     completion_date: z.string().nullish(),
-    requires_operation_support: z.boolean().optional().default(false),
+    requires_operation_support: z.coerce.boolean().optional().default(false),
 
     // Failure Data
     failure_date: z.string().nullish(),
@@ -63,6 +63,7 @@ export const rcaSchema = z.object({
 
     general_moc_number: z.string().nullish(),
     additional_info: jsonStruct,
+    additionalInfo: jsonStruct, // Match JSON payload
     file_path: z.string().nullish()
 });
 
@@ -70,7 +71,7 @@ export const rcaSchema = z.object({
 // Triggers are events, so they MUST have a time and a reason.
 // User requirement: All fields mandatory except comments.
 export const triggerSchema = z.object({
-    id: z.string().uuid().optional(),
+    id: z.string().optional(), // Relaxed UUID for migration
     area_id: z.string().min(1, "Área é obrigatória"),
     equipment_id: z.string().min(1, "Equipamento é obrigatório"),
     subgroup_id: z.string().min(1, "Subgrupo é obrigatório"),
@@ -90,7 +91,7 @@ export const triggerSchema = z.object({
     analysis_type_id: z.string().min(1, "Tipo de análise é obrigatório"),
     status: z.string().optional(),
     responsible: z.string().min(1, "Responsável é obrigatório"),
-    rca_id: z.string().nullish(), // UUID or null (can be linked later)
+    rca_id: z.string().nullish(),
     file_path: z.string().nullish()
 });
 
@@ -99,8 +100,8 @@ export type TriggerInput = z.infer<typeof triggerSchema>;
 
 // Schema for Action
 export const actionSchema = z.object({
-    id: z.string().uuid().optional(),
-    rca_id: z.string().uuid().optional(),
+    id: z.string().optional(), // Relaxed UUID
+    rca_id: z.string().optional(), // Relaxed UUID
     action: z.string().min(1, "Ação não pode ser vazia"),
     responsible: z.string().nullish(),
     date: z.string().nullish(),
@@ -110,8 +111,8 @@ export const actionSchema = z.object({
 
 // Schema for Asset
 export const assetSchema = z.object({
-    id: z.string().uuid().optional(),
+    id: z.string().optional(), // Relaxed UUID to support "ACABAMENTO", "SL_1"
     name: z.string().min(1, "Nome do ativo é obrigatório"),
     type: z.string().min(1, "Tipo do ativo é obrigatório"),
-    parent_id: z.string().uuid().nullish()
+    parent_id: z.string().nullish() // Relaxed UUID
 });
