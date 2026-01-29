@@ -1,0 +1,20 @@
+name: Auto Add to Project
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  add-to-project:
+    name: Add to Project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v0.5.0
+        with:
+          # URL do Projeto (Organization ou User Project V2)
+          # Formato: https://github.com/users/<owner>/projects/<number>
+          project-url: https://github.com/users/GuimaraesL/projects/2
+          
+          # Token requer permissões de escrita no projeto (Project V2)
+          # Requer criar um PAT e adicionar como Secret (ex: ADD_TO_PROJECT_PAT)
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
