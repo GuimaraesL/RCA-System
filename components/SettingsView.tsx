@@ -5,6 +5,7 @@ import { useSettingsLogic } from '../hooks/useSettingsLogic';
 import { TaxonomyConfig, TaxonomyItem } from '../types';
 import { ConfirmModal } from './ConfirmModal';
 import { useLanguage } from '../context/LanguageDefinition';
+import { MandatoryFieldSelector } from './MandatoryFieldSelector';
 
 
 // Sub-component defined outside to prevent re-creation on every render
@@ -119,12 +120,77 @@ const ListManager: React.FC<{
 };
 
 export const SettingsView: React.FC = () => {
-  const { taxonomy, addItem, removeItem, updateItem } = useSettingsLogic();
+  const { taxonomy, addItem, removeItem, updateItem, updateMandatoryConfig } = useSettingsLogic();
   const { t } = useLanguage();
+
+  const [activeTab, setActiveTab] = useState<'taxonomy' | 'validation'>('taxonomy');
 
   if (!taxonomy) {
     return <div className="p-8 text-center text-slate-500">Loading settings...</div>;
   }
+
+  // Define Fields Options
+  const rcaFields = [
+    { value: 'what', label: 'O que houve (Título)' },
+    { value: 'analysis_type', label: 'Tipo de Análise' },
+    { value: 'failure_date', label: 'Data da Falha' },
+    { value: 'subgroup_id', label: 'Localização (Subgrupo)' },
+    { value: 'component_type', label: 'Tipo de Componente' },
+    { value: 'who', label: 'Quem (Responsável)' },
+    { value: 'when', label: 'Quando (Descrição)' },
+    { value: 'where_description', label: 'Onde (Descrição)' },
+    { value: 'problem_description', label: 'Descrição Detalhada' },
+    { value: 'specialty_id', label: 'Especialidade' },
+    { value: 'failure_mode_id', label: 'Modo de Falha' },
+    { value: 'failure_category_id', label: 'Categoria de Falha' },
+    { value: 'participants', label: 'Participantes' }
+  ];
+
+  const rcaConclusionFields = [
+    ...rcaFields,
+    { value: 'root_causes', label: 'Causas Raízes' },
+    { value: 'five_whys', label: '5 Porquês' },
+    { value: 'ishikawa', label: 'Ishikawa' },
+    { value: 'actions', label: 'Planos de Ação (Efetividade)' } // Logic handled in hook/backend, but user can toggle strictness? Actually status auto-promotion handles actions. Lets keep it simple.
+  ];
+
+  const triggerFields = [
+    { value: 'area_id', label: 'Área' },
+    { value: 'equipment_id', label: 'Equipamento' },
+    { value: 'subgroup_id', label: 'Subgrupo' },
+    { value: 'start_date', label: 'Data Início' },
+    { value: 'end_date', label: 'Data Fim' },
+    { value: 'stop_type', label: 'Tipo de Parada' },
+    { value: 'stop_reason', label: 'Motivo da Parada' },
+    { value: 'analysis_type_id', label: 'Tipo de Análise Indicada' },
+    { value: 'responsible', label: 'Responsável' },
+    { value: 'comments', label: 'Comentários' }
+  ];
+
+  const handleMandatoryUpdate = (category: 'trigger' | 'rca', sub: string, newVal: string[]) => {
+    const currentConfig = taxonomy.mandatoryFields || {
+      trigger: { save: [] },
+      rca: { create: [], conclude: [] }
+    };
+
+    // Deep clone sub-objects to guarantee React re-renders correctly
+    const newConfig = {
+      trigger: { ...currentConfig.trigger },
+      rca: { ...currentConfig.rca }
+    };
+
+    if (category === 'trigger' && sub === 'save') newConfig.trigger.save = newVal;
+    if (category === 'rca' && sub === 'create') newConfig.rca.create = newVal;
+    if (category === 'rca' && sub === 'conclude') newConfig.rca.conclude = newVal;
+
+    updateMandatoryConfig(newConfig);
+  }
+
+  // Ensure config exists
+  const config = taxonomy.mandatoryFields || {
+    trigger: { save: [] },
+    rca: { create: [], conclude: [] }
+  };
 
   return (
     <div className="p-8 max-w-7xl mx-auto h-full flex flex-col animate-in fade-in">
@@ -138,16 +204,60 @@ export const SettingsView: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
-        <ListManager t={t} title={t('settings.analysisTypes')} field="analysisTypes" items={taxonomy.analysisTypes} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
-        <ListManager t={t} title={t('settings.analysisStatuses')} field="analysisStatuses" items={taxonomy.analysisStatuses} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
-        <ListManager t={t} title={t('settings.triggerStatuses')} field="triggerStatuses" items={taxonomy.triggerStatuses} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
-        <ListManager t={t} title={t('settings.componentTypes')} field="componentTypes" items={taxonomy.componentTypes} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
-        <ListManager t={t} title={t('settings.specialties')} field="specialties" items={taxonomy.specialties} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
-        <ListManager t={t} title={t('settings.failureModes')} field="failureModes" items={taxonomy.failureModes} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
-        <ListManager t={t} title={t('settings.failureCategories')} field="failureCategories" items={taxonomy.failureCategories} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
-        <ListManager t={t} title={t('settings.rootCauseMs')} field="rootCauseMs" items={taxonomy.rootCauseMs} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
+      {/* Tabs */}
+      <div className="flex gap-4 border-b border-slate-200 mb-6">
+        <button
+          onClick={() => setActiveTab('taxonomy')}
+          className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${activeTab === 'taxonomy' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+        >
+          {t('settings.tabs.general') || 'Geral & Taxonomia'}
+        </button>
+        <button
+          onClick={() => setActiveTab('validation')}
+          className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${activeTab === 'validation' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+        >
+          {'Validação & Campos Obrigatórios'}
+        </button>
       </div>
+
+      {activeTab === 'taxonomy' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
+          <ListManager t={t} title={t('settings.analysisTypes')} field="analysisTypes" items={taxonomy.analysisTypes} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
+          <ListManager t={t} title={t('settings.analysisStatuses')} field="analysisStatuses" items={taxonomy.analysisStatuses} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
+          <ListManager t={t} title={t('settings.triggerStatuses')} field="triggerStatuses" items={taxonomy.triggerStatuses} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
+          <ListManager t={t} title={t('settings.componentTypes')} field="componentTypes" items={taxonomy.componentTypes} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
+          <ListManager t={t} title={t('settings.specialties')} field="specialties" items={taxonomy.specialties} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
+          <ListManager t={t} title={t('settings.failureModes')} field="failureModes" items={taxonomy.failureModes} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
+          <ListManager t={t} title={t('settings.failureCategories')} field="failureCategories" items={taxonomy.failureCategories} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
+          <ListManager t={t} title={t('settings.rootCauseMs')} field="rootCauseMs" items={taxonomy.rootCauseMs} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
+        </div>
+      )}
+
+      {activeTab === 'validation' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
+          <MandatoryFieldSelector
+            title="RCA: Criação & Salvamento"
+            description="Campos obrigatórios para salvar uma análise (mesmo como rascunho)."
+            availableFields={rcaFields}
+            selectedFields={config.rca.create}
+            onChange={(val) => handleMandatoryUpdate('rca', 'create', val)}
+          />
+          <MandatoryFieldSelector
+            title="RCA: Conclusão"
+            description="Campos obrigatórios para alterar o status para 'Concluída'."
+            availableFields={rcaConclusionFields}
+            selectedFields={config.rca.conclude}
+            onChange={(val) => handleMandatoryUpdate('rca', 'conclude', val)}
+          />
+          <MandatoryFieldSelector
+            title="Gatilhos (Triggers)"
+            description="Campos obrigatórios para registrar um novo gatilho."
+            availableFields={triggerFields}
+            selectedFields={config.trigger.save}
+            onChange={(val) => handleMandatoryUpdate('trigger', 'save', val)}
+          />
+        </div>
+      )}
     </div>
   );
 };

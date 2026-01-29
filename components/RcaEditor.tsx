@@ -285,6 +285,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                     <Step2Problem
                         data={formData}
                         onChange={handleChange}
+                        taxonomy={taxonomy} // Added prop
                         errors={validationErrors}
                     />
                 )}

@@ -333,13 +333,14 @@ export const importData = (jsonContent: string): { success: boolean, message: st
     // --- 1. Auto-Discover Taxonomy Items from Records ---
     const ensureTaxonomy = (listKey: keyof TaxonomyConfig, val: string) => {
       if (!val) return '';
-      const list = taxonomy[listKey] || [];
+      const list = (taxonomy[listKey] as TaxonomyItem[]) || [];
       const existing = list.find(i => i.id === val || i.name.toLowerCase() === val.toLowerCase());
       if (existing) return existing.id;
 
       // Create new
       const newId = val.length < 10 ? val : generateId('AUTO');
       list.push({ id: newId, name: sanitizeString(val) }); // Sanitize new taxonomy names
+      // @ts-ignore
       taxonomy[listKey] = list;
       return newId;
     };

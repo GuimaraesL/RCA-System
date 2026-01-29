@@ -167,29 +167,50 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
     //      - TUDO Box 3/4? -> 'Concluída' (STATUS-03).
     //      - Alguma Pendente? -> 'Aguardando Verificação' (STATUS-WAITING).
     useEffect(() => {
-        // 1. Mandatory Fields Check
-        const mandatoryStrings = [
-            formData.analysis_type,
-            formData.what,
-            formData.problem_description,
-            formData.subgroup_id, // STRICT: User requires subgroup_id for eligibility
-            formData.who,
-            formData.when,
-            formData.where_description,
-            formData.specialty_id,
-            formData.failure_mode_id,
-            formData.failure_category_id,
-            formData.component_type
+        // 1. Mandatory Fields Check (Dynamic based on settings)
+        // If mandatoryFields is not configured, fall back to a reasonable default (or the strict list we had)
+        // But for migration safety, let's use the strict list as fallback if undefined.
+        const mandatoryFieldsList = taxonomy.mandatoryFields?.rca.conclude || [
+            'analysis_type', 'what', 'problem_description', 'subgroup_id', 'who', 'when',
+            'where_description', 'specialty_id', 'failure_mode_id', 'failure_category_id', 'component_type',
+            'participants', 'root_causes', 'downtime_minutes'
         ];
 
-        const stringsOk = mandatoryStrings.every(s => s && s.trim().length > 0);
-        const participantsOk = formData.participants && formData.participants.length > 0;
-        const rootCausesOk = formData.root_causes && formData.root_causes.length > 0;
+        let isMandatoryComplete = true;
 
-        // Impact fields must be numbers (0 is allowed, but not undefined/null)
-        const impactsOk = (formData.downtime_minutes !== undefined && formData.downtime_minutes !== null);
+        for (const field of mandatoryFieldsList) {
+            const val = (formData as any)[field];
 
-        const isMandatoryComplete = stringsOk && participantsOk && rootCausesOk && impactsOk;
+            // Special handling for Arrays
+            if (field === 'participants' || field === 'root_causes' || field === 'five_whys' || field === 'ishikawa') { // Check arrays/objects
+                if (Array.isArray(val)) {
+                    if (val.length === 0) { isMandatoryComplete = false; break; }
+                } else if (typeof val === 'object' && val !== null) {
+                    // Logic for specific objects if needed (e.g. ishikawa not empty?)
+                    // For now, just object presence is enough, or generic check?
+                    // The previous logic checked strict length for participants/root_causes.
+                    // Let's assume generic array length check is what we want for these.
+                    // For ishikawa (it is an object), maybe check if any branch has items?
+                    if (field === 'ishikawa') {
+                        // Complex check skipped for brevity unless requested. 
+                        // Current implementation just checks not null. 
+                    }
+                } else if (!val) {
+                    isMandatoryComplete = false; break;
+                }
+            }
+            // Special handling for Numbers (Impacts)
+            else if (field === 'downtime_minutes' || field === 'financial_impact') {
+                if (val === undefined || val === null) { isMandatoryComplete = false; break; }
+            }
+            // Strings
+            else {
+                if (!val || (typeof val === 'string' && val.trim().length === 0)) {
+                    isMandatoryComplete = false;
+                    break;
+                }
+            }
+        }
 
         // 2. Action Plan Analysis
         const currentActions = actions.filter(a => a.rca_id === formData.id);
@@ -315,7 +336,8 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         const errors: Record<string, boolean> = {};
 
         // CAMPOS MÍNIMOS PARA SALVAR (Rascunho)
-        const minimumFieldsData = [
+        // Dynamic from Settings
+        const minimumFieldsData = taxonomy.mandatoryFields?.rca.create || [
             'subgroup_id',   // Necessário para localização
             'failure_date',  // Necessário para timeline
             'analysis_type', // Necessário para categorização básica

@@ -1,7 +1,7 @@
 // Serviço de comunicação com a API REST
 // VERSÃO CORRIGIDA - com verificação de erros em todas as operações
 
-import { AssetNode, RcaRecord, ActionRecord, TriggerRecord, TaxonomyConfig, MigrationData } from "../types";
+import { AssetNode, RcaRecord, ActionRecord, TriggerRecord, TaxonomyConfig, MigrationData, TaxonomyItem } from "../types";
 
 const API_BASE = 'http://localhost:3001/api';
 
@@ -483,10 +483,11 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
 
         const ensureTaxonomy = (listKey: keyof TaxonomyConfig, val: string) => {
             if (!val) return null;
-            const list = taxonomyToSave[listKey] || [];
+            const list = (taxonomyToSave[listKey] as TaxonomyItem[]) || [];
             const existing = list.find(i => i.id === val || i.name.toLowerCase() === val.toLowerCase());
             if (existing) return existing.id;
             const newId = val.length < 15 ? val : generateId('AUTO');
+            // @ts-ignore
             taxonomyToSave[listKey] = [...list, { id: newId, name: val }];
             return newId;
         };

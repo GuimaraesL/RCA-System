@@ -2,17 +2,22 @@
 import React from 'react';
 import { Input } from '../ui/Input';
 import { Textarea } from '../ui/Textarea';
-import { RcaRecord } from '../../types';
+import { RcaRecord, TaxonomyConfig } from '../../types';
 import { useLanguage } from '../../context/LanguageDefinition';
 
 interface Step2Props {
     data: RcaRecord;
     onChange: (field: string, value: any) => void;
+    taxonomy: TaxonomyConfig; // Added
     errors?: Record<string, boolean>;
 }
 
-export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, errors }) => {
+export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, errors }) => {
     const { t } = useLanguage();
+
+    // Helper for mandatory fields
+    const requiredFields = taxonomy?.mandatoryFields?.rca?.create || [];
+    const isRequired = (field: string) => requiredFields.includes(field);
 
     return (
         <div className="space-y-6 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -23,7 +28,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, errors }) =
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <Input
                         label={t('wizard.step2.who')}
-                        required
+                        required={isRequired('who')}
                         placeholder={t('wizard.step2.whoPlaceholder')}
                         value={data.who}
                         onChange={(e) => onChange('who', e.target.value)}
@@ -32,7 +37,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, errors }) =
 
                     <Input
                         label={t('wizard.step2.when')}
-                        required
+                        required={isRequired('when')}
                         placeholder={t('wizard.step2.whenPlaceholder')}
                         value={data.when}
                         onChange={(e) => onChange('when', e.target.value)}
@@ -41,7 +46,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, errors }) =
 
                     <Input
                         label={t('wizard.step2.where')}
-                        required
+                        required={isRequired('where_description')}
                         placeholder={t('wizard.step2.wherePlaceholder')}
                         value={data.where_description}
                         onChange={(e) => onChange('where_description', e.target.value)}
@@ -50,7 +55,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, errors }) =
 
                     <Input
                         label={t('wizard.step2.what')}
-                        required
+                        required={isRequired('what')}
                         placeholder={t('wizard.step2.whatPlaceholder')}
                         value={data.what}
                         onChange={(e) => onChange('what', e.target.value)}
@@ -61,7 +66,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, errors }) =
                 <div className="space-y-6">
                     <Textarea
                         label={t('wizard.step2.problemDescription')}
-                        required
+                        required={isRequired('problem_description')}
                         placeholder={t('wizard.step2.problemDescriptionPlaceholder')}
                         rows={6}
                         value={data.problem_description}

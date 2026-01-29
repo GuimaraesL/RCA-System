@@ -20,6 +20,10 @@ interface Step1Props {
 export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, taxonomy, onAssetSelect, onRefreshAssets, errors }) => {
     const { t } = useLanguage();
 
+    // Helper for mandatory fields
+    const requiredFields = taxonomy?.mandatoryFields?.rca?.create || [];
+    const isRequired = (field: string) => requiredFields.includes(field);
+
     const getAssetName = (id: string, nodes: AssetNode[]): string => {
         for (const node of nodes) {
             if (node.id === id) return node.name;
@@ -49,7 +53,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Left: Asset Tree */}
                     <div>
-                        <label className="block text-xs font-medium text-slate-500 mb-1">{t('wizard.step1.assetSelectorLabel')} <span className="text-red-500">*</span></label>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">{t('wizard.step1.assetSelectorLabel')} {isRequired('subgroup_id') && <span className="text-red-500">*</span>}</label>
                         <div className={`border rounded h-64 overflow-auto mb-2 bg-slate-50 ${errors?.subgroup_id ? 'border-red-500 ring-2 ring-red-100' : 'border-slate-200'}`}>
                             <AssetSelector
                                 assets={assets}
@@ -70,7 +74,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                     <div className="space-y-4">
                         <Select
                             label={t('wizard.step1.componentType')}
-                            required
+                            required={isRequired('component_type')}
                             options={[{ value: '', label: t('wizard.selectType') }, ...taxonomy.componentTypes.map(t => ({ value: t.id, label: t.name }))]}
                             value={data.component_type}
                             onChange={(e) => onChange('component_type', e.target.value)}
@@ -81,7 +85,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                             <Input
                                 label={t('wizard.step1.failureDate')}
                                 type="date"
-                                required
+                                required={isRequired('failure_date')}
                                 value={data.failure_date}
                                 onChange={(e) => onChange('failure_date', e.target.value)}
                                 error={errors?.failure_date}
@@ -89,7 +93,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                             <Input
                                 label={t('wizard.step1.failureTime')}
                                 type="time"
-                                required
+                                required={isRequired('failure_time')}
                                 value={data.failure_time}
                                 onChange={(e) => onChange('failure_time', e.target.value)}
                                 error={errors?.failure_time}
@@ -100,6 +104,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                             label={t('wizard.step1.osNumber')}
                             value={data.os_number}
                             onChange={(e) => onChange('os_number', e.target.value)}
+                            required={isRequired('os_number')}
                         />
                     </div>
                 </div>
@@ -110,7 +115,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                     <Select
                         label={t('wizard.step1.analysisType')}
-                        required
+                        required={isRequired('analysis_type')}
                         options={[{ value: '', label: t('wizard.select') }, ...taxonomy.analysisTypes.map(t => ({ value: t.id, label: t.name }))]}
                         value={data.analysis_type}
                         onChange={(e) => onChange('analysis_type', e.target.value)}
@@ -120,6 +125,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         label={t('wizard.step1.facilitator')}
                         value={data.facilitator}
                         onChange={(e) => onChange('facilitator', e.target.value)}
+                        required={isRequired('facilitator')}
                     />
                     <Input
                         label={t('wizard.step1.analysisDuration')}
@@ -130,7 +136,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                     />
                     <Input
                         label={t('wizard.step1.participants')}
-                        required
+                        required={isRequired('participants')}
                         placeholder={t('wizard.step1.participantsPlaceholder')}
                         value={data.participants.join(', ')}
                         onChange={(e) => handleParticipantsChange(e.target.value)}
@@ -143,12 +149,14 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         type="date"
                         value={data.start_date || ''}
                         onChange={(e) => onChange('start_date', e.target.value)}
+                        required={isRequired('start_date')}
                     />
                     <Input
                         label={t('wizard.step1.completionDate')}
                         type="date"
                         value={data.completion_date || ''}
                         onChange={(e) => onChange('completion_date', e.target.value)}
+                        required={isRequired('completion_date')}
                     />
                     <div className="flex items-center pt-6">
                         <input

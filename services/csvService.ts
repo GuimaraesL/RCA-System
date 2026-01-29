@@ -338,7 +338,7 @@ export const exportToCsv = (type: CsvEntityType, context: CsvContextData): strin
 
     const taxonomyKey = TAXONOMY_MAP[type];
     if (taxonomyKey && taxonomy) {
-        const items = taxonomy[taxonomyKey] || [];
+        const items = (taxonomy[taxonomyKey] as TaxonomyItem[]) || [];
 
         // Custom Logic for Failure Modes with Specialty Dependency
         if (type === 'TAXONOMY_FAILURE_MODES') {

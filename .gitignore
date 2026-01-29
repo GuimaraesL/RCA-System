@@ -31,3 +31,4 @@ secrets/
 .agent/
 .claude/
 rca.db 
+/testsprite_tests/ 

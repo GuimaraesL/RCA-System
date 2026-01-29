@@ -31,6 +31,17 @@ export interface TaxonomyConfig {
   componentTypes: TaxonomyItem[];
   rootCauseMs: TaxonomyItem[];
   triggerStatuses: TaxonomyItem[]; // Added field
+  mandatoryFields?: MandatoryFieldsConfig;
+}
+
+export interface MandatoryFieldsConfig {
+  trigger: {
+    save: string[];
+  };
+  rca: {
+    create: string[];
+    conclude: string[];
+  };
 }
 
 // 6. Investigação types

@@ -15,6 +15,10 @@ interface Step3Props {
 export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy, errors }) => {
     const { t } = useLanguage();
 
+    // Helper for mandatory fields
+    const requiredFields = taxonomy?.mandatoryFields?.rca?.create || [];
+    const isRequired = (field: string) => requiredFields.includes(field);
+
     // Dependent Dropdown Logic (Specialty -> Failure Mode)
     const filteredFailureModes = taxonomy.failureModes.filter(fm => {
         if (!data.specialty_id) return true;
@@ -42,7 +46,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Select
                         label={t('wizard.step3.specialty')}
-                        required
+                        required={isRequired('specialty_id')}
                         options={[{ value: '', label: t('wizard.select') }, ...taxonomy.specialties.map(s => ({ value: s.id, label: s.name }))]}
                         value={data.specialty_id}
                         onChange={(e) => onChange('specialty_id', e.target.value)}
@@ -51,7 +55,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
 
                     <Select
                         label={t('wizard.step3.failureMode')}
-                        required
+                        required={isRequired('failure_mode_id')}
                         options={[{ value: '', label: t('wizard.select') }, ...filteredFailureModes.map(fm => ({ value: fm.id, label: fm.name }))]}
                         value={data.failure_mode_id}
                         onChange={(e) => onChange('failure_mode_id', e.target.value)}
@@ -61,7 +65,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
 
                     <Select
                         label={t('wizard.step3.failureCategory')}
-                        required
+                        required={isRequired('failure_category_id')}
                         options={[{ value: '', label: t('wizard.select') }, ...taxonomy.failureCategories.map(fc => ({ value: fc.id, label: fc.name }))]}
                         value={data.failure_category_id}
                         onChange={(e) => onChange('failure_category_id', e.target.value)}

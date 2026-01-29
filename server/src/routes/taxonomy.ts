@@ -51,7 +51,16 @@ const defaultTaxonomy = {
         { id: 'TS-02', name: 'Em andamento' },
         { id: 'TS-03', name: 'Análise' },
         { id: 'TS-04', name: 'Concluído' }
-    ]
+    ],
+    mandatoryFields: {
+        trigger: {
+            save: ['area_id', 'equipment_id', 'subgroup_id', 'start_date', 'end_date', 'stop_type', 'stop_reason', 'analysis_type_id', 'responsible']
+        },
+        rca: {
+            create: ['subgroup_id', 'failure_date', 'analysis_type', 'what'],
+            conclude: ['root_causes', 'five_whys', 'ishikawa']
+        }
+    }
 };
 
 // GET /api/taxonomy
