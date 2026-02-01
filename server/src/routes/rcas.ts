@@ -1,10 +1,16 @@
 // Rotas CRUD para Análises RCA (sql.js)
 // Endpoints: GET, POST, PUT, DELETE /api/rcas
+// 
+// Issue #20: Status calculation now happens server-side
+// Issue #21: Forward-Only retroactivity strategy
+// Issue #22: Performance - status calculated on write, not read
 
 import { Router, Request, Response } from 'express';
 import { getDatabase, saveDatabase } from '../db/database';
 import { rcaSchema } from '../schemas/validation';
 import { z } from 'zod';
+import { randomUUID } from 'crypto';
+import rcaStatusService from '../services/rcaStatusService';
 
 const router = Router();
 
@@ -41,6 +47,54 @@ const parseRcaRow = (row: any) => ({
     additional_info: JSON.parse(row.additional_info || 'null'),
     requires_operation_support: !!row.requires_operation_support
 });
+
+// ============================================================================
+// HELPER FUNCTIONS FOR STATUS CALCULATION
+// ============================================================================
+
+/**
+ * Fetches the current taxonomy configuration from database
+ */
+const getTaxonomy = (): any => {
+    const db = getDatabase();
+    const result = db.exec('SELECT config FROM taxonomy LIMIT 1');
+    if (result.length > 0 && result[0].values.length > 0) {
+        return JSON.parse(result[0].values[0][0] as string);
+    }
+    // Return default taxonomy if not found
+    return {
+        analysisStatuses: [
+            { id: 'STATUS-01', name: 'Em Andamento' },
+            { id: 'STATUS-WAITING', name: 'Aguardando Verificação' },
+            { id: 'STATUS-03', name: 'Concluída' }
+        ],
+        mandatoryFields: {
+            rca: {
+                create: ['subgroup_id', 'failure_date', 'analysis_type', 'what'],
+                conclude: ['root_causes', 'five_whys', 'ishikawa']
+            }
+        }
+    };
+};
+
+/**
+ * Fetches all actions for a specific RCA
+ */
+const getActionsForRca = (rcaId: string): any[] => {
+    const db = getDatabase();
+    const stmt = db.prepare('SELECT * FROM actions WHERE rca_id = ?');
+    stmt.bind([rcaId]);
+    const actions: any[] = [];
+    while (stmt.step()) {
+        const row: any = {};
+        const cols = stmt.getColumnNames();
+        const values = stmt.get();
+        cols.forEach((col: string, i: number) => { row[col] = values[i]; });
+        actions.push(row);
+    }
+    stmt.free();
+    return actions;
+};
 
 // GET /api/rcas - Listar todas as análises
 router.get('/', (req: Request, res: Response) => {
@@ -80,9 +134,8 @@ router.get('/:id', (req: Request, res: Response) => {
     }
 });
 
-import { randomUUID } from 'crypto';
-
 // POST /api/rcas - Criar nova análise
+// Issue #20: Now calculates status server-side
 router.post('/', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
@@ -92,10 +145,27 @@ router.post('/', (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Dados inválidos', details: parse.error.format() });
         }
 
-        const rca = parse.data;
+        let rca = parse.data;
 
         // Ensure ID
         const finalId = (rca.id && rca.id.trim()) ? rca.id : randomUUID();
+        rca.id = finalId;
+
+        // Issue #20: Migrate/normalize data structures
+        rca = rcaStatusService.migrateRcaData(rca);
+
+        // Issue #20: Calculate status server-side
+        const taxonomy = getTaxonomy();
+        const actions = getActionsForRca(finalId); // Will be empty for new RCA
+        const statusResult = rcaStatusService.calculateRcaStatus(rca as any, actions, taxonomy);
+
+        // Apply calculated status
+        rca.status = statusResult.newStatus;
+        if (statusResult.completionDate) {
+            rca.completion_date = statusResult.completionDate;
+        }
+
+        console.log(`🔄 Status calculated for new RCA ${finalId}: ${statusResult.newStatus} (${statusResult.reason})`);
 
         db.run(`
       INSERT INTO rcas (
@@ -123,7 +193,13 @@ router.post('/', (req: Request, res: Response) => {
 
         saveDatabase();
         console.log('✅ RCA criada:', finalId);
-        res.status(201).json({ id: finalId, message: 'RCA criada com sucesso', ...rca });
+        res.status(201).json({
+            id: finalId,
+            message: 'RCA criada com sucesso',
+            status: rca.status,
+            statusReason: statusResult.reason,
+            ...rca
+        });
     } catch (error) {
         console.error('Erro ao criar RCA:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
@@ -191,6 +267,8 @@ router.post('/bulk', (req: Request, res: Response) => {
 });
 
 // PUT /api/rcas/:id - Atualizar análise
+// Issue #20: Now calculates status server-side
+// Issue #21: Forward-Only strategy - only validates on edit
 router.put('/:id', (req: Request, res: Response) => {
     try {
         const db = getDatabase();
@@ -199,7 +277,26 @@ router.put('/:id', (req: Request, res: Response) => {
         if (!parse.success) {
             return res.status(400).json({ error: 'Dados inválidos', details: parse.error.format() });
         }
-        const rca = parse.data;
+        let rca = parse.data;
+        const rcaId = req.params.id;
+        rca.id = rcaId;
+
+        // Issue #20: Migrate/normalize data structures
+        rca = rcaStatusService.migrateRcaData(rca);
+
+        // Issue #20: Calculate status server-side
+        const taxonomy = getTaxonomy();
+        const actions = getActionsForRca(rcaId);
+        const statusResult = rcaStatusService.calculateRcaStatus(rca as any, actions, taxonomy);
+
+        // Apply calculated status (unless protected)
+        if (statusResult.statusChanged) {
+            console.log(`🔄 Status auto-updated for RCA ${rcaId}: ${rca.status} -> ${statusResult.newStatus}`);
+            rca.status = statusResult.newStatus;
+        }
+        if (statusResult.completionDate && !rca.completion_date) {
+            rca.completion_date = statusResult.completionDate;
+        }
 
         db.run(`
       UPDATE rcas SET
@@ -224,11 +321,16 @@ router.put('/:id', (req: Request, res: Response) => {
             JSON.stringify(rca.five_whys || []), JSON.stringify(rca.five_whys_chains || []), JSON.stringify(rca.ishikawa || {}), JSON.stringify(rca.root_causes || []),
             JSON.stringify(rca.precision_maintenance || []), JSON.stringify(rca.human_reliability || null),
             JSON.stringify(rca.containment_actions || []), JSON.stringify(rca.lessons_learned || []), n(rca.general_moc_number), JSON.stringify(rca.additional_info || null), n(rca.file_path),
-            req.params.id
+            rcaId
         ]);
 
         saveDatabase();
-        res.json({ message: 'RCA atualizada com sucesso' });
+        res.json({
+            message: 'RCA atualizada com sucesso',
+            status: rca.status,
+            statusChanged: statusResult.statusChanged,
+            statusReason: statusResult.reason
+        });
     } catch (error) {
         console.error('Erro ao atualizar RCA:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });

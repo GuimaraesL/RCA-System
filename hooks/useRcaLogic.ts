@@ -166,125 +166,22 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
     //    - Com Ações? -> Verifica eficácia (Box 3 ou 4).
     //      - TUDO Box 3/4? -> 'Concluída' (STATUS-03).
     //      - Alguma Pendente? -> 'Aguardando Verificação' (STATUS-WAITING).
-    useEffect(() => {
-        // 1. Mandatory Fields Check (Dynamic based on settings)
-        // If mandatoryFields is not configured, fall back to a reasonable default (or the strict list we had)
-        // But for migration safety, let's use the strict list as fallback if undefined.
-        const mandatoryFieldsList = taxonomy.mandatoryFields?.rca.conclude || [
-            'analysis_type', 'what', 'problem_description', 'subgroup_id', 'who', 'when',
-            'where_description', 'specialty_id', 'failure_mode_id', 'failure_category_id', 'component_type',
-            'participants', 'root_causes', 'downtime_minutes'
-        ];
-
-        let isMandatoryComplete = true;
-
-        for (const field of mandatoryFieldsList) {
-            const val = (formData as any)[field];
-
-            // Special handling for Arrays
-            if (field === 'participants' || field === 'root_causes' || field === 'five_whys' || field === 'ishikawa') { // Check arrays/objects
-                if (Array.isArray(val)) {
-                    if (val.length === 0) { isMandatoryComplete = false; break; }
-                } else if (typeof val === 'object' && val !== null) {
-                    // Logic for specific objects if needed (e.g. ishikawa not empty?)
-                    // For now, just object presence is enough, or generic check?
-                    // The previous logic checked strict length for participants/root_causes.
-                    // Let's assume generic array length check is what we want for these.
-                    // For ishikawa (it is an object), maybe check if any branch has items?
-                    if (field === 'ishikawa') {
-                        // Complex check skipped for brevity unless requested. 
-                        // Current implementation just checks not null. 
-                    }
-                } else if (!val) {
-                    isMandatoryComplete = false; break;
-                }
-            }
-            // Special handling for Numbers (Impacts)
-            else if (field === 'downtime_minutes' || field === 'financial_impact') {
-                if (val === undefined || val === null) { isMandatoryComplete = false; break; }
-            }
-            // Strings
-            else {
-                if (!val || (typeof val === 'string' && val.trim().length === 0)) {
-                    isMandatoryComplete = false;
-                    break;
-                }
-            }
-        }
-
-        // 2. Action Plan Analysis
-        const currentActions = actions.filter(a => a.rca_id === formData.id);
-        const hasMainActions = currentActions.length > 0;
-        const allActionsEffective = hasMainActions && currentActions.every(a => ['3', '4'].includes(String(a.status)));
-
-        // 3. Status Decision
-        // Get Taxonomy IDs
-        const doneItem = taxonomy.analysisStatuses.find(s => s.name === 'Concluída');
-        const waitingItem = taxonomy.analysisStatuses.find(s => s.id === 'STATUS-WAITING'); // ID match is safer
-        const openItem = taxonomy.analysisStatuses.find(s => s.id === 'STATUS-01');
-
-        const doneStatusId = doneItem?.id || 'STATUS-03';
-        const waitingStatusId = waitingItem?.id || 'STATUS-WAITING';
-        const openStatusId = openItem?.id || 'STATUS-01';
-
-        // Auto-Managed Statuses: The only ones we touch.
-        // If the record has a status like 'STATUS-CANCELLED' or some custom one, we DO NOT touch it.
-        const autoManagedStatuses = [openStatusId, waitingStatusId, doneStatusId, '', undefined, null];
-        const currentStatus = formData.status;
-
-        if (!autoManagedStatuses.includes(currentStatus)) {
-            // Protected Status (e.g. Cancelled). Do not auto-promote/demote.
-            return;
-        }
-
-        let newStatus = currentStatus;
-
-        if (!isMandatoryComplete) {
-            // Rule: Not complete -> In Progress (always downgrade if invalid)
-            if (newStatus !== openStatusId) newStatus = openStatusId;
-        } else {
-            // Rule: Complete. Check Actions.
-            if (!hasMainActions) {
-                // Rule: Complete & No Actions -> Concluded
-                if (newStatus !== doneStatusId) newStatus = doneStatusId;
-            } else if (allActionsEffective) {
-                // Rule: Complete & All Actions Effective -> Concluded
-                if (newStatus !== doneStatusId) newStatus = doneStatusId;
-            } else {
-                // Rule: Complete & Contains Actions with Box != 4 -> Waiting Verification
-                if (newStatus !== waitingStatusId) newStatus = waitingStatusId;
-            }
-        }
-
-        // Only update if changed to avoid infinite loops
-        if (newStatus !== formData.status) {
-            console.log(`Auto-Updating Status: ${formData.status} -> ${newStatus}`);
-
-            // Auto-set Completion Date if moving to Done
-            let completionDateUpdate = {};
-            if (newStatus === doneStatusId && !formData.completion_date) {
-                const today = new Date().toISOString().split('T')[0];
-                console.log(`✅ Auto-setting Completion Date to ${today}`);
-                completionDateUpdate = { completion_date: today };
-            }
-
-            setFormData(prev => ({ ...prev, status: newStatus, ...completionDateUpdate }));
-        }
-
-    }, [
-        formData.when,
-        formData.where_description,
-        formData.specialty_id,
-        formData.failure_mode_id,
-        formData.failure_category_id,
-        formData.component_type,
-        formData.participants,
-        formData.root_causes,
-        formData.financial_impact,
-        formData.downtime_minutes,
-        formData.status,
-        taxonomy.analysisStatuses
-    ]);
+    // 
+    // ⚠️ ISSUE #20 - MIGRAÇÃO DE LÓGICA PARA BACKEND
+    // ==============================================================================
+    // Esta lógica de auto-promoção de status foi REMOVIDA do frontend.
+    // O backend (rcaStatusService.ts) agora é a ÚNICA fonte da verdade.
+    // 
+    // Motivo: O useEffect tinha um bug - não incluía 'subgroup_id' nas dependências,
+    // causando status incorretos para análises com campos obrigatórios faltando.
+    // 
+    // Comportamento atual:
+    // 1. POST/PUT /api/rcas calcula o status automaticamente via rcaStatusService
+    // 2. POST/PUT/DELETE /api/actions recalcula o status da RCA associada
+    // 3. O frontend recebe o status correto na resposta da API
+    // 
+    // Para forçar recálculo de um registro antigo: abrir e salvar a análise.
+    // ==============================================================================
 
     const refreshAssets = () => {
         // Context handles asset syncing automatically
