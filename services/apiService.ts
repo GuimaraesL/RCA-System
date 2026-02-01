@@ -222,48 +222,19 @@ export const deleteActionFromApi = async (id: string): Promise<void> => {
     await checkResponse(response, `DELETE /actions/${id}`);
 };
 
-
 // --- HELPER: Recalcular Status da RCA ---
-export const recalculateRcaStatus = async (rcaId: string, taxonomy?: TaxonomyConfig): Promise<void> => {
-    if (!rcaId) return;
-    try {
-        // Optimization: Fetch taxonomy only if not provided
-        const tax = taxonomy || await fetchTaxonomy();
+// ⚠️ ISSUE #20 - MIGRAÇÃO DE LÓGICA PARA BACKEND
+// ==============================================================================
+// A função recalculateRcaStatus foi REMOVIDA do frontend.
+// O backend (rcaStatusService.ts) agora é a ÚNICA fonte da verdade.
+// 
+// O backend calcula o status automaticamente em:
+// - POST/PUT /api/rcas
+// - POST/PUT/DELETE /api/actions
+// 
+// Não é mais necessário chamar recalculateRcaStatus do frontend.
+// ==============================================================================
 
-        // Parallelize these independent fetches
-        const [rca, actions] = await Promise.all([
-            fetchRecordById(rcaId),
-            fetchActionsByRca(rcaId)
-        ]);
-
-        if (!rca) return;
-
-        // IDs de Status
-        const statusConcluido = tax.analysisStatuses.find(s => s.name === 'Concluída')?.id || 'STATUS-03';
-        const statusEmAndamento = tax.analysisStatuses.find(s => s.name === 'Em Andamento')?.id || 'STATUS-01';
-
-        const hasActions = actions.length > 0;
-        const allCompleted = hasActions && actions.every(a => ['3', '4', 'Concluída', 'Eficaz'].includes(String(a.status)) || String(a.status) === statusConcluido);
-        const anyInProgress = hasActions && actions.some(a => ['2', 'Em Andamento'].includes(String(a.status)) || String(a.status) === statusEmAndamento);
-
-        let newStatus = rca.status;
-
-        if (allCompleted) {
-            newStatus = statusConcluido;
-        } else if (anyInProgress) {
-            newStatus = statusEmAndamento;
-        } else if (!hasActions && rca.status === statusConcluido) {
-            newStatus = statusEmAndamento;
-        }
-
-        if (newStatus !== rca.status) {
-            console.log(`🔄 Status Update [RCA ${rcaId}]: ${rca.status} -> ${newStatus}`);
-            await saveRecordToApi({ ...rca, status: newStatus });
-        }
-    } catch (error) {
-        console.error(`❌ Failed to recalculate status for RCA ${rcaId}`, error);
-    }
-};
 
 export const importActionsToApi = async (actions: ActionRecord[]): Promise<void> => {
     console.log('🔄 API: Importing', actions.length, 'actions...');
@@ -273,21 +244,7 @@ export const importActionsToApi = async (actions: ActionRecord[]): Promise<void>
         body: JSON.stringify(actions)
     });
     await checkResponse(response, 'POST /actions/bulk');
-
-    // Trigger Status Recalculation for affected RCAs
-    const affectedRcas = new Set(actions.map(a => a.rca_id).filter(id => !!id));
-    if (affectedRcas.size > 0) {
-        console.log(`🔄 Recalculating status for ${affectedRcas.size} RCAs (Parallel)...`);
-
-        // Optimization: Fetch taxonomy once and reuse
-        const taxonomy = await fetchTaxonomy();
-
-        // Process in parallel with Promise.all
-        // This is much faster than sequential awaiting
-        await Promise.all(
-            Array.from(affectedRcas).map(rcaId => recalculateRcaStatus(rcaId, taxonomy))
-        );
-    }
+    // Note: Backend now handles status recalculation automatically via rcaStatusService
 };
 
 
