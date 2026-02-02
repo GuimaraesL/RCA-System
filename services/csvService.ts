@@ -1,6 +1,7 @@
 
 import { AssetNode, ActionRecord, TaxonomyConfig, TaxonomyItem, RcaRecord, TriggerRecord } from "../types";
 import { generateId } from "./utils";
+import { findAssetPath } from "../utils/triggerHelpers";
 
 export interface CsvContextData {
     records?: RcaRecord[];
@@ -441,7 +442,7 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
 
             const defaultStatusId = taxonomy.triggerStatuses?.[0]?.id || 'TRG-ST-01';
 
-            rawData.forEach(r => {
+            rawData.forEach((r, i) => {
                 // Strict Row Validation (Fix for empty Excel rows & placeholders)
                 const sanitizeValue = (val: any): string => {
                     if (!val) return '';
@@ -451,21 +452,13 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                     return s;
                 };
 
+                const startDate = parseDateString(r['Data/Hora Início']);
+                const invalidDate = !startDate;
+
                 const isInvalid = (val: any) => {
                     const s = sanitizeValue(val);
                     return s.length === 0 || s === '-' || s === '.' || s.toLowerCase() === 'n/a' || s === '0';
                 };
-
-                const invalidArea = isInvalid(r['AREA']);
-                const startDate = parseDateString(r['Data/Hora Início']);
-                const invalidDate = !startDate; // If parse returns empty string, it's invalid
-
-                // Must have BOTH valid Date and Area to be a valid trigger event
-                // Changed from && to || to be STRICT: If either is missing, skip.
-                if (invalidDate || invalidArea) {
-                    // console.log('Skipping invalid row:', { invalidDate, invalidArea, row: r });
-                    return;
-                }
 
                 const statusName = sanitizeValue(r['Status']);
                 let statusId = findTaxonomyId(taxonomy.triggerStatuses || [], statusName);
@@ -478,6 +471,29 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 let areaId = findAssetId(areaName, assets);
                 let equipId = findAssetId(equipName, assets);
                 let subId = findAssetId(subName, assets);
+
+                // Hierarchy Inference (Task: Herdar Hierarquia)
+                // If Subgroup is found but Area/Equip is missing, infer them from tree
+                if (subId && (!areaId || !equipId)) {
+                    const path = findAssetPath(assets, subId);
+                    if (path) {
+                        path.forEach(n => {
+                            if (n.type === 'AREA' && !areaId) areaId = n.id;
+                            if (n.type === 'EQUIPMENT' && !equipId) equipId = n.id;
+                        });
+                    }
+                }
+                // Same for Equipment -> Area
+                if (equipId && !areaId) {
+                    const path = findAssetPath(assets, equipId);
+                    if (path) {
+                        path.forEach(n => {
+                            if (n.type === 'AREA' && !areaId) areaId = n.id;
+                        });
+                    }
+                }
+
+                // Validation moved after RCA inheritance
                 const typeId = findTaxonomyId(taxonomy.analysisTypes || [], r['Tipo AF']);
 
                 // Fix: Clean up ID AF if it contains placeholders like "-"
@@ -549,6 +565,17 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                     }
                 }
 
+
+                // Strict Validation with Error Reporting
+                // We check areaId here, instead of raw string
+                if (invalidDate) {
+                    errors.push(`Row ${i + 1}: Invalid Date format ('${r['Data/Hora Início'] || ''}')`);
+                    return;
+                }
+                if (!areaId) {
+                    errors.push(`Row ${i + 1}: Missing Area and could not inherit from linked RCA (Subgroup: '${subName}', path connection failed)`);
+                    return;
+                }
 
                 // Determine ID based on Mode
                 let triggerId = generateId('TRG');

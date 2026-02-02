@@ -10,7 +10,10 @@ const checkResponse = async (response: Response, operation: string): Promise<any
     if (!response.ok) {
         const errorBody = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
         console.error(`❌ API Error [${operation}]:`, response.status, errorBody);
-        throw new Error(errorBody.error || `HTTP ${response.status}`);
+        const details = errorBody.details
+            ? ` (${JSON.stringify(errorBody.details)})`
+            : '';
+        throw new Error((errorBody.error || `HTTP ${response.status}`) + details);
     }
     // Algumas operações retornam 204 No Content
     const text = await response.text();

@@ -10,7 +10,7 @@ const AssetsManager = lazy(() => import('./components/AssetsManager').then(m => 
 const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
 const AnalysesView = lazy(() => import('./components/AnalysesView').then(m => ({ default: m.AnalysesView })));
 const ActionsView = lazy(() => import('./components/ActionsView').then(m => ({ default: m.ActionsView })));
-const TriggersView = lazy(() => import('./components/TriggersView').then(m => ({ default: m.TriggersView })));
+const TriggersView = lazy(() => import('./components/triggers').then(m => ({ default: m.TriggersPage })));
 const SettingsView = lazy(() => import('./components/SettingsView').then(m => ({ default: m.SettingsView })));
 const MigrationView = lazy(() => import('./components/MigrationView').then(m => ({ default: m.MigrationView })));
 

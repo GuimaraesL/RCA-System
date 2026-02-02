@@ -221,7 +221,8 @@ export const MigrationView: React.FC = () => {
             }
 
         } catch (error) {
-            setMsg({ type: 'error', text: 'Failed to process CSV.' });
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            setMsg({ type: 'error', text: `Failed to process CSV: ${errorMsg}` });
             console.error(error);
         } finally {
             if (csvInputRef.current) csvInputRef.current.value = '';

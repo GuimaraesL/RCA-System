@@ -73,8 +73,8 @@ export const rcaSchema = z.object({
 export const triggerSchema = z.object({
     id: z.string().optional(), // Relaxed UUID for migration
     area_id: z.string().min(1, "Área é obrigatória"),
-    equipment_id: z.string().min(1, "Equipamento é obrigatório"),
-    subgroup_id: z.string().min(1, "Subgrupo é obrigatório"),
+    equipment_id: z.string().nullish(),
+    subgroup_id: z.string().nullish(), // Relaxed to optional/nullish
 
     // Mandatory for valid event logging
     start_date: z.string().min(1, { message: "Data de início é obrigatória" }),
@@ -82,15 +82,13 @@ export const triggerSchema = z.object({
     end_date: z.string().min(1, "Data de fim é obrigatória"),
     duration_minutes: z.coerce.number().optional().default(0),
 
-    stop_type: z.string().min(1, "Tipo de parada é obrigatório"),
+    stop_type: z.string().optional(), // Relaxed constraints if data is messy
+    stop_reason: z.string().optional(), // Relaxed constraints
 
-    // Mandatory description
-    stop_reason: z.string().min(1, { message: "Motivo da parada é obrigatório" }),
-
-    comments: z.string().nullish(), // Optional as requested
-    analysis_type_id: z.string().min(1, "Tipo de análise é obrigatório"),
-    status: z.string().optional(),
-    responsible: z.string().min(1, "Responsável é obrigatório"),
+    comments: z.string().nullish(),
+    analysis_type_id: z.string().nullish(), // Relaxed if strictly necessary, but ideally should be mapped
+    status: z.string().nullish(), // Relaxed
+    responsible: z.string().nullish(),
     rca_id: z.string().nullish(),
     file_path: z.string().nullish()
 });

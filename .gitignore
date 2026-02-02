@@ -28,7 +28,6 @@ rca-system/
 *.pem
 *.key
 secrets/
-.agent/
 .claude/
 rca.db 
 /testsprite_tests/ 
