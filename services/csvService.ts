@@ -598,7 +598,7 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                     analysis_type_id: typeId,
                     status: statusId,
                     responsible: r['Responsável'] || '',
-                    rca_id: cleanRcaId || (linkedRca ? linkedRca.id : ''), // Use discovered ID
+                    rca_id: linkedRca ? linkedRca.id : '', // Only use validated ID from lookup
                     file_path: r['Path'] || r['Caminho'] || r['Link'] || r['File Path'] || ''
                 };
                 newTriggers.push(trigger);

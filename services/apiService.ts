@@ -468,7 +468,12 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
         }
 
         const resolveId = (oldId: string, type: 'RCA' | 'ACT' | 'TRG') => {
-            if (mode !== 'APPEND') return oldId; // Keep ID
+            // Priority: Keep valid UUIDs from migration sources (UUID length is ~36)
+            // This prevents generating new IDs for records that already have a global unique ID
+            if (oldId && oldId.length > 30 && !oldId.startsWith('RCA-') && !oldId.startsWith('TRG-') && !oldId.startsWith('ACT-')) {
+                return oldId;
+            }
+            if (mode !== 'APPEND') return oldId; // Keep ID in Update/Replace
             return idMap.get(oldId) || generateId(type); // Return mapped or new
         };
 
