@@ -461,10 +461,36 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
         const idMap = new Map<string, string>(); // oldId -> newId
 
         if (mode === 'APPEND') {
-            console.log('➕ APPEND MODE: Regenerating IDs...');
-            rcasToImportRaw.forEach((r: any) => idMap.set(r.id, generateId('RCA')));
-            actionsToImportRaw.forEach((a: any) => idMap.set(a.id, generateId('ACT')));
-            triggersToImportRaw.forEach((t: any) => idMap.set(t.id, generateId('TRG')));
+            console.log('➕ APPEND MODE: Regenerating IDs (preserving UUIDs)...');
+            const shouldPreserve = (id: string, type: string) => {
+                // Reuse strict logic from resolveId (UUID ~36 chars, not our generated prefix)
+                return id && id.length > 30 && !id.startsWith(type + '-');
+            };
+
+            rcasToImportRaw.forEach((r: any) => {
+                if (shouldPreserve(r.id, 'RCA')) {
+                    idMap.set(r.id, r.id); // Map UUID -> UUID
+                } else {
+                    idMap.set(r.id, generateId('RCA'));
+                }
+            });
+            actionsToImportRaw.forEach((a: any) => {
+                // For actions, we generate new IDs usually, UNLESS they are also UUIDs we want to keep?
+                // Usually actions don't need persistent IDs across systems unless syncing.
+                // But let's be consistent.
+                if (shouldPreserve(a.id, 'ACT')) {
+                    idMap.set(a.id, a.id);
+                } else {
+                    idMap.set(a.id, generateId('ACT'));
+                }
+            });
+            triggersToImportRaw.forEach((t: any) => {
+                if (shouldPreserve(t.id, 'TRG')) {
+                    idMap.set(t.id, t.id);
+                } else {
+                    idMap.set(t.id, generateId('TRG'));
+                }
+            });
         }
 
         const resolveId = (oldId: string, type: 'RCA' | 'ACT' | 'TRG') => {

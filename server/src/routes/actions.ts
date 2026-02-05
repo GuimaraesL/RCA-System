@@ -7,7 +7,10 @@ import { Router, Request, Response } from 'express';
 import { getDatabase, saveDatabase } from '../db/database';
 import { actionSchema } from '../schemas/validation';
 import { z } from 'zod';
-import rcaStatusService from '../services/rcaStatusService';
+// Import V2 Service
+import { RcaService } from '../v2/domain/services/RcaService';
+import { SqlRcaRepository } from '../v2/infrastructure/repositories/SqlRcaRepository';
+import { SqlActionRepository } from '../v2/infrastructure/repositories/SqlActionRepository';
 
 const router = Router();
 
@@ -16,101 +19,46 @@ const router = Router();
 // ============================================================================
 
 /**
- * Fetches the current taxonomy configuration from database
- */
-const getTaxonomy = (): any => {
-    const db = getDatabase();
-    const result = db.exec('SELECT config FROM taxonomy LIMIT 1');
-    if (result.length > 0 && result[0].values.length > 0) {
-        return JSON.parse(result[0].values[0][0] as string);
-    }
-    return {
-        analysisStatuses: [
-            { id: 'STATUS-01', name: 'Em Andamento' },
-            { id: 'STATUS-WAITING', name: 'Aguardando Verificação' },
-            { id: 'STATUS-03', name: 'Concluída' }
-        ],
-        mandatoryFields: { rca: { conclude: [] } }
-    };
-};
-
-/**
- * Fetches an RCA by ID with parsed JSON fields
- */
-const getRcaById = (rcaId: string): any | null => {
-    const db = getDatabase();
-    const stmt = db.prepare('SELECT * FROM rcas WHERE id = ?');
-    stmt.bind([rcaId]);
-    if (stmt.step()) {
-        const row: any = {};
-        const cols = stmt.getColumnNames();
-        const values = stmt.get();
-        cols.forEach((col: string, i: number) => { row[col] = values[i]; });
-        stmt.free();
-        // Parse JSON fields
-        row.participants = JSON.parse(row.participants || '[]');
-        row.root_causes = JSON.parse(row.root_causes || '[]');
-        row.five_whys = JSON.parse(row.five_whys || '[]');
-        row.ishikawa = JSON.parse(row.ishikawa || '{}');
-        return row;
-    }
-    stmt.free();
-    return null;
-};
-
-/**
- * Fetches all actions for a specific RCA
- */
-const getActionsForRca = (rcaId: string): any[] => {
-    const db = getDatabase();
-    const stmt = db.prepare('SELECT * FROM actions WHERE rca_id = ?');
-    stmt.bind([rcaId]);
-    const actions: any[] = [];
-    while (stmt.step()) {
-        const row: any = {};
-        const cols = stmt.getColumnNames();
-        const values = stmt.get();
-        cols.forEach((col: string, i: number) => { row[col] = values[i]; });
-        actions.push(row);
-    }
-    stmt.free();
-    return actions;
-};
-
-/**
- * Recalculates and updates RCA status after action changes
- * Issue #20: This is the server-side trigger for status updates
+ * Recalculates and updates RCA status using V2 Domain Logic
  */
 const recalculateRcaStatus = (rcaId: string): { changed: boolean; newStatus?: string; reason?: string } => {
-    const rca = getRcaById(rcaId);
+    // Instantiate V2 Service
+    // Note: In a real DI container this would be injected, but here we instantiate on demand
+    // to bridge the old router to the new logic.
+    const rcaService = new RcaService(
+        new SqlRcaRepository(),
+        new SqlActionRepository()
+    );
+    const taxonomyRepo = new SqlTaxonomyRepository();
+    const taxonomy = taxonomyRepo.getTaxonomy();
+
+    // Fetch RCA via V2 Service/Repo (ensures consistent view)
+    const rca = rcaService['rcaRepo'].findById(rcaId); // Accessing repo directly or use service methods if available?
+    // Actually, RcaService doesn't have a public `findById`. 
+    // We should rely on the update method of RcaService which incorporates validation.
+
+    // However, the original code fetched data then called calculate logic.
+    // RcaService.updateRca(id, data, taxonomy) does ALL of this:
+    // 1. Fetches (no, it expects data passed in? No, updateRca takes `data: any`. It merges.)
+
+    // Let's look at RcaService.updateRca signature: 
+    // public updateRca(id: string, data: any, taxonomy: TaxonomyConfig)
+
     if (!rca) return { changed: false };
 
-    const taxonomy = getTaxonomy();
-    const actions = getActionsForRca(rcaId);
-    const statusResult = rcaStatusService.calculateRcaStatus(rca, actions, taxonomy);
+    // We pass the EXISTING rca data as the "update payload" to trigger a recalculation
+    // This effectively "touches" the RCA and forces logic to run.
+    const result = rcaService.updateRca(rcaId, rca, taxonomy);
 
-    if (statusResult.statusChanged) {
-        const db = getDatabase();
-        let updateQuery = 'UPDATE rcas SET status = ?, updated_at = datetime("now")';
-        const params: any[] = [statusResult.newStatus];
-
-        if (statusResult.completionDate) {
-            updateQuery += ', completion_date = ?';
-            params.push(statusResult.completionDate);
-        }
-
-        updateQuery += ' WHERE id = ?';
-        params.push(rcaId);
-
-        db.run(updateQuery, params);
-        saveDatabase();
-
-        console.log(`🔄 RCA ${rcaId} status auto-updated: ${rca.status} -> ${statusResult.newStatus} (${statusResult.reason})`);
-        return { changed: true, newStatus: statusResult.newStatus, reason: statusResult.reason };
+    if (result.statusChanged) {
+        console.log(`🔄 RCA ${rcaId} status auto-updated (V2 Logic): ${rca.status} -> ${result.rca.status} (${result.statusReason})`);
+        return { changed: true, newStatus: result.rca.status, reason: result.statusReason };
     }
 
     return { changed: false };
 };
+// Helper to access Taxonomy Repo which we need to compile
+import { SqlTaxonomyRepository } from '../v2/infrastructure/repositories/SqlTaxonomyRepository';
 
 // Helper para converter resultado sql.js
 const queryToArray = (result: any[]): any[] => {
