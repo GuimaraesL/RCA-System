@@ -1,8 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 import { useLanguage } from '../context/LanguageDefinition';
 
 export const LanguageSelector: React.FC = () => {
-    const { language, setLanguage } = useLanguage();
+    const { language, setLanguage, t } = useLanguage();
 
     return (
         <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg border border-slate-200">
@@ -12,7 +12,7 @@ export const LanguageSelector: React.FC = () => {
                     ? 'bg-white shadow-sm text-blue-700 font-bold'
                     : 'text-slate-400 hover:text-slate-600'
                     }`}
-                title="Português"
+                title={t("common.portuguese")}
             >
                 <span className="text-lg">🇧🇷</span>
                 <span className="text-xs">PT</span>
@@ -23,7 +23,7 @@ export const LanguageSelector: React.FC = () => {
                     ? 'bg-white shadow-sm text-blue-700 font-bold'
                     : 'text-slate-400 hover:text-slate-600'
                     }`}
-                title="English"
+                title={t("common.english")}
             >
                 <span className="text-lg">🇺🇸</span>
                 <span className="text-xs">EN</span>
