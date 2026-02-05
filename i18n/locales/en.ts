@@ -39,6 +39,8 @@ export const en: TranslationSchema = {
         status: "Current Status",
         globalModeOn: "Global On",
         globalModeOff: "Global Off",
+        globalModeOnDesc: "Global Mode Active: Filters applied system-wide",
+        globalModeOffDesc: "Local Mode: Filters applied only to this page",
         clear: "Clear",
         noFilters: "No filters applied.",
         totalRecords: "Records",
@@ -159,6 +161,11 @@ export const en: TranslationSchema = {
         idHint: "ID will be automatically generated upon saving.",
         selectPrompt: "Select an item from the hierarchy to view details or edit.",
         placeholder: "e.g. Rolling Mill 1",
+        types: {
+            AREA: "Area",
+            EQUIPMENT: "Equipment",
+            SUBGROUP: "Subgroup"
+        },
         tooltips: {
             addRootArea: "Add Root Area"
         }

@@ -37,6 +37,8 @@ export interface TranslationSchema {
         status: string;
         globalModeOn: string;
         globalModeOff: string;
+        globalModeOnDesc: string;
+        globalModeOffDesc: string;
         clear: string;
         noFilters: string;
         totalRecords: string;
@@ -157,6 +159,11 @@ export interface TranslationSchema {
         idHint: string;
         selectPrompt: string;
         placeholder: string;
+        types: {
+            AREA: string;
+            EQUIPMENT: string;
+            SUBGROUP: string;
+        };
         tooltips: {
             addRootArea: string;
         };

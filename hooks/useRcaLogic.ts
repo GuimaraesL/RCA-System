@@ -86,7 +86,16 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
 
     // Initialize with default or existing, BUT we need to validate status immediately
     const [formData, setFormData] = useState<RcaRecord>(() => {
-        const base = existingRecord ? { ...createDefaultRecord(), ...existingRecord } : createDefaultRecord();
+        const base = createDefaultRecord();
+        if (existingRecord) {
+            return {
+                ...base,
+                ...existingRecord,
+                // Deep merge essential structures to avoid null crashes on first render
+                human_reliability: existingRecord.human_reliability || base.human_reliability,
+                precision_maintenance: existingRecord.precision_maintenance || base.precision_maintenance
+            };
+        }
         return base;
     });
 

@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { AssetNode } from '../types';
 import { ChevronRight, ChevronDown, Folder, Database, Layers } from 'lucide-react';
+import { useLanguage } from '../context/LanguageDefinition';
 
 interface AssetSelectorProps {
   assets: AssetNode[];
@@ -78,6 +79,8 @@ const AssetTreeNode: React.FC<{
 
 export const AssetSelector: React.FC<AssetSelectorProps> = ({ assets, onSelect, selectedAssetId, selectableTypes }) => {
   
+  const { t } = useLanguage();
+  
   // Recursive function to sort nodes alphabetically by name
   const sortNodes = (nodes: AssetNode[]): AssetNode[] => {
     return [...nodes]
@@ -95,7 +98,7 @@ export const AssetSelector: React.FC<AssetSelectorProps> = ({ assets, onSelect, 
   }, [assets]);
 
   if (!sortedAssets || sortedAssets.length === 0) {
-      return <div className="p-4 text-xs text-slate-400 text-center italic">No assets configured. Go to Assets tab.</div>;
+      return <div className="p-4 text-xs text-slate-400 text-center italic">{t('assets.noAssets')}</div>;
   }
   
   return (

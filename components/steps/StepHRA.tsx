@@ -63,8 +63,8 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                             <tr key={q.id} className="hover:bg-slate-50">
                                 <td className="p-3 font-mono text-xs text-slate-400 max-w-[80px] truncate" title={q.id}>{q.id}</td>
                                 <td className="p-3">
-                                    <div className="text-xs text-slate-400 mb-1 font-bold uppercase">{t(q.category)}</div>
-                                    {t(q.question_snapshot) || t(q.question)}
+                                    <div className="text-xs text-slate-400 mb-1 font-bold uppercase">{t(q.category || '')}</div>
+                                    {t(q.question_snapshot || '') || t(q.question || '')}
                                 </td>
                                 <td className="p-3 text-center"><button onClick={() => updateHraQuestion(q.id, 'answer', 'YES')} className={`p-1 rounded ${q.answer === 'YES' ? 'text-green-600 bg-green-50' : 'text-slate-300'}`}>{q.answer === 'YES' ? <CheckSquare size={18} /> : <Square size={18} />}</button></td>
                                 <td className="p-3 text-center"><button onClick={() => updateHraQuestion(q.id, 'answer', 'NO')} className={`p-1 rounded ${q.answer === 'NO' ? 'text-red-500 bg-red-50' : 'text-slate-300'}`}>{q.answer === 'NO' ? <XSquare size={18} /> : <Square size={18} />}</button></td>
@@ -81,13 +81,13 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">{t('wizard.stepHRA.conclusion')}</h3>
 
                 <div className="space-y-4">
-                    {data.human_reliability.conclusions.map(c => (
+                    {(data.human_reliability.conclusions || []).map(c => (
                         <div key={c.id} className={`p-4 rounded border ${c.selected ? 'border-indigo-300 bg-indigo-50/20' : 'border-slate-200'}`}>
                             <div className="flex items-center gap-3 mb-2">
                                 <button onClick={() => updateHraConclusion(c.id, 'selected', !c.selected)} className={c.selected ? 'text-indigo-600' : 'text-slate-300'}>
                                     {c.selected ? <CheckSquare size={20} /> : <Square size={20} />}
                                 </button>
-                                <span className={`font-bold text-sm ${c.selected ? 'text-indigo-800' : 'text-slate-700'}`}>{t(c.label)}</span>
+                                <span className={`font-bold text-sm ${c.selected ? 'text-indigo-800' : 'text-slate-700'}`}>{t(c.label || '')}</span>
                             </div>
                             {c.selected && (
                                 <div className="pl-8 animate-in fade-in slide-in-from-top-1">
@@ -111,14 +111,14 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                         <label className="block text-xs font-medium text-slate-500 mb-1">{t('wizard.stepHRA.validationQuestion')}</label>
                         <div className="flex gap-4 mt-2">
                             <button
-                                onClick={() => onChange('human_reliability', { ...data.human_reliability!, validation: { ...data.human_reliability!.validation, isValidated: 'YES' } })}
-                                className={`flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium ${data.human_reliability!.validation.isValidated === 'YES' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-white border-slate-300 text-slate-600'}`}
+                                onClick={() => onChange('human_reliability', { ...data.human_reliability!, validation: { ... (data.human_reliability!.validation || { isValidated: '', comment: '' }), isValidated: 'YES' } })}
+                                className={`flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium ${data.human_reliability!.validation?.isValidated === 'YES' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-white border-slate-300 text-slate-600'}`}
                             >
                                 <CheckSquare size={16} /> {t('wizard.stepHRA.yes').toUpperCase()}
                             </button>
                             <button
-                                onClick={() => onChange('human_reliability', { ...data.human_reliability!, validation: { ...data.human_reliability!.validation, isValidated: 'NO' } })}
-                                className={`flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium ${data.human_reliability!.validation.isValidated === 'NO' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-slate-300 text-slate-600'}`}
+                                onClick={() => onChange('human_reliability', { ...data.human_reliability!, validation: { ... (data.human_reliability!.validation || { isValidated: '', comment: '' }), isValidated: 'NO' } })}
+                                className={`flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium ${data.human_reliability!.validation?.isValidated === 'NO' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-slate-300 text-slate-600'}`}
                             >
                                 <XSquare size={16} /> {t('wizard.stepHRA.no').toUpperCase()}
                             </button>
@@ -128,8 +128,8 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                         <label className="block text-xs font-medium text-slate-500 mb-1">{t('wizard.stepHRA.coordinatorComments')}</label>
                         <Textarea
                             rows={3}
-                            value={data.human_reliability!.validation.comment}
-                            onChange={e => onChange('human_reliability', { ...data.human_reliability!, validation: { ...data.human_reliability!.validation, comment: e.target.value } })}
+                            value={data.human_reliability!.validation?.comment || ''}
+                            onChange={e => onChange('human_reliability', { ...data.human_reliability!, validation: { ... (data.human_reliability!.validation || { isValidated: '', comment: '' }), comment: e.target.value } })}
                         />
                     </div>
                 </div>

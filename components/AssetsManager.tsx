@@ -130,7 +130,7 @@ export const AssetsManager: React.FC = () => {
               <span className={`text-xs font-bold px-2 py-1 rounded uppercase mb-2 inline-block
                 ${selectedNode.type === 'AREA' ? 'bg-slate-100 text-slate-600' :
                   selectedNode.type === 'EQUIPMENT' ? 'bg-blue-100 text-blue-600' : 'bg-indigo-100 text-indigo-600'}`}>
-                {selectedNode.type}
+                {t(`assets.types.${selectedNode.type}`) || selectedNode.type}
               </span>
               <h1 className="text-3xl font-bold text-slate-900 mb-2">{selectedNode.name}</h1>
               <div className="flex items-center gap-2 text-slate-400 font-mono text-xs bg-slate-50 p-2 rounded w-fit">

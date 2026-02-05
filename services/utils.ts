@@ -15,33 +15,33 @@ export const sanitizeString = (str: any): string => {
 };
 
 const STANDARD_PRECISION_ITEMS: PrecisionChecklistItem[] = [
-    { id: "chk_clean", activity: "checklists.precision.chk_clean", question_snapshot: "", status: "", comment: "" },
-    { id: "chk_tol", activity: "checklists.precision.chk_tol", question_snapshot: "", status: "", comment: "" },
-    { id: "chk_lube", activity: "checklists.precision.chk_lube", question_snapshot: "", status: "", comment: "" },
-    { id: "chk_belt", activity: "checklists.precision.chk_belt", question_snapshot: "", status: "", comment: "" },
-    { id: "chk_load", activity: "checklists.precision.chk_load", question_snapshot: "", status: "", comment: "" },
-    { id: "chk_align", activity: "checklists.precision.chk_align", question_snapshot: "", status: "", comment: "" },
-    { id: "chk_bal", activity: "checklists.precision.chk_bal", question_snapshot: "", status: "", comment: "" },
-    { id: "chk_torque", activity: "checklists.precision.chk_torque", question_snapshot: "", status: "", comment: "" },
-    { id: "chk_parts", activity: "checklists.precision.chk_parts", question_snapshot: "", status: "", comment: "" },
-    { id: "chk_func", activity: "checklists.precision.chk_func", question_snapshot: "", status: "", comment: "" },
-    { id: "chk_doc", activity: "checklists.precision.chk_doc", question_snapshot: "", status: "", comment: "" }
+    { id: "chk_clean", activity: "checklists.precision.chk_clean", question_snapshot: "checklists.precision.chk_clean", status: "", comment: "" },
+    { id: "chk_tol", activity: "checklists.precision.chk_tol", question_snapshot: "checklists.precision.chk_tol", status: "", comment: "" },
+    { id: "chk_lube", activity: "checklists.precision.chk_lube", question_snapshot: "checklists.precision.chk_lube", status: "", comment: "" },
+    { id: "chk_belt", activity: "checklists.precision.chk_belt", question_snapshot: "checklists.precision.chk_belt", status: "", comment: "" },
+    { id: "chk_load", activity: "checklists.precision.chk_load", question_snapshot: "checklists.precision.chk_load", status: "", comment: "" },
+    { id: "chk_align", activity: "checklists.precision.chk_align", question_snapshot: "checklists.precision.chk_align", status: "", comment: "" },
+    { id: "chk_bal", activity: "checklists.precision.chk_bal", question_snapshot: "checklists.precision.chk_bal", status: "", comment: "" },
+    { id: "chk_torque", activity: "checklists.precision.chk_torque", question_snapshot: "checklists.precision.chk_torque", status: "", comment: "" },
+    { id: "chk_parts", activity: "checklists.precision.chk_parts", question_snapshot: "checklists.precision.chk_parts", status: "", comment: "" },
+    { id: "chk_func", activity: "checklists.precision.chk_func", question_snapshot: "checklists.precision.chk_func", status: "", comment: "" },
+    { id: "chk_doc", activity: "checklists.precision.chk_doc", question_snapshot: "checklists.precision.chk_doc", status: "", comment: "" }
 ];
 
 export const getStandardPrecisionItems = () => JSON.parse(JSON.stringify(STANDARD_PRECISION_ITEMS));
 
 const STANDARD_HRA_QUESTIONS: HraQuestion[] = [
-    { id: "1.1", category: "hraQuestionnaire.categories.procedures", question: "hraQuestionnaire.questions.q1_1", question_snapshot: "", answer: "", comment: "" },
-    { id: "1.3", category: "hraQuestionnaire.categories.procedures", question: "hraQuestionnaire.questions.q1_3", question_snapshot: "", answer: "", comment: "" },
-    { id: "1.4", category: "hraQuestionnaire.categories.procedures", question: "hraQuestionnaire.questions.q1_4", question_snapshot: "", answer: "", comment: "" },
-    { id: "2.1", category: "hraQuestionnaire.categories.training", question: "hraQuestionnaire.questions.q2_1", question_snapshot: "", answer: "", comment: "" },
-    { id: "2.2", category: "hraQuestionnaire.categories.training", question: "hraQuestionnaire.questions.q2_2", question_snapshot: "", answer: "", comment: "" },
-    { id: "3.1", category: "hraQuestionnaire.categories.external", question: "hraQuestionnaire.questions.q3_1", question_snapshot: "", answer: "", comment: "" },
-    { id: "4.1", category: "hraQuestionnaire.categories.routine", question: "hraQuestionnaire.questions.q4_1", question_snapshot: "", answer: "", comment: "" },
-    { id: "4.2", category: "hraQuestionnaire.categories.routine", question: "hraQuestionnaire.questions.q4_2", question_snapshot: "", answer: "", comment: "" },
-    { id: "5.1", category: "hraQuestionnaire.categories.organization", question: "hraQuestionnaire.questions.q5_1", question_snapshot: "", answer: "", comment: "" },
-    { id: "6.1", category: "hraQuestionnaire.categories.measures", question: "hraQuestionnaire.questions.q6_1", question_snapshot: "", answer: "", comment: "" },
-    { id: "6.2", category: "hraQuestionnaire.categories.measures", question: "hraQuestionnaire.questions.q6_2", question_snapshot: "", answer: "" , comment: "" }
+    { id: "1.1", category: "hraQuestionnaire.categories.procedures", question: "hraQuestionnaire.questions.q1_1", question_snapshot: "hraQuestionnaire.questions.q1_1", answer: "", comment: "" },
+    { id: "1.3", category: "hraQuestionnaire.categories.procedures", question: "hraQuestionnaire.questions.q1_3", question_snapshot: "hraQuestionnaire.questions.q1_3", answer: "", comment: "" },
+    { id: "1.4", category: "hraQuestionnaire.categories.procedures", question: "hraQuestionnaire.questions.q1_4", question_snapshot: "hraQuestionnaire.questions.q1_4", answer: "", comment: "" },
+    { id: "2.1", category: "hraQuestionnaire.categories.training", question: "hraQuestionnaire.questions.q2_1", question_snapshot: "hraQuestionnaire.questions.q2_1", answer: "", comment: "" },
+    { id: "2.2", category: "hraQuestionnaire.categories.training", question: "hraQuestionnaire.questions.q2_2", question_snapshot: "hraQuestionnaire.questions.q2_2", answer: "", comment: "" },
+    { id: "3.1", category: "hraQuestionnaire.categories.external", question: "hraQuestionnaire.questions.q3_1", question_snapshot: "hraQuestionnaire.questions.q3_1", answer: "", comment: "" },
+    { id: "4.1", category: "hraQuestionnaire.categories.routine", question: "hraQuestionnaire.questions.q4_1", question_snapshot: "hraQuestionnaire.questions.q4_1", answer: "", comment: "" },
+    { id: "4.2", category: "hraQuestionnaire.categories.routine", question: "hraQuestionnaire.questions.q4_2", question_snapshot: "hraQuestionnaire.questions.q4_2", answer: "", comment: "" },
+    { id: "5.1", category: "hraQuestionnaire.categories.organization", question: "hraQuestionnaire.questions.q5_1", question_snapshot: "hraQuestionnaire.questions.q5_1", answer: "", comment: "" },
+    { id: "6.1", category: "hraQuestionnaire.categories.measures", question: "hraQuestionnaire.questions.q6_1", question_snapshot: "hraQuestionnaire.questions.q6_1", answer: "", comment: "" },
+    { id: "6.2", category: "hraQuestionnaire.categories.measures", question: "hraQuestionnaire.questions.q6_2", question_snapshot: "hraQuestionnaire.questions.q6_2", answer: "" , comment: "" }
 ];
 
 const STANDARD_HRA_CONCLUSIONS: HraConclusion[] = [

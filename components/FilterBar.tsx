@@ -156,7 +156,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         filters.status !== 'ALL' ? { label: `${t('filters.status')}: ${getOptionName(filters.status, statuses)}`, onRemove: () => handleChange('status', 'ALL') } : null,
         filters.specialty !== 'ALL' ? { label: `${t('filters.specialty')}: ${getOptionName(filters.specialty, specialties)}`, onRemove: () => handleChange('specialty', 'ALL') } : null,
         filters.analysisType !== 'ALL' ? { label: `${t('filters.analysisType')}: ${getOptionName(filters.analysisType, analysisTypes)}`, onRemove: () => handleChange('analysisType', 'ALL') } : null,
-        filters.searchTerm ? { label: `Busca: "${filters.searchTerm}"`, onRemove: () => handleChange('searchTerm', '') } : null,
+        filters.searchTerm ? { label: `${t('common.search')}: "${filters.searchTerm}"`, onRemove: () => handleChange('searchTerm', '') } : null,
 
         // New Technical Filters Chips (Usually hidden in dropdown but shown as chips when clicked on charts)
         filters.componentType !== 'ALL' && filters.componentType ? { label: `Comp: ${filters.componentType}`, onRemove: () => handleChange('componentType', 'ALL') } : null,
@@ -204,7 +204,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                     ? 'bg-indigo-100 text-indigo-700 border-indigo-200 shadow-inner'
                                     : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
                                     }`}
-                                title={isGlobal ? "Modo Global Ativo: Filtros aplicados em todo o sistema" : "Modo Local: Filtros apenas nesta página"}
+                                title={isGlobal ? t('filters.globalModeOnDesc') : t('filters.globalModeOffDesc')}
                             >
                                 <Globe size={14} className={isGlobal ? "animate-pulse" : ""} />
                                 {isGlobal ? t('filters.globalModeOn') : t('filters.globalModeOff')}

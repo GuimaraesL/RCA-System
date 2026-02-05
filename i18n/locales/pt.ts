@@ -39,6 +39,8 @@ export const pt: TranslationSchema = {
         status: "Status Atual",
         globalModeOn: "Global On",
         globalModeOff: "Global Off",
+        globalModeOnDesc: "Modo Global Ativo: Filtros aplicados em todo o sistema",
+        globalModeOffDesc: "Modo Local: Filtros apenas nesta página",
         clear: "Limpar",
         noFilters: "Nenhum filtro aplicado.",
         totalRecords: "Registros",
@@ -159,6 +161,11 @@ export const pt: TranslationSchema = {
         idHint: "O ID será gerado automaticamente ao salvar.",
         selectPrompt: "Selecione um item da hierarquia para ver detalhes ou editar.",
         placeholder: "ex: Laminador 1",
+        types: {
+            AREA: "Área",
+            EQUIPMENT: "Equipamento",
+            SUBGROUP: "Subgrupo"
+        },
         tooltips: {
             addRootArea: "Adicionar Área Raiz"
         }

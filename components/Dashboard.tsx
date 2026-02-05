@@ -266,8 +266,25 @@ export const Dashboard: React.FC = () => {
             .slice(0, 10);
     };
 
+    // Helper to translate statuses for chart display
+    const translateStatus = (name: string) => {
+        const mapping: Record<string, string> = {
+            'Em Andamento': t('status.inProgress'),
+            'Concluída': t('status.completed'),
+            'Pendente': t('status.pending'),
+            'Aguardando': t('status.waiting'),
+            'Aguardando Verificação': t('status.waiting'),
+            'Cancelada': t('status.canceled'),
+            'Atrasada': t('status.delayed')
+        };
+        return mapping[name] || name;
+    };
+
     // 1. Data Prep with IDs
-    const dataStatus = aggregateCount(r => r.status, id => resolveTaxonomyName('analysisStatuses', id));
+    const dataStatus = aggregateCount(r => r.status, id => {
+        const rawName = resolveTaxonomyName('analysisStatuses', id);
+        return translateStatus(rawName);
+    });
     const dataType = aggregateCount(r => r.analysis_type, id => resolveTaxonomyName('analysisTypes', id));
     const dataEquip = aggregateCount(r => r.equipment_id, id => resolveAssetName(id));
     const dataSub = aggregateCount(r => r.subgroup_id, id => resolveAssetName(id));
@@ -287,8 +304,25 @@ export const Dashboard: React.FC = () => {
             }
         });
     });
+
+    // Helper to translate 6M factors for chart display
+    const translate6M = (name: string) => {
+        const mapping: Record<string, string> = {
+            'Método': t('wizard.step4.ishikawaCategories.method'),
+            'Máquina': t('wizard.step4.ishikawaCategories.machine'),
+            'Mão de Obra': t('wizard.step4.ishikawaCategories.manpower'),
+            'Material': t('wizard.step4.ishikawaCategories.material'),
+            'Medida': t('wizard.step4.ishikawaCategories.measurement'),
+            'Meio Ambiente': t('wizard.step4.ishikawaCategories.environment')
+        };
+        return mapping[name] || name;
+    };
+
     const data6M = Object.keys(rootCauseCounts)
-        .map(id => ({ id, name: resolveTaxonomyName('rootCauseMs', id), count: rootCauseCounts[id] }))
+        .map(id => {
+            const rawName = resolveTaxonomyName('rootCauseMs', id);
+            return { id, name: translate6M(rawName), count: rootCauseCounts[id] };
+        })
         .sort((a, b) => b.count - a.count);
 
     // KPIs
