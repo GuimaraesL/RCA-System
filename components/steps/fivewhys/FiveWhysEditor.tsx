@@ -63,7 +63,7 @@ const NodeEditor: React.FC<{
         const newNode: FiveWhyNode = {
             id: generateId('node'),
             level: 0,
-            cause_effect: 'Nova Causa Contribuinte',
+            cause_effect: t('wizard.step4.fiveWhys.newContributingCause'),
             whys: [{ level: 1, answer: '' }],
             children: []
         };
@@ -94,7 +94,7 @@ const NodeEditor: React.FC<{
                         value={node.cause_effect}
                         onChange={e => onUpdate({ ...node, cause_effect: e.target.value })}
                         className="bg-amber-50 border-amber-200 font-semibold text-amber-900 h-8 text-sm w-full md:w-1/2"
-                        placeholder="Causa Contribuinte anterior..."
+                        placeholder={t('wizard.step4.fiveWhys.previousCausePlaceholder')}
                     />
                     {canDelete && (
                         <button onClick={onDelete} className="p-1 text-slate-400 hover:text-red-500">
@@ -120,13 +120,13 @@ const NodeEditor: React.FC<{
                         </div>
                         <div className="flex-1">
                             <label className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">
-                                {why.level === 1 ? 'Por que o problema ocorreu?' : `Por que "${node.whys?.[idx - 1]?.answer?.substring(0, 20) || ''}..."?`}
+                                {why.level === 1 ? t('wizard.step4.fiveWhys.whyDidProblemOccur') : t('wizard.step4.fiveWhys.whyLabel').replace('{0}', node.whys?.[idx - 1]?.answer?.substring(0, 20) || '')}
                             </label>
                             <div className="flex gap-2">
                                 <Input
                                     value={why.answer}
                                     onChange={e => updateWhy(why.level, e.target.value)}
-                                    placeholder="Resposta..."
+                                    placeholder={t('wizard.step4.fiveWhys.answerPlaceholder')}
                                     className="h-9"
                                 />
                                 {/* Only show delete if it's not the only one, or allow deleting all? 
@@ -151,12 +151,12 @@ const NodeEditor: React.FC<{
                 <div className="flex gap-2 pt-2">
                     {(node.whys || []).length < 5 && (
                         <Button variant="secondary" size="sm" onClick={addWhy} className="text-xs">
-                            <Plus size={14} className="mr-1" /> Mais um "Por que"
+                            <Plus size={14} className="mr-1" /> {t('wizard.step4.fiveWhys.addWhy')}
                         </Button>
                     )}
                     {(node.whys || []).length >= 1 && (
                         <Button variant="secondary" size="sm" onClick={addChild} className="text-xs border-dashed text-slate-500">
-                            <CornerDownRight size={14} className="mr-1" /> Ramificar (Nova Causa)
+                            <CornerDownRight size={14} className="mr-1" /> {t('wizard.step4.fiveWhys.branchCause')}
                         </Button>
                     )}
                 </div>
@@ -178,11 +178,12 @@ const NodeEditor: React.FC<{
 };
 
 export const FiveWhysEditor: React.FC<FiveWhysEditorProps> = ({ chains, onChange }) => {
+    const { t } = useLanguage();
 
     const addChain = () => {
         const newChain: FiveWhyChain = {
             chain_id: generateId('chain'),
-            cause_effect: 'Novo Caminho de Investigação',
+            cause_effect: t('wizard.step4.fiveWhys.newInvestigationPath'),
             root_node: {
                 id: generateId('node'),
                 level: 0,
@@ -213,7 +214,7 @@ export const FiveWhysEditor: React.FC<FiveWhysEditorProps> = ({ chains, onChange
                             value={chain.cause_effect}
                             onChange={e => updateChain(idx, { ...chain, cause_effect: e.target.value })}
                             className="font-bold text-lg bg-transparent border-none text-slate-800 focus:bg-white"
-                            placeholder="Título do Caminho..."
+                            placeholder={t('wizard.step4.fiveWhys.pathTitlePlaceholder')}
                         />
                         <Button variant="ghost" size="sm" onClick={() => deleteChain(idx)} className="text-red-400 hover:text-red-600">
                             <Trash2 size={16} />
@@ -231,7 +232,7 @@ export const FiveWhysEditor: React.FC<FiveWhysEditorProps> = ({ chains, onChange
             ))}
 
             <Button onClick={addChain} variant="primary" className="w-full border-dashed border-2 border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-300">
-                <Plus size={20} className="mr-2" /> Adicionar Novo Caminho de Investigação
+                <Plus size={20} className="mr-2" /> {t('wizard.step4.fiveWhys.addNewPath')}
             </Button>
         </div>
     );

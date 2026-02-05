@@ -26,22 +26,22 @@ export const DocumentationView: React.FC = () => {
                 </div>
                 <div className="space-y-4 text-slate-600 text-sm leading-relaxed">
                     <p>
-                        O sistema adota uma arquitetura <strong>SPA (Single Page Application)</strong> desenvolvida em React 19, focada em performance e independência de backend (Serverless/Local-First).
+                        {t('documentation.architecture.p1')}
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                         <div className="space-y-2">
-                            <h3 className="font-bold text-slate-800 flex items-center gap-2"><Database size={16} /> Modelo de Entidades</h3>
+                            <h3 className="font-bold text-slate-800 flex items-center gap-2"><Database size={16} /> {t('documentation.architecture.entitiesTitle')}</h3>
                             <ul className="list-disc pl-5 space-y-1 marker:text-blue-400">
-                                <li><strong>RcaRecord:</strong> Agregado raiz que contém Metadados, 5W1H, 5 Porquês e Ishikawa.</li>
-                                <li><strong>AssetNode:</strong> Árvore hierárquica recursiva (Área &gt; Equipamento &gt; Subgrupo) para localização técnica precisa.</li>
-                                <li><strong>ActionRecord:</strong> Entidade independente para gestão de planos de ação (Box 1-4), vinculada por <code>rca_id</code>.</li>
+                                <li><strong>RcaRecord:</strong> {t('documentation.architecture.rcaRecord')}</li>
+                                <li><strong>AssetNode:</strong> {t('documentation.architecture.assetNode')}</li>
+                                <li><strong>ActionRecord:</strong> {t('documentation.architecture.actionRecord')}</li>
                             </ul>
                         </div>
                         <div className="space-y-2">
-                            <h3 className="font-bold text-slate-800 flex items-center gap-2"><Layers size={16} /> Gerenciamento de Estado</h3>
+                            <h3 className="font-bold text-slate-800 flex items-center gap-2"><Layers size={16} /> {t('documentation.architecture.stateTitle')}</h3>
                             <ul className="list-disc pl-5 space-y-1 marker:text-blue-400">
-                                <li><strong>Context API:</strong> O <code>RcaProvider</code> atua como Single Source of Truth, sincronizando estado e LocalStorage.</li>
-                                <li><strong>ViewModels:</strong> Camada de abstração nos Hooks (ex: <code>useActionsLogic</code>) para resolver relacionamentos (IDs para Nomes) em tempo de execução.</li>
+                                <li><strong>Context API:</strong> {t('documentation.architecture.contextApi')}</li>
+                                <li><strong>ViewModels:</strong> {t('documentation.architecture.viewModels')}</li>
                             </ul>
                         </div>
                     </div>
@@ -58,41 +58,41 @@ export const DocumentationView: React.FC = () => {
                     <div className="relative border-l-2 border-slate-200 ml-2 space-y-8 pl-6 py-2">
                         <div className="relative">
                             <span className="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-white"></span>
-                            <h3 className="font-bold text-slate-900">1. Definição e Localização</h3>
+                            <h3 className="font-bold text-slate-900">{t('documentation.workflow.step1Title')}</h3>
                             <p className="text-sm text-slate-500 mt-1">
-                                Seleção obrigatória na Árvore de Ativos. Caso um ativo importado não exista, o sistema realiza <em>Fallback Resolution</em> buscando pelo ID na hierarquia carregada.
+                                {t('documentation.workflow.step1Desc')}
                             </p>
                         </div>
                         <div className="relative">
                             <span className="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-indigo-500 ring-4 ring-white"></span>
-                            <h3 className="font-bold text-slate-900">2. Investigação Assistida</h3>
+                            <h3 className="font-bold text-slate-900">{t('documentation.workflow.step2Title')}</h3>
                             <p className="text-sm text-slate-500 mt-1">
-                                Utilização dos 5 Porquês para desbloquear a Causa Raiz. O Diagrama de Ishikawa pode ser preenchido manualmente ou via <strong>IA Generativa</strong>.
+                                {t('documentation.workflow.step2Desc')}
                             </p>
                         </div>
                         <div className="relative">
                             <span className="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-green-500 ring-4 ring-white"></span>
-                            <h3 className="font-bold text-slate-900">3. Ações e Validação</h3>
+                            <h3 className="font-bold text-slate-900">{t('documentation.workflow.step3Title')}</h3>
                             <p className="text-sm text-slate-500 mt-1">
-                                Ações corretivas são gerenciadas globalmente. O status da análise só muda para "Concluída" se todos os campos mandatórios (incluindo Validação HRA se aplicável) estiverem preenchidos.
+                                {t('documentation.workflow.step3Desc')}
                             </p>
                         </div>
                     </div>
 
                     <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm space-y-4">
-                        <h3 className="font-bold text-slate-800 flex items-center gap-2"><ShieldCheck size={16} /> Protocolos de Validação</h3>
+                        <h3 className="font-bold text-slate-800 flex items-center gap-2"><ShieldCheck size={16} /> {t('documentation.workflow.validationTitle')}</h3>
                         <ul className="space-y-3">
                             <li className="flex gap-2">
                                 <span className="text-green-600 font-bold text-xs bg-green-100 px-2 py-0.5 rounded h-fit">HRA</span>
-                                <span className="text-slate-600">Se a Causa Raiz for classificada como "Mão de Obra" ou "Método", o módulo de Confiabilidade Humana é ativado obrigatoriamente.</span>
+                                <span className="text-slate-600">{t('documentation.workflow.hraDesc')}</span>
                             </li>
                             <li className="flex gap-2">
                                 <span className="text-amber-600 font-bold text-xs bg-amber-100 px-2 py-0.5 rounded h-fit">DRAFT</span>
-                                <span className="text-slate-600">Registros importados com status desconhecido ou "DRAFT" são sanitizados automaticamente para "Em Aberto" (STATUS-01).</span>
+                                <span className="text-slate-600">{t('documentation.workflow.draftDesc')}</span>
                             </li>
                             <li className="flex gap-2">
                                 <span className="text-blue-600 font-bold text-xs bg-blue-100 px-2 py-0.5 rounded h-fit">LINK</span>
-                                <span className="text-slate-600">Planos de Ação possuem navegação bidirecional. Clicar no vínculo da RCA leva o usuário ao editor da análise específica.</span>
+                                <span className="text-slate-600">{t('documentation.workflow.linkDesc')}</span>
                             </li>
                         </ul>
                     </div>
@@ -109,45 +109,45 @@ export const DocumentationView: React.FC = () => {
                     <div className="p-4 rounded-lg border border-purple-100 bg-purple-50/50">
                         <div className="flex items-center gap-2 mb-2 text-purple-800 font-bold">
                             <Cpu size={18} />
-                            <h3>Gemini AI 2.5</h3>
+                            <h3>{t('documentation.integrations.geminiTitle')}</h3>
                         </div>
                         <p className="text-xs text-slate-600 mb-3">
-                            Integração nativa com <code>@google/genai</code>.
+                            {t('documentation.integrations.geminiDesc')}
                         </p>
                         <ul className="text-xs text-slate-500 list-disc pl-4 space-y-1">
-                            <li>Prompt Engineering Contextual (Ativo + Problema).</li>
-                            <li>Saída estruturada em JSON (Strict Schema).</li>
-                            <li>Inicialização Lazy (evita erros de Runtime).</li>
+                            <li>{t('documentation.integrations.geminiItem1')}</li>
+                            <li>{t('documentation.integrations.geminiItem2')}</li>
+                            <li>{t('documentation.integrations.geminiItem3')}</li>
                         </ul>
                     </div>
 
                     <div className="p-4 rounded-lg border border-blue-100 bg-blue-50/50">
                         <div className="flex items-center gap-2 mb-2 text-blue-800 font-bold">
                             <FileJson size={18} />
-                            <h3>JSON Engine</h3>
+                            <h3>{t('documentation.integrations.jsonTitle')}</h3>
                         </div>
                         <p className="text-xs text-slate-600 mb-3">
-                            Backup completo do sistema (Snapshot).
+                            {t('documentation.integrations.jsonDesc')}
                         </p>
                         <ul className="text-xs text-slate-500 list-disc pl-4 space-y-1">
-                            <li>Auto-discovery de Taxonomia.</li>
-                            <li>Reconstrução da hierarquia de ativos.</li>
-                            <li>Sanitização de XSS em strings.</li>
+                            <li>{t('documentation.integrations.jsonItem1')}</li>
+                            <li>{t('documentation.integrations.jsonItem2')}</li>
+                            <li>{t('documentation.integrations.jsonItem3')}</li>
                         </ul>
                     </div>
 
                     <div className="p-4 rounded-lg border border-green-100 bg-green-50/50">
                         <div className="flex items-center gap-2 mb-2 text-green-800 font-bold">
                             <FileJson size={18} />
-                            <h3>CSV Interop</h3>
+                            <h3>{t('documentation.integrations.csvTitle')}</h3>
                         </div>
                         <p className="text-xs text-slate-600 mb-3">
-                            Compatibilidade com Excel/PowerBI.
+                            {t('documentation.integrations.csvDesc')}
                         </p>
                         <ul className="text-xs text-slate-500 list-disc pl-4 space-y-1">
-                            <li>Detecção automática de delimitador (; ou ,).</li>
-                            <li>Tratamento de UTF-8 com BOM.</li>
-                            <li>Exportação de KPIs e Listas.</li>
+                            <li>{t('documentation.integrations.csvItem1')}</li>
+                            <li>{t('documentation.integrations.csvItem2')}</li>
+                            <li>{t('documentation.integrations.csvItem3')}</li>
                         </ul>
                     </div>
                 </div>
@@ -155,7 +155,7 @@ export const DocumentationView: React.FC = () => {
 
             <div className="text-center pt-8 border-t border-slate-200">
                 <p className="text-slate-400 text-xs">
-                    &copy; 2025 Global RCA System. Documentação gerada dinamicamente com base na versão v17.2.
+                    {t('documentation.footer')}
                 </p>
             </div>
         </div>

@@ -15,42 +15,42 @@ export const sanitizeString = (str: any): string => {
 };
 
 const STANDARD_PRECISION_ITEMS: PrecisionChecklistItem[] = [
-    { id: "chk_clean", activity: "Área está limpa e arrumada", question_snapshot: "Área está limpa e arrumada", status: "", comment: "" },
-    { id: "chk_tol", activity: "Os ajustes e tolerâncias estão corretos", question_snapshot: "Os ajustes e tolerâncias estão corretos", status: "", comment: "" },
-    { id: "chk_lube", activity: "A lubrificação é limpa, livre de contaminantes, com a quantidade e qualidade adequadas", question_snapshot: "A lubrificação é limpa, livre de contaminantes, com a quantidade e qualidade adequadas", status: "", comment: "" },
-    { id: "chk_belt", activity: "A correia tem tensão e alinhamento corretos", question_snapshot: "A correia tem tensão e alinhamento corretos", status: "", comment: "" },
-    { id: "chk_load", activity: "Cargas estão suportadas corretamente com montagens rígidas e suportes", question_snapshot: "Cargas estão suportadas corretamente com montagens rígidas e suportes", status: "", comment: "" },
-    { id: "chk_align", activity: "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão devidamente alinhados", question_snapshot: "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão devidamente alinhados", status: "", comment: "" },
-    { id: "chk_bal", activity: "Componentes rotativos estão balanceados", question_snapshot: "Componentes rotativos estão balanceados", status: "", comment: "" },
-    { id: "chk_torque", activity: "Torques e Tensões estão corretos, utilizando torquímetros apropriados", question_snapshot: "Torques e Tensões estão corretos, utilizando torquímetros apropriados", status: "", comment: "" },
-    { id: "chk_parts", activity: "Utilizados somente peças de acordo com a especificação para o equipamento (no BOM)", question_snapshot: "Utilizados somente peças de acordo com a especificação para o equipamento (no BOM)", status: "", comment: "" },
-    { id: "chk_func", activity: "Teste Funcional executado", question_snapshot: "Teste Funcional executado", status: "", comment: "" },
-    { id: "chk_doc", activity: "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)", question_snapshot: "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)", status: "", comment: "" }
+    { id: "chk_clean", activity: "checklists.precision.chk_clean", question_snapshot: "", status: "", comment: "" },
+    { id: "chk_tol", activity: "checklists.precision.chk_tol", question_snapshot: "", status: "", comment: "" },
+    { id: "chk_lube", activity: "checklists.precision.chk_lube", question_snapshot: "", status: "", comment: "" },
+    { id: "chk_belt", activity: "checklists.precision.chk_belt", question_snapshot: "", status: "", comment: "" },
+    { id: "chk_load", activity: "checklists.precision.chk_load", question_snapshot: "", status: "", comment: "" },
+    { id: "chk_align", activity: "checklists.precision.chk_align", question_snapshot: "", status: "", comment: "" },
+    { id: "chk_bal", activity: "checklists.precision.chk_bal", question_snapshot: "", status: "", comment: "" },
+    { id: "chk_torque", activity: "checklists.precision.chk_torque", question_snapshot: "", status: "", comment: "" },
+    { id: "chk_parts", activity: "checklists.precision.chk_parts", question_snapshot: "", status: "", comment: "" },
+    { id: "chk_func", activity: "checklists.precision.chk_func", question_snapshot: "", status: "", comment: "" },
+    { id: "chk_doc", activity: "checklists.precision.chk_doc", question_snapshot: "", status: "", comment: "" }
 ];
 
 export const getStandardPrecisionItems = () => JSON.parse(JSON.stringify(STANDARD_PRECISION_ITEMS));
 
 const STANDARD_HRA_QUESTIONS: HraQuestion[] = [
-    { id: "1.1", category: "Procedimentos e Comunicação", question: "Os procedimentos são precisos e revisados?", question_snapshot: "Os procedimentos são precisos e revisados?", answer: "", comment: "" },
-    { id: "1.3", category: "Procedimentos e Comunicação", question: "Os procedimentos estão alinhados com as práticas reais?", question_snapshot: "Os procedimentos estão alinhados com as práticas reais?", answer: "", comment: "" },
-    { id: "1.4", category: "Procedimentos e Comunicação", question: "Há comunicação apropriada e métodos de compartilhamento e escalonamento?", question_snapshot: "Há comunicação apropriada e métodos de compartilhamento e escalonamento?", answer: "", comment: "" },
-    { id: "2.1", category: "Treinamentos, materiais e sua eficiência", question: "Os materiais de treinamento refletem as informações e conhecimentos necessários para as competências identificadas?", question_snapshot: "Os materiais de treinamento refletem as informações e conhecimentos necessários para as competências identificadas?", answer: "", comment: "" },
-    { id: "2.2", category: "Treinamentos, materiais e sua eficiência", question: "Os conhecimentos e habilidades estão sendo adquiridos e retidos?", question_snapshot: "Os conhecimentos e habilidades estão sendo adquiridos e retidos?", answer: "", comment: "" },
-    { id: "3.1", category: "Impactos externos (físicos e cognitivos)", question: "Há algum fator externo que possa afetar o desempenho do profissional: estresse, altos ruídos, calor/frio, vibração, atividades complexas, etc.?", question_snapshot: "Há algum fator externo que possa afetar o desempenho do profissional: estresse, altos ruídos, calor/frio, vibração, atividades complexas, etc.?", answer: "", comment: "" },
-    { id: "4.1", category: "Trabalho rotineiro e monótono", question: "Há flexibilidade e treinamentos cruzados disponíveis para os profissionais?", question_snapshot: "Há flexibilidade e treinamentos cruzados disponíveis para os profissionais?", answer: "", comment: "" },
-    { id: "4.2", category: "Trabalho rotineiro e monótono", question: "Os funcionários compreendem o valor e o impacto de seu trabalho?", question_snapshot: "Os funcionários compreendem o valor e o impacto de seu trabalho?", answer: "", comment: "" },
-    { id: "5.1", category: "Organização do ambiente e dos processos", question: "As condições de trabalho têm situações que criam dificuldades práticas para os funcionários: localização e acesso as ferramentas/equipamentos, sequência ideal de tarefas e padrões apropriados em vigor?", question_snapshot: "As condições de trabalho têm situações que criam dificuldades práticas para os funcionários: localização e acesso as ferramentas/equipamentos, sequência ideal de tarefas e padrões apropriados em vigor?", answer: "", comment: "" },
-    { id: "6.1", category: "Medidas contra falhas", question: "Existem medidas para ajudar a identificar erros potenciais durante tarefas críticas, atividades ou eventos não rotineiros?", question_snapshot: "Existem medidas para ajudar a identificar erros potenciais durante tarefas críticas, atividades ou eventos não rotineiros?", answer: "", comment: "" },
-    { id: "6.2", category: "Medidas contra falhas", question: "Há erros que podem ter acontecido por falta de atenção?", question_snapshot: "Há erros que podem ter acontecido por falta de atenção?", answer: "", comment: "" }
+    { id: "1.1", category: "hraQuestionnaire.categories.procedures", question: "hraQuestionnaire.questions.q1_1", question_snapshot: "", answer: "", comment: "" },
+    { id: "1.3", category: "hraQuestionnaire.categories.procedures", question: "hraQuestionnaire.questions.q1_3", question_snapshot: "", answer: "", comment: "" },
+    { id: "1.4", category: "hraQuestionnaire.categories.procedures", question: "hraQuestionnaire.questions.q1_4", question_snapshot: "", answer: "", comment: "" },
+    { id: "2.1", category: "hraQuestionnaire.categories.training", question: "hraQuestionnaire.questions.q2_1", question_snapshot: "", answer: "", comment: "" },
+    { id: "2.2", category: "hraQuestionnaire.categories.training", question: "hraQuestionnaire.questions.q2_2", question_snapshot: "", answer: "", comment: "" },
+    { id: "3.1", category: "hraQuestionnaire.categories.external", question: "hraQuestionnaire.questions.q3_1", question_snapshot: "", answer: "", comment: "" },
+    { id: "4.1", category: "hraQuestionnaire.categories.routine", question: "hraQuestionnaire.questions.q4_1", question_snapshot: "", answer: "", comment: "" },
+    { id: "4.2", category: "hraQuestionnaire.categories.routine", question: "hraQuestionnaire.questions.q4_2", question_snapshot: "", answer: "", comment: "" },
+    { id: "5.1", category: "hraQuestionnaire.categories.organization", question: "hraQuestionnaire.questions.q5_1", question_snapshot: "", answer: "", comment: "" },
+    { id: "6.1", category: "hraQuestionnaire.categories.measures", question: "hraQuestionnaire.questions.q6_1", question_snapshot: "", answer: "", comment: "" },
+    { id: "6.2", category: "hraQuestionnaire.categories.measures", question: "hraQuestionnaire.questions.q6_2", question_snapshot: "", answer: "" , comment: "" }
 ];
 
 const STANDARD_HRA_CONCLUSIONS: HraConclusion[] = [
-    { id: "procedures", label: "Procedimentos e Comunicação", selected: false, description: "" },
-    { id: "training", label: "Treinamentos, materiais e sua eficiência", selected: false, description: "" },
-    { id: "external", label: "Impactos externos (físicos e cognitivos)", selected: false, description: "" },
-    { id: "routine", label: "Trabalho rotineiro e monótono", selected: false, description: "" },
-    { id: "organization", label: "Organização do ambiente e dos processos", selected: false, description: "" },
-    { id: "measures", label: "Medidas contra falhas", selected: false, description: "" }
+    { id: "procedures", label: "hraQuestionnaire.categories.procedures", selected: false, description: "" },
+    { id: "training", label: "hraQuestionnaire.categories.training", selected: false, description: "" },
+    { id: "external", label: "hraQuestionnaire.categories.external", selected: false, description: "" },
+    { id: "routine", label: "hraQuestionnaire.categories.routine", selected: false, description: "" },
+    { id: "organization", label: "hraQuestionnaire.categories.organization", selected: false, description: "" },
+    { id: "measures", label: "hraQuestionnaire.categories.measures", selected: false, description: "" }
 ];
 
 

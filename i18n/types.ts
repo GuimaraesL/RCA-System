@@ -17,6 +17,7 @@ export interface TranslationSchema {
         runningOn: string;
         failurePrefix: string;
         requiredField: string;
+        version: string;
         tooltips: {
             deleteKey: string;
             resize: string;
@@ -280,6 +281,44 @@ export interface TranslationSchema {
         responsible: string;
         comments: string;
     },
+    checklists: {
+        precision: {
+            chk_clean: string;
+            chk_tol: string;
+            chk_lube: string;
+            chk_belt: string;
+            chk_load: string;
+            chk_align: string;
+            chk_bal: string;
+            chk_torque: string;
+            chk_parts: string;
+            chk_func: string;
+            chk_doc: string;
+        }
+    },
+    hraQuestionnaire: {
+        categories: {
+            procedures: string;
+            training: string;
+            external: string;
+            routine: string;
+            organization: string;
+            measures: string;
+        },
+        questions: {
+            q1_1: string;
+            q1_3: string;
+            q1_4: string;
+            q2_1: string;
+            q2_2: string;
+            q3_1: string;
+            q4_1: string;
+            q4_2: string;
+            q5_1: string;
+            q6_1: string;
+            q6_2: string;
+        }
+    },
     documentation: {
         title: string;
         subtitle: string;
@@ -287,7 +326,47 @@ export interface TranslationSchema {
             architecture: string;
             workflow: string;
             integrations: string;
-        }
+        },
+        architecture: {
+            p1: string;
+            entitiesTitle: string;
+            rcaRecord: string;
+            assetNode: string;
+            actionRecord: string;
+            stateTitle: string;
+            contextApi: string;
+            viewModels: string;
+        },
+        workflow: {
+            step1Title: string;
+            step1Desc: string;
+            step2Title: string;
+            step2Desc: string;
+            step3Title: string;
+            step3Desc: string;
+            validationTitle: string;
+            hraDesc: string;
+            draftDesc: string;
+            linkDesc: string;
+        },
+        integrations: {
+            geminiTitle: string;
+            geminiDesc: string;
+            geminiItem1: string;
+            geminiItem2: string;
+            geminiItem3: string;
+            jsonTitle: string;
+            jsonDesc: string;
+            jsonItem1: string;
+            jsonItem2: string;
+            jsonItem3: string;
+            csvTitle: string;
+            csvDesc: string;
+            csvItem1: string;
+            csvItem2: string;
+            csvItem3: string;
+        },
+        footer: string;
     },
     modals: {
         confirm: string;
@@ -492,6 +571,20 @@ export interface TranslationSchema {
                 material: string;
                 measurement: string;
                 environment: string;
+            };
+            fiveWhys: {
+                newContributingCause: string;
+                previousCausePlaceholder: string;
+                whyDidProblemOccur: string;
+                whyLabel: string;
+                answerPlaceholder: string;
+                addWhy: string;
+                branchCause: string;
+                newInvestigationPath: string;
+                pathTitlePlaceholder: string;
+                addNewPath: string;
+                whyEffect: string;
+                whyCause: string;
             };
         };
         // Step 5 - Actions

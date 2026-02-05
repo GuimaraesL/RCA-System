@@ -181,13 +181,13 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                         <div className="text-xs text-slate-500 flex gap-2">
                             <span className="font-mono">{formData.id}</span>
                             <span>•</span>
-                            <span>Ver: {formData.version}</span>
+                            <span>{t('common.version') || 'Ver:'} {formData.version}</span>
                         </div>
                     </div>
                 </div>
                 <div className="flex gap-4 items-center">
                     <div className="flex flex-col items-end">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{t('common.status')}</label>
                         <div className="relative">
                             <select
                                 value={formData.status}
@@ -260,7 +260,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                                 }`}
                         >
                             <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-                            Análise de Confiabilidade Humana Disponível
+                            {t('wizard.stepHRA.hraAvailableTitle')}
                         </button>
                     </div>
                 )}
@@ -347,7 +347,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
             <ActionModal
                 isOpen={isActionModalOpen}
                 initialData={editingAction}
-                fixedRca={{ id: formData.id, title: formData.what || formData.id || 'Nova Análise' }}
+                fixedRca={{ id: formData.id, title: formData.what || formData.id || t('analysesPage.newTitle') }}
                 onClose={() => setIsActionModalOpen(false)}
                 onSave={handleSaveAction}
             />
@@ -356,9 +356,9 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
             <ConfirmModal
                 isOpen={deleteActionModalOpen}
                 title={t('common.delete')}
-                message="Tem certeza que deseja excluir esta action? Esta ação não pode ser desfeita."
-                confirmText="Excluir"
-                cancelText="Cancelar"
+                message={t('modals.deleteActionMessage')}
+                confirmText={t('common.delete')}
+                cancelText={t('common.cancel')}
                 onConfirm={confirmDeleteAction}
                 onCancel={() => {
                     setDeleteActionModalOpen(false);

@@ -19,6 +19,7 @@ export const pt: TranslationSchema = {
         runningOn: "Rodando no",
         failurePrefix: "Falha",
         requiredField: "Campo obrigatório",
+        version: "Ver:",
         tooltips: {
             deleteKey: "Remover este nível",
             resize: "Arraste para redimensionar",
@@ -282,6 +283,44 @@ export const pt: TranslationSchema = {
         responsible: "Responsável",
         comments: "Comentários"
     },
+    checklists: {
+        precision: {
+            chk_clean: "Área está limpa e arrumada",
+            chk_tol: "Os ajustes e tolerâncias estão corretos",
+            chk_lube: "A lubrificação é limpa, livre de contaminantes, com a quantidade e qualidade adequadas",
+            chk_belt: "A correia tem tensão e alinhamento corretos",
+            chk_load: "Cargas estão suportadas corretamente com montagens rígidas e suportes",
+            chk_align: "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão devidamente alinhados",
+            chk_bal: "Componentes rotativos estão balanceados",
+            chk_torque: "Torques e Tensões estão corretos, utilizando torquímetros apropriados",
+            chk_parts: "Utilizados somente peças de acordo com a especificação para o equipamento (no BOM)",
+            chk_func: "Teste Funcional executado",
+            chk_doc: "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)"
+        }
+    },
+    hraQuestionnaire: {
+        categories: {
+            procedures: "Procedimentos e Comunicação",
+            training: "Treinamentos, materiais e sua eficiência",
+            external: "Impactos externos (físicos e cognitivos)",
+            routine: "Trabalho rotineiro e monótono",
+            organization: "Organização do ambiente e dos processos",
+            measures: "Medidas contra falhas"
+        },
+        questions: {
+            q1_1: "Os procedimentos são precisos e revisados?",
+            q1_3: "Os procedimentos estão alinhados com as práticas reais?",
+            q1_4: "Há comunicação apropriada e métodos de compartilhamento e escalonamento?",
+            q2_1: "Os materiais de treinamento refletem as informações e conhecimentos necessários para as competências identificadas?",
+            q2_2: "Os conhecimentos e habilidades estão sendo adquiridos e retidos?",
+            q3_1: "Há algum fator externo que possa afetar o desempenho do profissional: estresse, altos ruídos, calor/frio, vibração, atividades complexas, etc.?",
+            q4_1: "Há flexibilidade e treinamentos cruzados disponíveis para os profissionais?",
+            q4_2: "Os funcionários compreendem o valor e o impacto de seu trabalho?",
+            q5_1: "As condições de trabalho têm situações que criam dificuldades práticas para os funcionários: localização e acesso as ferramentas/equipamentos, sequência ideal de tarefas e padrões apropriados em vigor?",
+            q6_1: "Existem medidas para ajudar a identificar erros potenciais durante tarefas críticas, atividades ou eventos não rotineiros?",
+            q6_2: "Há erros que podem ter acontecido por falta de atenção?"
+        }
+    },
     documentation: {
         title: "Documentação Técnica",
         subtitle: "Sistema Global RCA • Versão Integrada (Context API)",
@@ -289,7 +328,47 @@ export const pt: TranslationSchema = {
             architecture: "Arquitetura de Dados",
             workflow: "Workflow e Regras de Negócio",
             integrations: "Integrações e Migração"
-        }
+        },
+        architecture: {
+            p1: "O sistema adota uma arquitetura SPA (Single Page Application) desenvolvida em React 19, focada em performance e independência de backend (Serverless/Local-First).",
+            entitiesTitle: "Modelo de Entidades",
+            rcaRecord: "Agregado raiz que contém Metadados, 5W1H, 5 Porquês e Ishikawa.",
+            assetNode: "Árvore hierárquica recursiva (Área > Equipamento > Subgrupo) para localização técnica precisa.",
+            actionRecord: "Entidade independente para gestão de planos de ação (Box 1-4), vinculada por rca_id.",
+            stateTitle: "Gerenciamento de Estado",
+            contextApi: "O RcaProvider atua como Single Source of Truth, sincronizando estado e LocalStorage.",
+            viewModels: "Camada de abstração nos Hooks (ex: useActionsLogic) para resolver relacionamentos (IDs para Nomes) em tempo de execução."
+        },
+        workflow: {
+            step1Title: "1. Definição e Localização",
+            step1Desc: "Seleção obrigatória na Árvore de Ativos. Caso um ativo importado não exista, o sistema realiza Fallback Resolution buscando pelo ID na hierarquia carregada.",
+            step2Title: "2. Investigação Assistida",
+            step2Desc: "Utilização dos 5 Porquês para desbloquear a Causa Raiz. O Diagrama de Ishikawa pode ser preenchido manualmente ou via IA Generativa.",
+            step3Title: "3. Ações e Validação",
+            step3Desc: "Ações corretivas são gerenciadas globalmente. O status da análise só muda para 'Concluída' se todos os campos mandatórios (incluindo Validação HRA se aplicável) estiverem preenchidos.",
+            validationTitle: "Protocolos de Validação",
+            hraDesc: "Se a Causa Raiz for classificada como 'Mão de Obra' ou 'Método', o módulo de Confiabilidade Humana é ativado obrigatoriamente.",
+            draftDesc: "Registros importados com status desconhecido ou 'DRAFT' são sanitizados automaticamente para 'Em Aberto' (STATUS-01).",
+            linkDesc: "Planos de Ação possuem navegação bidirecional. Clicar no vínculo da RCA leva o usuário ao editor da análise específica."
+        },
+        integrations: {
+            geminiTitle: "Gemini AI 2.5",
+            geminiDesc: "Integração nativa com @google/genai.",
+            geminiItem1: "Prompt Engineering Contextual (Ativo + Problema).",
+            geminiItem2: "Saída estruturada em JSON (Strict Schema).",
+            geminiItem3: "Inicialização Lazy (evita erros de Runtime).",
+            jsonTitle: "JSON Engine",
+            jsonDesc: "Backup completo do sistema (Snapshot).",
+            jsonItem1: "Auto-discovery de Taxonomia.",
+            jsonItem2: "Reconstrução da hierarquia de ativos.",
+            jsonItem3: "Sanitização de XSS em strings.",
+            csvTitle: "CSV Interop",
+            csvDesc: "Compatibilidade com Excel/PowerBI.",
+            csvItem1: "Detecção automática de delimitador (; ou ,).",
+            csvItem2: "Tratamento de UTF-8 com BOM.",
+            csvItem3: "Exportação de KPIs e Listas."
+        },
+        footer: "© 2025 Global RCA System. Documentação gerada dinamicamente com base na versão v17.2."
     },
     modals: {
         confirm: "Confirmar",
@@ -488,6 +567,20 @@ export const pt: TranslationSchema = {
                 material: "Material",
                 measurement: "Medida",
                 environment: "Meio Ambiente"
+            },
+            fiveWhys: {
+                newContributingCause: "Nova Causa Contribuinte",
+                previousCausePlaceholder: "Causa Contribuinte anterior...",
+                whyDidProblemOccur: "Por que o problema ocorreu?",
+                whyLabel: "Por que \"{0}\"?",
+                answerPlaceholder: "Resposta...",
+                addWhy: "Mais um \"Por que\"",
+                branchCause: "Ramificar (Nova Causa)",
+                newInvestigationPath: "Novo Caminho de Investigação",
+                pathTitlePlaceholder: "Título do Caminho...",
+                addNewPath: "Adicionar Novo Caminho de Investigação",
+                whyEffect: "Por que? (Efeito)",
+                whyCause: "Porque... (Causa)"
             }
         },
         step5: {

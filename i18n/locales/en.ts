@@ -19,6 +19,7 @@ export const en: TranslationSchema = {
         runningOn: "Running on",
         failurePrefix: "Failure",
         requiredField: "Required field",
+        version: "Ver:",
         tooltips: {
             deleteKey: "Remove this level",
             resize: "Drag to resize",
@@ -282,6 +283,44 @@ export const en: TranslationSchema = {
         responsible: "Responsible",
         comments: "Comments"
     },
+    checklists: {
+        precision: {
+            chk_clean: "Area is clean and tidy",
+            chk_tol: "Adjustments and tolerances are correct",
+            chk_lube: "Lubrication is clean, contaminant-free, with proper quantity and quality",
+            chk_belt: "Belt has correct tension and alignment",
+            chk_load: "Loads are correctly supported with rigid mounts and supports",
+            chk_align: "Components (shafts, motors, reducers, pumps, rollers, ...) are properly aligned",
+            chk_bal: "Rotating components are balanced",
+            chk_torque: "Torques and Tensions are correct, using appropriate torque wrenches",
+            chk_parts: "Only parts according to equipment specification (BOM) were used",
+            chk_func: "Functional test performed",
+            chk_doc: "Modifications were properly documented (drawings updated, procedures, etc.)"
+        }
+    },
+    hraQuestionnaire: {
+        categories: {
+            procedures: "Procedures and Communication",
+            training: "Training, materials and their efficiency",
+            external: "External impacts (physical and cognitive)",
+            routine: "Routine and monotonous work",
+            organization: "Environment and process organization",
+            measures: "Countermeasures against failure"
+        },
+        questions: {
+            q1_1: "Are procedures accurate and reviewed?",
+            q1_3: "Are procedures aligned with actual practices?",
+            q1_4: "Is there appropriate communication and methods for sharing and escalation?",
+            q2_1: "Do training materials reflect the information and knowledge required for identified competencies?",
+            q2_2: "Is knowledge and skills being acquired and retained?",
+            q3_1: "Are there any external factors that could affect professional performance: stress, high noise, heat/cold, vibration, complex activities, etc.?",
+            q4_1: "Is there flexibility and cross-training available for professionals?",
+            q4_2: "Do employees understand the value and impact of their work?",
+            q5_1: "Do working conditions have situations that create practical difficulties for employees: location and access to tools/equipment, ideal sequence of tasks and appropriate standards in place?",
+            q6_1: "Are there measures to help identify potential errors during critical tasks, activities or non-routine events?",
+            q6_2: "Are there errors that may have happened due to lack of attention?"
+        }
+    },
     documentation: {
         title: "Technical Documentation",
         subtitle: "Global RCA System • Integrated Version (Context API)",
@@ -289,7 +328,47 @@ export const en: TranslationSchema = {
             architecture: "Data Architecture",
             workflow: "Workflow & Business Rules",
             integrations: "Integrations & Migration"
-        }
+        },
+        architecture: {
+            p1: "The system adopts a SPA (Single Page Application) architecture developed in React 19, focused on performance and backend independence (Serverless/Local-First).",
+            entitiesTitle: "Entity Model",
+            rcaRecord: "Root aggregate containing Metadata, 5W1H, 5 Whys, and Ishikawa.",
+            assetNode: "Recursive hierarchical tree (Area > Equipment > Subgroup) for precise technical location.",
+            actionRecord: "Independent entity for action plan management (Box 1-4), linked by rca_id.",
+            stateTitle: "State Management",
+            contextApi: "The RcaProvider acts as the Single Source of Truth, synchronizing state and LocalStorage.",
+            viewModels: "Abstraction layer in Hooks (e.g., useActionsLogic) to resolve relationships (IDs to Names) at runtime."
+        },
+        workflow: {
+            step1Title: "1. Definition and Location",
+            step1Desc: "Mandatory selection in the Asset Tree. If an imported asset does not exist, the system performs Fallback Resolution searching by ID in the loaded hierarchy.",
+            step2Title: "2. Assisted Investigation",
+            step2Desc: "Use of 5 Whys to unlock the Root Cause. The Ishikawa Diagram can be filled manually or via Generative AI.",
+            step3Title: "3. Actions and Validation",
+            step3Desc: "Corrective actions are managed globally. Analysis status only changes to 'Completed' if all mandatory fields (including HRA Validation if applicable) are filled.",
+            validationTitle: "Validation Protocols",
+            hraDesc: "If the Root Cause is classified as 'Manpower' or 'Method', the Human Reliability module is mandatory.",
+            draftDesc: "Imported records with unknown or 'DRAFT' status are automatically sanitized to 'In Progress' (STATUS-01).",
+            linkDesc: "Action Plans have bidirectional navigation. Clicking the RCA link takes the user to the specific analysis editor."
+        },
+        integrations: {
+            geminiTitle: "Gemini AI 2.5",
+            geminiDesc: "Native integration with @google/genai.",
+            geminiItem1: "Contextual Prompt Engineering (Asset + Problem).",
+            geminiItem2: "Structured JSON output (Strict Schema).",
+            geminiItem3: "Lazy initialization (avoids Runtime errors).",
+            jsonTitle: "JSON Engine",
+            jsonDesc: "Full system backup (Snapshot).",
+            jsonItem1: "Taxonomy Auto-discovery.",
+            jsonItem2: "Asset hierarchy reconstruction.",
+            jsonItem3: "XSS sanitization in strings.",
+            csvTitle: "CSV Interop",
+            csvDesc: "Excel/PowerBI compatibility.",
+            csvItem1: "Automatic delimiter detection (; or ,).",
+            csvItem2: "UTF-8 treatment with BOM.",
+            csvItem3: "KPI and list export."
+        },
+        footer: "© 2025 Global RCA System. Documentation dynamically generated based on version v17.2."
     },
     modals: {
         confirm: "Confirm",
@@ -488,6 +567,20 @@ export const en: TranslationSchema = {
                 material: "Material",
                 measurement: "Measurement",
                 environment: "Environment"
+            },
+            fiveWhys: {
+                newContributingCause: "New Contributing Cause",
+                previousCausePlaceholder: "Previous Contributing Cause...",
+                whyDidProblemOccur: "Why did the problem occur?",
+                whyLabel: "Why \"{0}\"?",
+                answerPlaceholder: "Answer...",
+                addWhy: "Add Why",
+                branchCause: "Branch (New Cause)",
+                newInvestigationPath: "New Investigation Path",
+                pathTitlePlaceholder: "Path Title...",
+                addNewPath: "Add New Investigation Path",
+                whyEffect: "Why? (Effect)",
+                whyCause: "Because... (Cause)"
             }
         },
         step5: {

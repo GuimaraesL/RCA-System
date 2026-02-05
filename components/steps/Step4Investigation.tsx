@@ -140,7 +140,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                                 </div>
                                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-semibold text-blue-700 mb-1 uppercase">Por que? (Efeito)</label>
+                                        <label className="block text-xs font-semibold text-blue-700 mb-1 uppercase">{t('wizard.step4.fiveWhys.whyEffect')}</label>
                                         <Input
                                             value={w.why_question}
                                             onChange={(e) => {
@@ -152,7 +152,7 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-blue-700 mb-1 uppercase">Porque... (Causa)</label>
+                                        <label className="block text-xs font-semibold text-blue-700 mb-1 uppercase">{t('wizard.step4.fiveWhys.whyCause')}</label>
                                         <Input
                                             value={w.answer}
                                             onChange={(e) => {

@@ -63,8 +63,8 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                             <tr key={q.id} className="hover:bg-slate-50">
                                 <td className="p-3 font-mono text-xs text-slate-400 max-w-[80px] truncate" title={q.id}>{q.id}</td>
                                 <td className="p-3">
-                                    <div className="text-xs text-slate-400 mb-1 font-bold uppercase">{q.category}</div>
-                                    {q.question_snapshot || q.question}
+                                    <div className="text-xs text-slate-400 mb-1 font-bold uppercase">{t(q.category)}</div>
+                                    {t(q.question_snapshot) || t(q.question)}
                                 </td>
                                 <td className="p-3 text-center"><button onClick={() => updateHraQuestion(q.id, 'answer', 'YES')} className={`p-1 rounded ${q.answer === 'YES' ? 'text-green-600 bg-green-50' : 'text-slate-300'}`}>{q.answer === 'YES' ? <CheckSquare size={18} /> : <Square size={18} />}</button></td>
                                 <td className="p-3 text-center"><button onClick={() => updateHraQuestion(q.id, 'answer', 'NO')} className={`p-1 rounded ${q.answer === 'NO' ? 'text-red-500 bg-red-50' : 'text-slate-300'}`}>{q.answer === 'NO' ? <XSquare size={18} /> : <Square size={18} />}</button></td>
@@ -87,7 +87,7 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                                 <button onClick={() => updateHraConclusion(c.id, 'selected', !c.selected)} className={c.selected ? 'text-indigo-600' : 'text-slate-300'}>
                                     {c.selected ? <CheckSquare size={20} /> : <Square size={20} />}
                                 </button>
-                                <span className={`font-bold text-sm ${c.selected ? 'text-indigo-800' : 'text-slate-700'}`}>{c.label}</span>
+                                <span className={`font-bold text-sm ${c.selected ? 'text-indigo-800' : 'text-slate-700'}`}>{t(c.label)}</span>
                             </div>
                             {c.selected && (
                                 <div className="pl-8 animate-in fade-in slide-in-from-top-1">
