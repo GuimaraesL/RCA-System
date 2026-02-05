@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { importFromCsv } from '../csvService';
 import { CsvContextData } from '../csvService';
-import { AssetNode, Record as RcaRecord, TriggerRecord, TaxonomyConfig } from '../types';
+import { AssetNode, RcaRecord, TriggerRecord, TaxonomyConfig } from '../../types';
 
 // Mock generateId
 vi.mock('../services/utils', () => ({
@@ -40,8 +40,9 @@ describe('CSV Import Debugging', () => {
 
     const mockTaxonomy: TaxonomyConfig = {
         analysisTypes: [{ id: 'type1', name: 'MINI RCA' }],
+        analysisStatuses: [],
         triggerStatuses: [{ id: 'stat1', name: 'Concluído' }],
-        mandatoryFields: { trigger: { save: ['status'] } },
+        mandatoryFields: { trigger: { save: ['status'] }, rca: { create: [], conclude: [] } },
         specialties: [],
         failureModes: [],
         failureCategories: [],
@@ -58,15 +59,14 @@ describe('CSV Import Debugging', () => {
             subgroup_id: 'sub1',
             status: 'concluded',
             what: 'Test Issue',
-            why: 'Test Cause',
+            // why: 'Test Cause', // Removed - invalid
             when: '2024-01-09',
-            where: 'Test Location',
+            where_description: 'Test Location', // Mapped where -> where_description
             who: 'Test User',
-            how: 'Test How',
-            how_much: '100',
-            root_causes: [],
-            actions: []
-        }
+            // how: 'Test How', // Removed
+            // how_much: '100', // Removed
+            root_causes: []
+        } as unknown as RcaRecord
     ];
 
     const context: CsvContextData = {

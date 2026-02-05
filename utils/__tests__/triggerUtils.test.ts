@@ -24,10 +24,12 @@ describe('triggerHelpers', () => {
                 { id: '3', name: 'Concluída' }
             ],
             analysisTypes: [],
+            analysisStatuses: [],
+            specialties: [],
             failureModes: [],
             failureCategories: [],
             componentTypes: [],
-            rootCause6M: []
+            rootCauseMs: []
         };
 
         it('should return gray for "Não iniciada"', () => {
@@ -50,10 +52,12 @@ describe('triggerHelpers', () => {
                 { id: '3', name: 'Concluída' }
             ],
             analysisTypes: [],
+            analysisStatuses: [],
+            specialties: [],
             failureModes: [],
             failureCategories: [],
             componentTypes: [],
-            rootCause6M: []
+            rootCauseMs: []
         };
 
         it('should return check for concluded status', () => {
