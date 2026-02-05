@@ -15,6 +15,8 @@ export const pt: TranslationSchema = {
         status: "Status",
         date: "Data",
         confirm: "Confirmar",
+        portuguese: "Português",
+        english: "English",
         appTitle: "Global RCA",
         runningOn: "Rodando no",
         failurePrefix: "Falha",
@@ -330,7 +332,7 @@ export const pt: TranslationSchema = {
     },
     documentation: {
         title: "Documentação Técnica",
-        subtitle: "Sistema Global RCA • Versão Integrada (Context API)",
+        subtitle: "Sistema Global RCA ⬢ Versão Integrada (Context API)",
         sections: {
             architecture: "Arquitetura de Dados",
             workflow: "Workflow e Regras de Negócio",
@@ -379,6 +381,8 @@ export const pt: TranslationSchema = {
     },
     modals: {
         confirm: "Confirmar",
+        portuguese: "Portugu�s",
+        english: "English",
         cancel: "Cancelar",
         delete: "Excluir",
         deleteTitle: "Confirmar Exclusão",

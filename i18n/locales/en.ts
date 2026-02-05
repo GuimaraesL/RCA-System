@@ -15,6 +15,8 @@ export const en: TranslationSchema = {
         status: "Status",
         date: "Date",
         confirm: "Confirm",
+        portuguese: "Portuguese",
+        english: "English",
         appTitle: "Global RCA",
         runningOn: "Running on",
         failurePrefix: "Failure",
@@ -379,6 +381,8 @@ export const en: TranslationSchema = {
     },
     modals: {
         confirm: "Confirm",
+        portuguese: "Portuguese",
+        english: "English",
         cancel: "Cancel",
         delete: "Delete",
         deleteTitle: "Confirm Deletion",

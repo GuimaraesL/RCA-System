@@ -14,6 +14,8 @@ export interface TranslationSchema {
         date: string;
         confirm: string;
         appTitle: string;
+        portuguese: string;
+        english: string;
         runningOn: string;
         failurePrefix: string;
         requiredField: string;
@@ -377,6 +379,8 @@ export interface TranslationSchema {
     },
     modals: {
         confirm: string;
+        portuguese: string;
+        english: string;
         cancel: string;
         delete: string;
         deleteTitle: string;
