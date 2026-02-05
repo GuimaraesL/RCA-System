@@ -163,6 +163,7 @@ export interface RootCauseItem {
   id: string;
   root_cause_m_id: string;
   cause: string;
+  actions?: ActionRecord[];
 }
 
 export interface AdditionalInfo {

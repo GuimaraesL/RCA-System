@@ -441,6 +441,7 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
             };
 
             const defaultStatusId = taxonomy.triggerStatuses?.[0]?.id || 'TRG-ST-01';
+            const errors: string[] = [];
 
             rawData.forEach((r, i) => {
                 // Strict Row Validation (Fix for empty Excel rows & placeholders)
