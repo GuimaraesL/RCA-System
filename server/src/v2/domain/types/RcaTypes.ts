@@ -70,8 +70,18 @@ export interface Rca {
 }
 
 export interface TaxonomyConfig {
+    analysisTypes?: { id: string; name: string }[];
     analysisStatuses: { id: string; name: string }[];
+    specialties?: { id: string; name: string }[];
+    failureModes?: { id: string; name: string; specialty_ids?: string[] }[];
+    failureCategories?: { id: string; name: string }[];
+    componentTypes?: { id: string; name: string }[];
+    rootCauseMs?: { id: string; name: string }[];
+    triggerStatuses?: { id: string; name: string }[];
     mandatoryFields: {
+        trigger?: {
+            save: string[];
+        };
         rca: {
             create: string[];
             conclude: string[];

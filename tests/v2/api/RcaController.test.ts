@@ -64,7 +64,7 @@ describe('RcaController Integration', () => {
         // If we send "string" as body, it should fail.
         mockReq = { body: "invalid-string-body" };
 
-        controller.create(mockReq as Request, mockRes as Response);
+        controller.create(mockReq as unknown as any, mockRes as unknown as any);
 
         // Check calls
         if (statusMock.mock.calls.length > 0) {
@@ -80,7 +80,7 @@ describe('RcaController Integration', () => {
     it('should return 201 for valid create data', () => {
         mockReq = { body: { what: 'Valid RCA' } };
 
-        controller.create(mockReq as Request, mockRes as Response);
+        controller.create(mockReq as unknown as any, mockRes as unknown as any);
 
         expect(statusMock).toHaveBeenCalledWith(201);
         expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ id: 'test-id' }));

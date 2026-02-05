@@ -12,9 +12,9 @@ async function repair() {
 
     // 1. Wipe DB
     console.log('🧹 Wiping Database...');
-    db.exec('DELETE FROM actions');
-    db.exec('DELETE FROM triggers');
-    db.exec('DELETE FROM rcas'); // Order matters
+    db.execute('DELETE FROM actions');
+    db.execute('DELETE FROM triggers');
+    db.execute('DELETE FROM rcas'); // Order matters
 
     // 2. Load JSON
     const jsonPath = path.resolve(__dirname, '../tests/data/rca_migration_v17_consolidated.json');
@@ -37,7 +37,7 @@ async function repair() {
     let rcaCount = 0;
 
     // Use transaction
-    db.exec('BEGIN TRANSACTION');
+    db.execute('BEGIN TRANSACTION');
 
     try {
         for (const r of records) {
@@ -76,12 +76,12 @@ async function repair() {
         }
         console.log(`✅ Actions Inserted: ${actionCount}`);
 
-        db.exec('COMMIT');
+        db.execute('COMMIT');
         console.log('✅ COMMIT Success.');
 
     } catch (e) {
         console.error('❌ Error during import:', e);
-        db.exec('ROLLBACK');
+        db.execute('ROLLBACK');
     }
 }
 

@@ -85,6 +85,11 @@ export class SqlRcaRepository {
         });
     }
 
+    // --- Public 'save' alias for upsert (Used by scripts/repair_db.ts) ---
+    public save(rca: Rca): void {
+        this.upsert(rca);
+    }
+
     // --- Private Helper to mimic INSERT OR REPLACE ---
     private upsert(rca: Rca): void {
         const sql = `
