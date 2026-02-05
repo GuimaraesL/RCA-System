@@ -213,7 +213,7 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
             {/* Modal de Confirmação de Exclusão */}
             <ConfirmModal
                 isOpen={deleteModalOpen}
-                onClose={() => setDeleteModalOpen(false)}
+                onCancel={() => setDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
                 title={t('confirmModal.deleteTitle')}
                 message={t('confirmModal.deleteMessage')}

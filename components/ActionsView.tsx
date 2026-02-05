@@ -12,6 +12,10 @@ import { SortHeader } from './ui/SortHeader';
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
 // useEnterAnimation disabled for performance (Issue #11)
 
+interface ActionsViewProps {
+  onOpenRca?: (id: string) => void;
+}
+
 export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
   const { t, formatDate } = useLanguage();
 

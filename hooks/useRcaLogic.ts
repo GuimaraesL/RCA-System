@@ -88,12 +88,22 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
     const [formData, setFormData] = useState<RcaRecord>(() => {
         const base = createDefaultRecord();
         if (existingRecord) {
+            // Helper to safe-guard against SQL nulls
+            const s = (val: any, def: any) => (val === null || val === undefined ? def : val);
+
             return {
                 ...base,
                 ...existingRecord,
-                // Deep merge essential structures to avoid null crashes on first render
+                // Sanitize critical fields that might cause RcaEditor inputs to crash if null
+                financial_impact: s(existingRecord.financial_impact, 0),
+                downtime_minutes: s(existingRecord.downtime_minutes, 0),
+                status: s(existingRecord.status, base.status),
+
+                // Deep merge essential structures
                 human_reliability: existingRecord.human_reliability || base.human_reliability,
-                precision_maintenance: existingRecord.precision_maintenance || base.precision_maintenance
+                precision_maintenance: existingRecord.precision_maintenance || base.precision_maintenance,
+                five_whys: existingRecord.five_whys || base.five_whys,
+                root_causes: existingRecord.root_causes || []
             };
         }
         return base;

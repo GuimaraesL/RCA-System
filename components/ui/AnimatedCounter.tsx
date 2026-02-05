@@ -33,7 +33,7 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
             round: 1,
             update: function (anim) {
                 if (node) {
-                    const val = Math.round(anim.animations[0].currentValue);
+                    const val = Math.round((anim as any).animations[0].currentValue);
                     node.innerHTML = prefix + val.toLocaleString() + suffix;
                 }
             },

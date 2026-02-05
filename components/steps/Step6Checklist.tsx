@@ -24,7 +24,7 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
 
     // Calculate Progress
     const total = data.precision_maintenance?.length || 0;
-    const completed = data.precision_maintenance?.filter(i => i.status !== 'PENDING').length || 0;
+    const completed = data.precision_maintenance?.filter(i => i.status !== '').length || 0;
     const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     // Sorting

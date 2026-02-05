@@ -34,7 +34,11 @@ export const Step5Actions: React.FC<Step5Props> = ({
 
     const addInternalAction = () => {
         const list = data.containment_actions || [];
-        onChange('containment_actions', [...list, { what: '', who: '', when: '', status: 'PENDING' }]);
+        // Generate a temp ID or use placeholder if needed. ContainmentAction requires ID.
+        // Assuming generateId is not imported, using simplified approach or importing it?
+        // Step5Actions doesn't have generateId. Use timestamp or random.
+        const newId = 'ACT-C-' + Date.now();
+        onChange('containment_actions', [...list, { id: newId, action: '', responsible: '', date: '', status: 'PENDING' }]);
     };
 
     const removeInternalAction = (index: number) => {
@@ -81,16 +85,16 @@ export const Step5Actions: React.FC<Step5Props> = ({
                                 <input
                                     className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
                                     placeholder={t('wizard.step5.whatPlaceholder')}
-                                    value={action.what}
-                                    onChange={e => updateInternalAction(idx, 'what', e.target.value)}
+                                    value={action.action}
+                                    onChange={e => updateInternalAction(idx, 'action', e.target.value)}
                                 />
                             </div>
                             <div className="w-32 space-y-2">
                                 <label className="text-[10px] font-bold text-slate-400 uppercase">{t('wizard.step5.whoResponsible')}</label>
                                 <input
                                     className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
-                                    value={action.who}
-                                    onChange={e => updateInternalAction(idx, 'who', e.target.value)}
+                                    value={action.responsible}
+                                    onChange={e => updateInternalAction(idx, 'responsible', e.target.value)}
                                 />
                             </div>
                             <div className="w-32 space-y-2">
@@ -98,8 +102,8 @@ export const Step5Actions: React.FC<Step5Props> = ({
                                 <input
                                     type="date"
                                     className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
-                                    value={action.when}
-                                    onChange={e => updateInternalAction(idx, 'when', e.target.value)}
+                                    value={action.date}
+                                    onChange={e => updateInternalAction(idx, 'date', e.target.value)}
                                 />
                             </div>
                             <button onClick={() => removeInternalAction(idx)} className="mt-6 text-slate-300 hover:text-red-500"><Trash2 size={16} /></button>

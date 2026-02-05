@@ -120,7 +120,7 @@ const NodeEditor: React.FC<{
                         </div>
                         <div className="flex-1">
                             <label className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">
-                                {why.level === 1 ? t('wizard.step4.fiveWhys.whyDidProblemOccur') : t('wizard.step4.fiveWhys.whyLabel').replace('{0}', node.whys?.[idx - 1]?.answer?.substring(0, 20) || '')}
+                                {why.level === 1 ? t('wizard.step4.fiveWhys.whyDidProblemOccur') : t('wizard.step4.fiveWhys.whyLabel').replace('{0}', (node.whys?.[idx - 1]?.answer?.substring(0, 50) || '') + '...')}
                             </label>
                             <div className="flex gap-2">
                                 <Input

@@ -47,7 +47,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                 <table className="w-full text-left text-xs text-slate-600">
                     <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 z-10 group">
                         <tr>
-                            <SortHeader label={t('triggersPage.table.status')} sortKey="start_date" currentSort={sortConfig} onSort={handleSort} />
+                            <SortHeader label="Farol" sortKey="start_date" currentSort={sortConfig} onSort={handleSort} />
                             <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} />
                             <SortHeader label={t('table.date')} sortKey="start_date" currentSort={sortConfig} onSort={handleSort} />
                             <SortHeader label={t('filters.area')} sortKey="area_id" currentSort={sortConfig} onSort={handleSort} />
@@ -108,7 +108,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                                 onClick={() => onOpenRca(trigger.rca_id!)}
                                                 title={t('triggersPage.tooltips.openRca')}
                                             >
-                                                <Link size={12} /> {linkedRca?.what ? linkedRca.what.substring(0, 15) + '...' : trigger.rca_id}
+                                                <Link size={12} /> {linkedRca?.what ? linkedRca.what.substring(0, 15) + '...' : (trigger.rca_id.substring(0, 8) + '...')}
                                             </div>
                                         ) : (
                                             <div className="flex gap-2">

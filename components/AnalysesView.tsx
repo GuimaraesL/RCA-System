@@ -363,7 +363,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
             {/* Delete Confirmation Modal */}
             <ConfirmModal
                 isOpen={deleteModalOpen}
-                onClose={() => setDeleteModalOpen(false)}
+                onCancel={() => setDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
                 title={t('modals.deleteTitle')}
                 message={t('modals.deleteRcaMessage')}
