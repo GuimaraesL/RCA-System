@@ -1,5 +1,6 @@
 
 import React, { TextareaHTMLAttributes } from 'react';
+import { useLanguage } from '../../context/LanguageDefinition';
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
     label?: string;
@@ -7,6 +8,7 @@ interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
 }
 
 export const Textarea: React.FC<TextareaProps> = ({ label, error, className, ...props }) => {
+    const { t } = useLanguage();
     return (
         <div className="w-full">
             {label && (
@@ -21,7 +23,7 @@ export const Textarea: React.FC<TextareaProps> = ({ label, error, className, ...
                     } ${className || ''}`}
                 {...props}
             />
-            {error && <span className="text-[10px] text-red-500 font-medium mt-0.5 block">Campo obrigatório</span>}
+            {error && <span className="text-[10px] text-red-500 font-medium mt-0.5 block">{t('common.requiredField')}</span>}
         </div>
     );
 };

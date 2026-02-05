@@ -18,7 +18,7 @@ interface AnalysesViewProps {
 }
 
 export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => {
-    const { t, formatDate } = useLanguage();
+    const { t, formatDate, language } = useLanguage();
     const { records, assets, taxonomy, deleteRecord } = useRcaContext();
 
     // Delete Modal State
@@ -281,7 +281,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                 <tr>
                                     <td colSpan={7} className="p-12 text-center text-slate-400">
                                         <FileText size={48} className="mx-auto mb-3 opacity-20" />
-                                        No records found matching your criteria.
+                                        {t('analysesPage.noRecords')}
                                     </td>
                                 </tr>
                             )}
@@ -311,7 +311,10 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="text-slate-900 font-medium">${r.financial_impact?.toLocaleString()}</div>
+                                            <div className="text-slate-900 font-medium">
+                                                {language === 'pt' ? 'R$ ' : '$'}
+                                                {r.financial_impact?.toLocaleString()}
+                                            </div>
                                             <div className="text-xs text-slate-400">{r.downtime_minutes} min</div>
                                         </td>
                                         <td className="px-6 py-4 text-slate-500 whitespace-nowrap">

@@ -4,6 +4,7 @@
 import React, { useEffect, useRef } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 import { animateModalEnter } from '../services/animations';
+import { useLanguage } from '../context/LanguageDefinition';
 
 interface ConfirmModalProps {
     isOpen: boolean;
@@ -18,15 +19,20 @@ interface ConfirmModalProps {
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     isOpen,
-    title = 'Confirmar Ação',
+    title,
     message,
-    confirmText = 'Confirmar',
-    cancelText = 'Cancelar',
+    confirmText,
+    cancelText,
     onConfirm,
     onCancel,
     variant = 'danger'
 }) => {
+    const { t } = useLanguage();
     const containerRef = useRef<HTMLDivElement>(null);
+
+    const finalTitle = title || t('common.confirm');
+    const finalConfirmText = confirmText || t('common.confirm');
+    const finalCancelText = cancelText || t('common.cancel');
 
     useEffect(() => {
         if (isOpen && containerRef.current) {
@@ -62,7 +68,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                 {/* Header */}
                 <div className={`px-6 py-4 ${colors.bg} flex items-center gap-3`}>
                     <AlertTriangle className={`${colors.icon}`} size={24} />
-                    <h3 className="font-bold text-lg text-slate-800">{title}</h3>
+                    <h3 className="font-bold text-lg text-slate-800">{finalTitle}</h3>
                     <button
                         onClick={onCancel}
                         className="ml-auto text-slate-400 hover:text-slate-600"
@@ -82,13 +88,13 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         onClick={onCancel}
                         className="px-4 py-2 text-slate-600 hover:text-slate-800 font-medium rounded-lg hover:bg-slate-100 transition-colors"
                     >
-                        {cancelText}
+                        {finalCancelText}
                     </button>
                     <button
                         onClick={onConfirm}
                         className={`px-4 py-2 text-white font-bold rounded-lg ${colors.button} transition-colors`}
                     >
-                        {confirmText}
+                        {finalConfirmText}
                     </button>
                 </div>
             </div>

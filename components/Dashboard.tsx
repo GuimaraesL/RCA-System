@@ -311,7 +311,7 @@ export const Dashboard: React.FC = () => {
                 </div>
                 {isInteractive && (
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-blue-500 flex items-center gap-1">
-                        <MousePointerClick size={12} /> Filter
+                        <MousePointerClick size={12} /> {t('common.filter')}
                     </div>
                 )}
             </div>
@@ -429,7 +429,7 @@ export const Dashboard: React.FC = () => {
                                 />
                             </PieChart>
                         </ResponsiveContainer>
-                    ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">Sem dados</div>}
+                    ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
                 <ChartCard title={t('dashboard.charts.totalByType')} icon={<PieIcon size={16} />} isInteractive>
@@ -468,7 +468,7 @@ export const Dashboard: React.FC = () => {
                                 />
                             </PieChart>
                         </ResponsiveContainer>
-                    ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">Sem dados</div>}
+                    ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
                 {/* Row 2: Assets (Interactive) */}

@@ -108,7 +108,7 @@ export const AssetsManager: React.FC = () => {
               isEditing={isEditing}
             />
           ))}
-          {assets.length === 0 && <div className="text-center p-8 text-slate-400 text-sm">No assets defined. Add a root area.</div>}
+          {assets.length === 0 && <div className="text-center p-8 text-slate-400 text-sm">{t('assets.noAssets')}</div>}
         </div>
       </div>
 
@@ -170,16 +170,16 @@ export const AssetsManager: React.FC = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1">Asset Type</label>
+                <label className="block text-sm font-medium text-slate-600 mb-1">{t('assets.type')}</label>
                 <select
                   value={nodeType}
                   onChange={e => setNodeType(e.target.value as any)}
                   disabled={!!selectedNode && !parentNode}
                   className="w-full border border-slate-300 rounded-lg p-3 bg-white text-slate-900"
                 >
-                  <option value="AREA">Area</option>
-                  <option value="EQUIPMENT">Equipment</option>
-                  <option value="SUBGROUP">Subgroup</option>
+                  <option value="AREA">{t('filters.area')}</option>
+                  <option value="EQUIPMENT">{t('filters.equipment')}</option>
+                  <option value="SUBGROUP">{t('filters.subgroup')}</option>
                 </select>
               </div>
 
@@ -189,14 +189,14 @@ export const AssetsManager: React.FC = () => {
                   type="text"
                   value={nodeName}
                   onChange={e => setNodeName(e.target.value)}
-                  placeholder="e.g. Rolling Mill 1"
+                  placeholder={t('assets.placeholder')}
                   className="w-full border border-slate-300 rounded-lg p-3 bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
                 />
               </div>
 
               {!parentNode && selectedNode && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1">Asset ID (System Generated)</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-1">{t('assets.systemId')}</label>
                   <div className="w-full bg-slate-100 border border-slate-200 rounded-lg p-3 text-slate-500 font-mono text-sm flex items-center gap-2">
                     <Lock size={14} />
                     {selectedNode.id}
@@ -206,7 +206,7 @@ export const AssetsManager: React.FC = () => {
 
               {(parentNode || (!selectedNode && !parentNode)) && (
                 <div className="p-3 bg-blue-50 text-blue-700 text-xs rounded-lg">
-                  ID will be automatically generated upon saving.
+                  {t('assets.idHint')}
                 </div>
               )}
 
@@ -215,13 +215,13 @@ export const AssetsManager: React.FC = () => {
                   onClick={() => setIsEditing(false)}
                   className="flex-1 py-3 border border-slate-300 rounded-lg text-slate-600 font-medium hover:bg-slate-50"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={parentNode || (!selectedNode && !parentNode) ? handleAddChild : handleUpdate}
                   className="flex-1 py-3 bg-blue-600 rounded-lg text-white font-medium hover:bg-blue-700 shadow-sm"
                 >
-                  Save Changes
+                  {t('common.save')}
                 </button>
               </div>
             </div>
@@ -229,7 +229,7 @@ export const AssetsManager: React.FC = () => {
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-slate-400">
             <Layers size={64} className="mb-4 text-slate-200" />
-            <p>Select an item from the hierarchy to view details or edit.</p>
+            <p>{t('assets.selectPrompt')}</p>
           </div>
         )}
       </div>

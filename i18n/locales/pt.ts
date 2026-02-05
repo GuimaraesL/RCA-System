@@ -15,6 +15,10 @@ export const pt: TranslationSchema = {
         status: "Status",
         date: "Data",
         confirm: "Confirmar",
+        appTitle: "Global RCA",
+        runningOn: "Rodando no",
+        failurePrefix: "Falha",
+        requiredField: "Campo obrigatório",
         tooltips: {
             deleteKey: "Remover este nível",
             resize: "Arraste para redimensionar",
@@ -114,13 +118,15 @@ export const pt: TranslationSchema = {
         newButton: "Nova Análise",
         saveButton: "Salvar Registro",
         newTitle: "Nova Análise",
+        noRecords: "Nenhum registro encontrado para os critérios atuais.",
         tooltips: {
             deleteRca: "Excluir RCA"
         }
     },
     actionsPage: {
         title: "Planos de Ação",
-        subtitle: "Gerencie ações corretivas vinculadas a Análises de Causa Raiz."
+        subtitle: "Gerencie ações corretivas vinculadas a Análises de Causa Raiz.",
+        noActions: "Nenhuma ação encontrada para os filtros atuais."
     },
     table: {
         id: "ID",
@@ -147,6 +153,11 @@ export const pt: TranslationSchema = {
         delete: "Excluir",
         addChild: "Adicionar Filho",
         rename: "Renomear / Editar",
+        noAssets: "Nenhum ativo definido. Adicione uma área raiz.",
+        systemId: "ID do Ativo (Gerado pelo Sistema)",
+        idHint: "O ID será gerado automaticamente ao salvar.",
+        selectPrompt: "Selecione um item da hierarquia para ver detalhes ou editar.",
+        placeholder: "ex: Laminador 1",
         tooltips: {
             addRootArea: "Adicionar Área Raiz"
         }
@@ -209,6 +220,11 @@ export const pt: TranslationSchema = {
         of: "de",
         results: "resultados"
     },
+    errors: {
+        somethingWentWrong: "Ocorreu um erro no componente {0}.",
+        verifyData: "Por favor, verifique seus dados ou entre em contato com o suporte.",
+        stackTrace: "Rastro do Erro (Stack Trace)"
+    },
     settings: {
         title: "Configurações do Sistema",
         description: "Gerencie listas de classificação com IDs de Sistema únicos.",
@@ -223,7 +239,48 @@ export const pt: TranslationSchema = {
         addItemPlaceholder: "Adicionar novo item...",
         emptyList: "Nenhum item definido.",
         deleteItemTitle: "Excluir Item",
-        deleteItemMessage: "Você tem certeza que deseja excluir \"{0}\"? Esta ação não pode ser desfeita."
+        deleteItemMessage: "Você tem certeza que deseja excluir \"{0}\"? Esta ação não pode ser desfeita.",
+        tabs: {
+            general: "Geral & Taxonomia",
+            validation: "Validação & Campos Obrigatórios"
+        },
+        validation: {
+            rcaSaveTitle: "RCA: Criação & Salvamento",
+            rcaSaveDesc: "Campos obrigatórios para salvar uma análise (mesmo como rascunho).",
+            rcaConcludeTitle: "RCA: Conclusão",
+            rcaConcludeDesc: "Campos obrigatórios para alterar o status para 'Concluída'.",
+            triggersTitle: "Gatilhos (Triggers)",
+            triggersDesc: "Campos obrigatórios para registrar um novo gatilho."
+        }
+    },
+    fields: {
+        what: "O que houve (Título)",
+        analysisType: "Tipo de Análise",
+        failureDate: "Data da Falha",
+        locationSubgroup: "Localização (Subgrupo)",
+        componentType: "Tipo de Componente",
+        who: "Quem (Responsável)",
+        when: "Quando (Descrição)",
+        whereDescription: "Onde (Descrição)",
+        problemDescription: "Descrição Detalhada",
+        specialty: "Especialidade",
+        failureMode: "Modo de Falha",
+        failureCategory: "Categoria de Falha",
+        participants: "Participantes",
+        rootCauses: "Causas Raízes",
+        fiveWhys: "5 Porquês",
+        ishikawa: "Ishikawa",
+        actions: "Planos de Ação (Efetividade)",
+        area: "Área",
+        equipment: "Equipamento",
+        subgroup: "Subgrupo",
+        startDate: "Data Início",
+        endDate: "Data Fim",
+        stopType: "Tipo de Parada",
+        stopReason: "Motivo da Parada",
+        analysisTypeIndicated: "Tipo de Análise Indicada",
+        responsible: "Responsável",
+        comments: "Comentários"
     },
     documentation: {
         title: "Documentação Técnica",
@@ -248,6 +305,18 @@ export const pt: TranslationSchema = {
         linkRcaTitle: "Vincular RCA",
         linkRcaMessage: "Selecione a RCA para vincular ao Gatilho",
         selectRcaPlaceholder: "Selecione uma RCA..."
+    },
+    reports: {
+        title: "Relatórios & Insights",
+        subtitle: "Métricas de performance e acompanhamento de ações abertas",
+        lastUpdated: "Última atualização",
+        totalAnalyses: "Total de Análises",
+        openAnalyses: "Análises em Aberto",
+        concluded: "Concluídas",
+        pendingActions: "Ações Pendentes",
+        filteredActionsTitle: "Ações Filtradas (Abertas)",
+        noActionsFound: "Nenhuma ação aberta encontrada para os filtros atuais.",
+        overdue: "ATRASADO"
     },
     rcaSelector: {
         searchPlaceholder: "Buscar RCA por ID, Título ou OS...",

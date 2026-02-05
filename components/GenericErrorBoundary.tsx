@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { LanguageContext } from '../context/LanguageDefinition';
 
 interface Props {
     children: ReactNode;
@@ -13,6 +14,9 @@ interface State {
 }
 
 export class GenericErrorBoundary extends Component<Props, State> {
+    static contextType = LanguageContext;
+    declare context: React.ContextType<typeof LanguageContext>;
+
     public state: State = {
         hasError: false,
         error: null,
@@ -30,6 +34,7 @@ export class GenericErrorBoundary extends Component<Props, State> {
 
     public render() {
         if (this.state.hasError) {
+            const { t } = this.context;
             return (
                 <div className="p-6 bg-red-50 text-red-900 rounded-xl border border-red-200 shadow-sm m-4">
                     <div className="flex items-center gap-3 mb-4">
@@ -37,15 +42,15 @@ export class GenericErrorBoundary extends Component<Props, State> {
                             <AlertTriangle className="text-red-600" size={24} />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold">Something went wrong in {this.props.componentName || 'this component'}.</h2>
-                            <p className="text-sm text-red-700">Please verify your data or contact support.</p>
+                            <h2 className="text-lg font-bold">{t('errors.somethingWentWrong').replace('{0}', this.props.componentName || 'Component')}</h2>
+                            <p className="text-sm text-red-700">{t('errors.verifyData')}</p>
                         </div>
                     </div>
 
                     <div className="bg-white p-4 rounded border border-red-100 overflow-auto max-h-64 font-mono text-xs text-slate-600">
                         <p className="font-bold text-red-600 mb-2">{this.state.error && this.state.error.toString()}</p>
                         <details>
-                            <summary className="cursor-pointer hover:text-red-800 mb-2">Stack Trace</summary>
+                            <summary className="cursor-pointer hover:text-red-800 mb-2">{t('errors.stackTrace')}</summary>
                             {this.state.errorInfo && this.state.errorInfo.componentStack}
                         </details>
                     </div>

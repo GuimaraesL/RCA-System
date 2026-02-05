@@ -15,6 +15,10 @@ export const en: TranslationSchema = {
         status: "Status",
         date: "Date",
         confirm: "Confirm",
+        appTitle: "Global RCA",
+        runningOn: "Running on",
+        failurePrefix: "Failure",
+        requiredField: "Required field",
         tooltips: {
             deleteKey: "Remove this level",
             resize: "Drag to resize",
@@ -114,13 +118,15 @@ export const en: TranslationSchema = {
         newButton: "New Analysis",
         saveButton: "Save Record",
         newTitle: "New Analysis",
+        noRecords: "No records found matching your criteria.",
         tooltips: {
             deleteRca: "Delete RCA"
         }
     },
     actionsPage: {
         title: "Action Plans",
-        subtitle: "Manage corrective actions linked to Root Cause Analyses."
+        subtitle: "Manage corrective actions linked to Root Cause Analyses.",
+        noActions: "No actions found matching criteria."
     },
     table: {
         id: "ID",
@@ -147,6 +153,11 @@ export const en: TranslationSchema = {
         delete: "Delete",
         addChild: "Add Child",
         rename: "Rename / Edit",
+        noAssets: "No assets defined. Add a root area.",
+        systemId: "Asset ID (System Generated)",
+        idHint: "ID will be automatically generated upon saving.",
+        selectPrompt: "Select an item from the hierarchy to view details or edit.",
+        placeholder: "e.g. Rolling Mill 1",
         tooltips: {
             addRootArea: "Add Root Area"
         }
@@ -209,6 +220,11 @@ export const en: TranslationSchema = {
         of: "of",
         results: "results"
     },
+    errors: {
+        somethingWentWrong: "Something went wrong in {0}.",
+        verifyData: "Please verify your data or contact support.",
+        stackTrace: "Stack Trace"
+    },
     settings: {
         title: "System Settings",
         description: "Manage classification lists with unique System IDs.",
@@ -223,7 +239,48 @@ export const en: TranslationSchema = {
         addItemPlaceholder: "Add new item...",
         emptyList: "No items defined.",
         deleteItemTitle: "Delete Item",
-        deleteItemMessage: "Are you sure you want to delete \"{0}\"? This action cannot be undone."
+        deleteItemMessage: "Are you sure you want to delete \"{0}\"? This action cannot be undone.",
+        tabs: {
+            general: "General & Taxonomy",
+            validation: "Validation & Mandatory Fields"
+        },
+        validation: {
+            rcaSaveTitle: "RCA: Creation & Saving",
+            rcaSaveDesc: "Required fields to save an analysis (even as draft).",
+            rcaConcludeTitle: "RCA: Conclusion",
+            rcaConcludeDesc: "Required fields to change status to 'Completed'.",
+            triggersTitle: "Triggers",
+            triggersDesc: "Required fields to register a new trigger."
+        }
+    },
+    fields: {
+        what: "What (Title)",
+        analysisType: "Analysis Type",
+        failureDate: "Failure Date",
+        locationSubgroup: "Location (Subgroup)",
+        componentType: "Component Type",
+        who: "Who (Responsible)",
+        when: "When (Description)",
+        whereDescription: "Where (Description)",
+        problemDescription: "Detailed Description",
+        specialty: "Specialty",
+        failureMode: "Failure Mode",
+        failureCategory: "Failure Category",
+        participants: "Participants",
+        rootCauses: "Root Causes",
+        fiveWhys: "5 Whys",
+        ishikawa: "Ishikawa",
+        actions: "Action Plans (Effectiveness)",
+        area: "Area",
+        equipment: "Equipment",
+        subgroup: "Subgroup",
+        startDate: "Start Date",
+        endDate: "End Date",
+        stopType: "Stop Type",
+        stopReason: "Stop Reason",
+        analysisTypeIndicated: "Indicated Analysis Type",
+        responsible: "Responsible",
+        comments: "Comments"
     },
     documentation: {
         title: "Technical Documentation",
@@ -248,6 +305,18 @@ export const en: TranslationSchema = {
         linkRcaTitle: "Link RCA",
         linkRcaMessage: "Select RCA to link to Trigger",
         selectRcaPlaceholder: "Select an RCA..."
+    },
+    reports: {
+        title: "Reports & Insights",
+        subtitle: "Performance metrics and open action tracking",
+        lastUpdated: "Last updated",
+        totalAnalyses: "Total Analyses",
+        openAnalyses: "Open Analyses",
+        concluded: "Concluded",
+        pendingActions: "Pending Actions",
+        filteredActionsTitle: "Filtered Actions (Open)",
+        noActionsFound: "No open actions found matching filters.",
+        overdue: "LATE"
     },
     rcaSelector: {
         searchPlaceholder: "Search RCA by ID, Title or OS...",

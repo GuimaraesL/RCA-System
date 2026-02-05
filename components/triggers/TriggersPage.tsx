@@ -106,7 +106,7 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
     };
 
     // Defensive check
-    if (!taxonomy || !assets) return <div className="p-8">Loading configuration...</div>;
+    if (!taxonomy || !assets) return <div className="p-8 text-center text-slate-500 animate-pulse">{t('common.loading')}</div>;
 
     return (
         <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col relative">

@@ -12,23 +12,20 @@ import { SortHeader } from './ui/SortHeader';
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
 // useEnterAnimation disabled for performance (Issue #11)
 
-// Helper for Status Badges (Moved from utils to avoid JSX in .ts issue)
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case '1': return <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-bold">Box 1 (Aprovado)</span>;
-    case '2': return <span className="inline-flex items-center px-2 py-1 rounded bg-amber-100 text-amber-700 text-xs font-bold">Box 2 (Em Andamento)</span>;
-    case '3': return <span className="inline-flex items-center px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-bold">Box 3 (Concluído)</span>;
-    case '4': return <span className="inline-flex items-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold">Box 4 (Ef. Comprovada)</span>;
-    default: return <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-500 text-xs font-mono">{status || '-'}</span>;
-  }
-};
-
-interface ActionsViewProps {
-  onOpenRca?: (rcaId: string) => void;
-}
-
 export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
   const { t, formatDate } = useLanguage();
+
+  // Helper for Status Badges
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case '1': return <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-bold">{t('actionModal.statusOptions.approved')}</span>;
+      case '2': return <span className="inline-flex items-center px-2 py-1 rounded bg-amber-100 text-amber-700 text-xs font-bold">{t('actionModal.statusOptions.inProgress')}</span>;
+      case '3': return <span className="inline-flex items-center px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-bold">{t('actionModal.statusOptions.completed')}</span>;
+      case '4': return <span className="inline-flex items-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold">{t('actionModal.statusOptions.verified')}</span>;
+      default: return <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-500 text-xs font-mono">{status || '-'}</span>;
+    }
+  };
+
   const { actions, rcaList, isModalOpen, setIsModalOpen, editingAction, openNew, openEdit, handleSave, handleDelete, deleteModalOpen, confirmDelete, cancelDelete } = useActionsLogic();
   const { records, assets, taxonomy } = useRcaContext();
 
@@ -228,7 +225,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
                 </tr>
               ))}
               {filteredActions.length === 0 && (
-                <tr><td colSpan={6} className="p-8 text-center text-slate-400">No actions found matching criteria.</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center text-slate-400">{t('actionsPage.noActions')}</td></tr>
               )}
             </tbody>
           </table>

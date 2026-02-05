@@ -84,7 +84,7 @@ const AppContent: React.FC = () => {
             asset_name_display: assetName, // Populate Name
 
             analysis_type: trigger.analysis_type_id,
-            what: `Falha: ${trigger.stop_reason}`,
+            what: `${t('common.failurePrefix')}: ${trigger.stop_reason}`,
             problem_description: `${trigger.stop_type} - ${trigger.stop_reason}. ${trigger.comments || ''}`,
             facilitator: trigger.responsible,
 
@@ -112,7 +112,7 @@ const AppContent: React.FC = () => {
                         <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center shadow-lg shadow-blue-900/50">
                             <AlertTriangle size={18} className="text-white" />
                         </div>
-                        Global RCA
+                        {t('common.appTitle')}
                     </div>
                 </div>
                 <nav className="flex-1 p-4 space-y-2">
@@ -165,7 +165,7 @@ const AppContent: React.FC = () => {
                 </nav>
                 <div className="p-6 border-t border-slate-800 text-xs text-slate-500">
                     v17.2 Context API<br />
-                    Running on React 18
+                    {t('common.runningOn')} React 18
                     <div className="mt-4 pt-4 border-t border-slate-800">
                         <LanguageSelector />
                     </div>
@@ -179,7 +179,7 @@ const AppContent: React.FC = () => {
                     <div className="flex-1 flex items-center justify-center bg-slate-50/50">
                         <div className="flex flex-col items-center gap-3 text-slate-400">
                             <Loader2 className="animate-spin" size={32} />
-                            <span className="text-sm font-medium">Carregando...</span>
+                            <span className="text-sm font-medium">{t('common.loading')}</span>
                         </div>
                     </div>
                 }>

@@ -1,5 +1,6 @@
 
 import React, { SelectHTMLAttributes } from 'react';
+import { useLanguage } from '../../context/LanguageDefinition';
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
     label?: string;
@@ -8,6 +9,7 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 export const Select: React.FC<SelectProps> = ({ label, options, error, className, ...props }) => {
+    const { t } = useLanguage();
     return (
         <div className="w-full">
             {label && (
@@ -28,7 +30,7 @@ export const Select: React.FC<SelectProps> = ({ label, options, error, className
                     </option>
                 ))}
             </select>
-            {error && <span className="text-[10px] text-red-500 font-medium mt-0.5 block">Campo obrigatório</span>}
+            {error && <span className="text-[10px] text-red-500 font-medium mt-0.5 block">{t('common.requiredField')}</span>}
         </div>
     );
 };

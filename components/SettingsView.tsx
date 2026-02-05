@@ -123,45 +123,45 @@ export const SettingsView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'taxonomy' | 'validation'>('taxonomy');
 
   if (!taxonomy) {
-    return <div className="p-8 text-center text-slate-500 animate-pulse">Loading settings...</div>;
+    return <div className="p-8 text-center text-slate-500 animate-pulse">{t('common.loading')}</div>;
   }
 
   // Define Fields Options
   const rcaFields = [
-    { value: 'what', label: 'O que houve (Título)' },
-    { value: 'analysis_type', label: 'Tipo de Análise' },
-    { value: 'failure_date', label: 'Data da Falha' },
-    { value: 'subgroup_id', label: 'Localização (Subgrupo)' },
-    { value: 'component_type', label: 'Tipo de Componente' },
-    { value: 'who', label: 'Quem (Responsável)' },
-    { value: 'when', label: 'Quando (Descrição)' },
-    { value: 'where_description', label: 'Onde (Descrição)' },
-    { value: 'problem_description', label: 'Descrição Detalhada' },
-    { value: 'specialty_id', label: 'Especialidade' },
-    { value: 'failure_mode_id', label: 'Modo de Falha' },
-    { value: 'failure_category_id', label: 'Categoria de Falha' },
-    { value: 'participants', label: 'Participantes' }
+    { value: 'what', label: t('fields.what') },
+    { value: 'analysis_type', label: t('fields.analysisType') },
+    { value: 'failure_date', label: t('fields.failureDate') },
+    { value: 'subgroup_id', label: t('fields.locationSubgroup') },
+    { value: 'component_type', label: t('fields.componentType') },
+    { value: 'who', label: t('fields.who') },
+    { value: 'when', label: t('fields.when') },
+    { value: 'where_description', label: t('fields.whereDescription') },
+    { value: 'problem_description', label: t('fields.problemDescription') },
+    { value: 'specialty_id', label: t('fields.specialty') },
+    { value: 'failure_mode_id', label: t('fields.failureMode') },
+    { value: 'failure_category_id', label: t('fields.failureCategory') },
+    { value: 'participants', label: t('fields.participants') }
   ];
 
   const rcaConclusionFields = [
     ...rcaFields,
-    { value: 'root_causes', label: 'Causas Raízes' },
-    { value: 'five_whys', label: '5 Porquês' },
-    { value: 'ishikawa', label: 'Ishikawa' },
-    { value: 'actions', label: 'Planos de Ação (Efetividade)' } // Logic handled in hook/backend, but user can toggle strictness? Actually status auto-promotion handles actions. Lets keep it simple.
+    { value: 'root_causes', label: t('fields.rootCauses') },
+    { value: 'five_whys', label: t('fields.fiveWhys') },
+    { value: 'ishikawa', label: t('fields.ishikawa') },
+    { value: 'actions', label: t('fields.actions') }
   ];
 
   const triggerFields = [
-    { value: 'area_id', label: 'Área' },
-    { value: 'equipment_id', label: 'Equipamento' },
-    { value: 'subgroup_id', label: 'Subgrupo' },
-    { value: 'start_date', label: 'Data Início' },
-    { value: 'end_date', label: 'Data Fim' },
-    { value: 'stop_type', label: 'Tipo de Parada' },
-    { value: 'stop_reason', label: 'Motivo da Parada' },
-    { value: 'analysis_type_id', label: 'Tipo de Análise Indicada' },
-    { value: 'responsible', label: 'Responsável' },
-    { value: 'comments', label: 'Comentários' }
+    { value: 'area_id', label: t('fields.area') },
+    { value: 'equipment_id', label: t('fields.equipment') },
+    { value: 'subgroup_id', label: t('fields.subgroup') },
+    { value: 'start_date', label: t('fields.startDate') },
+    { value: 'end_date', label: t('fields.endDate') },
+    { value: 'stop_type', label: t('fields.stopType') },
+    { value: 'stop_reason', label: t('fields.stopReason') },
+    { value: 'analysis_type_id', label: t('fields.analysisTypeIndicated') },
+    { value: 'responsible', label: t('fields.responsible') },
+    { value: 'comments', label: t('fields.comments') }
   ];
 
   const handleMandatoryUpdate = (category: 'trigger' | 'rca', sub: string, newVal: string[]) => {
@@ -207,13 +207,13 @@ export const SettingsView: React.FC = () => {
           onClick={() => setActiveTab('taxonomy')}
           className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === 'taxonomy' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'}`}
         >
-          {t('settings.tabs.general') || 'Geral & Taxonomia'}
+          {t('settings.tabs.general')}
         </button>
         <button
           onClick={() => setActiveTab('validation')}
           className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${activeTab === 'validation' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'}`}
         >
-          {'Validação & Campos Obrigatórios'}
+          {t('settings.tabs.validation')}
         </button>
       </div>
 
@@ -233,22 +233,22 @@ export const SettingsView: React.FC = () => {
       {activeTab === 'validation' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
           <MandatoryFieldSelector
-            title="RCA: Criação & Salvamento"
-            description="Campos obrigatórios para salvar uma análise (mesmo como rascunho)."
+            title={t('settings.validation.rcaSaveTitle')}
+            description={t('settings.validation.rcaSaveDesc')}
             availableFields={rcaFields}
             selectedFields={config.rca.create}
             onChange={(val) => handleMandatoryUpdate('rca', 'create', val)}
           />
           <MandatoryFieldSelector
-            title="RCA: Conclusão"
-            description="Campos obrigatórios para alterar o status para 'Concluída'."
+            title={t('settings.validation.rcaConcludeTitle')}
+            description={t('settings.validation.rcaConcludeDesc')}
             availableFields={rcaConclusionFields}
             selectedFields={config.rca.conclude}
             onChange={(val) => handleMandatoryUpdate('rca', 'conclude', val)}
           />
           <MandatoryFieldSelector
-            title="Gatilhos (Triggers)"
-            description="Campos obrigatórios para registrar um novo gatilho."
+            title={t('settings.validation.triggersTitle')}
+            description={t('settings.validation.triggersDesc')}
             availableFields={triggerFields}
             selectedFields={config.trigger.save}
             onChange={(val) => handleMandatoryUpdate('trigger', 'save', val)}

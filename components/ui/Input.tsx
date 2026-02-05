@@ -1,5 +1,6 @@
 
 import React, { InputHTMLAttributes } from 'react';
+import { useLanguage } from '../../context/LanguageDefinition';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label?: string;
@@ -7,6 +8,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input: React.FC<InputProps> = ({ label, error, className, ...props }) => {
+    const { t } = useLanguage();
     return (
         <div className="w-full">
             {label && (
@@ -21,7 +23,7 @@ export const Input: React.FC<InputProps> = ({ label, error, className, ...props 
                     } ${className || ''}`}
                 {...props}
             />
-            {error && <span className="text-[10px] text-red-500 font-medium mt-0.5 block">Campo obrigatório</span>}
+            {error && <span className="text-[10px] text-red-500 font-medium mt-0.5 block">{t('common.requiredField')}</span>}
         </div>
     );
 };

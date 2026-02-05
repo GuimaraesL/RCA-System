@@ -13,6 +13,10 @@ export interface TranslationSchema {
         status: string;
         date: string;
         confirm: string;
+        appTitle: string;
+        runningOn: string;
+        failurePrefix: string;
+        requiredField: string;
         tooltips: {
             deleteKey: string;
             resize: string;
@@ -112,6 +116,7 @@ export interface TranslationSchema {
         newButton: string;
         saveButton: string;
         newTitle: string;
+        noRecords: string;
         tooltips: {
             deleteRca: string;
         };
@@ -119,6 +124,7 @@ export interface TranslationSchema {
     actionsPage: {
         title: string;
         subtitle: string;
+        noActions: string;
     };
     table: {
         id: string;
@@ -145,6 +151,11 @@ export interface TranslationSchema {
         delete: string;
         addChild: string;
         rename: string;
+        noAssets: string;
+        systemId: string;
+        idHint: string;
+        selectPrompt: string;
+        placeholder: string;
         tooltips: {
             addRootArea: string;
         };
@@ -207,6 +218,11 @@ export interface TranslationSchema {
         of: string;
         results: string;
     },
+    errors: {
+        somethingWentWrong: string;
+        verifyData: string;
+        stackTrace: string;
+    },
     settings: {
         title: string;
         description: string;
@@ -222,6 +238,47 @@ export interface TranslationSchema {
         emptyList: string;
         deleteItemTitle: string;
         deleteItemMessage: string;
+        tabs: {
+            general: string;
+            validation: string;
+        };
+        validation: {
+            rcaSaveTitle: string;
+            rcaSaveDesc: string;
+            rcaConcludeTitle: string;
+            rcaConcludeDesc: string;
+            triggersTitle: string;
+            triggersDesc: string;
+        };
+    },
+    fields: {
+        what: string;
+        analysisType: string;
+        failureDate: string;
+        locationSubgroup: string;
+        componentType: string;
+        who: string;
+        when: string;
+        whereDescription: string;
+        problemDescription: string;
+        specialty: string;
+        failureMode: string;
+        failureCategory: string;
+        participants: string;
+        rootCauses: string;
+        fiveWhys: string;
+        ishikawa: string;
+        actions: string;
+        area: string;
+        equipment: string;
+        subgroup: string;
+        startDate: string;
+        endDate: string;
+        stopType: string;
+        stopReason: string;
+        analysisTypeIndicated: string;
+        responsible: string;
+        comments: string;
     },
     documentation: {
         title: string;
@@ -246,6 +303,18 @@ export interface TranslationSchema {
         linkRcaTitle: string;
         linkRcaMessage: string;
         selectRcaPlaceholder: string;
+    };
+    reports: {
+        title: string;
+        subtitle: string;
+        lastUpdated: string;
+        totalAnalyses: string;
+        openAnalyses: string;
+        concluded: string;
+        pendingActions: string;
+        filteredActionsTitle: string;
+        noActionsFound: string;
+        overdue: string;
     };
     rcaSelector: {
         searchPlaceholder: string;

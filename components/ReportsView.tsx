@@ -6,12 +6,14 @@ import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { useSorting } from '../hooks/useSorting';
 import { SortHeader } from './ui/SortHeader';
+import { useLanguage } from '../context/LanguageDefinition';
 
 interface ReportsViewProps {
     records: RcaRecord[];
 }
 
 export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
+    const { t } = useLanguage();
 
     const defaultFilters: FilterState = {
         searchTerm: '',
@@ -95,11 +97,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
         <div className="p-8 max-w-7xl mx-auto space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800">Reports & Insights</h1>
-                    <p className="text-slate-500">Performance metrics and open action tracking</p>
+                    <h1 className="text-2xl font-bold text-slate-800">{t('reports.title')}</h1>
+                    <p className="text-slate-500">{t('reports.subtitle')}</p>
                 </div>
                 <div className="text-sm text-slate-400">
-                    Last updated: {new Date().toLocaleDateString()}
+                    {t('reports.lastUpdated')}: {new Date().toLocaleDateString()}
                 </div>
             </div>
 
@@ -118,10 +120,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <div className="flex justify-between items-start mb-2">
                         <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Activity size={20} /></div>
-                        {overdueActions.length > 0 && <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded-full animate-pulse">{overdueActions.length} LATE</span>}
+                        {overdueActions.length > 0 && <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded-full animate-pulse">{overdueActions.length} {t('reports.overdue')}</span>}
                     </div>
                     <div className="text-3xl font-bold text-slate-800">{filteredRecords.length}</div>
-                    <div className="text-sm text-slate-500 font-medium">Total Analyses</div>
+                    <div className="text-sm text-slate-500 font-medium">{t('reports.totalAnalyses')}</div>
                 </div>
 
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
@@ -129,7 +131,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                         <div className="p-2 bg-amber-50 text-amber-600 rounded-lg"><AlertCircle size={20} /></div>
                     </div>
                     <div className="text-3xl font-bold text-slate-800">{totalOpen}</div>
-                    <div className="text-sm text-slate-500 font-medium">Open Analyses</div>
+                    <div className="text-sm text-slate-500 font-medium">{t('reports.openAnalyses')}</div>
                 </div>
 
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
@@ -137,7 +139,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                         <div className="p-2 bg-green-50 text-green-600 rounded-lg"><CheckCircle2 size={20} /></div>
                     </div>
                     <div className="text-3xl font-bold text-slate-800">{totalClosed}</div>
-                    <div className="text-sm text-slate-500 font-medium">Concluded</div>
+                    <div className="text-sm text-slate-500 font-medium">{t('reports.concluded')}</div>
                 </div>
 
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
@@ -145,35 +147,35 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                         <div className="p-2 bg-purple-50 text-purple-600 rounded-lg"><Calendar size={20} /></div>
                     </div>
                     <div className="text-3xl font-bold text-slate-800">{openActions.length}</div>
-                    <div className="text-sm text-slate-500 font-medium">Pending Actions</div>
+                    <div className="text-sm text-slate-500 font-medium">{t('reports.pendingActions')}</div>
                 </div>
             </div>
 
             {/* Actions Table */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                    <h3 className="font-bold text-slate-800 flex items-center gap-2"><AlertCircle size={18} className="text-amber-500" /> Filtered Actions (Open)</h3>
+                    <h3 className="font-bold text-slate-800 flex items-center gap-2"><AlertCircle size={18} className="text-amber-500" /> {t('reports.filteredActionsTitle')}</h3>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-slate-600">
                         <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 group">
                             <tr>
-                                <SortHeader label="Due Date" sortKey="date" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Action" sortKey="action" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Responsible" sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('table.dueDate')} sortKey="date" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('table.actions')} sortKey="action" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('table.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label="Box" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {openActions.length === 0 && (
-                                <tr><td colSpan={4} className="p-8 text-center text-slate-400">No open actions found matching filters.</td></tr>
+                                <tr><td colSpan={4} className="p-8 text-center text-slate-400">{t('reports.noActionsFound')}</td></tr>
                             )}
                             {openActions.map((action, idx) => {
                                 const isOverdue = new Date(action.date) < new Date();
                                 return (
                                     <tr key={`${action.rca_id}-${idx}`} className="hover:bg-slate-50">
                                         <td className={`px-6 py-4 font-mono ${isOverdue ? 'text-red-600 font-bold' : ''}`}>
-                                            {action.date} {isOverdue && <span className="ml-2 text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded">LATE</span>}
+                                            {action.date} {isOverdue && <span className="ml-2 text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded">{t('reports.overdue')}</span>}
                                         </td>
                                         <td className="px-6 py-4 max-w-xs truncate" title={action.action}>{action.action}</td>
                                         <td className="px-6 py-4">{action.responsible}</td>
