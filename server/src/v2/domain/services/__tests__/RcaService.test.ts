@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { RcaService } from '../../../server/src/v2/domain/services/RcaService';
-import { SqlRcaRepository } from '../../../server/src/v2/infrastructure/repositories/SqlRcaRepository';
-import { SqlActionRepository } from '../../../server/src/v2/infrastructure/repositories/SqlActionRepository';
-import { TaxonomyConfig } from '../../../server/src/v2/domain/types/RcaTypes';
+import { RcaService } from '../RcaService';
+import { SqlRcaRepository } from '../../../infrastructure/repositories/SqlRcaRepository';
+import { SqlActionRepository } from '../../../infrastructure/repositories/SqlActionRepository';
+import { TaxonomyConfig } from '../../../domain/types/RcaTypes';
 
 describe('RcaService', () => {
     let service: RcaService;

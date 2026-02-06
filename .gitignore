@@ -31,3 +31,4 @@ secrets/
 .claude/
 rca.db 
 /testsprite_tests/ 
+test-results/

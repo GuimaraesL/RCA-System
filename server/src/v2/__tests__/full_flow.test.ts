@@ -1,9 +1,9 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { RcaService } from '../../server/src/v2/domain/services/RcaService';
-import { SqlRcaRepository } from '../../server/src/v2/infrastructure/repositories/SqlRcaRepository';
-import { DatabaseConnection } from '../../server/src/v2/infrastructure/database/DatabaseConnection';
-import { Rca, TaxonomyConfig } from '../../server/src/v2/domain/types/RcaTypes';
+import { RcaService } from '../domain/services/RcaService';
+import { SqlRcaRepository } from '../infrastructure/repositories/SqlRcaRepository';
+import { DatabaseConnection } from '../infrastructure/database/DatabaseConnection';
+import { Rca, TaxonomyConfig } from '../domain/types/RcaTypes';
 
 // Use a real in-memory DB for this test, not mocks
 describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
@@ -124,5 +124,47 @@ describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
             console.error("❌ TEST FAILED WITH ERROR:", e);
             throw e;
         }
+    });
+
+    it('Should support Bulk Import of RCAs (Legacy/Repair Mode)', () => {
+        const input: Partial<Rca> = {
+            what: 'Integration Test Failure',
+            analysis_type: 'Safety'
+        };
+        const createResult = service.createRca(input, mockTaxonomy);
+
+        // Arrange: Create a batch of RCAs
+        const importBatch: Rca[] = [
+            {
+                ...createResult.rca, // Clone existing structure
+                id: 'IMPORT-001',
+                what: 'Imported Record 1',
+                status: 'Concluída'
+            },
+            {
+                ...createResult.rca,
+                id: 'IMPORT-002',
+                what: 'Imported Record 2',
+                status: 'Cancelada'
+            }
+        ];
+
+        // Act: Execute bulkCreate directly on repo
+        expect(() => repo.bulkCreate(importBatch)).not.toThrow();
+
+        // Assert: Verify they exist
+        const all = repo.findAll();
+        const imported = all.filter(r => r.id.startsWith('IMPORT-'));
+        expect(imported.length).toBe(2);
+
+        const r1 = repo.findById('IMPORT-001');
+        expect(r1?.what).toBe('Imported Record 1');
+
+        // Assert: Verify Upsert (running again updates data)
+        const updateBatch: Rca[] = [{ ...importBatch[0], what: 'Updated via Import' }];
+        repo.bulkCreate(updateBatch);
+
+        const updated = repo.findById('IMPORT-001');
+        expect(updated?.what).toBe('Updated via Import');
     });
 });

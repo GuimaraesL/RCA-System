@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { RcaController } from '../../../server/src/v2/api/controllers/RcaController';
+import { RcaController } from '../RcaController';
 import { Request, Response } from 'express';
 
 // Mocks
-vi.mock('../../../server/src/v2/domain/services/RcaService', () => {
+vi.mock('../../../domain/services/RcaService', () => {
     return {
         RcaService: vi.fn().mockImplementation(() => ({
             createRca: vi.fn().mockReturnValue({
@@ -15,7 +15,7 @@ vi.mock('../../../server/src/v2/domain/services/RcaService', () => {
     };
 });
 
-vi.mock('../../../server/src/v2/infrastructure/repositories/SqlRcaRepository', () => {
+vi.mock('../../../infrastructure/repositories/SqlRcaRepository', () => {
     return {
         SqlRcaRepository: vi.fn().mockImplementation(() => ({
             findAll: vi.fn(),
@@ -24,7 +24,7 @@ vi.mock('../../../server/src/v2/infrastructure/repositories/SqlRcaRepository', (
     };
 });
 
-vi.mock('../../../server/src/v2/infrastructure/repositories/SqlTaxonomyRepository', () => {
+vi.mock('../../../infrastructure/repositories/SqlTaxonomyRepository', () => {
     return {
         SqlTaxonomyRepository: vi.fn().mockImplementation(() => ({
             getTaxonomy: vi.fn().mockReturnValue({})

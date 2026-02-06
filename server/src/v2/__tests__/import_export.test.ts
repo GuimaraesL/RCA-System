@@ -1,9 +1,9 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { RcaService } from '../../server/src/v2/domain/services/RcaService';
-import { SqlRcaRepository } from '../../server/src/v2/infrastructure/repositories/SqlRcaRepository';
-import { DatabaseConnection } from '../../server/src/v2/infrastructure/database/DatabaseConnection';
-import { Rca, TaxonomyConfig } from '../../server/src/v2/domain/types/RcaTypes';
+import { RcaService } from '../domain/services/RcaService';
+import { SqlRcaRepository } from '../infrastructure/repositories/SqlRcaRepository';
+import { DatabaseConnection } from '../infrastructure/database/DatabaseConnection';
+import { Rca, TaxonomyConfig } from '../domain/types/RcaTypes';
 import fs from 'fs';
 import path from 'path';
 
@@ -98,8 +98,8 @@ describe('Import/Export Data Validation', () => {
             // Validate Complex Fields (Arrays/Objects)
             expect(Array.isArray(result.rca.root_causes)).toBe(true);
             if (rawRecord.root_causes && rawRecord.root_causes.length > 0) {
-                expect(result.rca.root_causes.length).toBeGreaterThan(0);
-                expect(result.rca.root_causes[0].cause).toBeDefined();
+                expect(result.rca.root_causes!.length).toBeGreaterThan(0);
+                expect(result.rca.root_causes![0].cause).toBeDefined();
             }
 
             console.log(`✅ Imported ${result.rca.id} - ${result.rca.what?.substring(0, 30)}...`);

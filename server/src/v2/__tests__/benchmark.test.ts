@@ -1,9 +1,9 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { RcaService } from '../../server/src/v2/domain/services/RcaService';
-import { SqlRcaRepository } from '../../server/src/v2/infrastructure/repositories/SqlRcaRepository';
-import { DatabaseConnection } from '../../server/src/v2/infrastructure/database/DatabaseConnection';
-import { Rca, TaxonomyConfig } from '../../server/src/v2/domain/types/RcaTypes';
+import { RcaService } from '../domain/services/RcaService';
+import { SqlRcaRepository } from '../infrastructure/repositories/SqlRcaRepository';
+import { DatabaseConnection } from '../infrastructure/database/DatabaseConnection';
+import { Rca, TaxonomyConfig } from '../domain/types/RcaTypes';
 import { randomUUID } from 'crypto';
 
 describe('Performance Benchmark (V2 Core)', () => {
