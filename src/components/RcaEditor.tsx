@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { RcaRecord, ActionRecord } from '../types';
+import { STATUS_IDS, ROOT_CAUSE_M_IDS } from '../constants/SystemConstants';
 import { generateId } from '../services/utils';
 import { useRcaContext } from '../context/RcaContext';
 import { Save, ArrowLeft, Lock, Check, ChevronDown } from 'lucide-react';
@@ -143,14 +144,11 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     };
 
     // Is Completed Check for visual coloring only (Logic handled in hook)
-    const isCompleted = taxonomy.analysisStatuses.find(s => s.id === formData.status)?.name === 'Concluída';
+    const isCompleted = formData.status === STATUS_IDS.CONCLUDED;
 
     // Logic to show Step 6 (Human Reliability)
-    const manpowerId = taxonomy.rootCauseMs.find(m => m.name === 'Mão de Obra')?.id;
-    const methodId = taxonomy.rootCauseMs.find(m => m.name === 'Método')?.id;
-
     const showHra = formData.root_causes && formData.root_causes.some(rc =>
-        (rc.root_cause_m_id === manpowerId || rc.root_cause_m_id === methodId) && !!rc.root_cause_m_id
+        (rc.root_cause_m_id === ROOT_CAUSE_M_IDS.MANPOWER || rc.root_cause_m_id === ROOT_CAUSE_M_IDS.METHOD) && !!rc.root_cause_m_id
     );
 
     const stepsList = [

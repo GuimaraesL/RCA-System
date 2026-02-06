@@ -1,6 +1,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { RcaRecord, TaxonomyConfig } from '../types';
+import { STATUS_IDS } from '../constants/SystemConstants';
 import { Plus, FileText, Trash2 } from 'lucide-react';
 import { SortHeader } from './ui/SortHeader';
 import { FilterBar, FilterState } from './FilterBar';
@@ -302,10 +303,11 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                             <div className="text-xs text-slate-400 truncate">{getName('componentTypes', r.component_type)}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${statusName === 'Concluída' ? 'bg-green-100 text-green-700' :
-                                                statusName === 'Cancelada' ? 'bg-red-100 text-red-700' :
-                                                    statusName === 'Em Aberto' ? 'bg-slate-100 text-slate-600' :
-                                                        'bg-blue-100 text-blue-700'
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${r.status === STATUS_IDS.CONCLUDED ? 'bg-green-100 text-green-700' :
+                                                    r.status === STATUS_IDS.CANCELLED ? 'bg-red-100 text-red-700' :
+                                                        r.status === STATUS_IDS.WAITING_VERIFICATION ? 'bg-purple-100 text-purple-700' :
+                                                            r.status === STATUS_IDS.IN_PROGRESS ? 'bg-blue-100 text-blue-700' :
+                                                                'bg-slate-100 text-slate-600'
                                                 }`}>
                                                 {statusName}
                                             </span>

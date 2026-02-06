@@ -2,6 +2,7 @@
 // VERSÃO CORRIGIDA - com verificação de erros em todas as operações
 
 import { AssetNode, RcaRecord, ActionRecord, TriggerRecord, TaxonomyConfig, MigrationData, TaxonomyItem } from "../types";
+import { STATUS_IDS } from "../constants/SystemConstants";
 
 const API_BASE = 'http://localhost:3001/api';
 
@@ -565,18 +566,19 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
 
             // 3. Status Logic
             let currentStatus = ensureTaxonomy('analysisStatuses', newRec.status) || newRec.status;
-            const isOpenStatus = !currentStatus || currentStatus === '' || currentStatus === 'STATUS-01' || currentStatus === 'Em Andamento';
+            // Robust Check: Open if empty, or STATUS-01 (ID) or 'Em Andamento' (Legacy Name)
+            const isOpenStatus = !currentStatus || currentStatus === '' || currentStatus === STATUS_IDS.IN_PROGRESS || currentStatus === 'Em Andamento';
 
             if (isOpenStatus) {
                 if (!isMandatoryComplete) {
-                    newRec.status = 'STATUS-01';
+                    newRec.status = STATUS_IDS.IN_PROGRESS;
                 } else {
                     if (!hasMainActions) {
-                        newRec.status = 'STATUS-03';
+                        newRec.status = STATUS_IDS.CONCLUDED;
                     } else if (allActionsEffective) {
-                        newRec.status = 'STATUS-03';
+                        newRec.status = STATUS_IDS.CONCLUDED;
                     } else {
-                        newRec.status = 'STATUS-WAITING';
+                        newRec.status = STATUS_IDS.WAITING_VERIFICATION;
                     }
                 }
             } else {

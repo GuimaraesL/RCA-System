@@ -1,5 +1,6 @@
 
 import { AssetNode, TaxonomyConfig } from '../types';
+import { STATUS_IDS } from '../constants/SystemConstants';
 
 // Refactored to Iterative BFS to prevent Maximum Call Stack Size Exceeded (Stack Overflow)
 export const getAssetName = (id: string, nodes: AssetNode[]): string => {
@@ -57,16 +58,26 @@ export const findAssetPath = (nodes: AssetNode[], targetId: string): AssetNode[]
     return null;
 };
 
-// Helper to get status badge color based on name (Hardcoded map for known statuses, fallback for others)
+// Helper to get status badge color based on ID
 export const getStatusColor = (statusId: string, taxonomy: TaxonomyConfig) => {
-    const name = getTaxonomyName(taxonomy.triggerStatuses || [], statusId);
-    switch (name) {
-        case 'Não iniciada': return 'bg-gray-100 text-gray-600';
-        case 'Em andamento': return 'bg-blue-100 text-blue-700';
-        case 'Concluída': return 'bg-green-100 text-green-700';
-        case 'Atrasada': return 'bg-red-100 text-red-700';
-        case 'Removido': return 'bg-slate-200 text-slate-500 line-through';
-        default: return 'bg-gray-50 text-gray-600';
+    switch (statusId) {
+        case STATUS_IDS.IN_PROGRESS:
+        case 'STATUS-02': // Legacy handling or Waiting Verification common color
+            return 'bg-blue-100 text-blue-700';
+        case STATUS_IDS.WAITING_VERIFICATION:
+            return 'bg-purple-100 text-purple-700'; // Differentiating Waiting Verification
+        case STATUS_IDS.CONCLUDED:
+            return 'bg-green-100 text-green-700';
+        case STATUS_IDS.DELAYED:
+            return 'bg-red-100 text-red-700';
+        case STATUS_IDS.CANCELLED:
+        case 'REMOVED': // Legacy/String fallback if needed?
+            return 'bg-slate-200 text-slate-500 line-through';
+        default:
+            // Fallback for names if ID match fails (transitional)
+            const name = getTaxonomyName(taxonomy.triggerStatuses || [], statusId);
+            if (name === 'Concluída') return 'bg-green-100 text-green-700';
+            return 'bg-gray-50 text-gray-600';
     }
 };
 
@@ -75,16 +86,13 @@ export const getFarol = (startDate: string, statusId: string, taxonomy: Taxonomy
     if (!startDate) return { days: 0, color: 'bg-gray-100 text-gray-500' };
 
     try {
-        // Lookup status name to determine behavior
-        const statusName = getTaxonomyName(taxonomy.triggerStatuses || [], statusId);
-
-        // NEW LOGIC: If Concluded, show Checkmark and Green
-        if (statusName === 'Concluída' || statusName === 'Concluido') {
+        // NEW LOGIC: Use ID directly
+        if (statusId === STATUS_IDS.CONCLUDED) {
             return { days: 'CHECK', color: 'bg-green-100 text-green-700 border border-green-200' };
         }
 
-        // Stop counting if Concluded or Removed
-        const isClosed = statusName === 'Concluída' || statusName === 'Removido' || statusName === 'Ignorada' || statusName === 'CONVERTED';
+        // Stop counting if Concluded or Removed/Cancelled
+        const isClosed = statusId === STATUS_IDS.CONCLUDED || statusId === STATUS_IDS.CANCELLED || statusId === 'REMOVED' || statusId === 'IGNORADA';
 
         // Styling based on time open
         const start = new Date(startDate);
