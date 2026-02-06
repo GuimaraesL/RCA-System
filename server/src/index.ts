@@ -55,4 +55,21 @@ const startServer = async () => {
     }
 };
 
+// Graceful Shutdown Hook for Debounced Save
+const handleShutdown = () => {
+    console.log('\n[Server] 🛑 Shutting down...');
+    try {
+        const { DatabaseConnection } = require('./v2/infrastructure/database/DatabaseConnection');
+        DatabaseConnection.getInstance().flush();
+        console.log('[Server] ✅ Database flushed successfully.');
+        process.exit(0);
+    } catch (err) {
+        console.error('[Server] ❌ Error flushing database:', err);
+        process.exit(1);
+    }
+};
+
+process.on('SIGINT', handleShutdown);
+process.on('SIGTERM', handleShutdown);
+
 startServer();

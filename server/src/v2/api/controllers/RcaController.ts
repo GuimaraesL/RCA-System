@@ -20,8 +20,25 @@ export class RcaController {
     // GET /api/v2/rcas
     public getAll = (req: Request, res: Response) => {
         try {
-            const rcas = this.rcaRepo.findAll();
-            res.json(rcas);
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 0; // 0 = all (compatibility)
+
+            if (limit > 0) {
+                const result = this.rcaService.getAllRcas(page, limit);
+                res.json({
+                    data: result.data,
+                    meta: {
+                        page,
+                        limit,
+                        total: result.total,
+                        totalPages: Math.ceil(result.total / limit)
+                    }
+                });
+            } else {
+                // Legacy behavior: Return array directly
+                const rcas = this.rcaRepo.findAll();
+                res.json(rcas);
+            }
         } catch (error) {
             console.error('[V2] Error getting all RCAs:', error);
             res.status(500).json({ error: 'Internal Server Error' });

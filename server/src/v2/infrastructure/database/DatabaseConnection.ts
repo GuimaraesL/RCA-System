@@ -69,16 +69,37 @@ export class DatabaseConnection {
 
 
 
+    private saveTimeout: NodeJS.Timeout | null = null;
+    private readonly SAVE_DELAY_MS = 1000; // 1 second debounce
+
     public save(): void {
+        if (!this.db) return;
+
+        // Clear existing timeout to reset the timer
+        if (this.saveTimeout) {
+            clearTimeout(this.saveTimeout);
+        }
+
+        this.saveTimeout = setTimeout(() => {
+            this.flush();
+        }, this.SAVE_DELAY_MS);
+    }
+
+    /**
+     * Forces immediate write to disk.
+     * Should be called on process exit or critical checkpoints.
+     */
+    public flush(): void {
         if (!this.db) return;
         try {
             const data = this.db.export();
             const buffer = Buffer.from(data);
             writeFileSync(this.dbPath, buffer);
-            // console.log(`[V2] 💾 Database saved: ${this.dbPath}`); 
+            // console.log(`[V2] 💾 Database saved (Flushed): ${this.dbPath}`); 
+            this.saveTimeout = null;
         } catch (err) {
             console.error(`[V2] ❌ Failed to save database:`, err);
-            throw err;
+            // Don't throw here to avoid crashing async flow, but log critical error
         }
     }
 

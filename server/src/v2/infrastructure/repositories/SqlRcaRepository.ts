@@ -9,9 +9,25 @@ export class SqlRcaRepository {
     }
 
     public findAll(): Rca[] {
+        // Legacy: Find All
         const rows = this.db.query('SELECT * FROM rcas ORDER BY created_at DESC');
-        // console.log(`[V2] SqlRcaRepository.findAll found ${rows.length} rows`);
         return rows.map(this.mapRowToRca);
+    }
+
+    public findAllPaginated(page: number, limit: number): { data: Rca[], total: number } {
+        const offset = (page - 1) * limit;
+
+        // 1. Get Total Count
+        const countResult = this.db.query('SELECT COUNT(*) as total FROM rcas');
+        const total = countResult[0]?.total || 0;
+
+        // 2. Get Data Slice
+        const rows = this.db.query('SELECT * FROM rcas ORDER BY created_at DESC LIMIT ? OFFSET ?', [limit, offset]);
+
+        return {
+            data: rows.map(this.mapRowToRca),
+            total
+        };
     }
 
     public findById(id: string): Rca | null {

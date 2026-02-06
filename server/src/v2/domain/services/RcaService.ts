@@ -18,6 +18,10 @@ export class RcaService {
 
     // --- Public Business Methods ---
 
+    public getAllRcas(page: number = 1, limit: number = 50) {
+        return this.rcaRepo.findAllPaginated(page, limit);
+    }
+
     public createRca(data: Partial<Rca>, taxonomy: TaxonomyConfig): { rca: Rca, statusReason: string } {
         // 1. Prepare data
         const id = (data.id && data.id.trim()) ? data.id : randomUUID();
