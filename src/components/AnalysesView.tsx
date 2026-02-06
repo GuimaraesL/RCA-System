@@ -10,6 +10,7 @@ import { useSorting } from '../hooks/useSorting';
 import { useRcaContext } from '../context/RcaContext';
 import { filterAssetsByUsage } from '../services/utils';
 import { ConfirmModal } from './ConfirmModal';
+import { getAssetName } from '../utils/triggerHelpers';
 // useEnterAnimation disabled for performance with large datasets
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
 
@@ -312,7 +313,9 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                             <div className="text-xs text-slate-400 truncate" title={r.problem_description}>{r.problem_description}</div>
                                         </td>
                                         <td className="px-6 py-4 max-w-xs">
-                                            <div className="text-slate-700 truncate" title={r.asset_name_display}>{r.asset_name_display}</div>
+                                            <div className="text-slate-700 truncate" title={getAssetName(r.subgroup_id || r.equipment_id || r.area_id, assets) || r.asset_name_display}>
+                                                {getAssetName(r.subgroup_id || r.equipment_id || r.area_id, assets) || r.asset_name_display || '-'}
+                                            </div>
                                             <div className="text-xs text-slate-400 truncate">{getName('componentTypes', r.component_type)}</div>
                                         </td>
                                         <td className="px-6 py-4">
