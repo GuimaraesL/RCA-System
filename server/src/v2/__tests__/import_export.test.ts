@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Load real data sample
-const MIGRATION_FILE = path.resolve(__dirname, '../../data/rca_migration_v17_consolidated.json');
+const MIGRATION_FILE = path.resolve(__dirname, '../../../../tests/data/rca_migration_v17_consolidated.json');
 
 describe('Import/Export Data Validation', () => {
     let service: RcaService;

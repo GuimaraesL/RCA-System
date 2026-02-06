@@ -14,7 +14,7 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
     const mockTaxonomy: TaxonomyConfig = {
         analysisStatuses: [
             { id: 'STATUS-01', name: 'Em Andamento' },
-            { id: 'STATUS-WAITING', name: 'Aguardando Verificação' },
+            { id: 'STATUS-02', name: 'Aguardando Verificação' },
             { id: 'STATUS-03', name: 'Concluída' }
         ],
         mandatoryFields: {
@@ -112,7 +112,7 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
         const result = service.updateRca(rcaId, updateData, mockTaxonomy);
 
         // 4. Verify Status is NOT Concluded, but Waiting
-        expect(result.rca.status).toBe('STATUS-WAITING');
+        expect(result.rca.status).toBe('STATUS-02');
         expect(result.statusReason).toBe('Pending verification');
     });
 
@@ -135,7 +135,7 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
         // Trigger update to calc status
         let rca = rcaRepo.findById(rcaId)!;
         let result = service.updateRca(rcaId, rca, mockTaxonomy);
-        expect(result.rca.status).toBe('STATUS-WAITING');
+        expect(result.rca.status).toBe('STATUS-02');
 
         // 2. Update Action to Effective ('3' = Concluded/Effective in our mock logic context or legacy V1)
         // Note: RcaService Checks `['3', '4'].includes(String(a.status))`

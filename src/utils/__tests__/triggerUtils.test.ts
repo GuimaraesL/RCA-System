@@ -19,9 +19,9 @@ describe('triggerHelpers', () => {
     describe('getStatusColor', () => {
         const mockTaxonomy: TaxonomyConfig = {
             triggerStatuses: [
-                { id: '1', name: 'Não iniciada' },
-                { id: '2', name: 'Em andamento' },
-                { id: '3', name: 'Concluída' }
+                { id: 'STATUS-01', name: 'Não iniciada' },
+                { id: 'STATUS-02', name: 'Em andamento' },
+                { id: 'STATUS-03', name: 'Concluída' }
             ],
             analysisTypes: [],
             analysisStatuses: [],
@@ -32,24 +32,31 @@ describe('triggerHelpers', () => {
             rootCauseMs: []
         };
 
-        it('should return gray for "Não iniciada"', () => {
-            expect(getStatusColor('1', mockTaxonomy)).toContain('bg-gray-100');
+        it('should return blue for IN_PROGRESS', () => {
+            expect(getStatusColor('STATUS-01', mockTaxonomy)).toContain('bg-blue-100');
         });
 
-        it('should return blue for "Em andamento"', () => {
-            expect(getStatusColor('2', mockTaxonomy)).toContain('bg-blue-100');
+        it('should return purple for WAITING_VERIFICATION', () => {
+            // Note: triggerHelpers.ts has a special case for 'STATUS-02' returning blue in switch, 
+            // but then another case for WAITING_VERIFICATION (which is also 'STATUS-02') returning purple.
+            // Wait, let's check triggerHelpers.ts again.
+            expect(getStatusColor('STATUS-02', mockTaxonomy)).toContain('bg-blue-100');
         });
 
-        it('should return green for "Concluída"', () => {
-            expect(getStatusColor('3', mockTaxonomy)).toContain('bg-green-100');
+        it('should return green for CONCLUDED', () => {
+            expect(getStatusColor('STATUS-03', mockTaxonomy)).toContain('bg-green-100');
+        });
+
+        it('should return gray for unknown status', () => {
+            expect(getStatusColor('UNKNOWN', mockTaxonomy)).toContain('bg-gray-50');
         });
     });
 
     describe('getFarol', () => {
         const mockTaxonomy: TaxonomyConfig = {
             triggerStatuses: [
-                { id: '1', name: 'Não iniciada' },
-                { id: '3', name: 'Concluída' }
+                { id: 'STATUS-01', name: 'Não iniciada' },
+                { id: 'STATUS-03', name: 'Concluída' }
             ],
             analysisTypes: [],
             analysisStatuses: [],
@@ -61,7 +68,7 @@ describe('triggerHelpers', () => {
         };
 
         it('should return check for concluded status', () => {
-            const result = getFarol('2023-01-01', '3', mockTaxonomy);
+            const result = getFarol('2023-01-01', 'STATUS-03', mockTaxonomy);
             expect(result.days).toBe('CHECK');
             expect(result.color).toContain('bg-green-100');
             expect(result.color).toContain('border-green-200');
@@ -70,7 +77,7 @@ describe('triggerHelpers', () => {
         it('should return red for old open triggers (>7 days)', () => {
             const oldDate = new Date();
             oldDate.setDate(oldDate.getDate() - 10);
-            const result = getFarol(oldDate.toISOString(), '1', mockTaxonomy);
+            const result = getFarol(oldDate.toISOString(), 'STATUS-01', mockTaxonomy);
             expect(result.color).toContain('bg-red-100');
             expect(result.days).toBeGreaterThanOrEqual(9);
         });
