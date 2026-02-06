@@ -35,6 +35,10 @@ const startServer = async () => {
         await DatabaseConnection.getInstance().initialize();
         console.log('✅ V2 Database Connection initialized');
 
+        // Run Migrations (Create Tables if not exist)
+        const { MigrationRunner } = await import('./v2/infrastructure/database/MigrationRunner');
+        await new MigrationRunner().run();
+
         app.listen(PORT, () => {
             console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
             console.log(`📡 Endpoints disponíveis:`);
