@@ -1,6 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { AssetNode } from '../types';
+import { STATUS_IDS } from '../constants/SystemConstants';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Clock, TrendingUp, AlertCircle, CheckCircle, PieChart as PieIcon, Activity, MousePointerClick } from 'lucide-react';
 import { FilterBar, FilterState } from './FilterBar';
@@ -267,23 +268,21 @@ export const Dashboard: React.FC = () => {
     };
 
     // Helper to translate statuses for chart display
-    const translateStatus = (name: string) => {
-        const mapping: Record<string, string> = {
-            'Em Andamento': t('status.inProgress'),
-            'Concluída': t('status.completed'),
-            'Pendente': t('status.pending'),
-            'Aguardando': t('status.waiting'),
-            'Aguardando Verificação': t('status.waiting'),
-            'Cancelada': t('status.canceled'),
-            'Atrasada': t('status.delayed')
-        };
-        return mapping[name] || name;
+    const translateStatus = (id: string, name: string) => {
+        switch (id) {
+            case STATUS_IDS.IN_PROGRESS: return t('status.inProgress');
+            case STATUS_IDS.CONCLUDED: return t('status.completed');
+            case STATUS_IDS.WAITING_VERIFICATION: return t('status.waiting');
+            case STATUS_IDS.CANCELLED: return t('status.canceled');
+            case STATUS_IDS.DELAYED: return t('status.delayed');
+            default: return name || id;
+        }
     };
 
     // 1. Data Prep with IDs
     const dataStatus = aggregateCount(r => r.status, id => {
         const rawName = resolveTaxonomyName('analysisStatuses', id);
-        return translateStatus(rawName);
+        return translateStatus(id, rawName);
     });
     const dataType = aggregateCount(r => r.analysis_type, id => resolveTaxonomyName('analysisTypes', id));
     const dataEquip = aggregateCount(r => r.equipment_id, id => resolveAssetName(id));
