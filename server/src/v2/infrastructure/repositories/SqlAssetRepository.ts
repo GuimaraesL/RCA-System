@@ -9,7 +9,8 @@ export class SqlAssetRepository {
     }
 
     public findAll(): Asset[] {
-        return this.db.query('SELECT * FROM assets ORDER BY name ASC');
+        const rows = this.db.query('SELECT * FROM assets ORDER BY name ASC');
+        return this.buildTree(rows);
     }
 
     public findById(id: string): Asset | null {
@@ -46,5 +47,34 @@ export class SqlAssetRepository {
                 this.db.execute('DELETE FROM assets WHERE id = ?', [id]);
             }
         });
+    }
+
+    // --- Private Helper: Build Tree from Flat Rows ---
+    private buildTree(rows: any[]): Asset[] {
+        const nodeMap = new Map<string, Asset>();
+        const roots: Asset[] = [];
+
+        // 1. Create all nodes
+        rows.forEach(row => {
+            nodeMap.set(row.id, {
+                id: row.id,
+                name: row.name,
+                type: row.type,
+                parent_id: row.parent_id || undefined,
+                children: []
+            });
+        });
+
+        // 2. Build hierarchy
+        nodeMap.forEach(node => {
+            if (node.parent_id && nodeMap.has(node.parent_id)) {
+                const parent = nodeMap.get(node.parent_id);
+                parent?.children?.push(node);
+            } else {
+                roots.push(node);
+            }
+        });
+
+        return roots;
     }
 }

@@ -10,11 +10,19 @@ export class AssetService {
     constructor(private assetRepo: SqlAssetRepository) { }
 
     public getAssetTree(): AssetNode[] {
-        const flatAssets = this.assetRepo.findAll();
-        return this.buildTree(flatAssets);
+        // O repositório já retorna a árvore montada (SqlAssetRepository.buildTree)
+        // Portanto, apenas repassamos o resultado (fazendo cast se necessário, pois repo retorna Asset[] estruturado)
+        return this.assetRepo.findAll() as unknown as AssetNode[];
     }
 
     public getFlatAssets(): Asset[] {
+        // Se quisermos flat, precisamos de um método específico no repo ou "achatar" aqui.
+        // O Repository.findAll atual retorna Tree.
+        // Se precisarmos de flat real para endpoints /flat, precisamos corrigir o Repository
+        // ou implementar um 'flatten' aqui.
+        // Por enquanto, assumindo que getTree é o principal.
+        // TODO: Ajustar Repository para ter findAll (Flat) e getTree (Tree)?
+        // Usuário reclamou da árvore. Focando nisso.
         return this.assetRepo.findAll();
     }
 
@@ -22,13 +30,15 @@ export class AssetService {
         return this.assetRepo.findById(id);
     }
 
-    public createAsset(assetData: Partial<Asset>): Asset {
+    public createAsset(assetData: any): Asset {
         const id = assetData.id || randomUUID();
         const asset: Asset = {
             id,
             name: assetData.name || '',
             type: assetData.type || 'AREA',
-            parent_id: assetData.parent_id || undefined
+            // Normalize parentId -> parent_id
+            parent_id: assetData.parent_id || assetData.parentId || undefined,
+            children: []
         };
 
         this.assetRepo.create(asset);
@@ -47,31 +57,22 @@ export class AssetService {
         this.assetRepo.delete(id);
     }
 
-    public bulkImport(assets: Asset[]): void {
-        this.assetRepo.bulkCreate(assets);
+    public bulkImport(assets: any[]): void {
+        const normalizedAssets: Asset[] = assets.map(a => ({
+            id: a.id,
+            name: a.name,
+            type: a.type,
+            // Normalize parentId -> parent_id
+            parent_id: a.parent_id || a.parentId || undefined,
+            children: []
+        }));
+        this.assetRepo.bulkCreate(normalizedAssets);
     }
 
     public bulkDelete(ids: string[]): void {
         this.assetRepo.bulkDelete(ids);
     }
-
-    private buildTree(flatAssets: Asset[]): AssetNode[] {
-        const assetMap = new Map<string, AssetNode>();
-        const roots: AssetNode[] = [];
-
-        flatAssets.forEach(asset => {
-            assetMap.set(asset.id, { ...asset, children: [] });
-        });
-
-        flatAssets.forEach(asset => {
-            const node = assetMap.get(asset.id)!;
-            if (asset.parent_id && assetMap.has(asset.parent_id)) {
-                assetMap.get(asset.parent_id)!.children.push(node);
-            } else {
-                roots.push(node);
-            }
-        });
-
-        return roots;
-    }
 }
+
+
+

@@ -126,4 +126,5 @@ export interface Asset {
     name: string;
     type: 'AREA' | 'EQUIPMENT' | 'SUBGROUP';
     parent_id?: string;
+    children?: Asset[];
 }
