@@ -3,13 +3,9 @@
 
 import express from 'express';
 import cors from 'cors';
-import { initDatabase } from './db/database';
+import { DatabaseConnection } from './v2/infrastructure/database/DatabaseConnection';
 
-// Importar rotas
-import triggersRouter from './routes/triggers';
-import actionsRouter from './routes/actions';
-import taxonomyRouter from './routes/taxonomy';
-import assetsRouter from './routes/assets';
+// V1 Routes removed - migrated to V2 architecture
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -19,14 +15,8 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
 // Rotas da API
-// V1 RCAs Removed
-import v2RcasRouter from './v2/routes';
-app.use('/api/rcas', v2RcasRouter); // V2 LIVE
-
-app.use('/api/triggers', triggersRouter);
-app.use('/api/actions', actionsRouter);
-app.use('/api/taxonomy', taxonomyRouter);
-app.use('/api/assets', assetsRouter);
+import v2Router from './v2/routes';
+app.use('/api', v2Router); // ALL V2 ROUTES (RCAs, Triggers, Actions, etc.)
 
 // V2 Route Mounting (Legacy/Dual stack reference removed as it's now main)
 // import v2Routes from './v2/routes';
@@ -40,17 +30,10 @@ app.get('/api/health', (req, res) => {
 // Inicializar banco e servidor (async para sql.js)
 const startServer = async () => {
     try {
-        await initDatabase();
-        console.log('✅ Banco de dados inicializado');
-
-        // BRIDGE V1 -> V2
-        // Share the same in-memory database instance to avoid split-brain
-        const { getDatabase } = await import('./db/database');
+        // Initialize V2 Database Connection
         const { DatabaseConnection } = await import('./v2/infrastructure/database/DatabaseConnection');
-
-        const v1Db = getDatabase();
-        DatabaseConnection.getInstance().setRawDatabase(v1Db);
-        console.log('🔗 V1 Database bridged to V2 architecture');
+        await DatabaseConnection.getInstance().initialize();
+        console.log('✅ V2 Database Connection initialized');
 
         app.listen(PORT, () => {
             console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);

@@ -25,7 +25,7 @@ const resolveDbPath = () => {
     return path;
 };
 
-const DB_PATH = resolveDbPath();
+export const DB_PATH = resolveDbPath();
 console.log(`💾 Database Path Resolved: ${DB_PATH}`);
 
 let db: Database;

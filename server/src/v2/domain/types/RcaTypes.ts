@@ -100,3 +100,30 @@ export interface Action {
     created_at?: string;
     updated_at?: string;
 }
+
+export interface Trigger {
+    id: string;
+    area_id?: string;
+    equipment_id?: string;
+    subgroup_id?: string;
+    start_date: string;
+    end_date?: string;
+    duration_minutes?: number;
+    stop_type?: string;
+    stop_reason?: string;
+    comments?: string;
+    analysis_type_id?: string;
+    status: string;
+    responsible?: string;
+    rca_id?: string;
+    file_path?: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface Asset {
+    id: string;
+    name: string;
+    type: 'AREA' | 'EQUIPMENT' | 'SUBGROUP';
+    parent_id?: string;
+}
