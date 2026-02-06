@@ -1,6 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { RcaRecord, ActionRecord } from '../types';
+import { STATUS_IDS } from '../constants/SystemConstants';
 import { ArrowUp, ArrowDown, Activity, AlertCircle, Calendar, CheckCircle2 } from 'lucide-react';
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
@@ -67,8 +68,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
 
 
     // KPI Calculation
-    const totalOpen = filteredRecords.filter(r => r.status !== 'Concluída' && r.status !== 'Ef. Comprovada').length;
-    const totalClosed = filteredRecords.filter(r => r.status === 'Concluída' || r.status === 'Ef. Comprovada').length;
+    const isClosed = (status: string) => status === STATUS_IDS.CONCLUDED || status === 'Ef. Comprovada';
+
+    const totalOpen = filteredRecords.filter(r => !isClosed(r.status)).length;
+    const totalClosed = filteredRecords.filter(r => isClosed(r.status)).length;
     const avgDuration = 15; // Placeholder
 
     // Extract ALL Actions from ALL Records (for comprehensive analysis, or filtered?)

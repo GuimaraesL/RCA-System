@@ -68,6 +68,18 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         return taxonomyMaps[type].get(id) || id;
     };
 
+    // Helper to translate statuses (Consistency with Dashboard)
+    const translateStatus = (id: string, name: string) => {
+        switch (id) {
+            case STATUS_IDS.IN_PROGRESS: return t('status.inProgress');
+            case STATUS_IDS.CONCLUDED: return t('status.completed');
+            case STATUS_IDS.WAITING_VERIFICATION: return t('status.waiting');
+            case STATUS_IDS.CANCELLED: return t('status.canceled');
+            case STATUS_IDS.DELAYED: return t('status.delayed');
+            default: return name || id;
+        }
+    };
+
     // --- Delete Handlers ---
     const handleDelete = (e: React.MouseEvent, id: string) => {
         e.stopPropagation(); // Prevent row click from triggering edit
@@ -287,7 +299,8 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                 </tr>
                             )}
                             {filteredRecords.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(r => {
-                                const statusName = getName('analysisStatuses', r.status);
+                                const rawName = getName('analysisStatuses', r.status);
+                                const statusName = translateStatus(r.status, rawName);
                                 return (
                                     <tr key={r.id} onClick={() => onEdit(r)} className="hover:bg-blue-50 cursor-pointer transition-colors group">
                                         <td className="px-6 py-4">
@@ -304,10 +317,10 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${r.status === STATUS_IDS.CONCLUDED ? 'bg-green-100 text-green-700' :
-                                                    r.status === STATUS_IDS.CANCELLED ? 'bg-red-100 text-red-700' :
-                                                        r.status === STATUS_IDS.WAITING_VERIFICATION ? 'bg-purple-100 text-purple-700' :
-                                                            r.status === STATUS_IDS.IN_PROGRESS ? 'bg-blue-100 text-blue-700' :
-                                                                'bg-slate-100 text-slate-600'
+                                                r.status === STATUS_IDS.CANCELLED ? 'bg-red-100 text-red-700' :
+                                                    r.status === STATUS_IDS.WAITING_VERIFICATION ? 'bg-purple-100 text-purple-700' :
+                                                        r.status === STATUS_IDS.IN_PROGRESS ? 'bg-blue-100 text-blue-700' :
+                                                            'bg-slate-100 text-slate-600'
                                                 }`}>
                                                 {statusName}
                                             </span>
