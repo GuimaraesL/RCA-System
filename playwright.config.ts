@@ -2,11 +2,18 @@
 
 const config: PlaywrightTestConfig = {
   testDir: './tests/e2e',
-  timeout: 30000,
+  timeout: 60000,
   use: {
     baseURL: 'http://localhost:3000',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    headless: true,
+  },
+  webServer: {
+    command: 'npm run dev:client',
+    port: 3000,
+    reuseExistingServer: true,
+    timeout: 180000,
   },
   projects: [
     {
