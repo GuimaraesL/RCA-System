@@ -2,17 +2,11 @@ import { Rca, Action, TaxonomyConfig } from '../types/RcaTypes';
 import { SqlRcaRepository } from '../../infrastructure/repositories/SqlRcaRepository';
 import { SqlActionRepository } from '../../infrastructure/repositories/SqlActionRepository';
 import { randomUUID } from 'crypto';
+import { STATUS_IDS } from '../constants';
 
 export class RcaService {
     private rcaRepo: SqlRcaRepository;
     private actionRepo: SqlActionRepository;
-
-    // Default Constants (Mirrored from rcaStatusService.ts)
-    private static STATUS_IDS = {
-        IN_PROGRESS: 'STATUS-01',
-        WAITING: 'STATUS-WAITING',
-        CONCLUDED: 'STATUS-03'
-    };
 
     constructor(
         rcaRepo?: SqlRcaRepository,
@@ -77,6 +71,21 @@ export class RcaService {
         };
     }
 
+    // ... (updateRca and deleteRca kept implicit via careful replace checks or context if needed, but here focusing on top part replacement) ...
+    // Note: Since I need to replace top imports and remove static STATUS_IDS, I should replace until constructor or slightly after to ensure clean replacement.
+    // However, replace_file_content requires TargetContent. Let's precise target.
+
+    // Better strategy:
+    // 1. Add Import
+    // 2. Remove static STATUS_IDS
+    // 3. Replace usage in logic
+
+    // Let's do it in one chunk if possible, or multiple.
+    // The previous content included imports.
+
+
+
+
     public deleteRca(id: string): boolean {
         // We could verify existence first, but repository delete is idempotent-ish
         const exists = this.rcaRepo.findById(id);
@@ -133,13 +142,14 @@ export class RcaService {
 
     private isAutoManagedStatus(status: string | undefined, taxonomy: TaxonomyConfig): boolean {
         // Status resolution logic
-        const doneItem = taxonomy.analysisStatuses.find(s => s.name === 'Concluída');
-        const waitingItem = taxonomy.analysisStatuses.find(s => s.id === RcaService.STATUS_IDS.WAITING);
-        const openItem = taxonomy.analysisStatuses.find(s => s.id === RcaService.STATUS_IDS.IN_PROGRESS);
+        // FIX: Use ID mapping instead of Name
+        const doneItem = taxonomy.analysisStatuses.find(s => s.id === STATUS_IDS.CONCLUDED);
+        const waitingItem = taxonomy.analysisStatuses.find(s => s.id === STATUS_IDS.WAITING_VERIFICATION);
+        const openItem = taxonomy.analysisStatuses.find(s => s.id === STATUS_IDS.IN_PROGRESS);
 
-        const doneStatusId = doneItem?.id || RcaService.STATUS_IDS.CONCLUDED;
-        const waitingStatusId = waitingItem?.id || RcaService.STATUS_IDS.WAITING;
-        const openStatusId = openItem?.id || RcaService.STATUS_IDS.IN_PROGRESS;
+        const doneStatusId = doneItem?.id || STATUS_IDS.CONCLUDED;
+        const waitingStatusId = waitingItem?.id || STATUS_IDS.WAITING_VERIFICATION;
+        const openStatusId = openItem?.id || STATUS_IDS.IN_PROGRESS;
 
         const autoManagedStatuses: (string | null | undefined)[] = [openStatusId, waitingStatusId, doneStatusId, '', undefined, null];
         return autoManagedStatuses.includes(status);
@@ -170,13 +180,13 @@ export class RcaService {
     }
 
     public calculateRcaStatus(rca: Rca, actions: Action[], taxonomy: TaxonomyConfig): { newStatus: string, statusChanged: boolean, completionDate?: string, reason: string } {
-        const doneItem = taxonomy.analysisStatuses.find(s => s.name === 'Concluída');
-        const waitingItem = taxonomy.analysisStatuses.find(s => s.id === RcaService.STATUS_IDS.WAITING);
-        const openItem = taxonomy.analysisStatuses.find(s => s.id === RcaService.STATUS_IDS.IN_PROGRESS);
+        const doneItem = taxonomy.analysisStatuses.find(s => s.id === STATUS_IDS.CONCLUDED);
+        const waitingItem = taxonomy.analysisStatuses.find(s => s.id === STATUS_IDS.WAITING_VERIFICATION);
+        const openItem = taxonomy.analysisStatuses.find(s => s.id === STATUS_IDS.IN_PROGRESS);
 
-        const doneStatusId = doneItem?.id || RcaService.STATUS_IDS.CONCLUDED;
-        const waitingStatusId = waitingItem?.id || RcaService.STATUS_IDS.WAITING;
-        const openStatusId = openItem?.id || RcaService.STATUS_IDS.IN_PROGRESS;
+        const doneStatusId = doneItem?.id || STATUS_IDS.CONCLUDED;
+        const waitingStatusId = waitingItem?.id || STATUS_IDS.WAITING_VERIFICATION;
+        const openStatusId = openItem?.id || STATUS_IDS.IN_PROGRESS;
 
         const currentStatus = rca.status;
 

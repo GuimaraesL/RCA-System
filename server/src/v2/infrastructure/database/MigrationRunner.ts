@@ -58,6 +58,14 @@ export class MigrationRunner {
             {
                 name: 'v1.5: Add updated_at to actions',
                 up: "ALTER TABLE actions ADD COLUMN updated_at TEXT"
+            },
+            {
+                name: 'v2.0: Normalize Status Strings to IDs',
+                up: `
+                    UPDATE rcas SET status = 'STATUS-03' WHERE status IN ('Concluída', 'Concluido', 'Concluida');
+                    UPDATE rcas SET status = 'STATUS-01' WHERE status IN ('Em Andamento', 'Em andamento');
+                    UPDATE rcas SET status = 'STATUS-02' WHERE status IN ('Aguardando Verificação', 'Ag. Verif');
+                `
             }
         ];
 
