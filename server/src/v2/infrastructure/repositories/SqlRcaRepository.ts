@@ -10,6 +10,7 @@ export class SqlRcaRepository {
 
     public findAll(): Rca[] {
         const rows = this.db.query('SELECT * FROM rcas ORDER BY created_at DESC');
+        // console.log(`[V2] SqlRcaRepository.findAll found ${rows.length} rows`);
         return rows.map(this.mapRowToRca);
     }
 
@@ -85,6 +86,7 @@ export class SqlRcaRepository {
         });
     }
 
+
     // --- Public 'save' alias for upsert (Used by scripts/repair_db.ts) ---
     public save(rca: Rca): void {
         this.upsert(rca);
@@ -115,19 +117,29 @@ export class SqlRcaRepository {
         return val === undefined ? null : val;
     }
 
+    private safeParse(json: string | null, fallback: any): any {
+        if (!json) return fallback;
+        try {
+            return JSON.parse(json);
+        } catch (e) {
+            console.warn(`[V2] Failed to parse JSON: ${json.substring(0, 50)}... Returning fallback.`);
+            return fallback;
+        }
+    }
+
     private mapRowToRca = (row: any): Rca => {
         return {
             ...row,
-            participants: JSON.parse(row.participants || '[]'),
-            five_whys: JSON.parse(row.five_whys || '[]'),
-            five_whys_chains: JSON.parse(row.five_whys_chains || '[]'),
-            ishikawa: JSON.parse(row.ishikawa || '{}'),
-            root_causes: JSON.parse(row.root_causes || '[]'),
-            precision_maintenance: JSON.parse(row.precision_maintenance || '[]'),
-            human_reliability: JSON.parse(row.human_reliability || 'null'),
-            containment_actions: JSON.parse(row.containment_actions || '[]'),
-            lessons_learned: JSON.parse(row.lessons_learned || '[]'),
-            additional_info: JSON.parse(row.additional_info || 'null'),
+            participants: this.safeParse(row.participants, []),
+            five_whys: this.safeParse(row.five_whys, []),
+            five_whys_chains: this.safeParse(row.five_whys_chains, []),
+            ishikawa: this.safeParse(row.ishikawa, {}),
+            root_causes: this.safeParse(row.root_causes, []),
+            precision_maintenance: this.safeParse(row.precision_maintenance, []),
+            human_reliability: this.safeParse(row.human_reliability, null),
+            containment_actions: this.safeParse(row.containment_actions, []),
+            lessons_learned: this.safeParse(row.lessons_learned, []),
+            additional_info: this.safeParse(row.additional_info, null),
             requires_operation_support: !!row.requires_operation_support
         };
     }

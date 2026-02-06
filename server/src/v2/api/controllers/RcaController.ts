@@ -55,7 +55,7 @@ export class RcaController {
             const taxonomy = this.taxonomyRepo.getTaxonomy();
             const result = this.rcaService.createRca(parse.data as any, taxonomy);
 
-            console.log(`[V2] ✅ RCA Created: ${result.rca.id}`);
+            // console.log(`[V2] ✅ RCA Created: ${result.rca.id}`);
             res.status(201).json({
                 // id is included in ...result.rca
                 message: 'RCA created successfully',
@@ -82,7 +82,7 @@ export class RcaController {
             // Note: Service handles status calculation and update
             const result = this.rcaService.updateRca(id, parse.data, taxonomy);
 
-            console.log(`[V2] ✅ RCA Updated: ${id}`);
+            // console.log(`[V2] ✅ RCA Updated: ${id}`);
             res.json({
                 message: 'RCA updated successfully',
                 status: result.rca.status,
@@ -101,7 +101,7 @@ export class RcaController {
         try {
             const { id } = req.params;
             this.rcaRepo.delete(id);
-            console.log(`[V2] 🗑️ RCA Deleted: ${id}`);
+            // console.log(`[V2] 🗑️ RCA Deleted: ${id}`);
             res.json({ message: 'RCA deleted successfully' });
         } catch (error) {
             console.error('[V2] Error deleting RCA:', error);
@@ -129,10 +129,10 @@ export class RcaController {
             // However, V1 DOES NOT run status calculation for bulk items. It just dumps them in.
             // So we will use Repo.bulkCreate directly.
 
-            console.log(`[V2] 🔄 Bulk Importing ${parse.data.length} RCAs...`);
+            // console.log(`[V2] 🔄 Bulk Importing ${parse.data.length} RCAs...`);
             this.rcaRepo.bulkCreate(parse.data as any[]); // types might need casting depending on exact zod vs Rca match
 
-            console.log(`[V2] ✅ Bulk Import Completed.`);
+            // console.log(`[V2] ✅ Bulk Import Completed.`);
             res.json({ message: `Imported ${parse.data.length} RCAs successfully` });
 
         } catch (error) {
@@ -152,7 +152,7 @@ export class RcaController {
             console.log(`[V2] 🗑️ Bulk Deleting ${ids.length} RCAs...`);
             this.rcaRepo.bulkDelete(ids);
 
-            console.log(`[V2] ✅ Bulk Delete Completed.`);
+            // console.log(`[V2] ✅ Bulk Delete Completed.`);
             res.json({ message: `Deleted ${ids.length} RCAs successfully` });
         } catch (error) {
             console.error('[V2] Error bulk deleting:', error);

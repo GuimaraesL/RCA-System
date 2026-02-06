@@ -8,8 +8,7 @@ export class DatabaseConnection {
     private dbPath: string;
 
     private constructor() {
-        // Resolve path logic mirroring server/src/db/database.ts
-        // server/src/v2/infrastructure/database -> ../../../../data
+        // Resolve path: server/data/rca.db
         const DATA_DIR = join(__dirname, '..', '..', '..', '..', 'data');
         this.dbPath = this.resolveDbPath(DATA_DIR);
         console.log(`[V2] 💾 Database Path Resolved: ${this.dbPath}`);
@@ -53,10 +52,10 @@ export class DatabaseConnection {
         if (existsSync(this.dbPath)) {
             const buffer = readFileSync(this.dbPath);
             this.db = new SQL.Database(buffer);
-            console.log(`[V2] 📂 Database loaded: ${this.dbPath}`);
+            // console.log(`[V2] 📂 Database loaded: ${this.dbPath}`);
         } else {
             this.db = new SQL.Database();
-            console.log(`[V2] 📂 New database created: ${this.dbPath}`);
+            // console.log(`[V2] 📂 New database created: ${this.dbPath}`);
             // Note: Schema initialization should be handled by MigrationRunner
         }
     }
@@ -68,14 +67,7 @@ export class DatabaseConnection {
         return this.db;
     }
 
-    /**
-     * BRIDGE METHOD: Allows using an existing Database instance (e.g. from V1 legacy)
-     * This prevents "split-brain" issues where V1 and V2 use different in-memory DBs.
-     */
-    public setRawDatabase(db: Database): void {
-        this.db = db;
-        console.log('[V2] 🔗 Database linked to existing instance (Bridge Mode)');
-    }
+
 
     public save(): void {
         if (!this.db) return;
@@ -115,8 +107,19 @@ export class DatabaseConnection {
         const db = this.getRawDatabase();
         db.run(sql, params);
         // Only save if it's a modification AND we are not in a transaction
-        // (If in transaction, we save once at the end)
         if (!this.inTransaction && !sql.trim().toUpperCase().startsWith('SELECT')) {
+            this.save();
+        }
+    }
+
+    /**
+     * Executes multiple statements without parameter binding.
+     * Ideal for schema scripts.
+     */
+    public exec(sql: string): void {
+        const db = this.getRawDatabase();
+        db.exec(sql);
+        if (!this.inTransaction) {
             this.save();
         }
     }

@@ -19,13 +19,12 @@ export class MigrationRunner {
     }
 
     private async ensureBaseSchema(): Promise<void> {
-        // Resolve path to original schema.sql
-        // server/src/v2/infrastructure/database -> ../../../../server/src/db/schema.sql
-        const schemaPath = join(__dirname, '..', '..', '..', '..', 'src', 'db', 'schema.sql');
+        // Resolve path to V2 schema.sql
+        const schemaPath = join(__dirname, 'schema.sql');
 
         if (existsSync(schemaPath)) {
             const schema = readFileSync(schemaPath, 'utf-8');
-            this.db.execute(schema);
+            this.db.exec(schema);
             // console.log('[V2] Base schema checked/applied.');
         } else {
             console.error(`[V2] ❌ Schema file not found at: ${schemaPath}`);
@@ -65,11 +64,11 @@ export class MigrationRunner {
         for (const migration of migrations) {
             try {
                 this.db.execute(migration.up);
-                console.log(`[V2] ✅ Applied: ${migration.name}`);
+                // console.log(`[V2] ✅ Applied: ${migration.name}`);
             } catch (e: any) {
                 // Ignore if duplicate column (already applied)
                 if (!e.message.includes("duplicate column")) {
-                    console.log(`[V2] ℹ️ Skipped: ${migration.name} (${e.message})`);
+                    // console.log(`[V2] ℹ️ Skipped: ${migration.name} (${e.message})`);
                 }
             }
         }
