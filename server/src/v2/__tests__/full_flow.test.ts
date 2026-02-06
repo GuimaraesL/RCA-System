@@ -4,6 +4,7 @@ import { RcaService } from '../domain/services/RcaService';
 import { SqlRcaRepository } from '../infrastructure/repositories/SqlRcaRepository';
 import { DatabaseConnection } from '../infrastructure/database/DatabaseConnection';
 import { Rca, TaxonomyConfig } from '../domain/types/RcaTypes';
+import { STATUS_IDS } from '../domain/constants';
 
 // Use a real in-memory DB for this test, not mocks
 describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
@@ -12,9 +13,9 @@ describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
 
     const mockTaxonomy: TaxonomyConfig = {
         analysisStatuses: [
-            { id: 'STATUS-01', name: 'Em Andamento' },
-            { id: 'STATUS-WAITING', name: 'Aguardando Verificação' },
-            { id: 'STATUS-03', name: 'Concluída' }
+            { id: STATUS_IDS.IN_PROGRESS, name: 'Em Andamento' },
+            { id: STATUS_IDS.WAITING_VERIFICATION, name: 'Aguardando Verificação' },
+            { id: STATUS_IDS.CONCLUDED, name: 'Concluída' }
         ],
         mandatoryFields: {
             rca: {
@@ -75,7 +76,7 @@ describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
             const createResult = service.createRca(input, mockTaxonomy);
 
             expect(createResult.rca.id).toBeDefined();
-            expect(createResult.rca.status).toBe('STATUS-01'); // Default start
+            expect(createResult.rca.status).toBe(STATUS_IDS.IN_PROGRESS); // Default start
             console.error(`✅ Created RCA with ID: ${createResult.rca.id}`);
 
             // Verify Persistence
@@ -102,7 +103,7 @@ describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
             console.error(`DEBUG: Status Changed: ${updateResult.statusChanged}`);
 
             // Should auto-transition to Concluded (STATUS-03) because mandatory fields are present and no actions
-            expect(updateResult.rca.status).toBe('STATUS-03');
+            expect(updateResult.rca.status).toBe(STATUS_IDS.CONCLUDED);
             expect(updateResult.statusChanged).toBe(true);
             console.error(`✅ Logic verified: Status transition to ${updateResult.rca.status}`);
 
@@ -139,13 +140,13 @@ describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
                 ...createResult.rca, // Clone existing structure
                 id: 'IMPORT-001',
                 what: 'Imported Record 1',
-                status: 'Concluída'
+                status: STATUS_IDS.CONCLUDED
             },
             {
                 ...createResult.rca,
                 id: 'IMPORT-002',
                 what: 'Imported Record 2',
-                status: 'Cancelada'
+                status: STATUS_IDS.CANCELLED
             }
         ];
 
