@@ -10,11 +10,17 @@ export class SqlTaxonomyRepository {
 
     public getTaxonomy(): TaxonomyConfig {
         const rows = this.db.query('SELECT config FROM taxonomy LIMIT 1');
-        console.log(`[V2] SqlTaxonomyRepository.getTaxonomy: Found ${rows.length} rows`);
+        // console.log(`[V2] SqlTaxonomyRepository.getTaxonomy: Found ${rows.length} rows`);
+
         if (rows.length > 0 && rows[0].config) {
             try {
-                const config = JSON.parse(rows[0].config) as TaxonomyConfig;
-                console.log(`[V2] Taxonomy parsed successfully. Analysis Statuses: ${config.analysisStatuses?.length}`);
+                const parsed = JSON.parse(rows[0].config);
+                // Merge with default to guarantee structure
+                const config: TaxonomyConfig = {
+                    ...this.getDefaultTaxonomy(),
+                    ...parsed
+                };
+                // console.log(`[V2] Taxonomy parsed successfully. Analysis Statuses: ${config.analysisStatuses?.length}`);
                 return config;
             } catch (e) {
                 console.error('[V2] Failed to parse taxonomy config', e);
@@ -22,6 +28,19 @@ export class SqlTaxonomyRepository {
         }
 
         // Fallback default (Comprehensive to prevent Frontend crash)
+        return this.getDefaultTaxonomy();
+    }
+
+    public updateTaxonomy(config: Partial<TaxonomyConfig>): void {
+        const current = this.getTaxonomy();
+        const updated = { ...current, ...config };
+
+        // In sql.js/sqlite, simpler to replace the single row
+        this.db.execute('DELETE FROM taxonomy');
+        this.db.execute('INSERT INTO taxonomy (config) VALUES (?)', [JSON.stringify(updated)]);
+    }
+
+    private getDefaultTaxonomy(): TaxonomyConfig {
         return {
             analysisTypes: [
                 { id: 'TYPE-01', name: 'Falha de Equipamento' },
@@ -68,14 +87,5 @@ export class SqlTaxonomyRepository {
                 }
             }
         } as TaxonomyConfig;
-    }
-
-    public updateTaxonomy(config: Partial<TaxonomyConfig>): void {
-        const current = this.getTaxonomy();
-        const updated = { ...current, ...config };
-
-        // In sql.js/sqlite, simpler to replace the single row
-        this.db.execute('DELETE FROM taxonomy');
-        this.db.execute('INSERT INTO taxonomy (config) VALUES (?)', [JSON.stringify(updated)]);
     }
 }
