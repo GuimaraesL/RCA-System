@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { RcaRecord, AssetNode, IshikawaDiagram } from '../types';
 import { getStandardPrecisionItems, getStandardHraStruct, generateId } from '../services/utils';
-import { analyzeFailure } from '../services/geminiService';
 import { useRcaContext } from '../context/RcaContext';
 
 const emptyIshikawa: IshikawaDiagram = {
@@ -82,7 +81,8 @@ const findAssetPath = (nodes: AssetNode[], targetId: string): AssetNode[] | null
 export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: () => void) => {
     const { assets, taxonomy, actions, updateRecord, addRecord } = useRcaContext();
     const [step, setStep] = useState(1);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    // AI analysis feature removed - isAnalyzing kept for API compatibility
+    const isAnalyzing = false;
 
     // Initialize with default or existing, BUT we need to validate status immediately
     const [formData, setFormData] = useState<RcaRecord>(() => {
@@ -230,17 +230,9 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         setFormData(prev => ({ ...prev, ...update }));
     };
 
+    // AI analysis feature removed - function kept as no-op for API compatibility
     const handleAnalyzeAI = async () => {
-        if (!formData.asset_name_display || !formData.problem_description) return;
-        setIsAnalyzing(true);
-        const diagram = await analyzeFailure(formData.asset_name_display, formData.problem_description);
-        if (diagram) {
-            setFormData(prev => ({
-                ...prev,
-                ishikawa: diagram
-            }));
-        }
-        setIsAnalyzing(false);
+        console.warn('AI analysis feature has been disabled');
     };
 
     // Validation State
