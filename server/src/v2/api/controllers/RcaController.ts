@@ -4,8 +4,7 @@ import { SqlRcaRepository } from '../../infrastructure/repositories/SqlRcaReposi
 import { SqlTaxonomyRepository } from '../../infrastructure/repositories/SqlTaxonomyRepository';
 import { z } from 'zod';
 // Importando schema de validação existente para manter compatibilidade
-// Ajustar caminho conforme necessário: server/src/schemas/validation.ts
-import { rcaSchema } from '../../../schemas/validation';
+import { rcaSchema } from '../schemas/validation';
 
 export class RcaController {
     private rcaService: RcaService;

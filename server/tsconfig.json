@@ -13,7 +13,7 @@
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
         "typeRoots": [
-            "./src/types",
+            "./src/v2/types",
             "./node_modules/@types"
         ]
     },
