@@ -115,40 +115,58 @@ test.describe('Unified Modal Flows', () => {
 
   /**
    * 5. Fluxo de Salvamento de Gatilho (Teste de Regressão)
-   * Cobertura: Valida se o conflito entre 'stop_reason' e 'description' impede o salvamento.
+   * Cobertura: Valida se a correção da nomenclatura de campos obrigatórios permite o salvamento.
    */
   test('Trigger Modal - Save Interaction', async ({ page }) => {
+    // Monitora logs do console
+    page.on('console', msg => console.log(`BROWSER [${msg.type()}]: ${msg.text()}`));
+    page.on('pageerror', err => console.log(`BROWSER ERROR: ${err.message}`));
+
     await page.getByRole('button', { name: /Gatilhos|Triggers/i }).click();
 
     // Abertura do novo gatilho
-    await page.getByRole('button', { name: /Novo|New/i }).first().click();
+    await page.getByRole('button', { name: /Novo Gatilho|New Trigger/i }).click();
     const modal = page.locator('div.fixed.inset-0.z-50');
     await expect(modal).toBeVisible();
 
-    // Preenchimento de campos obrigatórios
+    // 1. Datas (Identificadas pela ordem e tipo)
     await modal.locator('input[type="datetime-local"]').first().fill('2026-02-01T12:00');
     await modal.locator('input[type="datetime-local"]').nth(1).fill('2026-02-01T13:00');
 
-    // Seleção de ativo no componente customizado
+    // 2. Seleção de Ativo (Primeiro item da lista de subgrupos)
     const assetItem = modal.locator('div.border.rounded li').first();
     if (await assetItem.isVisible()) {
       await assetItem.click();
     }
 
-    // Tipo e Razão da parada
-    await modal.getByText(/Tipo de Parada|Stop Type/i).locator('..').locator('input').fill('Test Stop');
-    await modal.getByText(/Razão Parada|Stop Reason|Motivo da Parada/i).locator('..').locator('input').fill('Fix Verification');
+    // 3. Preenchimento via Ordem de Inputs (Abordagem Blindada contra I18n)
+    const textInputs = modal.locator('input[type="text"]');
+    await textInputs.nth(0).fill('E2E Stop Type');   // Primeiro input de texto
+    await textInputs.nth(1).fill('E2E Stop Reason'); // Segundo input de texto
+    await textInputs.nth(2).fill('E2E Responsible'); // Terceiro input de texto
 
-    // Metadados adicionais
-    const analysisSelect = modal.locator('select').nth(0);
-    await analysisSelect.selectOption({ index: 1 });
-    await modal.getByText(/Responsável|Responsible/i).locator('..').locator('input').fill('Automated Tester');
+    // 4. Selects (Tipo de Análise e Status)
+    const selects = modal.locator('select');
+    await selects.nth(0).selectOption({ index: 1 }); // Tipo de Análise
+    await selects.nth(1).selectOption({ index: 1 }); // Status
 
-    // Salvamento
-    await page.getByRole('button', { name: /Salvar Gatilho|Save Trigger/i }).click();
+    // 5. Tentativa de Salvamento
+    const saveBtn = page.getByRole('button', { name: /Salvar Gatilho|Save Trigger/i });
+    await saveBtn.click();
 
-    // Verificação de fechamento (Indica sucesso operacional)
-    await expect(modal).not.toBeVisible({ timeout: 5000 });
+    // DIAGNÓSTICO: Se o modal não fechar em 2s, verificamos quais campos têm a classe de erro (border-red-500)
+    try {
+      await expect(modal).not.toBeVisible({ timeout: 2000 });
+    } catch (e) {
+      const errorFields = await modal.locator('.border-red-500').evaluateAll(elements => 
+        elements.map(el => {
+          const label = el.parentElement?.querySelector('label')?.innerText || 'Campo sem label';
+          return label;
+        })
+      );
+      console.log('❌ CAMPOS COM ERRO DE VALIDAÇÃO:', errorFields);
+      throw new Error(`Falha no salvamento. Campos obrigatórios pendentes: ${errorFields.join(', ')}`);
+    }
   });
 
 });
