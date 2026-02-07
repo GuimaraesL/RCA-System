@@ -17,6 +17,8 @@ interface TriggerModalProps {
     validationErrors?: string[];
 }
 
+const DEFAULT_ERRORS: string[] = [];
+
 export const TriggerModal: React.FC<TriggerModalProps> = ({
     editingTrigger,
     setEditingTrigger,
@@ -24,7 +26,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
     handleSave,
     assets,
     taxonomy,
-    validationErrors = []
+    validationErrors = DEFAULT_ERRORS
 }) => {
     const { t } = useLanguage();
     const modalRef = useRef<HTMLDivElement>(null);
