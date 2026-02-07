@@ -64,7 +64,10 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
-            <div ref={containerRef} className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden opacity-0">
+            <div
+                ref={containerRef}
+                className={`bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden ${(window as any).isPlaywright ? 'opacity-100' : 'opacity-0'}`}
+            >
                 {/* Header */}
                 <div className={`px-6 py-4 ${colors.bg} flex items-center gap-3`}>
                     <AlertTriangle className={`${colors.icon}`} size={24} />

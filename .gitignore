@@ -39,3 +39,5 @@ server/data/rca.db
 
 docs/PROBLEMAS_ATUAIS.md
 docs/QUALITY_AUDIT_REPORT.md
+delete_fail.json
+final_results.json

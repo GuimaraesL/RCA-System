@@ -187,7 +187,7 @@ const AppContent: React.FC = () => {
             <main className="flex-1 overflow-hidden relative flex flex-col">
                 {/* Suspense: Fallback exibido enquanto o componente lazy é carregado */}
                 <Suspense fallback={
-                    <div className="flex-1 flex items-center justify-center bg-slate-50/50">
+                    <div className="flex-1 flex items-center justify-center bg-slate-50/50" data-testid="app-suspense-loading">
                         <div className="flex flex-col items-center gap-3 text-slate-400">
                             <Loader2 className="animate-spin" size={32} />
                             <span className="text-sm font-medium">{t('common.loading')}</span>
@@ -207,7 +207,8 @@ const AppContent: React.FC = () => {
                     ) : (
                         // We use key={view} and animate-in class to trigger animation on view switch
                         // CSS classes 'animate-in fade-in slide-in-from-bottom-2 duration-300' create the effect
-                        <div key={view} className="flex-1 overflow-auto bg-slate-50/50 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        // Animation disabled in tests to avoid pointer interception issues
+                        <div key={view} className={`flex-1 overflow-auto bg-slate-50/50 ${(window as any).isPlaywright ? '' : 'animate-in fade-in slide-in-from-bottom-2 duration-300'}`}>
                             {view === 'DASHBOARD' && (
                                 <Dashboard />
                             )}

@@ -13,6 +13,10 @@ export const ANIMATION_CONFIG = {
 
 // Reusable animation functions
 export const animateEnterStaggered = (targets: any, delay: number = 0) => {
+    if ((window as any).isPlaywright) {
+        anime.set(targets, { opacity: 1, translateY: 0 });
+        return;
+    }
     return anime({
         targets,
         opacity: [0, 1],
@@ -24,6 +28,10 @@ export const animateEnterStaggered = (targets: any, delay: number = 0) => {
 };
 
 export const animateModalEnter = (target: any) => {
+    if ((window as any).isPlaywright) {
+        anime.set(target, { opacity: 1, scale: 1, translateY: 0 });
+        return;
+    }
     return anime({
         targets: target,
         opacity: [0, 1],
@@ -39,6 +47,10 @@ export const animateCounter = (
     value: number,
     duration: number = 1000
 ) => {
+    if ((window as any).isPlaywright) {
+        target.innerHTML = value;
+        return;
+    }
     return anime({
         targets: target,
         innerHTML: [0, value],

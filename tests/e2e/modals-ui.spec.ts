@@ -18,13 +18,24 @@ test.describe('Unified Modal Flows', () => {
     page.on('pageerror', err => console.log(`❌ BROWSER CRASH: ${err.message}`));
     page.on('console', msg => console.log(`[BROWSER ${msg.type()}]: ${msg.text()}`));
 
+    // Injeta flag ANTES do carregamento
+    await page.addInitScript(() => {
+      (window as any).isPlaywright = true;
+    });
+
     // 🛡️ FULL API SHADOWING
     await page.route('**/api/**', async route => {
       const url = route.request().url();
       if (url.includes('/api/health')) return route.fulfill({ status: 200, body: JSON.stringify(SystemFactory.health()) });
       if (url.includes('/api/taxonomy')) return route.fulfill({ status: 200, body: JSON.stringify(TaxonomyFactory.createDefault()) });
       if (url.includes('/api/assets')) return route.fulfill({ status: 200, body: JSON.stringify([]) });
-      if (url.includes('/api/rcas')) return route.fulfill({ status: 200, body: JSON.stringify([]) });
+      if (url.includes('/api/rcas')) {
+        const mockRcas = [
+          RcaFactory.create({ id: 'RCA-E2E-001', what: 'Falha de Rolamento' }),
+          RcaFactory.create({ id: 'RCA-E2E-002', what: 'Vazamento de Óleo' })
+        ];
+        return route.fulfill({ status: 200, body: JSON.stringify(mockRcas) });
+      }
       return route.fulfill({ status: 200, body: JSON.stringify([]) });
     });
 

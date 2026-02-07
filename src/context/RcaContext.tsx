@@ -56,19 +56,28 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [triggers, setTriggers] = useState<TriggerRecord[]>([]);
   const [taxonomy, setTaxonomy] = useState<TaxonomyConfig>(emptyTaxonomy);
   const [isLoading, setIsLoading] = useState(true);
-  const [useApi, setUseApi] = useState(false);
+  const [useApi, setUseApi] = useState<boolean | null>(null);
 
   // Detectar se API está disponível
   useEffect(() => {
     const checkApi = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
+
       try {
-        const response = await fetch('http://localhost:3001/api/health');
+        const response = await fetch('http://localhost:3001/api/health', {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
         if (response.ok) {
           console.log('✅ API disponível - usando backend');
           setUseApi(true);
+        } else {
+          setUseApi(false);
         }
-      } catch {
-        console.log('⚠️ API não disponível - usando localStorage');
+      } catch (err: any) {
+        clearTimeout(timeoutId);
+        console.log('⚠️ API não disponível ou timeout - usando localStorage', err.name === 'AbortError' ? '(Timeout)' : '');
         setUseApi(false);
       }
     };
@@ -79,6 +88,11 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     console.log('🔄 Refresh: Carregando dados... (useApi:', useApi, ')');
     setIsLoading(true);
     try {
+      if (useApi === null) {
+        console.log('⏳ Refresh: Aguardando detecção da API...');
+        return;
+      }
+
       if (useApi) {
         const [recs, assts, acts, trigs, tax] = await Promise.all([
           api.fetchRecords(),

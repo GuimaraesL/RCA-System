@@ -43,6 +43,7 @@ interface FilterBarProps {
         specialties?: FilterOption[];
         analysisTypes?: FilterOption[];
         assets?: AssetNode[];
+        rootCause6Ms?: FilterOption[];
     };
     isOpen: boolean;
     onToggle: () => void;
@@ -97,7 +98,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         statuses = [],
         specialties = [],
         analysisTypes = [],
-        assets = []
+        assets = [],
+        rootCause6Ms = []
     } = options || {};
 
     const handleChange = (key: keyof FilterState, value: any) => {
