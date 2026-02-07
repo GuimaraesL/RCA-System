@@ -69,7 +69,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                 </div>
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div>
-                        <label className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.linkedAnalysis')} <span className="text-red-500">*</span></label>
+                        <label htmlFor="action_rca_id" className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.linkedAnalysis')} <span className="text-red-500" aria-hidden="true">*</span></label>
                         {fixedRca ? (
                             <div className="w-full border p-2 rounded text-sm bg-slate-100 text-slate-700 font-medium">
                                 {fixedRca.title}
@@ -89,7 +89,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                         )}
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.actionDescription')} <span className="text-red-500">*</span></label>
+                        <label htmlFor="action_description" className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.actionDescription')} <span className="text-red-500" aria-hidden="true">*</span></label>
                         <textarea
                             id="action_description"
                             name="action_description"
@@ -101,24 +101,26 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.responsible')} <span className="text-red-500">*</span></label>
+                            <label htmlFor="action_responsible" className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.responsible')} <span className="text-red-500" aria-hidden="true">*</span></label>
                             <input
                                 id="action_responsible"
                                 name="action_responsible"
                                 type="text"
                                 required
+                                aria-required="true"
                                 className="w-full border p-2 rounded text-sm bg-white text-slate-900"
                                 value={form.responsible}
                                 onChange={e => setForm({ ...form, responsible: e.target.value })}
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.dueDate')} <span className="text-red-500">*</span></label>
+                            <label htmlFor="action_date" className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.dueDate')} <span className="text-red-500" aria-hidden="true">*</span></label>
                             <input
                                 id="action_date"
                                 name="action_date"
                                 type="date"
                                 required
+                                aria-required="true"
                                 className="w-full border p-2 rounded text-sm bg-white text-slate-900"
                                 value={form.date}
                                 onChange={e => setForm({ ...form, date: e.target.value })}
@@ -127,7 +129,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.statusBox')}</label>
+                            <label htmlFor="action_status" className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.statusBox')}</label>
                             <select
                                 id="action_status"
                                 name="action_status"
@@ -142,7 +144,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.mocNumber')}</label>
+                            <label htmlFor="action_moc" className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.mocNumber')}</label>
                             <input
                                 id="action_moc"
                                 name="action_moc"

@@ -69,7 +69,16 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                                 <td className="p-3 text-center"><button onClick={() => updateHraQuestion(q.id, 'answer', 'YES')} className={`p-1 rounded ${q.answer === 'YES' ? 'text-green-600 bg-green-50' : 'text-slate-300'}`}>{q.answer === 'YES' ? <CheckSquare size={18} /> : <Square size={18} />}</button></td>
                                 <td className="p-3 text-center"><button onClick={() => updateHraQuestion(q.id, 'answer', 'NO')} className={`p-1 rounded ${q.answer === 'NO' ? 'text-red-500 bg-red-50' : 'text-slate-300'}`}>{q.answer === 'NO' ? <XSquare size={18} /> : <Square size={18} />}</button></td>
                                 <td className="p-3">
-                                    <input type="text" className="w-full border-b border-slate-200 focus:border-indigo-500 outline-none bg-transparent text-xs py-1 text-slate-900 placeholder:text-slate-400" placeholder={t('wizard.stepHRA.addComment')} value={q.comment} onChange={e => updateHraQuestion(q.id, 'comment', e.target.value)} />
+                                    <input
+                                        id={`hra_comment_${q.id}`}
+                                        name={`hra_comment_${q.id}`}
+                                        type="text"
+                                        className="w-full border-b border-slate-200 focus:border-indigo-500 outline-none bg-transparent text-xs py-1 text-slate-900 placeholder:text-slate-400"
+                                        placeholder={t('wizard.stepHRA.addComment')}
+                                        aria-label={`${t('wizard.stepHRA.comments')} - ${t(q.question_snapshot || '') || t(q.question || '')}`}
+                                        value={q.comment}
+                                        onChange={e => updateHraQuestion(q.id, 'comment', e.target.value)}
+                                    />
                                 </td>
                             </tr>
                         ))}
@@ -84,10 +93,16 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                     {(data.human_reliability.conclusions || []).map(c => (
                         <div key={c.id} className={`p-4 rounded border ${c.selected ? 'border-indigo-300 bg-indigo-50/20' : 'border-slate-200'}`}>
                             <div className="flex items-center gap-3 mb-2">
-                                <button onClick={() => updateHraConclusion(c.id, 'selected', !c.selected)} className={c.selected ? 'text-indigo-600' : 'text-slate-300'}>
+                                <button
+                                    id={`btn_hra_conclusion_${c.id}`}
+                                    onClick={() => updateHraConclusion(c.id, 'selected', !c.selected)}
+                                    className={c.selected ? 'text-indigo-600' : 'text-slate-300'}
+                                    aria-pressed={c.selected}
+                                    aria-labelledby={`label_hra_conclusion_${c.id}`}
+                                >
                                     {c.selected ? <CheckSquare size={20} /> : <Square size={20} />}
                                 </button>
-                                <span className={`font-bold text-sm ${c.selected ? 'text-indigo-800' : 'text-slate-700'}`}>{t(c.label || '')}</span>
+                                <label id={`label_hra_conclusion_${c.id}`} htmlFor={`btn_hra_conclusion_${c.id}`} className={`font-bold text-sm cursor-pointer ${c.selected ? 'text-indigo-800' : 'text-slate-700'}`}>{t(c.label || '')}</label>
                             </div>
                             {c.selected && (
                                 <div className="pl-8 animate-in fade-in slide-in-from-top-1">
@@ -110,15 +125,19 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">{t('wizard.stepHRA.validation')}</h3>
                 <div className="flex items-start gap-4">
                     <div className="flex-1">
-                        <label className="block text-xs font-medium text-slate-500 mb-1">{t('wizard.stepHRA.validationQuestion')}</label>
-                        <div className="flex gap-4 mt-2">
+                        <label htmlFor="hra_validation_selector" className="block text-xs font-medium text-slate-500 mb-1">{t('wizard.stepHRA.validationQuestion')}</label>
+                        <div id="hra_validation_selector" className="flex gap-4 mt-2" role="radiogroup" aria-label={t('wizard.stepHRA.validationQuestion')}>
                             <button
+                                aria-checked={data.human_reliability!.validation?.isValidated === 'YES'}
+                                role="radio"
                                 onClick={() => onChange('human_reliability', { ...data.human_reliability!, validation: { ... (data.human_reliability!.validation || { isValidated: '', comment: '' }), isValidated: 'YES' } })}
                                 className={`flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium ${data.human_reliability!.validation?.isValidated === 'YES' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-white border-slate-300 text-slate-600'}`}
                             >
                                 <CheckSquare size={16} /> {t('wizard.stepHRA.yes').toUpperCase()}
                             </button>
                             <button
+                                aria-checked={data.human_reliability!.validation?.isValidated === 'NO'}
+                                role="radio"
                                 onClick={() => onChange('human_reliability', { ...data.human_reliability!, validation: { ... (data.human_reliability!.validation || { isValidated: '', comment: '' }), isValidated: 'NO' } })}
                                 className={`flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium ${data.human_reliability!.validation?.isValidated === 'NO' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-slate-300 text-slate-600'}`}
                             >
@@ -127,8 +146,10 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                         </div>
                     </div>
                     <div className="flex-[2]">
-                        <label className="block text-xs font-medium text-slate-500 mb-1">{t('wizard.stepHRA.coordinatorComments')}</label>
+                        <label htmlFor="hra_coordinator_comment" className="block text-xs font-medium text-slate-500 mb-1">{t('wizard.stepHRA.coordinatorComments')}</label>
                         <Textarea
+                            id="hra_coordinator_comment"
+                            name="hra_coordinator_comment"
                             rows={3}
                             value={data.human_reliability!.validation?.comment || ''}
                             onChange={e => onChange('human_reliability', { ...data.human_reliability!, validation: { ... (data.human_reliability!.validation || { isValidated: '', comment: '' }), comment: e.target.value } })}

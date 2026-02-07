@@ -190,9 +190,11 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                 </div>
                 <div className="flex gap-4 items-center">
                     <div className="flex flex-col items-end">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{t('common.status')}</label>
+                        <label htmlFor="rca_status" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{t('common.status')}</label>
                         <div className="relative">
                             <select
+                                id="rca_status"
+                                name="rca_status"
                                 value={formData.status}
                                 onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
                                 className={`appearance-none cursor-pointer pl-3 pr-8 py-1.5 rounded-lg text-sm font-bold border transition-colors focus:ring-2 focus:ring-blue-200 focus:outline-none ${isCompleted

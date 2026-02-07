@@ -27,8 +27,11 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
         let current: any = locale;
 
         for (const k of keys) {
-            if (current[k] === undefined) {
-                console.warn(`Translation missing for key: ${key} in language: ${language}`);
+            if (!current || current[k] === undefined) {
+                // Only warn if it looks like a dot-notation key
+                if (key.includes('.')) {
+                    console.warn(`Translation missing for key: ${key} in language: ${language}`);
+                }
                 return key;
             }
             current = current[k];

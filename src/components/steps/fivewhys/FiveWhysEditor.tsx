@@ -91,6 +91,7 @@ const NodeEditor: React.FC<{
                 <div className="mb-2 flex items-center gap-2">
                     <CornerDownRight size={16} className="text-slate-400" />
                     <Input
+                        id={`node_${node.id}_cause_effect`}
                         value={node.cause_effect}
                         onChange={e => onUpdate({ ...node, cause_effect: e.target.value })}
                         className="bg-amber-50 border-amber-200 font-semibold text-amber-900 h-8 text-sm w-full md:w-1/2"
@@ -119,15 +120,18 @@ const NodeEditor: React.FC<{
                             {why.level}
                         </div>
                         <div className="flex-1">
-                            <label className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">
+                            <label htmlFor={`node_${node.id}_why_${why.level}`} className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">
                                 {why.level === 1 ? t('wizard.step4.fiveWhys.whyDidProblemOccur') : t('wizard.step4.fiveWhys.whyLabel').replace('{0}', (node.whys?.[idx - 1]?.answer?.substring(0, 50) || '') + '...')}
                             </label>
                             <div className="flex gap-2">
                                 <Input
+                                    id={`node_${node.id}_why_${why.level}`}
+                                    name={`node_${node.id}_why_${why.level}`}
                                     value={why.answer}
                                     onChange={e => updateWhy(why.level, e.target.value)}
                                     placeholder={t('wizard.step4.fiveWhys.answerPlaceholder')}
                                     className="h-9"
+                                    aria-label={why.level === 1 ? t('wizard.step4.fiveWhys.whyDidProblemOccur') : t('wizard.step4.fiveWhys.whyLabel').replace('{0}', (node.whys?.[idx - 1]?.answer?.substring(0, 20) || ''))}
                                 />
                                 {/* Only show delete if it's not the only one, or allow deleting all? 
                                     Usually we want at least 1, but user asked to delete. 
@@ -209,14 +213,19 @@ export const FiveWhysEditor: React.FC<FiveWhysEditorProps> = ({ chains, onChange
         <div className="space-y-8">
             {chains.map((chain, idx) => (
                 <div key={chain.chain_id} className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <div className="flex justify-between items-center mb-4">
-                        <Input
-                            value={chain.cause_effect}
-                            onChange={e => updateChain(idx, { ...chain, cause_effect: e.target.value })}
-                            className="font-bold text-lg bg-transparent border-none text-slate-800 focus:bg-white"
-                            placeholder={t('wizard.step4.fiveWhys.pathTitlePlaceholder')}
-                        />
-                        <Button variant="ghost" size="sm" onClick={() => deleteChain(idx)} className="text-red-400 hover:text-red-600">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1">
+                            <label htmlFor={`chain_${chain.chain_id}_title`} className="sr-only">{t('wizard.step4.fiveWhys.pathTitlePlaceholder')}</label>
+                            <Input
+                                id={`chain_${chain.chain_id}_title`}
+                                name={`chain_${chain.chain_id}_title`}
+                                value={chain.cause_effect}
+                                onChange={e => updateChain(idx, { ...chain, cause_effect: e.target.value })}
+                                className="font-bold text-lg bg-transparent border-none text-slate-800 focus:bg-white w-full"
+                                placeholder={t('wizard.step4.fiveWhys.pathTitlePlaceholder')}
+                            />
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => deleteChain(idx)} className="text-red-400 hover:text-red-600 mt-1">
                             <Trash2 size={16} />
                         </Button>
                     </div>

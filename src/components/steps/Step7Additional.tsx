@@ -48,6 +48,7 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
             <div className="space-y-6">
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <Textarea
+                        id="meeting_notes"
                         label={t('wizard.step7.meetingNotes')}
                         placeholder={t('wizard.step7.meetingNotesPlaceholder')}
                         rows={6}
@@ -83,6 +84,7 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
 
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <Textarea
+                        id="general_comments"
                         label={t('wizard.step7.generalComments')}
                         placeholder={t('wizard.step7.generalCommentsPlaceholder')}
                         rows={6}
@@ -93,6 +95,7 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
 
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <Textarea
+                        id="historical_info"
                         label={t('wizard.step7.historicalInfo')}
                         placeholder={t('wizard.step7.historicalInfoPlaceholder')}
                         rows={8}
@@ -114,6 +117,8 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
                     {data.lessons_learned.map((lesson, idx) => (
                         <div key={idx} className="flex gap-2">
                             <input
+                                id={`lesson_${idx}`}
+                                name={`lesson_${idx}`}
                                 type="text"
                                 className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-slate-900 placeholder:text-slate-400"
                                 value={lesson}

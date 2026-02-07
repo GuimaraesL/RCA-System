@@ -142,6 +142,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                                     <div>
                                         <label className="block text-xs font-semibold text-blue-700 mb-1 uppercase">{t('wizard.step4.fiveWhys.whyEffect')}</label>
                                         <Input
+                                            id={`five_whys_${index}_question`}
                                             value={w.why_question}
                                             onChange={(e) => {
                                                 const newWhys = [...(data.five_whys || [])];
@@ -154,6 +155,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                                     <div>
                                         <label className="block text-xs font-semibold text-blue-700 mb-1 uppercase">{t('wizard.step4.fiveWhys.whyCause')}</label>
                                         <Input
+                                            id={`five_whys_${index}_answer`}
                                             value={w.answer}
                                             onChange={(e) => {
                                                 const newWhys = [...(data.five_whys || [])];
@@ -199,6 +201,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                 <div className="mb-8 bg-white p-4 rounded-lg border border-green-200 shadow-sm flex flex-col md:flex-row gap-3 items-end">
                     <div className="flex-1 w-full">
                         <Select
+                            id="ishikawa_category"
                             label={t('wizard.step4.ishikawaSubtitle')}
                             options={ishikawaCategories.map(c => ({ value: c.key, label: c.label }))}
                             value={selectedCategory}
@@ -207,6 +210,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                     </div>
                     <div className="flex-[2] w-full">
                         <Input
+                            id="ishikawa_new_item"
                             label={t('wizard.step4.addItem')}
                             placeholder="..."
                             value={newIshikawaItem}
@@ -282,6 +286,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                         <div key={rc.id} className="grid grid-cols-12 gap-4 items-start bg-white p-4 rounded-lg border border-yellow-200 shadow-sm group">
                             <div className="col-span-12 md:col-span-4">
                                 <Select
+                                    id={`root_cause_${idx}_m_id`}
                                     label={t('wizard.step4.sixMFactor')}
                                     options={[{ value: '', label: t('wizard.select') }, ...(taxonomy?.rootCauseMs || []).map(m => ({ value: m.id, label: m.name }))]}
                                     value={rc.root_cause_m_id}
@@ -290,6 +295,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                             </div>
                             <div className="col-span-12 md:col-span-7">
                                 <Textarea
+                                    id={`root_cause_${idx}_cause`}
                                     label={t('wizard.step4.causeDescription')}
                                     rows={2}
                                     value={rc.cause}

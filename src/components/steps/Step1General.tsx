@@ -73,6 +73,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                     {/* Right: Details */}
                     <div className="space-y-4">
                         <Select
+                            id="component_type"
                             label={t('wizard.step1.componentType')}
                             required={isRequired('component_type')}
                             options={[{ value: '', label: t('wizard.selectType') }, ...taxonomy.componentTypes.map(t => ({ value: t.id, label: t.name }))]}

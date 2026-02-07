@@ -161,7 +161,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                                 </tr>
                             )}
                             {sortedActions.map(act => (
-                                <tr key={act.id} className="hover:bg-slate-50 opacity-0"> {/* opacity-0 for staggered animation */}
+                                <tr key={act.id} className="hover:bg-slate-50 opacity-0">
                                     <td className="px-4 py-2 font-bold text-center border-r border-slate-100 bg-slate-50/50 w-16">{t('common.box')} {act.status}</td>
                                     <td className="px-4 py-2">{act.action}</td>
                                     <td className="px-4 py-2">{act.responsible}</td>

@@ -646,6 +646,11 @@ export const pt: TranslationSchema = {
         step7: {
             title: "Informações Adicionais",
             subtitle: "Documentação complementar e lições aprendidas",
+            links: "Links Úteis",
+            linkTitle: "Título do Link",
+            linkTitlePlaceholder: "ex: Troubleshooting Guide",
+            linkUrl: "URL",
+            linkUrlPlaceholder: "https://...",
             meetingNotes: "Notas de Reunião",
             meetingNotesPlaceholder: "Registre pontos importantes discutidos...",
             generalComments: "Comentários Gerais",

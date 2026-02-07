@@ -84,6 +84,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                     />
 
                     <Textarea
+                        id="quality_impacts"
                         label={t('wizard.step2.qualityImpacts')}
                         placeholder={t('wizard.step2.qualityImpactsPlaceholder')}
                         rows={4}

@@ -271,3 +271,6 @@ When user's prompt is NOT in English:
 - **Test**: `playwright_runner.py`, `test_runner.py`
 
 ---
+
+
+Realize as resposta, commits, issues, comentarios do codigo tudo em português-BR.
