@@ -58,6 +58,9 @@ export class DatabaseConnection {
             // console.log(`[V2] 📂 New database created: ${this.dbPath}`);
             // Note: Schema initialization should be handled by MigrationRunner
         }
+
+        // Enable foreign key constraints (SQLite requires explicit activation)
+        this.db.run('PRAGMA foreign_keys = ON');
     }
 
     public getRawDatabase(): Database {

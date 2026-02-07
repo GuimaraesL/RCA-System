@@ -426,7 +426,7 @@ export const Dashboard: React.FC = () => {
                 {/* Row 1: High Level Distribution (Interactive) */}
                 <ChartCard title={t('dashboard.charts.totalByStatus')} icon={<CheckCircle size={16} />} isInteractive>
                     {dataStatus.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <PieChart>
                                 <Pie
                                     data={dataStatus}
@@ -467,7 +467,7 @@ export const Dashboard: React.FC = () => {
 
                 <ChartCard title={t('dashboard.charts.totalByType')} icon={<PieIcon size={16} />} isInteractive>
                     {dataType.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <PieChart>
                                 <Pie
                                     data={dataType}
@@ -506,7 +506,7 @@ export const Dashboard: React.FC = () => {
 
                 {/* Row 2: Assets (Interactive) */}
                 <ChartCard title={t('dashboard.charts.topEquipments')} icon={<TrendingUp size={16} />} isInteractive>
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                         <BarChart
                             data={dataEquip}
                             layout="vertical"
@@ -534,7 +534,7 @@ export const Dashboard: React.FC = () => {
                 </ChartCard>
 
                 <ChartCard title={t('dashboard.charts.topSubgroups')} icon={<TrendingUp size={16} />} isInteractive>
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                         <BarChart
                             data={dataSub}
                             layout="vertical"
@@ -564,7 +564,7 @@ export const Dashboard: React.FC = () => {
                 {/* Row 3: Technical Details (Interactive) */}
                 <ChartCard title={t('dashboard.charts.rootCauses6M')} icon={<AlertCircle size={16} />} isInteractive>
                     {data6M.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <PieChart>
                                 <Pie
                                     data={data6M}
@@ -601,7 +601,7 @@ export const Dashboard: React.FC = () => {
                 </ChartCard>
 
                 <ChartCard title={t('dashboard.charts.totalByComponent')} icon={<AlertCircle size={16} />} isInteractive>
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                         <BarChart data={dataComp} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                             <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748b' }} interval={0} angle={-45} textAnchor="end" height={60} tickFormatter={(value) => truncateLabel(value)} />
@@ -626,7 +626,7 @@ export const Dashboard: React.FC = () => {
                 </ChartCard>
 
                 <ChartCard title={t('dashboard.charts.failureMode')} icon={<AlertCircle size={16} />} isInteractive>
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                         <BarChart
                             data={dataMode}
                             layout="vertical"
@@ -655,7 +655,7 @@ export const Dashboard: React.FC = () => {
                 </ChartCard>
 
                 <ChartCard title={t('dashboard.charts.failureCategory')} icon={<AlertCircle size={16} />} isInteractive>
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                         <BarChart
                             data={dataCat}
                             layout="vertical"
