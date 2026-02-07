@@ -66,7 +66,7 @@ describe('Performance Benchmark (V2 Core)', () => {
         repo.bulkCreate(data);
         const endCreate = performance.now();
         const createTime = endCreate - startCreate;
-        console.log(`⏱️ Criação em Massa (1000 itens): ${createTime.toFixed(2)}ms`);
+        console.log(` Criação em Massa (1000 itens): ${createTime.toFixed(2)}ms`);
 
         expect(createTime).toBeLessThan(2000);
 
@@ -75,7 +75,7 @@ describe('Performance Benchmark (V2 Core)', () => {
         const all = repo.findAll();
         const endRead = performance.now();
         const readTime = endRead - startRead;
-        console.log(`⏱️ Leitura de Todos (1000 itens): ${readTime.toFixed(2)}ms`);
+        console.log(` Leitura de Todos (1000 itens): ${readTime.toFixed(2)}ms`);
 
         expect(all.length).toBe(BATCH_SIZE);
         expect(readTime).toBeLessThan(500); 
@@ -86,9 +86,10 @@ describe('Performance Benchmark (V2 Core)', () => {
         repo.bulkDelete(ids);
         const endDelete = performance.now();
         const deleteTime = endDelete - startDelete;
-        console.log(`⏱️ Deleção em Massa (1000 itens): ${deleteTime.toFixed(2)}ms`);
+        console.log(` Deleção em Massa (1000 itens): ${deleteTime.toFixed(2)}ms`);
 
         expect(repo.findAll().length).toBe(0);
         expect(deleteTime).toBeLessThan(2000);
     });
 });
+

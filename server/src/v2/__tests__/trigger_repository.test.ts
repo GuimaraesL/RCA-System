@@ -121,3 +121,4 @@ describe('SqlTriggerRepository Integration Test', () => {
         expect(repo.findAll().length).toBe(1);
     });
 });
+

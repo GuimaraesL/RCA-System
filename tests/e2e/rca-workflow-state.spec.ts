@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Teste: rca-workflow-state.spec.ts
  * 
  * Proposta: Validar a transição de estados das análises e a integração entre Gatilhos e RCA.
@@ -70,3 +70,4 @@ test.describe('RCA Workflow - Ciclo de Estados e Gatilhos', () => {
   });
 
 });
+

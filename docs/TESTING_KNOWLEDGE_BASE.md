@@ -79,6 +79,12 @@ Ao buscar botões por nome, use sempre Regex para suportar PT/EN:
 await page.getByRole('button', { name: /Salvar|Save/i });
 ```
 
+### E. Padrão de Comentários e Idioma
+Para manter a sobriedade e a acessibilidade técnica local:
+- **Idioma:** Todos os comentários, nomes de testes (it/test) e grupos (describe) devem estar exclusivamente em **Português (PT-BR)**.
+- **Emojis:** É proibido o uso de emojis em comentários ou descrições de teste para garantir um padrão visual profissional e uniforme.
+- **Estrutura:** Mantenha o cabeçalho técnico detalhando Proposta, Ações, Execução e Fluxo.
+
 ---
 
 ## 5. Resumo da Estrutura de Pastas de Teste

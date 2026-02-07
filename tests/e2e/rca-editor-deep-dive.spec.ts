@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Teste: rca-editor-deep-dive.spec.ts
  * 
  * Proposta: Validar o funcionamento detalhado das ferramentas de análise (Ishikawa, 5 Porquês e HRA).
@@ -14,7 +14,7 @@ import { RcaFactory, TaxonomyFactory } from '../factories/rcaFactory';
 test.describe('RCA Editor - Ferramentas de Investigação (POM + Mock)', () => {
 
   test.beforeEach(async ({ page }) => {
-    // 🛡️ FULL API SHADOWING
+    //  FULL API SHADOWING
     await page.route('**/api/**', async route => {
       const url = route.request().url();
       if (url.includes('/api/taxonomy')) {
@@ -56,3 +56,4 @@ test.describe('RCA Editor - Ferramentas de Investigação (POM + Mock)', () => {
   });
 
 });
+

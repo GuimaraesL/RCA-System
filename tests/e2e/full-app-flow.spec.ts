@@ -15,15 +15,15 @@ test.describe('RCA System - Validação de Fluxo Completo (Integração)', () =>
   const areaName = `AREA_REAL_${timestamp}`;
 
   test.beforeEach(async ({ page }) => {
-    // 🛡️ Monitoramento conforme TESTING_KNOWLEDGE_BASE
-    page.on('pageerror', err => console.log(`❌ BROWSER CRASH: ${err.message}`));
+    // Monitoramento conforme BASE DE CONHECIMENTO
+    page.on('pageerror', err => console.log(`ERRO DE PÁGINA: ${err.message}`));
     page.on('console', msg => {
-      if (msg.type() === 'error') console.log(`[BROWSER ERROR]: ${msg.text()}`);
+      if (msg.type() === 'error') console.log(`[CONSOLE ERROR]: ${msg.text()}`);
     });
 
     await page.goto('/', { waitUntil: 'networkidle' });
 
-    // ⏳ Aguarda o fim do carregamento do Suspense (Lazy Loading)
+    // Aguarda o fim do carregamento do Suspense (Lazy Loading)
     const loader = page.getByTestId('app-suspense-loading');
     if (await loader.isVisible()) {
       await expect(loader).not.toBeVisible({ timeout: 20000 });
@@ -34,7 +34,7 @@ test.describe('RCA System - Validação de Fluxo Completo (Integração)', () =>
   });
 
   test('Deve realizar o Health Check do ambiente real', async ({ page }) => {
-    // Verifica se a API de saúde responde
+    // Verifica se o título principal está visível
     const title = page.locator('h1');
     await expect(title).toBeVisible();
     
@@ -56,14 +56,13 @@ test.describe('RCA System - Validação de Fluxo Completo (Integração)', () =>
     await expect(page.getByTestId('app-suspense-loading')).not.toBeVisible();
 
     // 2. Criar nova Área
-    // Usamos um seletor mais flexível para o botão de adicionar (ícone de plus)
     const addBtn = page.locator('button').filter({ has: page.locator('svg.lucide-plus') }).first();
     await addBtn.click();
     
     await page.getByPlaceholder(/Laminador|Rolling|Nome do Ativo/i).fill(areaName);
     await page.getByRole('button', { name: /Salvar|Save/i }).click();
 
-    // 3. Validar se apareceu na lista (com timeout estendido para o backend real)
+    // 3. Validar se apareceu na lista (timeout estendido para backend real)
     await expect(page.getByText(areaName)).toBeVisible({ timeout: 15000 });
 
     // 4. Dashboard e Gráficos

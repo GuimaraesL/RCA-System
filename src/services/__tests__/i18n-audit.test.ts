@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Teste: i18n-audit.test.ts
  * 
  * Proposta: Auditar o código-fonte em busca de strings hardcoded que deveriam ser internacionalizadas.
@@ -58,7 +58,7 @@ describe('Auditoria de Internacionalização (Anti-Hardcoded)', () => {
     });
 
     if (violations.length > 0) {
-      console.log('🚩 VIOLAÇÕES DE ATRIBUTOS HARDCODED FOUND:\n' + violations.join('\n'));
+      console.log(' VIOLAÇÕES DE ATRIBUTOS HARDCODED FOUND:\n' + violations.join('\n'));
     }
     
     expect(violations.length).toBeLessThanOrEqual(50); 
@@ -90,9 +90,10 @@ describe('Auditoria de Internacionalização (Anti-Hardcoded)', () => {
     });
 
     if (violations.length > 0) {
-      console.log('🚩 TEXTO JSX HARDCODED FOUND:\n' + violations.join('\n'));
+      console.log(' TEXTO JSX HARDCODED FOUND:\n' + violations.join('\n'));
     }
 
     expect(violations.length).toBeLessThanOrEqual(100); 
   });
 });
+

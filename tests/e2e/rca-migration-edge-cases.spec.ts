@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Teste: rca-migration-edge-cases.spec.ts
  * 
  * Proposta: Validar o tratamento de erros em arquivos de migração inválidos.

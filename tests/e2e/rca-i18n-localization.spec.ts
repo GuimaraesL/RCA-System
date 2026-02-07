@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Teste: rca-i18n-localization.spec.ts
  * 
  * Proposta: Validar a internacionalização (i18n) do sistema, garantindo a tradução correta da UI e a persistência do idioma.
@@ -14,10 +14,10 @@ test.describe('RCA System - Internacionalização (i18n)', () => {
 
   test.beforeEach(async ({ page }) => {
     // Monitora erros de página e console para diagnosticar crashes
-    page.on('pageerror', err => console.log(`❌ BROWSER CRASH: ${err.message}`));
+    page.on('pageerror', err => console.log(` BROWSER CRASH: ${err.message}`));
     page.on('console', msg => console.log(`[BROWSER ${msg.type()}]: ${msg.text()}`));
 
-    // 🛡️ FULL API SHADOWING
+    //  FULL API SHADOWING
     await page.route('**/api/**', async route => {
       const url = route.request().url();
       if (url.includes('/api/health')) return route.fulfill({ status: 200, body: JSON.stringify(SystemFactory.health()) });
@@ -88,3 +88,4 @@ test.describe('RCA System - Internacionalização (i18n)', () => {
   });
 
 });
+

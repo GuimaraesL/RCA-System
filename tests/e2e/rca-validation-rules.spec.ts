@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Teste: rca-validation-rules.spec.ts
  * 
  * Proposta: Validar as regras de preenchimento obrigatório e o feedback visual de erros do editor.
@@ -62,3 +62,4 @@ test.describe('RCA Editor - Regras de Validação e Erros', () => {
   });
 
 });
+

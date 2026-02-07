@@ -110,7 +110,7 @@ describe('Import/Export Data Validation', () => {
                 expect(result.rca.root_causes![0].cause).toBeDefined();
             }
 
-            console.log(`✅ Importado ${result.rca.id} - ${result.rca.what?.substring(0, 30)}...`);
+            console.log(` Importado ${result.rca.id} - ${result.rca.what?.substring(0, 30)}...`);
         }
 
         // Verifica contagem de persistência
@@ -135,6 +135,7 @@ describe('Import/Export Data Validation', () => {
         // Verifica propriedade profunda
         expect(saved?.ishikawa?.machine?.length).toBeGreaterThan(0);
         expect(saved?.ishikawa?.machine[0]).toBe(recordWithIshikawa.ishikawa.machine[0]);
-        console.log("✅ Estrutura de Ishikawa preservada");
+        console.log(" Estrutura de Ishikawa preservada");
     });
 });
+
