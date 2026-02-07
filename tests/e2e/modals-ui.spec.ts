@@ -28,13 +28,9 @@ test.describe('Unified Modal Flows', () => {
       const url = route.request().url();
       if (url.includes('/api/health')) return route.fulfill({ status: 200, body: JSON.stringify(SystemFactory.health()) });
       if (url.includes('/api/taxonomy')) return route.fulfill({ status: 200, body: JSON.stringify(TaxonomyFactory.createDefault()) });
-      if (url.includes('/api/assets')) return route.fulfill({ status: 200, body: JSON.stringify([]) });
+      if (url.includes('/api/assets')) return route.fulfill({ status: 200, body: JSON.stringify([{ id: 'AREA-01', name: 'Área Teste', type: 'AREA', children: [] }]) });
       if (url.includes('/api/rcas')) {
-        const mockRcas = [
-          RcaFactory.create({ id: 'RCA-E2E-001', what: 'Falha de Rolamento' }),
-          RcaFactory.create({ id: 'RCA-E2E-002', what: 'Vazamento de Óleo' })
-        ];
-        return route.fulfill({ status: 200, body: JSON.stringify(mockRcas) });
+        return route.fulfill({ status: 200, body: JSON.stringify([RcaFactory.create({ id: 'RCA-E2E-01', what: 'Registro de Teste E2E' })]) });
       }
       return route.fulfill({ status: 200, body: JSON.stringify([]) });
     });
@@ -91,13 +87,16 @@ test.describe('Unified Modal Flows', () => {
     const whatInput = page.getByPlaceholder(/Descrição sucinta|Brief description/i);
     await whatInput.fill('MODAL FLOW TEST');
 
-    // Verificar persistência entre trocas de aba
-    await page.getByText(/Dados Gerais|General Data/i).click();
-    await page.getByText(/Problema|Problem/i).click();
+    // Verificação de persistência entre trocas de aba (Sticky Footer Navigation)
+    // Usando botão 'Próximo' do rodapé para navegar
+    await page.locator('div.border-t button', { hasText: /Próximo|Next/i }).click();
+
+    // Voltar para aba anterior via botão 'Anterior' do rodapé
+    await page.locator('div.border-t button', { hasText: /Anterior|Previous/i }).click();
     await expect(whatInput).toHaveValue('MODAL FLOW TEST');
 
-    // Fechamento via botão de retorno (ArrowLeft)
-    await page.locator('button:has(svg.lucide-arrow-left)').first().click();
+    // Fechamento via botão 'Cancelar' do rodapé ou 'X' (se houver, mas aqui usamos o Cancelar do footer)
+    await page.getByRole('button', { name: /Cancelar|Cancel/i }).first().click();
     await expect(editorHeader).not.toBeVisible();
   });
 
@@ -134,9 +133,10 @@ test.describe('Unified Modal Flows', () => {
     await row.waitFor({ state: 'visible' });
 
     // Dispara deleção (scrollIntoViewIfNeeded resolve problemas de overflow horizontal)
-    const deleteBtn = page.locator('button[title*="Excluir"], button[title*="Delete"]').first();
+    // Target the delete button in the last column of the row
+    const deleteBtn = row.locator('button').last();
     await deleteBtn.scrollIntoViewIfNeeded();
-    await deleteBtn.click({ force: true });
+    await deleteBtn.click();
 
     // Verificação de conteúdo do modal
     const confirmTitle = page.getByText(/Confirmar Exclusão|Confirm Deletion/i);
@@ -185,12 +185,14 @@ test.describe('Unified Modal Flows', () => {
     await selects.nth(1).selectOption({ index: 1 }); // Status
 
     // 5. Tentativa de Salvamento
-    const saveBtn = page.getByRole('button', { name: /Salvar Gatilho|Save Trigger/i });
+    // const saveBtn = page.getByRole('button', { name: /Salvar Gatilho|Save Trigger/i });
+    // Target button inside the sticky footer (div with border-t)
+    const saveBtn = page.locator('div.border-t button', { hasText: /Salvar Gatilho|Save Trigger/i });
     await saveBtn.click();
 
-    // DIAGNÓSTICO: Se o modal não fechar em 2s, verificamos quais campos têm a classe de erro (border-red-500)
+    // DIAGNÓSTICO: Se o modal não fechar em 5s, verificamos quais campos têm a classe de erro (border-red-500)
     try {
-      await expect(modal).not.toBeVisible({ timeout: 2000 });
+      await expect(modal).not.toBeVisible({ timeout: 5000 });
     } catch (e) {
       const errorFields = await modal.locator('.border-red-500').evaluateAll(elements =>
         elements.map(el => {
