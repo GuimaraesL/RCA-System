@@ -50,13 +50,16 @@ const ListManager: React.FC<{
             {editingId === item.id ? (
               <div className="flex-1 flex gap-2 items-center">
                 <input
+                  id={`editInput_${item.id}`}
+                  name={`editInput_${item.id}`}
                   autoFocus
                   className="flex-1 border-2 border-blue-400 rounded-md px-3 py-1.5 text-sm outline-none bg-white text-slate-900 shadow-sm"
                   value={editValue}
                   onChange={(e) => setEditValue(e.target.value)}
+                  aria-label={`${t('settings.editItemLabel') || 'Editar item'} - ${item.name}`}
                 />
-                <button onClick={() => saveEdit(item.id)} className="p-1.5 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors"><Check size={16} /></button>
-                <button onClick={() => setEditingId(null)} className="p-1.5 bg-red-50 text-red-500 rounded-md hover:bg-red-100 transition-colors"><X size={16} /></button>
+                <button aria-label={t('common.save') || 'Salvar'} onClick={() => saveEdit(item.id)} className="p-1.5 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors"><Check size={16} /></button>
+                <button aria-label={t('common.cancel') || 'Cancelar'} onClick={() => setEditingId(null)} className="p-1.5 bg-red-50 text-red-500 rounded-md hover:bg-red-100 transition-colors"><X size={16} /></button>
               </div>
             ) : (
               <>
@@ -65,8 +68,8 @@ const ListManager: React.FC<{
                   <span className="text-[10px] text-slate-400 font-mono flex items-center gap-1 mt-0.5"><Lock size={8} /> {item.id}</span>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => startEdit(item.id, item.name)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all"><Edit2 size={15} /></button>
-                  <button onClick={() => setDeleteData({ id: item.id, name: item.name })} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all"><Trash2 size={15} /></button>
+                  <button aria-label={`${t('common.edit') || 'Editar'} - ${item.name}`} onClick={() => startEdit(item.id, item.name)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all"><Edit2 size={15} /></button>
+                  <button aria-label={`${t('common.delete') || 'Excluir'} - ${item.name}`} onClick={() => setDeleteData({ id: item.id, name: item.name })} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all"><Trash2 size={15} /></button>
                 </div>
               </>
             )}
@@ -81,10 +84,11 @@ const ListManager: React.FC<{
 
       <div className="flex gap-2 mt-auto pt-4 border-t border-slate-50">
         <input
-          id="newItemInput"
-          name="newItemInput"
+          id={`newItemInput_${field}`}
+          name={`newItemInput_${field}`}
           type="text"
           placeholder={t('settings.addItemPlaceholder')}
+          aria-label={`${t('settings.addItemPlaceholder')} - ${title}`}
           className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all"
           value={newItemName}
           onChange={e => setNewItemName(e.target.value)}
@@ -93,6 +97,7 @@ const ListManager: React.FC<{
         <button
           onClick={handleAdd}
           disabled={!newItemName.trim()}
+          aria-label={`${t('settings.addItemButton') || 'Adicionar'} - ${title}`}
           className="bg-blue-600 text-white p-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-blue-200 transition-all active:scale-95"
         >
           <Plus size={18} />
