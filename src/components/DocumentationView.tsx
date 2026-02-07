@@ -32,16 +32,16 @@ export const DocumentationView: React.FC = () => {
                         <div className="space-y-2">
                             <h3 className="font-bold text-slate-800 flex items-center gap-2"><Database size={16} /> {t('documentation.architecture.entitiesTitle')}</h3>
                             <ul className="list-disc pl-5 space-y-1 marker:text-blue-400">
-                                <li><strong>RcaRecord:</strong> {t('documentation.architecture.rcaRecord')}</li>
-                                <li><strong>AssetNode:</strong> {t('documentation.architecture.assetNode')}</li>
-                                <li><strong>ActionRecord:</strong> {t('documentation.architecture.actionRecord')}</li>
+                                <li><strong>{t('documentation.architecture.rcaRecordLabel')}:</strong> {t('documentation.architecture.rcaRecord')}</li>
+                                <li><strong>{t('documentation.architecture.assetNodeLabel')}:</strong> {t('documentation.architecture.assetNode')}</li>
+                                <li><strong>{t('documentation.architecture.actionRecordLabel')}:</strong> {t('documentation.architecture.actionRecord')}</li>
                             </ul>
                         </div>
                         <div className="space-y-2">
                             <h3 className="font-bold text-slate-800 flex items-center gap-2"><Layers size={16} /> {t('documentation.architecture.stateTitle')}</h3>
                             <ul className="list-disc pl-5 space-y-1 marker:text-blue-400">
-                                <li><strong>Context API:</strong> {t('documentation.architecture.contextApi')}</li>
-                                <li><strong>ViewModels:</strong> {t('documentation.architecture.viewModels')}</li>
+                                <li><strong>{t('documentation.architecture.contextApiLabel')}:</strong> {t('documentation.architecture.contextApi')}</li>
+                                <li><strong>{t('documentation.architecture.viewModelsLabel')}:</strong> {t('documentation.architecture.viewModels')}</li>
                             </ul>
                         </div>
                     </div>
@@ -83,16 +83,22 @@ export const DocumentationView: React.FC = () => {
                         <h3 className="font-bold text-slate-800 flex items-center gap-2"><ShieldCheck size={16} /> {t('documentation.workflow.validationTitle')}</h3>
                         <ul className="space-y-3">
                             <li className="flex gap-2">
-                                <span className="text-green-600 font-bold text-xs bg-green-100 px-2 py-0.5 rounded h-fit">HRA</span>
-                                <span className="text-slate-600">{t('documentation.workflow.hraDesc')}</span>
+                                <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-1.5 py-0.5 rounded border border-purple-200">
+                                    {t('workflow.tags.hra')}
+                                </span>
+                                <span className="text-slate-600">{t('documentation.workflow.hraTag')}</span>
                             </li>
                             <li className="flex gap-2">
-                                <span className="text-amber-600 font-bold text-xs bg-amber-100 px-2 py-0.5 rounded h-fit">DRAFT</span>
-                                <span className="text-slate-600">{t('documentation.workflow.draftDesc')}</span>
+                                <span className="bg-yellow-100 text-yellow-700 text-[10px] font-bold px-1.5 py-0.5 rounded border border-yellow-200">
+                                    {t('workflow.tags.draft')}
+                                </span>
+                                <span className="text-slate-600">{t('documentation.workflow.draftTag')}</span>
                             </li>
                             <li className="flex gap-2">
-                                <span className="text-blue-600 font-bold text-xs bg-blue-100 px-2 py-0.5 rounded h-fit">LINK</span>
-                                <span className="text-slate-600">{t('documentation.workflow.linkDesc')}</span>
+                                <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded border border-blue-200">
+                                    {t('workflow.tags.link')}
+                                </span>
+                                <span className="text-slate-600">{t('documentation.workflow.linkTag')}</span>
                             </li>
                         </ul>
                     </div>

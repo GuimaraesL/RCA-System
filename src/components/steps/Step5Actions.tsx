@@ -120,10 +120,10 @@ export const Step5Actions: React.FC<Step5Props> = ({
                     </h3>
                     <div className="flex gap-2">
                         <div className="flex items-center gap-4 mr-4 text-[10px] font-mono text-slate-400 border-r pr-4 border-slate-200">
-                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500"></span> BOX 1</span>
-                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span> BOX 2</span>
-                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500"></span> BOX 3</span>
-                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-500"></span> BOX 4</span>
+                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500"></span> {t('common.box')} 1</span>
+                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span> {t('common.box')} 2</span>
+                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500"></span> {t('common.box')} 3</span>
+                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-500"></span> {t('common.box')} 4</span>
                         </div>
                         <button
                             onClick={() => onAddActionPlan('CORRECTIVE')}
@@ -139,7 +139,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                     <table className="w-full text-left text-sm text-slate-600">
                         <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-semibold">
                             <tr>
-                                <SortHeader label="Box" sortKey="status" currentSort={sortConfig} onSort={handleSort} width="w-16" />
+                                <SortHeader label={t('common.box')} sortKey="status" currentSort={sortConfig} onSort={handleSort} width="w-16" />
                                 <SortHeader label={t('actionModal.actionDescription')} sortKey="action" currentSort={sortConfig} onSort={handleSort} width="w-1/2" />
                                 <SortHeader label={t('actionModal.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label={t('actionModal.dueDate')} sortKey="date" currentSort={sortConfig} onSort={handleSort} />
@@ -156,7 +156,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                             )}
                             {sortedActions.map(act => (
                                 <tr key={act.id} className="hover:bg-slate-50 opacity-0"> {/* opacity-0 for staggered animation */}
-                                    <td className="px-4 py-2 font-bold text-center border-r border-slate-100 bg-slate-50/50 w-16">{act.status}</td>
+                                    <td className="px-4 py-2 font-bold text-center border-r border-slate-100 bg-slate-50/50 w-16">{t('common.box')} {act.status}</td>
                                     <td className="px-4 py-2">{act.action}</td>
                                     <td className="px-4 py-2">{act.responsible}</td>
                                     <td className="px-4 py-2 font-mono text-xs">{act.date}</td>

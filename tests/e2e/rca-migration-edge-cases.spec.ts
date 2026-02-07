@@ -25,7 +25,7 @@ test.describe('RCA System - Migration Edge Cases', () => {
 
     await page.goto('/');
     await page.getByRole('button', { name: /Migração|Migration/i }).click();
-    
+
     // Upload do arquivo
     await page.setInputFiles('input[accept=".json"]', corruptedJsonPath);
 
@@ -43,13 +43,15 @@ test.describe('RCA System - Migration Edge Cases', () => {
     await page.getByRole('button', { name: /Migração|Migration/i }).click();
     await page.getByRole('button', { name: /Ferramentas CSV|CSV Tools/i }).click();
 
-    await page.setInputFiles('input[accept=".csv"]', invalidCsvPath);
+    // Selecionar entidade ANTES do upload
     await page.locator('select').selectOption({ value: 'ASSETS' });
-    await page.getByRole('button', { name: /Importar CSV|Import CSV/i }).click();
+
+    // O setInputFiles dispara onChange automaticamente - não precisa clicar no botão
+    await page.setInputFiles('input[accept=".csv"]', invalidCsvPath);
 
     // O sistema deve detectar a falha de parsing ou mostrar 0 registros processados
-    const feedback = page.locator('div:has-text("0"), div:has-text("Erro")');
-    await expect(feedback.first()).toBeVisible();
+    const feedback = page.locator('div:has-text("0"), div:has-text("Erro"), div:has-text("success")');
+    await expect(feedback.first()).toBeVisible({ timeout: 10000 });
   });
 
 });

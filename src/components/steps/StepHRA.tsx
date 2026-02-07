@@ -51,7 +51,7 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                 <table className="w-full text-sm text-left">
                     <thead>
                         <tr className="bg-slate-50 text-slate-500 border-b group">
-                            <SortHeader label="ID" sortKey="id" currentSort={sortConfig} onSort={handleSort} className="w-16" />
+                            <SortHeader label={t('table.id')} sortKey="id" currentSort={sortConfig} onSort={handleSort} className="w-16" />
                             <SortHeader label={t('wizard.stepHRA.question')} sortKey="question" currentSort={sortConfig} onSort={handleSort} />
                             <th className="p-3 w-24 text-center">{t('wizard.stepHRA.yes')}</th>
                             <th className="p-3 w-24 text-center">{t('wizard.stepHRA.no')}</th>

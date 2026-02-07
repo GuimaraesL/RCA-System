@@ -485,7 +485,6 @@ export const MigrationView: React.FC = () => {
                         >
                             <Database size={18} /> {t('migration.exportData')}
                         </button>
-
                         <div className="relative">
                             <input
                                 type="file"
@@ -494,7 +493,7 @@ export const MigrationView: React.FC = () => {
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                 accept=".csv"
                             />
-                            <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm">
+                            <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm pointer-events-none">
                                 <Upload size={18} /> {t('migration.importCsv')}
                             </button>
                         </div>

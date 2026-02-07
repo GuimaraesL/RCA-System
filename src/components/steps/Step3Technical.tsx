@@ -89,7 +89,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                     <Input
                         label={t('wizard.step3.financialImpact')}
                         type="number"
-                        placeholder="0.00"
+                        placeholder=""
                         step="0.01"
                         value={data.financial_impact}
                         onChange={(e) => onChange('financial_impact', parseFloat(e.target.value) || 0)}

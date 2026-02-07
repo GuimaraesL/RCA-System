@@ -22,6 +22,10 @@ export const pt: TranslationSchema = {
         failurePrefix: "Falha",
         requiredField: "Campo obrigatório",
         version: "Ver:",
+        noDescription: "Sem descrição (O que)",
+        box: "Box",
+        noDescription: "Sem descrição (What)",
+        box: "Box",
         tooltips: {
             deleteKey: "Remover este nível",
             resize: "Arraste para redimensionar",
@@ -98,7 +102,7 @@ export const pt: TranslationSchema = {
             totalByType: "Total por Tipo de Análise",
             topEquipments: "Top Equipamentos (Pareto)",
             topSubgroups: "Top Subgrupos",
-            rootCauses6M: "Distribuição 6M (Causas Raízes)",
+            rootCause6M: "Distribuição 6M (Causas Raízes)",
             totalByComponent: "Total por Componente",
             failureMode: "Modo de Falha",
             failureCategory: "Categoria da Falha",
@@ -106,7 +110,11 @@ export const pt: TranslationSchema = {
         },
         tooltips: {
             records: "registros",
-            clickToFilter: "Clique para filtrar"
+            clickToFilter: "Clique para filtrar",
+            durationMin: "Soma total dos minutos de parada dos registros filtrados.",
+            durationHours: "Conversão em horas das paradas filtradas.",
+            totalCost: "Impacto financeiro estimado baseado nos registros filtrados.",
+            totalRcas: "Quantidade de análises RCA selecionadas pelos filtros atuais."
         }
     },
     status: {
@@ -273,6 +281,7 @@ export const pt: TranslationSchema = {
         when: "Quando (Descrição)",
         whereDescription: "Onde (Descrição)",
         problemDescription: "Descrição Detalhada",
+        durationPlaceholder: "Ex: 60",
         specialty: "Especialidade",
         failureMode: "Modo de Falha",
         failureCategory: "Categoria de Falha",
@@ -338,47 +347,63 @@ export const pt: TranslationSchema = {
             workflow: "Workflow e Regras de Negócio",
             integrations: "Integrações e Migração"
         },
-        architecture: {
-            p1: "O sistema adota uma arquitetura SPA (Single Page Application) desenvolvida em React 19, focada em performance e independência de backend (Serverless/Local-First).",
-            entitiesTitle: "Modelo de Entidades",
-            rcaRecord: "Agregado raiz que contém Metadados, 5W1H, 5 Porquês e Ishikawa.",
-            assetNode: "Árvore hierárquica recursiva (Área > Equipamento > Subgrupo) para localização técnica precisa.",
-            actionRecord: "Entidade independente para gestão de planos de ação (Box 1-4), vinculada por rca_id.",
-            stateTitle: "Gerenciamento de Estado",
-            contextApi: "O RcaProvider atua como Single Source of Truth, sincronizando estado e LocalStorage.",
-            viewModels: "Camada de abstração nos Hooks (ex: useActionsLogic) para resolver relacionamentos (IDs para Nomes) em tempo de execução."
-        },
-        workflow: {
-            step1Title: "1. Definição e Localização",
-            step1Desc: "Seleção obrigatória na Árvore de Ativos. Caso um ativo importado não exista, o sistema realiza Fallback Resolution buscando pelo ID na hierarquia carregada.",
-            step2Title: "2. Investigação Assistida",
-            step2Desc: "Utilização dos 5 Porquês para desbloquear a Causa Raiz. O Diagrama de Ishikawa pode ser preenchido manualmente ou via IA Generativa.",
-            step3Title: "3. Ações e Validação",
-            step3Desc: "Ações corretivas são gerenciadas globalmente. O status da análise só muda para 'Concluída' se todos os campos mandatórios (incluindo Validação HRA se aplicável) estiverem preenchidos.",
-            validationTitle: "Protocolos de Validação",
-            hraDesc: "Se a Causa Raiz for classificada como 'Mão de Obra' ou 'Método', o módulo de Confiabilidade Humana é ativado obrigatoriamente.",
-            draftDesc: "Registros importados com status desconhecido ou 'DRAFT' são sanitizados automaticamente para 'Em Aberto' (STATUS-01).",
-            linkDesc: "Planos de Ação possuem navegação bidirecional. Clicar no vínculo da RCA leva o usuário ao editor da análise específica."
-        },
-        integrations: {
-            geminiTitle: "Gemini AI 2.5",
-            geminiDesc: "Integração nativa com @google/genai.",
-            geminiItem1: "Prompt Engineering Contextual (Ativo + Problema).",
-            geminiItem2: "Saída estruturada em JSON (Strict Schema).",
-            geminiItem3: "Inicialização Lazy (evita erros de Runtime).",
-            jsonTitle: "JSON Engine",
-            jsonDesc: "Backup completo do sistema (Snapshot).",
-            jsonItem1: "Auto-discovery de Taxonomia.",
-            jsonItem2: "Reconstrução da hierarquia de ativos.",
-            jsonItem3: "Sanitização de XSS em strings.",
-            csvTitle: "CSV Interop",
-            csvDesc: "Compatibilidade com Excel/PowerBI.",
-            csvItem1: "Detecção automática de delimitador (; ou ,).",
-            csvItem2: "Tratamento de UTF-8 com BOM.",
-            csvItem3: "Exportação de KPIs e Listas."
-        },
-        footer: "© 2025 Global RCA System. Documentação gerada dinamicamente com base na versão v17.2."
+        rcaRecord: "Agregado raiz que contém Metadados, 5W1H, 5 Porquês e Ishikawa.",
+        rcaRecordLabel: "RcaRecord",
+        assetNode: "Árvore hierárquica recursiva (Área > Equipamento > Subgrupo) para localização técnica precisa.",
+        assetNodeLabel: "AssetNode",
+        actionRecord: "Entidade independente para gestão de planos de ação (Box 1-4), vinculada por rca_id.",
+        actionRecordLabel: "ActionRecord",
+        stateTitle: "Gerenciamento de Estado",
+        contextApi: "O RcaProvider atua como Single Source of Truth, sincronizando estado e LocalStorage.",
+        contextApiLabel: "Context API",
+        viewModels: "Camada de abstração nos Hooks (ex: useActionsLogic) para resolver relacionamentos (IDs para Nomes) em tempo de execução.",
+        viewModelsLabel: "ViewModels",
+        noDescription: "Nenhuma descrição disponível.",
+        box: "Box",
+        labels: {
+            rcaRecord: "RcaRecord:",
+            contextApi: "Context API:",
+            viewModels: "ViewModels:"
+        }
     },
+    workflow: {
+        step1Title: "1. Definição e Localização",
+        step1Desc: "Seleção obrigatória na Árvore de Ativos. Caso um ativo importado não exista, o sistema realiza Fallback Resolution buscando pelo ID na hierarquia carregada.",
+        step2Title: "2. Investigação Assistida",
+        step2Desc: "Utilização dos 5 Porquês para desbloquear a Causa Raiz. O Diagrama de Ishikawa pode ser preenchido manualmente ou via IA Generativa.",
+        step3Title: "3. Ações e Validação",
+        step3Desc: "Ações corretivas são gerenciadas globalmente. O status da análise só muda para 'Concluída' se todos os campos mandatórios (incluindo Validação HRA se aplicável) estiverem preenchidos.",
+        validationTitle: "Protocolos de Validação",
+        hraTag: "HRA",
+        hraDesc: "Se a Causa Raiz for classificada como 'Mão de Obra' ou 'Método', o módulo de Confiabilidade Humana é ativado obrigatoriamente.",
+        draftTag: "DRAFT",
+        draftDesc: "Registros importados com status desconhecido ou 'DRAFT' são sanitizados automaticamente para 'Em Aberto' (STATUS-01).",
+        linkTag: "LINK",
+        linkDesc: "Planos de Ação possuem navegação bidirecional. Clicar no vínculo da RCA leva o usuário ao editor da análise específica.",
+        tags: {
+            hra: "HRA",
+            draft: "DRAFT",
+            link: "LINK"
+        }
+    },
+    integrations: {
+        geminiTitle: "Gemini AI 2.5",
+        geminiDesc: "Integração nativa com @google/genai.",
+        geminiItem1: "Prompt Engineering Contextual (Ativo + Problema).",
+        geminiItem2: "Saída estruturada em JSON (Strict Schema).",
+        geminiItem3: "Inicialização Lazy (evita erros de Runtime).",
+        jsonTitle: "JSON Engine",
+        jsonDesc: "Backup completo do sistema (Snapshot).",
+        jsonItem1: "Auto-discovery de Taxonomia.",
+        jsonItem2: "Reconstrução da hierarquia de ativos.",
+        jsonItem3: "Sanitização de XSS em strings.",
+        csvTitle: "CSV Interop",
+        csvDesc: "Compatibilidade com Excel/PowerBI.",
+        csvItem1: "Detecção automática de delimitador (; ou ,).",
+        csvItem2: "Tratamento de UTF-8 com BOM.",
+        csvItem3: "Exportação de KPIs e Listas."
+    },
+    footer: "© 2025 Global RCA System. Documentação gerada dinamicamente com base na versão v17.2.",
     modals: {
         confirm: "Confirmar",
         portuguese: "Portugu�s",

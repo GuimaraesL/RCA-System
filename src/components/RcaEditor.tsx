@@ -77,22 +77,27 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         }
     }, [step, formData.id, actions]);
 
-    // Generic Field Updater
+    // Generic Field Updater (Deep Immutable)
     const handleChange = (field: string, value: any) => {
-        if (field.includes('.')) {
+        setFormData(prev => {
+            if (!field.includes('.')) {
+                return { ...prev, [field]: value };
+            }
+
             const parts = field.split('.');
-            setFormData(prev => {
-                const newData = { ...prev };
-                let current: any = newData;
-                for (let i = 0; i < parts.length - 1; i++) {
-                    current = current[parts[i]];
+            const updateDeep = (obj: any, path: string[], val: any): any => {
+                const [head, ...tail] = path;
+                if (tail.length === 0) {
+                    return { ...obj, [head]: val };
                 }
-                current[parts[parts.length - 1]] = value;
-                return newData;
-            });
-        } else {
-            setFormData(prev => ({ ...prev, [field]: value }));
-        }
+                return {
+                    ...obj,
+                    [head]: updateDeep(obj[head] || {}, tail, val)
+                };
+            };
+
+            return updateDeep(prev, parts, value);
+        });
     };
 
     // Action Handlers
@@ -169,9 +174,9 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     return (
         <div ref={containerRef} className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-full w-full max-w-7xl mx-auto relative opacity-0"> {/* Initial opacity 0 for animejs */}
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white z-10">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white z-10 rounded-t-xl">
                 <div className="flex items-center gap-3">
-                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-500">
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
                         <ArrowLeft size={20} />
                     </button>
                     <div>
@@ -202,13 +207,6 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                             <ChevronDown size={14} className={`absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none ${isCompleted ? 'text-green-500' : 'text-slate-400'}`} />
                         </div>
                     </div>
-                    <button
-                        onClick={handleSave}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
-                    >
-                        <Save size={16} />
-                        {t('analysesPage.saveButton')}
-                    </button>
                 </div>
             </div>
 
@@ -265,7 +263,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-8 bg-slate-50/30">
+            <div className="flex-1 overflow-y-auto p-8 pb-24 bg-slate-50/30">
 
                 {step === 1 && (
                     <Step1General
@@ -340,6 +338,45 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                     />
                 )}
 
+            </div>
+
+            {/* Sticky Footer */}
+            <div className="p-4 border-t border-slate-200 bg-white rounded-b-xl flex justify-between items-center z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                <button
+                    onClick={onClose}
+                    className="px-6 py-2.5 text-slate-500 font-medium hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-200"
+                >
+                    {t('common.cancel')}
+                </button>
+
+                <div className="flex gap-3">
+                    {step > 1 && (
+                        <button
+                            onClick={() => setStep(s => Math.max(1, s - 1))}
+                            className="px-6 py-2.5 text-slate-600 font-medium hover:bg-slate-50 rounded-lg transition-colors border border-slate-200"
+                        >
+                            {t('pagination.previous')}
+                        </button>
+                    )}
+
+                    <button
+                        onClick={handleSave}
+                        className="flex items-center gap-2 px-6 py-2.5 text-blue-600 font-medium hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
+                    >
+                        <Save size={18} />
+                        {t('common.save')}
+                    </button>
+
+                    {step < 7 && (
+                        <button
+                            onClick={() => setStep(s => Math.min(7, s + 1))}
+                            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm flex items-center gap-2"
+                        >
+                            {t('pagination.next')}
+                            <ArrowLeft size={18} className="rotate-180" />
+                        </button>
+                    )}
+                </div>
             </div>
 
             <ActionModal

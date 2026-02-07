@@ -19,7 +19,7 @@ interface Step4Props {
     showHra?: boolean;
 }
 
-export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAnalyzeAI, isAnalyzing, taxonomy, showHra }) => {
+const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onAnalyzeAI, isAnalyzing, taxonomy, showHra }) => {
     const { t } = useLanguage();
     const [newIshikawaItem, setNewIshikawaItem] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<keyof IshikawaDiagram>('method');
@@ -228,11 +228,13 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
                             </h4>
                             <ul className="space-y-2">
                                 {(data.ishikawa?.[category.key as keyof IshikawaDiagram] || []).map((item, index) => (
-                                    <li key={index} className="flex items-center justify-between gap-2 text-sm bg-gray-50 p-2 rounded border border-gray-100">
-                                        <span className="text-gray-700 break-words flex-1">{item}</span>
+                                    <li key={index} className="flex items-center justify-between gap-3 text-sm bg-white p-3 rounded-md border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-blue-400 transition-colors"></div>
+                                        <span className="text-slate-700 break-words flex-1 leading-relaxed font-medium">{item}</span>
                                         <button
                                             onClick={() => removeIshikawaItem(category.key as any, index)}
-                                            className="text-gray-300 hover:text-red-500 transition-colors"
+                                            className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 rounded"
+                                            title={t('common.delete')}
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -317,3 +319,5 @@ export const Step4Investigation: React.FC<Step4Props> = ({ data, onChange, onAna
         </div>
     );
 };
+
+export const Step4Investigation = React.memo(Step4InvestigationComponent);

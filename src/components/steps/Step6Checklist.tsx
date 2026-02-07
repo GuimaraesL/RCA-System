@@ -65,7 +65,7 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
                 <table className="w-full text-sm text-left">
                     <thead>
                         <tr className="bg-slate-50 text-slate-500 border-b group">
-                            <SortHeader label="ID" sortKey="id" currentSort={sortConfig} onSort={handleSort} className="text-center w-32" />
+                            <SortHeader label={t('table.id')} sortKey="id" currentSort={sortConfig} onSort={handleSort} className="text-center w-32" />
                             <SortHeader label={t('wizard.step6.activity')} sortKey="activity" currentSort={sortConfig} onSort={handleSort} />
                             <th className="p-3 w-24 text-center">{t('wizard.step6.executed')}</th>
                             <th className="p-3 w-24 text-center">{t('wizard.step6.notExecuted')}</th>

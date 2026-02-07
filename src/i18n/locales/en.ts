@@ -22,6 +22,8 @@ export const en: TranslationSchema = {
         failurePrefix: "Failure",
         requiredField: "Required field",
         version: "Ver:",
+        noDescription: "No description (What)",
+        box: "Box",
         tooltips: {
             deleteKey: "Remove this level",
             resize: "Drag to resize",
@@ -98,7 +100,7 @@ export const en: TranslationSchema = {
             totalByType: "Total by Analysis Type",
             topEquipments: "Top Equipment (Pareto)",
             topSubgroups: "Top Subgroups",
-            rootCauses6M: "6M Distribution (Root Causes)",
+            rootCause6M: "6M Distribution (Root Causes)",
             totalByComponent: "Total by Component",
             failureMode: "Failure Mode",
             failureCategory: "Failure Category",
@@ -106,7 +108,11 @@ export const en: TranslationSchema = {
         },
         tooltips: {
             records: "records",
-            clickToFilter: "Click to filter"
+            clickToFilter: "Click to filter",
+            durationMin: "Total sum of downtime minutes for filtered records.",
+            durationHours: "Conversion to hours of filtered downtime.",
+            totalCost: "Estimated financial impact based on filtered records.",
+            totalRcas: "Number of RCA analyses selected by the current filters."
         }
     },
     status: {
@@ -273,6 +279,7 @@ export const en: TranslationSchema = {
         when: "When (Description)",
         whereDescription: "Where (Description)",
         problemDescription: "Detailed Description",
+        durationPlaceholder: "e.g. 60",
         specialty: "Specialty",
         failureMode: "Failure Mode",
         failureCategory: "Failure Category",
@@ -338,47 +345,61 @@ export const en: TranslationSchema = {
             workflow: "Workflow & Business Rules",
             integrations: "Integrations & Migration"
         },
-        architecture: {
-            p1: "The system adopts a SPA (Single Page Application) architecture developed in React 19, focused on performance and backend independence (Serverless/Local-First).",
-            entitiesTitle: "Entity Model",
-            rcaRecord: "Root aggregate containing Metadata, 5W1H, 5 Whys, and Ishikawa.",
-            assetNode: "Recursive hierarchical tree (Area > Equipment > Subgroup) for precise technical location.",
-            actionRecord: "Independent entity for action plan management (Box 1-4), linked by rca_id.",
-            stateTitle: "State Management",
-            contextApi: "The RcaProvider acts as the Single Source of Truth, synchronizing state and LocalStorage.",
-            viewModels: "Abstraction layer in Hooks (e.g., useActionsLogic) to resolve relationships (IDs to Names) at runtime."
-        },
-        workflow: {
-            step1Title: "1. Definition and Location",
-            step1Desc: "Mandatory selection in the Asset Tree. If an imported asset does not exist, the system performs Fallback Resolution searching by ID in the loaded hierarchy.",
-            step2Title: "2. Assisted Investigation",
-            step2Desc: "Use of 5 Whys to unlock the Root Cause. The Ishikawa Diagram can be filled manually or via Generative AI.",
-            step3Title: "3. Actions and Validation",
-            step3Desc: "Corrective actions are managed globally. Analysis status only changes to 'Completed' if all mandatory fields (including HRA Validation if applicable) are filled.",
-            validationTitle: "Validation Protocols",
-            hraDesc: "If the Root Cause is classified as 'Manpower' or 'Method', the Human Reliability module is mandatory.",
-            draftDesc: "Imported records with unknown or 'DRAFT' status are automatically sanitized to 'In Progress' (STATUS-01).",
-            linkDesc: "Action Plans have bidirectional navigation. Clicking the RCA link takes the user to the specific analysis editor."
-        },
-        integrations: {
-            geminiTitle: "Gemini AI 2.5",
-            geminiDesc: "Native integration with @google/genai.",
-            geminiItem1: "Contextual Prompt Engineering (Asset + Problem).",
-            geminiItem2: "Structured JSON output (Strict Schema).",
-            geminiItem3: "Lazy initialization (avoids Runtime errors).",
-            jsonTitle: "JSON Engine",
-            jsonDesc: "Full system backup (Snapshot).",
-            jsonItem1: "Taxonomy Auto-discovery.",
-            jsonItem2: "Asset hierarchy reconstruction.",
-            jsonItem3: "XSS sanitization in strings.",
-            csvTitle: "CSV Interop",
-            csvDesc: "Excel/PowerBI compatibility.",
-            csvItem1: "Automatic delimiter detection (; or ,).",
-            csvItem2: "UTF-8 treatment with BOM.",
-            csvItem3: "KPI and list export."
-        },
-        footer: "© 2025 Global RCA System. Documentation dynamically generated based on version v17.2."
+        rcaRecord: "Root aggregate containing Metadata, 5W1H, 5 Whys, and Ishikawa.",
+        rcaRecordLabel: "RcaRecord",
+        assetNode: "Recursive hierarchical tree (Area > Equipment > Subgroup) for precise technical location.",
+        assetNodeLabel: "AssetNode",
+        actionRecord: "Independent entity for action plan management (Box 1-4), linked by rca_id.",
+        actionRecordLabel: "ActionRecord",
+        stateTitle: "State Management",
+        contextApi: "The RcaProvider acts as the Single Source of Truth, synchronizing state and LocalStorage.",
+        contextApiLabel: "Context API",
+        viewModels: "Abstraction layer in Hooks (e.g., useActionsLogic) to resolve relationships (IDs to Names) at runtime.",
+        viewModelsLabel: "ViewModels",
+        labels: {
+            rcaRecord: "RcaRecord:",
+            contextApi: "Context API:",
+            viewModels: "ViewModels:"
+        }
     },
+    workflow: {
+        step1Title: "1. Definition and Location",
+        step1Desc: "Mandatory selection in the Asset Tree. If an imported asset does not exist, the system performs Fallback Resolution searching by ID in the loaded hierarchy.",
+        step2Title: "2. Assisted Investigation",
+        step2Desc: "Use of 5 Whys to unlock the Root Cause. The Ishikawa Diagram can be filled manually or via Generative AI.",
+        step3Title: "3. Actions and Validation",
+        step3Desc: "Corrective actions are managed globally. Analysis status only changes to 'Completed' if all mandatory fields (including HRA Validation if applicable) are filled.",
+        validationTitle: "Validation Protocols",
+        hraTag: "HRA",
+        hraDesc: "If the Root Cause is classified as 'Manpower' or 'Method', the Human Reliability module is mandatory.",
+        draftTag: "DRAFT",
+        draftDesc: "Imported records with unknown or 'DRAFT' status are automatically sanitized to 'In Progress' (STATUS-01).",
+        linkTag: "LINK",
+        linkDesc: "Action Plans have bidirectional navigation. Clicking the RCA link takes the user to the specific analysis editor.",
+        tags: {
+            hra: "HRA",
+            draft: "DRAFT",
+            link: "LINK"
+        }
+    },
+    integrations: {
+        geminiTitle: "Gemini AI 2.5",
+        geminiDesc: "Native integration with @google/genai.",
+        geminiItem1: "Contextual Prompt Engineering (Asset + Problem).",
+        geminiItem2: "Structured JSON output (Strict Schema).",
+        geminiItem3: "Lazy initialization (avoids Runtime errors).",
+        jsonTitle: "JSON Engine",
+        jsonDesc: "Full system backup (Snapshot).",
+        jsonItem1: "Taxonomy Auto-discovery.",
+        jsonItem2: "Asset hierarchy reconstruction.",
+        jsonItem3: "XSS sanitization in strings.",
+        csvTitle: "CSV Interop",
+        csvDesc: "Excel/PowerBI compatibility.",
+        csvItem1: "Automatic delimiter detection (; or ,).",
+        csvItem2: "UTF-8 treatment with BOM.",
+        csvItem3: "KPI and list export."
+    },
+    footer: "© 2025 Global RCA System. Documentation dynamically generated based on version v17.2.",
     modals: {
         confirm: "Confirm",
         portuguese: "Portuguese",

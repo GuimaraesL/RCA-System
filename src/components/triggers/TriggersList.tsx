@@ -47,7 +47,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                 <table className="w-full text-left text-xs text-slate-600">
                     <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 z-10 group">
                         <tr>
-                            <SortHeader label="Farol" sortKey="start_date" currentSort={sortConfig} onSort={handleSort} />
+                            <SortHeader label={t('triggersPage.table.status')} sortKey="start_date" currentSort={sortConfig} onSort={handleSort} />
                             <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} />
                             <SortHeader label={t('table.date')} sortKey="start_date" currentSort={sortConfig} onSort={handleSort} />
                             <SortHeader label={t('filters.area')} sortKey="area_id" currentSort={sortConfig} onSort={handleSort} />
@@ -85,8 +85,8 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                             {farol.days === 'CHECK' ? <Check size={16} strokeWidth={3} /> : farol.days}
                                         </div>
                                     </td>
-                                    <td className="px-4 py-3">
-                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${getStatusColor(trigger.status, taxonomy)}`}>
+                                    <td className="px-4 py-4">
+                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${getStatusColor(trigger.status, taxonomy)}`}>
                                             {statusName}
                                         </span>
                                     </td>
@@ -108,7 +108,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                                 onClick={() => onOpenRca(trigger.rca_id!)}
                                                 title={t('triggersPage.tooltips.openRca')}
                                             >
-                                                <Link size={12} /> {linkedRca?.what ? linkedRca.what.substring(0, 15) + '...' : (trigger.rca_id.substring(0, 8) + '...')}
+                                                <Link size={12} /> {linkedRca?.what ? linkedRca.what.substring(0, 15) + '...' : `#RCA-${trigger.rca_id.substring(0, 4)}`}
                                             </div>
                                         ) : (
                                             <div className="flex gap-2">
@@ -125,9 +125,11 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                             </div>
                                         )}
                                     </td>
-                                    <td className="px-4 py-3 text-right">
-                                        <button onClick={() => onEdit(trigger)} className="text-slate-400 hover:text-blue-600 mr-2"><Edit2 size={16} /></button>
-                                        <button onClick={() => onDelete(trigger.id)} className="text-slate-400 hover:text-red-600"><Trash2 size={16} /></button>
+                                    <td className="px-4 py-4 text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <button onClick={() => onEdit(trigger)} className="text-slate-400 hover:text-blue-600 p-1 rounded-full hover:bg-blue-50 transition-colors"><Edit2 size={16} /></button>
+                                            <button onClick={() => onDelete(trigger.id)} className="text-slate-400 hover:text-red-600 p-1 rounded-full hover:bg-red-50 transition-colors"><Trash2 size={16} /></button>
+                                        </div>
                                     </td>
                                 </tr>
                             );

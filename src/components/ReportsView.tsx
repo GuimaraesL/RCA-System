@@ -102,8 +102,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                 <div>
                     <h1 className="text-2xl font-bold text-slate-800">{t('reports.title')}</h1>
                     <p className="text-slate-500">{t('reports.subtitle')}</p>
-                </div>
-                <div className="text-sm text-slate-400">
+                    <div className="text-xs text-slate-500 mb-1">{t('common.box')}</div>
                     {t('reports.lastUpdated')}: {new Date().toLocaleDateString()}
                 </div>
             </div>
@@ -166,7 +165,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                                 <SortHeader label={t('table.dueDate')} sortKey="date" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label={t('table.actions')} sortKey="action" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label={t('table.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label="Box" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
+                                <SortHeader label={t('common.box')} sortKey="status" currentSort={sortConfig} onSort={handleSort} />
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -182,7 +181,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                                         </td>
                                         <td className="px-6 py-4 max-w-xs truncate" title={action.action}>{action.action}</td>
                                         <td className="px-6 py-4">{action.responsible}</td>
-                                        <td className="px-6 py-4"><span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-600 text-xs font-medium">Box {action.status}</span></td>
+                                        <td className="px-6 py-4"><span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-600 text-xs font-medium">{t('common.box')} {action.status}</span></td>
                                     </tr>
                                 );
                             })}

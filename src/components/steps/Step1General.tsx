@@ -130,7 +130,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                     <Input
                         label={t('wizard.step1.analysisDuration')}
                         type="number"
-                        placeholder="Ex: 60"
+                        placeholder={t('fields.durationPlaceholder')}
                         value={data.analysis_duration_minutes || 0}
                         onChange={(e) => onChange('analysis_duration_minutes', Number(e.target.value))}
                     />
