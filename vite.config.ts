@@ -27,6 +27,17 @@ export default defineConfig(({ mode }) => {
           }
         }
       }
+    },
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      include: [
+        'src/**/__tests__/**/*.{test,spec}.{ts,tsx}',
+        'src/**/*.{test,spec}.{ts,tsx}',
+        'server/src/**/__tests__/**/*.{test,spec}.{ts,tsx}',
+        'server/src/**/*.{test,spec}.{ts,tsx}'
+      ],
+      exclude: ['**/node_modules/**', '**/dist/**', 'tests/e2e/**'],
     }
   };
 });
