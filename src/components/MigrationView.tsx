@@ -101,7 +101,8 @@ export const MigrationView: React.FC = () => {
             setPreviewData(data);
             setMsg(null);
         } catch (error) {
-            setMsg({ type: 'error', text: 'Failed to read file.' });
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            setMsg({ type: 'error', text: `Erro ao processar arquivo: ${errorMsg}` });
             console.error(error);
         }
     };
@@ -274,7 +275,7 @@ export const MigrationView: React.FC = () => {
                                     type="file"
                                     ref={jsonInputRef}
                                     onChange={handleJsonFileSelect}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                     accept=".json"
                                 />
                                 <button className="bg-blue-600 text-white font-medium py-3 px-8 rounded-lg shadow-md hover:bg-blue-700 transition-colors pointer-events-none">
@@ -490,7 +491,7 @@ export const MigrationView: React.FC = () => {
                                 type="file"
                                 ref={csvInputRef}
                                 onChange={handleCsvImport}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                 accept=".csv"
                             />
                             <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm">

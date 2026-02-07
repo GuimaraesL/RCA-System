@@ -234,10 +234,11 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             {isRequired('status') && <span className="text-red-500 ml-1">*</span>}
                         </label>
                         <select
-                            className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                            className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none ${localErrors.includes('status') ? 'border-red-500 bg-red-50' : 'border-slate-300'}`}
                             value={editingTrigger.status}
                             onChange={e => setEditingTrigger({ ...editingTrigger, status: e.target.value as any })}
                         >
+                            <option value="">{t('triggerModal.selectPlaceholder')}</option>
                             {(taxonomy.triggerStatuses || []).map(s => (
                                 <option key={s.id} value={s.id}>{s.name}</option>
                             ))}
