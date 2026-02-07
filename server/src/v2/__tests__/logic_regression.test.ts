@@ -1,3 +1,11 @@
+﻿/**
+ * Teste: logic_regression.test.ts
+ * 
+ * Proposta: Validar a integridade da lógica de negócios e evitar regressões em fluxos críticos de status.
+ * Ações: Criação de cenários complexos de RCA com múltiplas dependências (ações, campos obrigatórios) e validação de transições.
+ * Execução: Backend Vitest.
+ * Fluxo: Configuração de banco limpo -> Inserção de dados de teste -> Atualização via serviço -> Verificação de mudança de status baseada em regras.
+ */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { RcaService } from '../domain/services/RcaService';
@@ -32,7 +40,7 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
         await dbConn.initialize();
         const db = dbConn.getRawDatabase();
 
-        // Setup DB
+        // Configuração do DB
         db.run("DROP TABLE IF EXISTS rcas");
         db.run(`CREATE TABLE rcas (
             id TEXT PRIMARY KEY, what TEXT, status TEXT, 
@@ -64,44 +72,44 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
         service = new RcaService(rcaRepo, actionRepo);
     });
 
-    it('should regress status from Concluída to Em Andamento if mandatory data is removed', () => {
-        // 1. Create Complete RCA
+    it('deve regredir o status de Concluída para Em Andamento se dados obrigatórios forem removidos', () => {
+        // 1. Cria RCA Completa
         const rcaData: Partial<Rca> = {
             what: 'Failure X',
             participants: ['User A'],
             root_causes: [{ id: '1', cause: 'Cause A' }]
         };
         const create = service.createRca(rcaData, mockTaxonomy);
-        expect(create.rca.status).toBe('STATUS-03'); // Should be concluded initially
+        expect(create.rca.status).toBe('STATUS-03'); // Deve estar concluída inicialmente
 
-        // 2. Remove mandatory Root Cause
+        // 2. Remove Causa Raiz obrigatória
         const updateData: Partial<Rca> = {
             ...create.rca,
-            root_causes: [] // Empty it
+            root_causes: [] // Esvazia
         };
 
         const update = service.updateRca(create.rca.id!, updateData, mockTaxonomy);
 
-        // 3. Verify Regression
-        expect(update.rca.status).toBe('STATUS-01'); // Back to In Progress
+        // 3. Verifica Regressão
+        expect(update.rca.status).toBe('STATUS-01'); // Volta para Em Andamento
         expect(update.statusReason).toContain('Missing: root_causes');
     });
 
-    it('should stay in Aguardando Verificação if Actions are pending', () => {
-        // 1. Create RCA (In Progress initially due to missing fields)
+    it('deve permanecer em Aguardando Verificação se houver ações pendentes', () => {
+        // 1. Cria RCA (Em Andamento inicialmente devido a campos faltando)
         const rcaId = 'rca-with-actions';
         service.createRca({ id: rcaId, what: 'Has Actions' }, mockTaxonomy);
 
-        // 2. Create Pending Action
+        // 2. Cria Ação Pendente
         actionRepo.create({
             id: 'act-1',
             rca_id: rcaId,
             action: 'Fix it',
-            status: 'PENDING', // Not '3' or '4' (Effective)
+            status: 'PENDING', // Diferente de '3' ou '4' (Efetivo)
             responsible: 'Bob', date: '2023-01-01'
         });
 
-        // 3. Update RCA to have ALL mandatory fields
+        // 3. Atualiza RCA para ter TODOS os campos obrigatórios
         const rca = rcaRepo.findById(rcaId)!;
         const updateData = {
             ...rca,
@@ -111,13 +119,13 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
 
         const result = service.updateRca(rcaId, updateData, mockTaxonomy);
 
-        // 4. Verify Status is NOT Concluded, but Waiting
+        // 4. Verifica que o Status NÃO é Concluída, mas sim Aguardando
         expect(result.rca.status).toBe('STATUS-02');
         expect(result.statusReason).toBe('Pending verification');
     });
 
-    it('should transition to Concluída only when Action becomes Effective', () => {
-        // Setup state from previous test
+    it('deve transicionar para Concluída apenas quando a Ação se tornar Efetiva', () => {
+        // Configura estado
         const rcaId = 'rca-trans-action';
         service.createRca({
             id: rcaId, what: 'Action Flow',
@@ -125,30 +133,29 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
             root_causes: [{ id: '1', cause: 'Root' }]
         }, mockTaxonomy);
 
-        // 1. Add Pending Action -> Status should be Waiting
+        // 1. Adiciona Ação Pendente -> Status deve ser Aguardando
         actionRepo.create({
             id: 'act-2', rca_id: rcaId, action: 'Fix',
             status: 'PENDING',
             responsible: 'Me', date: '2023-01-01'
         });
 
-        // Trigger update to calc status
+        // Dispara atualização para calcular status
         let rca = rcaRepo.findById(rcaId)!;
         let result = service.updateRca(rcaId, rca, mockTaxonomy);
         expect(result.rca.status).toBe('STATUS-02');
 
-        // 2. Update Action to Effective ('3' = Concluded/Effective in our mock logic context or legacy V1)
-        // Note: RcaService Checks `['3', '4'].includes(String(a.status))`
+        // 2. Atualiza Ação para Efetiva ('3' = Concluída/Efetiva)
         actionRepo.update({
             id: 'act-2', rca_id: rcaId, action: 'Fix',
-            status: '3', // Effective
+            status: '3', // Efetiva
             responsible: 'Me', date: '2023-01-01'
         });
 
-        // 3. Trigger RCA update again (usually happens when entering RCA or saving it)
+        // 3. Dispara atualização da RCA novamente
         result = service.updateRca(rcaId, rca, mockTaxonomy);
 
-        // 4. Verify DONE
+        // 4. Verifica CONCLUÍDA
         expect(result.rca.status).toBe('STATUS-03');
         expect(result.statusReason).toBe('Complete, actions effective');
     });

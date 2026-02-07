@@ -1,3 +1,11 @@
+﻿/**
+ * Teste: triggerUtils.test.ts
+ * 
+ * Proposta: Validar funções utilitárias de gestão de tempo e visualização de gatilhos.
+ * Ações: Testes de cálculo de duração, mapeamento de cores de status e lógica visual do "Farol" de atrasos.
+ * Execução: Frontend Vitest.
+ * Fluxo: Entrada de datas e IDs de status -> Execução de helpers -> Validação de classes CSS e contagem de dias resultantes.
+ */
 
 import { describe, it, expect } from 'vitest';
 import { getFarol, calculateDuration, getStatusColor, getAssetName, findAssetPath } from '../triggerHelpers';
@@ -17,33 +25,33 @@ describe('triggerHelpers', () => {
     ];
 
     describe('getAssetName', () => {
-        it('should return empty string if no ID provided', () => {
+        it('deve retornar string vazia se nenhum ID for fornecido', () => {
             expect(getAssetName('', mockAssets)).toBe('');
         });
 
-        it('should return the ID if no assets list provided', () => {
+        it('deve retornar o ID se a lista de ativos não for fornecida', () => {
             expect(getAssetName('A1', [])).toBe('A1');
         });
 
-        it('should return the correct name for a top level area', () => {
+        it('deve retornar o nome correto para uma área de nível superior', () => {
             expect(getAssetName('A1', mockAssets)).toBe('Area 1');
         });
 
-        it('should return the correct name for a nested equipment', () => {
+        it('deve retornar o nome correto para um equipamento aninhado', () => {
             expect(getAssetName('E1', mockAssets)).toBe('Equip 1');
         });
 
-        it('should return the correct name for a deeply nested subgroup', () => {
+        it('deve retornar o nome correto para um subgrupo profundamente aninhado', () => {
             expect(getAssetName('S1', mockAssets)).toBe('Sub 1');
         });
 
-        it('should return the ID if asset not found', () => {
+        it('deve retornar o ID se o ativo não for encontrado', () => {
             expect(getAssetName('UNKNOWN', mockAssets)).toBe('UNKNOWN');
         });
     });
 
     describe('findAssetPath', () => {
-        it('should return the path to a deeply nested node', () => {
+        it('deve retornar o caminho completo para um nó aninhado', () => {
             const path = findAssetPath(mockAssets, 'S1');
             expect(path).toBeDefined();
             expect(path?.length).toBe(3);
@@ -52,19 +60,19 @@ describe('triggerHelpers', () => {
             expect(path?.[2].id).toBe('S1');
         });
 
-        it('should return null if node not found', () => {
+        it('deve retornar nulo se o nó não for encontrado', () => {
             expect(findAssetPath(mockAssets, 'UNKNOWN')).toBeNull();
         });
     });
 
     describe('calculateDuration', () => {
-        it('should calculate duration in minutes correctly', () => {
+        it('deve calcular a duração em minutos corretamente', () => {
             const start = '2023-01-01T10:00:00';
             const end = '2023-01-01T11:30:00';
             expect(calculateDuration(start, end)).toBe(90);
         });
 
-        it('should return 0 for invalid dates', () => {
+        it('deve retornar 0 para datas inválidas', () => {
             expect(calculateDuration('', '')).toBe(0);
         });
     });
@@ -82,23 +90,24 @@ describe('triggerHelpers', () => {
             failureModes: [],
             failureCategories: [],
             componentTypes: [],
-            rootCauseMs: []
+            rootCauseMs: [],
+            mandatoryFields: { rca: { create: [], conclude: [] } }
         };
 
-        it('should return blue for IN_PROGRESS', () => {
+        it('deve retornar azul para IN_PROGRESS', () => {
             expect(getStatusColor('STATUS-01', mockTaxonomy)).toContain('bg-blue-100');
         });
 
-        it('should return purple for WAITING_VERIFICATION and legacy STATUS-02', () => {
+        it('deve retornar roxo para WAITING_VERIFICATION e legacy STATUS-02', () => {
             expect(getStatusColor('STATUS-02', mockTaxonomy)).toContain('bg-purple-100');
             expect(getStatusColor('STATUS-WAITING', mockTaxonomy)).toContain('bg-purple-100');
         });
 
-        it('should return green for CONCLUDED', () => {
+        it('deve retornar verde para CONCLUDED', () => {
             expect(getStatusColor('STATUS-03', mockTaxonomy)).toContain('bg-green-100');
         });
 
-        it('should return gray for unknown status', () => {
+        it('deve retornar cinza para status desconhecido', () => {
             expect(getStatusColor('UNKNOWN', mockTaxonomy)).toContain('bg-gray-50');
         });
     });
@@ -115,17 +124,18 @@ describe('triggerHelpers', () => {
             failureModes: [],
             failureCategories: [],
             componentTypes: [],
-            rootCauseMs: []
+            rootCauseMs: [],
+            mandatoryFields: { rca: { create: [], conclude: [] } }
         };
 
-        it('should return check for concluded status', () => {
+        it('deve retornar check para status concluído', () => {
             const result = getFarol('2023-01-01', 'STATUS-03', mockTaxonomy);
             expect(result.days).toBe('CHECK');
             expect(result.color).toContain('bg-green-100');
             expect(result.color).toContain('border-green-200');
         });
 
-        it('should return red for old open triggers (>7 days)', () => {
+        it('deve retornar vermelho para gatilhos abertos antigos (>7 dias)', () => {
             const oldDate = new Date();
             oldDate.setDate(oldDate.getDate() - 10);
             const result = getFarol(oldDate.toISOString(), 'STATUS-01', mockTaxonomy);
@@ -133,19 +143,19 @@ describe('triggerHelpers', () => {
             expect(result.days).toBeGreaterThanOrEqual(9);
         });
 
-        it('should return yellow for medium open triggers (3-7 days)', () => {
+        it('deve retornar amarelo para gatilhos abertos médios (3-7 dias)', () => {
             const medDate = new Date();
             medDate.setDate(medDate.getDate() - 4);
-            const result = getFarol(medDate.toISOString(), '1', mockTaxonomy);
+            const result = getFarol(medDate.toISOString(), 'STATUS-01', mockTaxonomy);
             expect(result.color).toContain('bg-yellow-100');
             expect(result.days).toBeGreaterThanOrEqual(3);
         });
 
-        it('should return green for new open triggers (<3 days)', () => {
+        it('deve retornar verde para novos gatilhos abertos (<3 dias)', () => {
             const newDate = new Date();
-            // less than 3 days
+            // menos de 3 dias
             newDate.setDate(newDate.getDate() - 1);
-            const result = getFarol(newDate.toISOString(), '1', mockTaxonomy);
+            const result = getFarol(newDate.toISOString(), 'STATUS-01', mockTaxonomy);
             expect(result.color).toContain('bg-green-100');
             expect(result.days).toBeLessThan(3);
         });

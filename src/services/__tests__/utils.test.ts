@@ -1,3 +1,11 @@
+﻿/**
+ * Teste: utils.test.ts
+ * 
+ * Proposta: Validar funções utilitárias do sistema, como geração de IDs e sanitização de strings.
+ * Ações: Verificação de unicidade de IDs, remoção de tags HTML em strings e filtragem hierárquica de ativos.
+ * Execução: Frontend Vitest.
+ * Fluxo: Chamada de funções utilitárias -> Comparação de resultados com expectativas de segurança e estrutura.
+ */
 
 import { describe, it, expect } from 'vitest';
 import { filterAssetsByUsage, generateId, sanitizeString } from '../utils';
@@ -5,12 +13,12 @@ import { AssetNode } from '../../types';
 
 describe('Service Utils', () => {
     describe('generateId', () => {
-        it('should generate an ID with the specified prefix', () => {
+        it('deve gerar um ID com o prefixo especificado', () => {
             const id = generateId('TEST');
             expect(id.startsWith('TEST-')).toBe(true);
         });
 
-        it('should generate unique IDs', () => {
+        it('deve gerar IDs únicos', () => {
             const id1 = generateId('TEST');
             const id2 = generateId('TEST');
             expect(id1).not.toBe(id2);
@@ -18,13 +26,13 @@ describe('Service Utils', () => {
     });
 
     describe('sanitizeString', () => {
-        it('should strip HTML tags', () => {
+        it('deve remover tags HTML', () => {
             const input = '<script>alert("XSS")</script>Hello <b>World</b>';
             const output = sanitizeString(input);
             expect(output).toBe('alert("XSS")Hello World');
         });
 
-        it('should return empty string for non-string input', () => {
+        it('deve retornar string vazia para entradas não-string', () => {
             expect(sanitizeString(null)).toBe('');
             expect(sanitizeString(undefined)).toBe('');
             expect(sanitizeString(123)).toBe('');
@@ -53,13 +61,13 @@ describe('Service Utils', () => {
             }
         ];
 
-        it('should return empty array if no IDs match', () => {
+        it('deve retornar array vazio se nenhum ID corresponder', () => {
             const usedIds = new Set(['UNKNOWN']);
             const result = filterAssetsByUsage(assets, usedIds);
             expect(result.length).toBe(0);
         });
 
-        it('should include root area if one of its children is used', () => {
+        it('deve incluir a área raiz se um de seus filhos estiver em uso', () => {
             const usedIds = new Set(['S1']);
             const result = filterAssetsByUsage(assets, usedIds);
             expect(result.length).toBe(1);
@@ -70,7 +78,7 @@ describe('Service Utils', () => {
             expect(result[0].children?.[0].children?.[0].id).toBe('S1');
         });
 
-        it('should include multiple branches if multiple children are used', () => {
+        it('deve incluir múltiplos ramos se múltiplos filhos forem usados', () => {
             const usedIds = new Set(['S1', 'S3']);
             const result = filterAssetsByUsage(assets, usedIds);
             expect(result.length).toBe(1);
@@ -79,7 +87,7 @@ describe('Service Utils', () => {
             expect(result[0].children?.map(c => c.id)).toContain('E2');
         });
 
-        it('should include root if root itself is used even without children used', () => {
+        it('deve incluir a raiz se ela mesma for usada, mesmo sem filhos usados', () => {
             const usedIds = new Set(['A2']);
             const result = filterAssetsByUsage(assets, usedIds);
             expect(result.length).toBe(1);

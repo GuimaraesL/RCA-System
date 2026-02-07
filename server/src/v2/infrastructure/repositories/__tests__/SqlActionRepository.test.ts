@@ -1,3 +1,11 @@
+﻿/**
+ * Teste: SqlActionRepository.test.ts
+ * 
+ * Proposta: Validar as operações de persistência de dados para planos de ação corretiva.
+ * Ações: CRUD de registros de ação, buscas por relacionamento com RCA e persistência em massa.
+ * Execução: Backend Vitest com Banco de Dados In-Memory.
+ * Fluxo: Inicialização de conexão SQL -> Criação de tabelas temporárias -> Execução de queries de inserção/leitura -> Verificação de integridade referencial.
+ */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SqlActionRepository } from '../SqlActionRepository';
@@ -12,7 +20,7 @@ describe('SqlActionRepository Integration Test', () => {
         await dbConn.initialize();
         const db = dbConn.getRawDatabase();
 
-        // Setup clean actions table
+        // Configuração de tabela de ações limpa
         db.run("DROP TABLE IF EXISTS actions");
         db.run(`CREATE TABLE actions (
             id TEXT PRIMARY KEY,
@@ -29,7 +37,7 @@ describe('SqlActionRepository Integration Test', () => {
         repo = new SqlActionRepository();
     });
 
-    it('should create and find an action by ID', () => {
+    it('deve criar e encontrar uma ação por ID', () => {
         const action: Action = {
             id: 'ACT-001',
             rca_id: 'RCA-001',
@@ -47,7 +55,7 @@ describe('SqlActionRepository Integration Test', () => {
         expect(found?.rca_id).toBe('RCA-001');
     });
 
-    it('should find actions by RCA ID', () => {
+    it('deve encontrar ações por ID de RCA', () => {
         const actions: Action[] = [
             { id: 'ACT-1', rca_id: 'RCA-X', action: 'A1', responsible: 'U1', date: 'D1', status: '1' },
             { id: 'ACT-2', rca_id: 'RCA-X', action: 'A2', responsible: 'U2', date: 'D2', status: '2' },
@@ -62,7 +70,7 @@ describe('SqlActionRepository Integration Test', () => {
         expect(rcaXActions.map(a => a.id)).toContain('ACT-2');
     });
 
-    it('should update an existing action', () => {
+    it('deve atualizar uma ação existente', () => {
         const action: Action = { id: 'ACT-U', rca_id: 'RCA-1', action: 'Old', responsible: 'R', date: 'D', status: '1' };
         repo.create(action);
 
@@ -74,7 +82,7 @@ describe('SqlActionRepository Integration Test', () => {
         expect(found?.status).toBe('3');
     });
 
-    it('should delete an action', () => {
+    it('deve excluir uma ação', () => {
         const action: Action = { id: 'ACT-D', rca_id: 'RCA-1', action: 'Delete', responsible: 'R', date: 'D', status: '1' };
         repo.create(action);
         expect(repo.findById('ACT-D')).toBeDefined();
@@ -83,7 +91,7 @@ describe('SqlActionRepository Integration Test', () => {
         expect(repo.findById('ACT-D')).toBeNull();
     });
 
-    it('should support bulk create', () => {
+    it('deve suportar criação em massa (bulk create)', () => {
         const batch: Action[] = [
             { id: 'B1', rca_id: 'R1', action: 'A1', responsible: 'R1', date: 'D1', status: '1' },
             { id: 'B2', rca_id: 'R1', action: 'A2', responsible: 'R2', date: 'D2', status: '2' }
@@ -94,7 +102,7 @@ describe('SqlActionRepository Integration Test', () => {
         expect(all.length).toBe(2);
     });
 
-    it('should support bulk delete', () => {
+    it('deve suportar exclusão em massa (bulk delete)', () => {
         const batch: Action[] = [
             { id: 'BD1', rca_id: 'R1', action: 'A1', responsible: 'R1', date: 'D1', status: '1' },
             { id: 'BD2', rca_id: 'R1', action: 'A2', responsible: 'R2', date: 'D2', status: '2' },

@@ -1,3 +1,11 @@
+﻿/**
+ * Teste: benchmark.test.ts
+ * 
+ * Proposta: Avaliar o desempenho do sistema em cenários de alta carga de dados.
+ * Ações: Execução cronometrada de operações de criação, leitura e deleção de 1000 registros simultâneos.
+ * Execução: Backend Vitest.
+ * Fluxo: Geração de lote de dados randômicos -> Inserção em massa (Bulk Create) -> Leitura total -> Deleção em massa -> Comparação de tempos com limites aceitáveis.
+ */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { RcaService } from '../domain/services/RcaService';
@@ -25,8 +33,7 @@ describe('Performance Benchmark (V2 Core)', () => {
         await dbConn.initialize();
         const db = dbConn.getRawDatabase();
         db.run("DROP TABLE IF EXISTS rcas");
-        // Use simplified schema for speed, strictly need columns used by repo mapping though
-        // Copying schema from previous tests to ensure compatibility
+        
         db.run(`CREATE TABLE rcas (
             id TEXT PRIMARY KEY, what TEXT, status TEXT, 
             participants TEXT, root_causes TEXT, 
@@ -49,38 +56,36 @@ describe('Performance Benchmark (V2 Core)', () => {
         repo = new SqlRcaRepository();
     });
 
-    it('should handle 1000 records operations within acceptable limits', () => {
+    it('deve processar operações de 1000 registros dentro de limites aceitáveis', () => {
         const BATCH_SIZE = 1000;
         const data = generateBatch(BATCH_SIZE);
 
-        // 1. Bulk Create
+        // 1. Criação em Massa
         const startCreate = performance.now();
         repo.bulkCreate(data);
         const endCreate = performance.now();
         const createTime = endCreate - startCreate;
-        console.log(`⏱️ Bulk Create (1000 items): ${createTime.toFixed(2)}ms`);
+        console.log(`⏱️ Criação em Massa (1000 itens): ${createTime.toFixed(2)}ms`);
 
-        // Assert: Should be reasonably fast (e.g., < 2000ms for in-memory, file I/O might be slower but transaction fix handles it)
-        // With transaction fix, this should be very fast. Without it, it would be slow.
         expect(createTime).toBeLessThan(2000);
 
-        // 2. Read All
+        // 2. Leitura de Todos
         const startRead = performance.now();
         const all = repo.findAll();
         const endRead = performance.now();
         const readTime = endRead - startRead;
-        console.log(`⏱️ Read All (1000 items): ${readTime.toFixed(2)}ms`);
+        console.log(`⏱️ Leitura de Todos (1000 itens): ${readTime.toFixed(2)}ms`);
 
         expect(all.length).toBe(BATCH_SIZE);
-        expect(readTime).toBeLessThan(500); // Reading is usually fast
+        expect(readTime).toBeLessThan(500); 
 
-        // 3. Bulk Delete
+        // 3. Deleção em Massa
         const ids = all.map(r => r.id);
         const startDelete = performance.now();
         repo.bulkDelete(ids);
         const endDelete = performance.now();
         const deleteTime = endDelete - startDelete;
-        console.log(`⏱️ Bulk Delete (1000 items): ${deleteTime.toFixed(2)}ms`);
+        console.log(`⏱️ Deleção em Massa (1000 itens): ${deleteTime.toFixed(2)}ms`);
 
         expect(repo.findAll().length).toBe(0);
         expect(deleteTime).toBeLessThan(2000);

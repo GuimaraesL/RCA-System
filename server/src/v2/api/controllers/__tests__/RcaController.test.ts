@@ -1,8 +1,17 @@
+﻿/**
+ * Teste: RcaController.test.ts
+ * 
+ * Proposta: Validar a camada de controladores da API de RCA, garantindo respostas corretas para requisições HTTP.
+ * Ações: Simulação de requisições Express, mocking de serviços e validação de códigos de status e payloads JSON.
+ * Execução: Backend Vitest.
+ * Fluxo: Definição de mocks globais -> Configuração de objetos de request/response -> Chamada de métodos do controlador -> Asserção de resultados.
+ */
+
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { RcaController } from '../RcaController';
 import { Request, Response } from 'express';
 
-// Mocks - Using vi.hoisted to avoid ReferenceError
+// Mocks - Usando vi.hoisted para evitar ReferenceError durante o hoisting do Vitest
 const mocks = vi.hoisted(() => {
     return {
         mockCreateRca: vi.fn().mockReturnValue({
@@ -44,7 +53,7 @@ vi.mock('../../../infrastructure/repositories/SqlRcaRepository', () => {
         SqlRcaRepository: vi.fn().mockImplementation(function () {
             return {
                 findAll: mocks.mockFindAll,
-                findAllSummary: mocks.mockFindAll, // Re-use same mock
+                findAllSummary: mocks.mockFindAll, // Reutiliza o mesmo mock
                 findById: mocks.mockFindById,
                 bulkCreate: mocks.mockBulkCreate,
                 bulkDelete: mocks.mockBulkDelete,
@@ -67,9 +76,7 @@ vi.mock('../../../infrastructure/repositories/SqlTaxonomyRepository', () => {
 vi.mock('../../../infrastructure/repositories/SqlActionRepository', () => {
     return {
         SqlActionRepository: vi.fn().mockImplementation(() => ({
-            // Add methods if needed by controller, currently RcaController might not distinctively use it 
-            // except passed to RcaService. RcaService mock handles the logic.
-            // But strict constructor might require it.
+            // Métodos adicionados conforme necessário pelo construtor do controlador
         }))
     };
 });
@@ -82,10 +89,10 @@ describe('RcaController Integration', () => {
     let statusMock: any;
 
     beforeEach(() => {
-        // Clear mocks metadata (calls) but keep implementations if possible
+        // Limpa metadados dos mocks (chamadas) mas mantém implementações
         vi.clearAllMocks();
 
-        // Reset default behaviors
+        // Reseta comportamentos padrão
         mocks.mockFindAll.mockReturnValue([{ id: 'rca-legacy' }]);
         mocks.mockGetAllRcas.mockReturnValue({
             data: [{ id: 'rca-1' }],
@@ -100,7 +107,7 @@ describe('RcaController Integration', () => {
             statusChanged: true,
             statusReason: 'Complete'
         });
-        mocks.mockFindById.mockReset(); // Clear specific findById behavior for each test
+        mocks.mockFindById.mockReset(); 
 
         controller = new RcaController();
         jsonMock = vi.fn();
@@ -108,35 +115,20 @@ describe('RcaController Integration', () => {
         mockRes = {
             json: jsonMock,
             status: statusMock,
-            // Add other required mock methods if needed
         } as unknown as Response;
     });
 
-    it('should return 400 for invalid create data (invalid type)', async () => {
-        // 'participants' must be array/object/null/string(json). number is invalid.
-        // If Zod schema allows number for some reason, we need to find another field.
-        // 'what' is simple string/nullish.
-        // Let's try sending a guaranteed invalid payload for Zod object.
-        // Wait, req.body IS the object.
-
-        // rcaSchema is z.object().
-        // If we send "string" as body, it should fail.
+    it('deve retornar 400 para dados de criação inválidos (tipo inválido)', async () => {
+        // Simula um corpo de requisição inválido para o schema Zod
         mockReq = { body: "invalid-string-body" };
 
         await controller.create(mockReq as unknown as any, mockRes as unknown as any);
-
-        // Check calls
-        if (statusMock.mock.calls.length > 0) {
-            console.log('Status called with:', statusMock.mock.calls[0][0]);
-        } else {
-            console.log('Status NOT called');
-        }
 
         expect(statusMock).toHaveBeenCalledWith(400);
         expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ error: 'Invalid Data' }));
     });
 
-    it('should return 201 for valid create data', async () => {
+    it('deve retornar 201 para dados de criação válidos', async () => {
         mockReq = { body: { what: 'Valid RCA' } };
 
         await controller.create(mockReq as unknown as any, mockRes as unknown as any);
@@ -146,7 +138,7 @@ describe('RcaController Integration', () => {
     });
 
     describe('getById', () => {
-        it('should return 200 and the record if found', async () => {
+        it('deve retornar 200 e o registro se encontrado', async () => {
             mocks.mockFindById.mockReturnValue({ id: 'R1' });
 
             mockReq = { params: { id: 'R1' } };
@@ -154,7 +146,7 @@ describe('RcaController Integration', () => {
             expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ id: 'R1' }));
         });
 
-        it('should return 404 if record not found', async () => {
+        it('deve retornar 404 se o registro não for encontrado', async () => {
             mocks.mockFindById.mockReturnValue(null);
 
             mockReq = { params: { id: 'NOT-FOUND' } };
@@ -164,13 +156,13 @@ describe('RcaController Integration', () => {
     });
 
     describe('update', () => {
-        it('should return 200 for valid update', async () => {
+        it('deve retornar 200 para atualização válida', async () => {
             mockReq = { params: { id: 'R1' }, body: { what: 'Updated' } };
             await controller.update(mockReq as any, mockRes as any);
             expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('updated') }));
         });
 
-        it('should return 400 for invalid update data', async () => {
+        it('deve retornar 400 para dados de atualização inválidos', async () => {
             mockReq = { params: { id: 'R1' }, body: "invalid" };
             await controller.update(mockReq as any, mockRes as any);
             expect(statusMock).toHaveBeenCalledWith(400);
@@ -178,7 +170,7 @@ describe('RcaController Integration', () => {
     });
 
     describe('delete', () => {
-        it('should return 200 after successful deletion', async () => {
+        it('deve retornar 200 após exclusão bem-sucedida', async () => {
             mockReq = { params: { id: 'R1' } };
             await controller.delete(mockReq as any, mockRes as any);
             expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('deleted') }));
@@ -186,14 +178,13 @@ describe('RcaController Integration', () => {
     });
 
     describe('getAll', () => {
-        it('should return all records in summary mode (no limit)', async () => {
+        it('deve retornar todos os registros no modo resumo (sem limite)', async () => {
             mockReq = { query: {} };
             await controller.getAll(mockReq as any, mockRes as any);
-            // Verify call (if we spy on it, but here we just check result which comes from same mock)
             expect(jsonMock).toHaveBeenCalledWith(expect.arrayContaining([expect.objectContaining({ id: 'rca-legacy' })]));
         });
 
-        it('should return paginated records when limit is provided', async () => {
+        it('deve retornar registros paginados quando o limite é fornecido', async () => {
             mockReq = { query: { page: '1', limit: '10' } };
             await controller.getAll(mockReq as any, mockRes as any);
             expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({
@@ -203,26 +194,26 @@ describe('RcaController Integration', () => {
         });
     });
 
-    describe('bulk operations', () => {
-        it('should return 200 for valid bulk import', async () => {
+    describe('operações em massa (bulk)', () => {
+        it('deve retornar 200 para importação em massa válida', async () => {
             mockReq = { body: [{ id: 'R1', what: 'Bulk 1' }] };
             await controller.bulkImport(mockReq as any, mockRes as any);
             expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Imported') }));
         });
 
-        it('should return 400 for invalid bulk import (not an array)', async () => {
+        it('deve retornar 400 para importação em massa inválida (não é um array)', async () => {
             mockReq = { body: { not: 'an-array' } };
             await controller.bulkImport(mockReq as any, mockRes as any);
             expect(statusMock).toHaveBeenCalledWith(400);
         });
 
-        it('should return 200 for valid bulk delete', async () => {
+        it('deve retornar 200 para exclusão em massa válida', async () => {
             mockReq = { body: { ids: ['R1', 'R2'] } };
             await controller.bulkDelete(mockReq as any, mockRes as any);
             expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Deleted') }));
         });
 
-        it('should return 400 for invalid bulk delete (missing ids)', async () => {
+        it('deve retornar 400 para exclusão em massa inválida (IDs ausentes)', async () => {
             mockReq = { body: {} };
             await controller.bulkDelete(mockReq as any, mockRes as any);
             expect(statusMock).toHaveBeenCalledWith(400);

@@ -1,10 +1,13 @@
-import { test, expect } from '@playwright/test';
-
-/**
- * RCA System - Definitive E2E Suite
- * Esta suíte valida a jornada completa do usuário.
- * Nota: Requer backend estável e sem loops de renderização no modal de gatilhos.
+﻿/**
+ * Teste: full-app-flow.spec.ts
+ * 
+ * Proposta: Validar a jornada crítica do usuário (Criação de Ativo -> Registro de RCA -> Visão no Dashboard).
+ * Ações: Criação hierárquica de ativos, preenchimento de formulários de análise e verificação de indicadores no painel de controle.
+ * Execução: Playwright E2E.
+ * Fluxo: Health check de ambiente -> Gestão de Ativos -> Criação de Análise via Editor -> Validação de gráficos no Dashboard.
  */
+
+import { test, expect } from '@playwright/test';
 
 test.describe('RCA System - Final UI Validation', () => {
 
@@ -38,7 +41,7 @@ test.describe('RCA System - Final UI Validation', () => {
     await page.waitForTimeout(1000); 
   };
 
-  test('Critical Path: Assets -> RCA -> Dashboard', async ({ page }) => {
+  test('Caminho Crítico: Ativos -> RCA -> Dashboard', async ({ page }) => {
     test.setTimeout(180000);
 
     // 1. Gestão de Ativos
@@ -64,7 +67,7 @@ test.describe('RCA System - Final UI Validation', () => {
     await expect(page.locator('svg').first()).toBeVisible({ timeout: 15000 });
   });
 
-  test('Settings & Migration UI Integrity', async ({ page }) => {
+  test('Integridade de UI: Configurações e Migração', async ({ page }) => {
     // Configurações
     await page.locator('nav >> button').filter({ has: page.locator('svg.lucide-settings') }).click();
     await expect(page.getByText(/Configurações|Settings/i).first()).toBeVisible();
@@ -75,3 +78,4 @@ test.describe('RCA System - Final UI Validation', () => {
   });
 
 });
+

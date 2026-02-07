@@ -1,3 +1,11 @@
+﻿/**
+ * Teste: trigger_repository.test.ts
+ * 
+ * Proposta: Validar a integridade das operações de banco de dados para a entidade Trigger (Gatilho).
+ * Ações: CRUD completo de registros de gatilhos, incluindo validação de inconsistências de schema.
+ * Execução: Backend Vitest com Banco de Dados In-Memory.
+ * Fluxo: Inicialização de conexão SQL -> Reconstrução do schema da tabela triggers -> Execução de operações individuais e em massa -> Verificação de persistência.
+ */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SqlTriggerRepository } from '../infrastructure/repositories/SqlTriggerRepository';
@@ -12,7 +20,7 @@ describe('SqlTriggerRepository Integration Test', () => {
         await dbConn.initialize();
         const db = dbConn.getRawDatabase();
 
-        // Setup clean triggers table using the corrected schema
+        // Configura tabela de triggers limpa usando o schema corrigido
         db.run("DROP TABLE IF EXISTS triggers");
         db.run(`CREATE TABLE triggers (
             id TEXT PRIMARY KEY,
@@ -37,7 +45,7 @@ describe('SqlTriggerRepository Integration Test', () => {
         repo = new SqlTriggerRepository();
     });
 
-    it('should succeed when creating a trigger with the full schema', () => {
+    it('deve ter sucesso ao criar um gatilho com o schema completo', () => {
         const trigger: Trigger = {
             id: 'TRG-TEST-001',
             area_id: 'AREA-01',
@@ -49,14 +57,14 @@ describe('SqlTriggerRepository Integration Test', () => {
             duration_minutes: 60
         };
 
-        // This should now succeed as schema matches repository expectations
+        // Deve ter sucesso agora que o schema corresponde às expectativas do repositório
         repo.create(trigger);
         const found = repo.findById('TRG-TEST-001');
         expect(found).toBeDefined();
         expect(found?.id).toBe('TRG-TEST-001');
     });
 
-    it('should update a trigger', () => {
+    it('deve atualizar um gatilho', () => {
         const trigger: Trigger = {
             id: 'TRG-UPDATE',
             area_id: 'A1',
@@ -79,7 +87,7 @@ describe('SqlTriggerRepository Integration Test', () => {
         expect(found?.status).toBe('NEW');
     });
 
-    it('should delete a trigger', () => {
+    it('deve excluir um gatilho', () => {
         const id = 'TRG-DEL';
         repo.create({ 
             id, area_id: 'A', start_date: 'D', status: 'S',
@@ -92,7 +100,7 @@ describe('SqlTriggerRepository Integration Test', () => {
         expect(repo.findById(id)).toBeNull();
     });
 
-    it('should handle bulk operations', () => {
+    it('deve lidar com operações em massa (Bulk)', () => {
         const batch: Trigger[] = [
             { 
                 id: 'B1', area_id: 'A', start_date: 'D', status: 'S',

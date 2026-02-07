@@ -1,3 +1,11 @@
+﻿/**
+ * Teste: import_export.test.ts
+ * 
+ * Proposta: Validar a compatibilidade de importação de dados da Versão 17 para a arquitetura V2.
+ * Ações: Carga de arquivo JSON de migração, processamento via RcaService e validação de integridade no banco de dados SQL.
+ * Execução: Backend Vitest com Banco de Dados de Integração.
+ * Fluxo: Localização do arquivo de migração -> Inicialização de banco limpo -> Importação de lotes de registros -> Verificação de campos complexos (Ishikawa, 5 Porquês).
+ */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { RcaService } from '../domain/services/RcaService';
@@ -7,7 +15,7 @@ import { Rca, TaxonomyConfig } from '../domain/types/RcaTypes';
 import fs from 'fs';
 import path from 'path';
 
-// Load real data sample
+// Carrega amostra de dados reais
 const MIGRATION_FILE = path.resolve(__dirname, '../../../../tests/data/rca_migration_v17_consolidated.json');
 
 describe('Import/Export Data Validation', () => {
@@ -15,7 +23,7 @@ describe('Import/Export Data Validation', () => {
     let repo: SqlRcaRepository;
     let sampleData: any[];
 
-    // Taxonomy mock for validation
+    // Mock de taxonomia para validação
     const mockTaxonomy: TaxonomyConfig = {
         analysisStatuses: [
             { id: 'STATUS-01', name: 'Em Andamento' },
@@ -27,12 +35,12 @@ describe('Import/Export Data Validation', () => {
     };
 
     beforeEach(async () => {
-        // Init isolated DB
+        // Inicializa DB isolado
         const dbConn = DatabaseConnection.getInstance();
         await dbConn.initialize();
         const db = dbConn.getRawDatabase();
 
-        // Recreate schema to ensure isolation and cleanliness
+        // Recria schema para garantir isolamento e limpeza
         db.run("DROP TABLE IF EXISTS rcas");
         db.run(`CREATE TABLE rcas (
             id TEXT PRIMARY KEY, what TEXT, status TEXT, 
@@ -52,7 +60,7 @@ describe('Import/Export Data Validation', () => {
             potential_impacts TEXT, quality_impacts TEXT,
             general_moc_number TEXT
         )`);
-        // Actions table not strictly needed for this import test unless data has actions, but good practice
+        
         db.run(`CREATE TABLE IF NOT EXISTS actions (
             id TEXT PRIMARY KEY, rca_id TEXT, action TEXT, 
             responsible TEXT, date TEXT, status TEXT, moc_number TEXT
@@ -61,61 +69,60 @@ describe('Import/Export Data Validation', () => {
         repo = new SqlRcaRepository();
         service = new RcaService(repo);
 
-        // Read file
+        // Leitura do arquivo
         if (fs.existsSync(MIGRATION_FILE)) {
             const content = fs.readFileSync(MIGRATION_FILE, 'utf-8');
             const json = JSON.parse(content);
-            sampleData = json.records || []; // Handle { metadata, records: [] } structure
+            sampleData = json.records || []; 
         } else {
-            console.warn("⚠️ Migration file not found, skipping data load.");
+            console.warn("⚠️ Arquivo de migração não encontrado, pulando carga de dados.");
             sampleData = [];
         }
     });
 
-    it('should successfully import V17 consolidated data samples', () => {
+    it('deve importar amostras de dados consolidados V17 com sucesso', () => {
         if (sampleData.length === 0) {
-            console.warn("Skipping test due to missing data file");
+            console.warn("Pulando teste devido à ausência de arquivo de dados");
             return;
         }
 
-        // Test with first 10 records
+        // Testa com os primeiros 10 registros
         const batch = sampleData.slice(0, 10);
-        console.log(`Testing import of ${batch.length} records...`);
+        console.log(`Testando importação de ${batch.length} registros...`);
 
         for (const rawRecord of batch) {
-            // Simulate Import Process: Map raw JSON -> Service Create/Migrate
-            // The service already has migrateRcaData logic which should handle this
+            // Simula processo de importação: Mapeia JSON bruto -> Service Create/Migrate
             const result = service.createRca(rawRecord, mockTaxonomy);
 
             expect(result.rca).toBeDefined();
-            expect(result.rca.id).toBe(rawRecord.id); // Should preserve ID
+            expect(result.rca.id).toBe(rawRecord.id); // Deve preservar o ID
 
-            // Validate Logic Preservation
+            // Valida preservação da lógica
             if (rawRecord.what) {
                 expect(result.rca.what).toBe(rawRecord.what);
             }
 
-            // Validate Complex Fields (Arrays/Objects)
+            // Valida campos complexos (Arrays/Objetos)
             expect(Array.isArray(result.rca.root_causes)).toBe(true);
             if (rawRecord.root_causes && rawRecord.root_causes.length > 0) {
                 expect(result.rca.root_causes!.length).toBeGreaterThan(0);
                 expect(result.rca.root_causes![0].cause).toBeDefined();
             }
 
-            console.log(`✅ Imported ${result.rca.id} - ${result.rca.what?.substring(0, 30)}...`);
+            console.log(`✅ Importado ${result.rca.id} - ${result.rca.what?.substring(0, 30)}...`);
         }
 
-        // Verify Persistence Count
+        // Verifica contagem de persistência
         const all = repo.findAll();
         expect(all.length).toBe(batch.length);
     });
 
-    it('should handle special fields (Ishikawa, 5 Whys) correctly', () => {
-        // Find a record with Ishikawa data
+    it('deve lidar com campos especiais (Ishikawa, 5 Porquês) corretamente', () => {
+        // Encontra um registro com dados de Ishikawa
         const recordWithIshikawa = sampleData.find(r => r.ishikawa && (r.ishikawa.machine?.length > 0));
 
         if (!recordWithIshikawa) {
-            console.warn("No sample with Ishikawa data found to test");
+            console.warn("Nenhuma amostra com dados de Ishikawa encontrada para teste");
             return;
         }
 
@@ -124,9 +131,9 @@ describe('Import/Export Data Validation', () => {
 
         expect(saved).toBeDefined();
         expect(saved?.ishikawa).toBeDefined();
-        // Check deep property
+        // Verifica propriedade profunda
         expect(saved?.ishikawa?.machine?.length).toBeGreaterThan(0);
         expect(saved?.ishikawa?.machine[0]).toBe(recordWithIshikawa.ishikawa.machine[0]);
-        console.log("✅ Ishikawa structure preserved");
+        console.log("✅ Estrutura de Ishikawa preservada");
     });
 });

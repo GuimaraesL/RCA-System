@@ -1,3 +1,11 @@
+﻿/**
+ * Teste: full_flow.test.ts
+ * 
+ * Proposta: Validar o fluxo completo de vida de uma RCA, integrando serviço, repositório e banco de dados.
+ * Ações: Criação, atualização com lógica automática de status, busca e deleção final.
+ * Execução: Backend Vitest com Banco de Dados de Integração (In-Memory).
+ * Fluxo: 1. Criação -> 2. Validação de Persistência -> 3. Atualização de Campos -> 4. Verificação de Lógica de Status -> 5. Deleção -> 6. Verificação de Limpeza.
+ */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { RcaService } from '../domain/services/RcaService';
@@ -6,7 +14,6 @@ import { DatabaseConnection } from '../infrastructure/database/DatabaseConnectio
 import { Rca, TaxonomyConfig } from '../domain/types/RcaTypes';
 import { STATUS_IDS } from '../domain/constants';
 
-// Use a real in-memory DB for this test, not mocks
 describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
     let service: RcaService;
     let repo: SqlRcaRepository;
@@ -28,19 +35,17 @@ describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
     };
 
     beforeEach(async () => {
-        // Initialize clean DB
+        // Inicializa banco limpo
         const dbConn = DatabaseConnection.getInstance();
         await dbConn.initialize();
 
-        // Reset table
+        // Reseta tabelas
         const db = dbConn.getRawDatabase();
         db.run("DROP TABLE IF EXISTS rcas");
         db.run(`CREATE TABLE rcas (
             id TEXT PRIMARY KEY, what TEXT, status TEXT, 
             participants TEXT, root_causes TEXT, 
-            analysis_type TEXT, -- Needed for logic
-            problem_description TEXT, -- Needed for logic
-            subgroup_id TEXT, -- Needed for logic
+            analysis_type TEXT, problem_description TEXT, subgroup_id TEXT,
             who TEXT, "when" TEXT, where_description TEXT,
             specialty_id TEXT, failure_mode_id TEXT, failure_category_id TEXT,
             component_type TEXT, downtime_minutes REAL, financial_impact REAL,
@@ -65,10 +70,9 @@ describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
         service = new RcaService(repo);
     });
 
-    it('should complete a full lifecycle: Create -> Auto Logic -> Update -> Delete', () => {
+    it('deve completar um ciclo de vida total: Criar -> Lógica Automática -> Atualizar -> Deletar', () => {
         try {
-            // 1. CREATE
-            console.error('--- Step 1: Create ---');
+            // 1. CRIAÇÃO
             const input: Partial<Rca> = {
                 what: 'Integration Test Failure',
                 analysis_type: 'Safety'
@@ -76,68 +80,52 @@ describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
             const createResult = service.createRca(input, mockTaxonomy);
 
             expect(createResult.rca.id).toBeDefined();
-            expect(createResult.rca.status).toBe(STATUS_IDS.IN_PROGRESS); // Default start
-            console.error(`✅ Created RCA with ID: ${createResult.rca.id}`);
+            expect(createResult.rca.status).toBe(STATUS_IDS.IN_PROGRESS); 
 
-            // Verify Persistence
+            // Verifica Persistência
             const fetched = repo.findById(createResult.rca.id!);
             expect(fetched).toBeDefined();
             expect(fetched?.what).toBe('Integration Test Failure');
 
-            // 2. UPDATE (Trigger Logic)
-            console.error('--- Step 2: Update (Logic Check) ---');
-            // Add mandatory fields to trigger conclusion logic
+            // 2. ATUALIZAÇÃO (Lógica de Gatilho)
             const updatePayload: Partial<Rca> = {
                 ...fetched,
                 participants: ['Team A'],
                 root_causes: [{ id: 'rc1', cause: 'Leak' }]
             };
 
-            console.error("Payload update:", JSON.stringify(updatePayload.root_causes));
-
-            // Actions are fetched internally by service (empty in DB)
             const updateResult = service.updateRca(createResult.rca.id!, updatePayload, mockTaxonomy);
 
-            console.error(`DEBUG: Update Status: ${updateResult.rca.status}`);
-            console.error(`DEBUG: Status Reason: ${updateResult.statusReason}`);
-            console.error(`DEBUG: Status Changed: ${updateResult.statusChanged}`);
-
-            // Should auto-transition to Concluded (STATUS-03) because mandatory fields are present and no actions
+            // Deve transicionar para Concluída (STATUS-03)
             expect(updateResult.rca.status).toBe(STATUS_IDS.CONCLUDED);
             expect(updateResult.statusChanged).toBe(true);
-            console.error(`✅ Logic verified: Status transition to ${updateResult.rca.status}`);
 
-            // 3. BULK IDS (Check existence)
-            // findAll returns Rca[] directly
+            // 3. BUSCA EM MASSA
             const all = repo.findAll();
             expect(all.length).toBe(1);
             expect(all[0].id).toBe(createResult.rca.id);
 
-            // 4. DELETE
-            console.error('--- Step 3: Delete ---');
+            // 4. DELEÇÃO
             const deletionSuccess = service.deleteRca(createResult.rca.id!);
             expect(deletionSuccess).toBe(true);
 
             const fetchedAfterDelete = repo.findById(createResult.rca.id!);
             expect(fetchedAfterDelete).toBeNull();
-            console.error('✅ Deletion verified');
         } catch (e) {
-            console.error("❌ TEST FAILED WITH ERROR:", e);
             throw e;
         }
     });
 
-    it('Should support Bulk Import of RCAs (Legacy/Repair Mode)', () => {
+    it('deve suportar importação em massa de RCAs (Modo Reparo/Legado)', () => {
         const input: Partial<Rca> = {
             what: 'Integration Test Failure',
             analysis_type: 'Safety'
         };
         const createResult = service.createRca(input, mockTaxonomy);
 
-        // Arrange: Create a batch of RCAs
         const importBatch: Rca[] = [
             {
-                ...createResult.rca, // Clone existing structure
+                ...createResult.rca, 
                 id: 'IMPORT-001',
                 what: 'Imported Record 1',
                 status: STATUS_IDS.CONCLUDED
@@ -150,10 +138,10 @@ describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
             }
         ];
 
-        // Act: Execute bulkCreate directly on repo
+        // Executa bulkCreate diretamente no repositório
         expect(() => repo.bulkCreate(importBatch)).not.toThrow();
 
-        // Assert: Verify they exist
+        // Verifica existência
         const all = repo.findAll();
         const imported = all.filter(r => r.id.startsWith('IMPORT-'));
         expect(imported.length).toBe(2);
@@ -161,7 +149,7 @@ describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
         const r1 = repo.findById('IMPORT-001');
         expect(r1?.what).toBe('Imported Record 1');
 
-        // Assert: Verify Upsert (running again updates data)
+        // Valida Upsert (atualizar novamente)
         const updateBatch: Rca[] = [{ ...importBatch[0], what: 'Updated via Import' }];
         repo.bulkCreate(updateBatch);
 

@@ -1,3 +1,12 @@
+﻿/**
+ * Teste: csvService.test.ts
+ * 
+ * Proposta: Validar a lógica de importação e exportação de dados em formato CSV para todas as entidades do sistema.
+ * Ações: Testes de geração de templates, detecção de delimitadores, reconstrução de hierarquia de ativos e segurança (CSV Injection).
+ * Execução: Frontend Vitest.
+ * Fluxo: Chamada de exportação -> Validação de string CSV resultante -> Chamada de importação -> Verificação da integridade do objeto JSON recuperado.
+ */
+
 import { describe, it, expect } from 'vitest';
 import { importFromCsv, exportToCsv, getCsvTemplate } from '../csvService';
 import { AssetNode, TaxonomyConfig, RcaRecord } from '../../types';
@@ -16,29 +25,29 @@ describe('csvService', () => {
     };
 
     describe('getCsvTemplate', () => {
-        it('should return correct templates for entities', () => {
+        it('deve retornar os templates corretos para cada entidade', () => {
             expect(getCsvTemplate('ASSETS')).toContain('id;name;type;parentId');
             expect(getCsvTemplate('ACTIONS')).toContain('id;rca_id;action');
             expect(getCsvTemplate('TRIGGERS')).toContain('AREA;Equip.;Subconjunto');
         });
     });
 
-    describe('Import/Export General', () => {
-        it('should detect semicolon correctly', () => {
+    describe('Importação/Exportação Geral', () => {
+        it('deve detectar ponto e vírgula corretamente', () => {
             const csv = 'id;name;type\n1;test;AREA';
             const result = importFromCsv('ASSETS', csv, {});
             expect(result.success).toBe(true);
         });
 
-        it('should detect comma correctly', () => {
+        it('deve detectar vírgula corretamente', () => {
             const csv = 'id,name,type\n1,test,AREA';
             const result = importFromCsv('ASSETS', csv, {});
             expect(result.success).toBe(true);
         });
     });
 
-    describe('ASSETS Import/Export', () => {
-        it('should export assets hierarchy to flat CSV', () => {
+    describe('Importação/Exportação de ATIVOS', () => {
+        it('deve exportar hierarquia de ativos para CSV plano', () => {
             const assets: AssetNode[] = [
                 {
                     id: 'A1', name: 'Area 1', type: 'AREA', children: [
@@ -51,7 +60,7 @@ describe('csvService', () => {
             expect(csv).toContain('E1;Equip 1;EQUIPMENT;A1');
         });
 
-        it('should import flat assets and reconstruct hierarchy', () => {
+        it('deve importar ativos planos e reconstruir a hierarquia', () => {
             const csv = 'id;name;type;parentId\nA1;Area 1;AREA;\nE1;Equip 1;EQUIPMENT;A1';
             const result = importFromCsv('ASSETS', csv, {});
             expect(result.success).toBe(true);
@@ -63,8 +72,8 @@ describe('csvService', () => {
         });
     });
 
-    describe('TRIGGERS Import', () => {
-        it('should import triggers from Excel-style CSV', () => {
+    describe('Importação de GATILHOS (TRIGGERS)', () => {
+        it('deve importar gatilhos de um CSV estilo Excel', () => {
             const csv = 'AREA;Equip.;Subconjunto;Data/Hora Início;Status\nArea 1;Equip 1;Sub 1;01/01/2023 10:00;Novo';
             
             const assets: AssetNode[] = [
@@ -83,7 +92,7 @@ describe('csvService', () => {
             expect(data[0].start_date).toBe('2023-01-01T10:00');
         });
 
-        it('should inherit hierarchy from linked RCA if missing in CSV', () => {
+        it('deve herdar hierarquia de uma RCA vinculada se estiver faltando no CSV', () => {
             const records: RcaRecord[] = [{
                 id: 'RCA-001',
                 area_id: 'A1',
@@ -102,18 +111,19 @@ describe('csvService', () => {
             expect(result.data[0].equipment_id).toBe('E1');
         });
 
-        it('should handle Excel serial dates', () => {
+        it('deve lidar com datas seriais do Excel', () => {
             const csv = 'AREA;Equip.;Subconjunto;Data/Hora Início\nArea 1;E1;S1;44927.4166666667';
             const assets: AssetNode[] = [{ id: 'A1', name: 'Area 1', type: 'AREA' }];
             
             const result = importFromCsv('TRIGGERS', csv, { assets, taxonomy: mockTaxonomy });
             expect(result.success).toBe(true);
+            // 44927 é 2023-01-01. 0.41666 é 10:00
             expect(result.data[0].start_date).toContain('2023-01-01T10:00');
         });
     });
 
-    describe('RECORDS_SUMMARY Export', () => {
-        it('should correctly join arrays with pipe during export', () => {
+    describe('Exportação de RESUMO DE REGISTROS', () => {
+        it('deve unir arrays corretamente com pipe durante a exportação', () => {
             const records: RcaRecord[] = [{
                 id: 'R1',
                 what: 'Test',
@@ -129,8 +139,8 @@ describe('csvService', () => {
         });
     });
 
-    describe('TAXONOMY Import', () => {
-        it('should handle specialty IDs for failure modes', () => {
+    describe('Importação de TAXONOMIA', () => {
+        it('deve lidar com IDs de especialidade para modos de falha', () => {
             const csv = 'id;name;specialty_ids\nFM1;Mode 1;SPEC1|SPEC2';
             const result = importFromCsv('TAXONOMY_FAILURE_MODES', csv, {});
             expect(result.success).toBe(true);
@@ -139,48 +149,21 @@ describe('csvService', () => {
         });
     });
 
-                describe('Security and Escaping', () => {
-
-                    it('should prevent CSV injection by prepending single quote', () => {
-
-                        const actions = [{ id: '1', action: '=SUM(1+1)', responsible: 'Me' } as any];
-
-                        const csv = exportToCsv('ACTIONS', { actions });
-
-                        // The service prepends a single quote to strings starting with special chars
-
-                        // Formato real recebido: ...;'=SUM(1+1);...
-
-                        expect(csv).toContain(";'=SUM(1+1)"); 
-
-                    });
-
-            
-
-        
-
-    
-
-            it('should handle multiline fields during parsing', () => {
-
-                // Note: importFromCsv returns a CsvImportResult which has 'data' as an array
-
-                const csv = 'id;rca_id;action;responsible;date;status;moc_number\nA1;R1;"Line 1\nLine 2";Me;2023-01-01;1;';
-
-                const result = importFromCsv('ACTIONS', csv, {});
-
-                expect(result.success).toBe(true);
-
-                expect(result.data).toBeDefined();
-
-                expect(result.data.length).toBeGreaterThan(0);
-
-                expect(result.data[0].action).toBe('Line 1\nLine 2');
-
-            });
-
+    describe('Segurança e Escapamento', () => {
+        it('deve prevenir CSV Injection prefixando com aspas simples', () => {
+            const actions = [{ id: '1', action: '=SUM(1+1)', responsible: 'Me' } as any];
+            const csv = exportToCsv('ACTIONS', { actions });
+            // O serviço prefixa com aspas simples strings que começam com caracteres especiais
+            expect(csv).toContain(";'=SUM(1+1)"); 
         });
 
+        it('deve lidar com campos multilinhas durante o parsing', () => {
+            const csv = 'id;rca_id;action;responsible;date;status;moc_number\nA1;R1;"Line 1\nLine 2";Me;2023-01-01;1;';
+            const result = importFromCsv('ACTIONS', csv, {});
+            expect(result.success).toBe(true);
+            expect(result.data).toBeDefined();
+            expect(result.data.length).toBeGreaterThan(0);
+            expect(result.data[0].action).toBe('Line 1\nLine 2');
+        });
     });
-
-    
+});

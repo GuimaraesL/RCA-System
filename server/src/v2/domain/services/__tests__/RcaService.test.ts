@@ -1,3 +1,12 @@
+﻿/**
+ * Teste: RcaService.test.ts
+ * 
+ * Proposta: Validar as regras de negócio core do sistema de análise de causa raiz (RCA).
+ * Ações: Testes de normalização de dados, migração de formatos legados e lógica de transição automática de status.
+ * Execução: Backend Vitest.
+ * Fluxo: Mock de repositórios -> Execução de métodos de serviço -> Verificação de transformações de dados -> Validação de regras de status.
+ */
+
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { RcaService } from '../RcaService';
 import { SqlRcaRepository } from '../../../infrastructure/repositories/SqlRcaRepository';
@@ -26,10 +35,10 @@ describe('RcaService', () => {
     };
 
     beforeEach(() => {
-        // Reset mandatory fields to avoid test pollution
+        // Reseta campos obrigatórios para evitar poluição entre testes
         mockTaxonomy.mandatoryFields.rca.conclude = ['what', 'root_causes'];
         
-        // Create manual mocks
+        // Criação de mocks manuais
         rcaRepoMock = {
             create: vi.fn(),
             update: vi.fn(),
@@ -41,7 +50,7 @@ describe('RcaService', () => {
             findByRcaId: vi.fn().mockReturnValue([])
         };
 
-        // Inject mocks
+        // Injeta mocks
         service = new RcaService(
             rcaRepoMock as unknown as SqlRcaRepository,
             actionRepoMock as unknown as SqlActionRepository
@@ -49,23 +58,22 @@ describe('RcaService', () => {
     });
 
     describe('migrateRcaData', () => {
-        it('should normalize participants from string to array', () => {
+        it('deve normalizar participantes de string para array', () => {
             const result = service.migrateRcaData({ participants: 'John, Doe' });
             expect(result.participants).toEqual(['John', 'Doe']);
         });
 
-        it('should ensure root_causes array', () => {
+        it('deve garantir que root_causes seja um array', () => {
             const result = service.migrateRcaData({});
             expect(Array.isArray(result.root_causes)).toBe(true);
         });
     });
 
     describe('calculateRcaStatus', () => {
-        it('should remain In Progress if mandatory fields missing', () => {
-            const rca: any = { status: 'STATUS-01', what: '' }; // Missing 'what' (if mandatory)
-            // Need to update taxonomy for this test to match expectation
+        it('deve permanecer Em Andamento se campos obrigatórios estiverem ausentes', () => {
+            const rca: any = { status: 'STATUS-01', what: '' }; // 'what' vazio
             const taxonomy = { ...mockTaxonomy };
-            taxonomy.mandatoryFields!.rca.conclude = ['what']; // Make 'what' mandatory
+            taxonomy.mandatoryFields!.rca.conclude = ['what']; 
 
             const result = service.calculateRcaStatus(rca, [], taxonomy);
 
@@ -73,7 +81,7 @@ describe('RcaService', () => {
             expect(result.reason).toContain('Missing');
         });
 
-        it('should move to Concluded if complete and no actions', () => {
+        it('deve mudar para Concluída se estiver completo e sem ações', () => {
             const rca: any = {
                 status: 'STATUS-01',
                 what: 'Filled',
@@ -85,14 +93,14 @@ describe('RcaService', () => {
             expect(result.statusChanged).toBe(true);
         });
 
-        it('should move to Waiting if actions pending', () => {
+        it('deve mudar para Aguardando se houver ações pendentes', () => {
             const rca: any = {
                 id: '1',
                 status: 'STATUS-01',
                 what: 'Filled',
                 root_causes: ['Cause 1']
             };
-            // Pending action
+            // Ação pendente
             const actions: any[] = [{ rca_id: '1', status: '1' }];
 
             const result = service.calculateRcaStatus(rca, actions, mockTaxonomy);
@@ -102,19 +110,14 @@ describe('RcaService', () => {
     });
 
     describe('createRca', () => {
-        it('should call repository create', () => {
+        it('deve chamar o método create do repositório', () => {
             const result = service.createRca({ what: 'New', root_causes: ['Cause'] }, mockTaxonomy);
 
             expect(rcaRepoMock.create).toHaveBeenCalled();
             expect(result.rca.status).toBe('STATUS-03'); 
         });
 
-        it('should verify STATUS-01 when mandatory fields missing', () => {
-            // 'root_causes' is mandatory for conclude.
-            // We pass { what: 'New' }. root_causes migrated to [].
-            // validateMandatory -> root_causes valid? NO (length 0).
-            // So status -> STATUS-01.
-
+        it('deve verificar STATUS-01 quando campos obrigatórios estão faltando', () => {
             const result = service.createRca({ what: 'New' }, mockTaxonomy);
             expect(result.rca.status).toBe('STATUS-01');
         });

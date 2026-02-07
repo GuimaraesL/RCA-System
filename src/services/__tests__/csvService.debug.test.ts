@@ -1,17 +1,26 @@
+﻿/**
+ * Teste: csvService.debug.test.ts
+ * 
+ * Proposta: Depurar e validar cenários específicos de importação de CSV, focando em herança de hierarquia e vinculação com RCA.
+ * Ações: Simulação de importação de gatilhos com dados parciais ou inválidos para testar a lógica de recuperação via link de RCA.
+ * Execução: Frontend Vitest.
+ * Fluxo: Mock de serviços de ID e Ativos -> Configuração de contexto com RCAs existentes -> Execução de importação de gatilhos -> Verificação de herança de área/equipamento.
+ */
+
 import { describe, it, expect, vi } from 'vitest';
 import { importFromCsv } from '../csvService';
 import { CsvContextData } from '../csvService';
 import { AssetNode, RcaRecord, TriggerRecord, TaxonomyConfig } from '../../types';
 
-// Mock generateId
+// Mock do gerador de ID
 vi.mock('../services/utils', () => ({
     generateId: (prefix: string) => `${prefix}_${Math.random().toString(36).substr(2, 9)}`
 }));
 
-// Mock findAssetPath
+// Mock do buscador de caminho de ativos
 vi.mock('../../utils/triggerHelpers', () => ({
     findAssetPath: (assets: any[], id: string) => {
-        // Simple mock: if id is 'sub1', return path AREA -> EQUIP -> SUB
+        // Mock simples: se o ID for 'sub1', retorna o caminho AREA -> EQUIP -> SUB
         if (id === 'sub1') {
             return [
                 { id: 'area1', type: 'AREA', name: 'Area 1' },
@@ -21,7 +30,7 @@ vi.mock('../../utils/triggerHelpers', () => ({
         }
         return null;
     },
-    getAssetName: () => 'Test Asset'
+    getAssetName: () => 'Ativo de Teste'
 }));
 
 describe('CSV Import Debugging', () => {
@@ -58,13 +67,10 @@ describe('CSV Import Debugging', () => {
             equipment_id: 'equip1',
             subgroup_id: 'sub1',
             status: 'concluded',
-            what: 'Test Issue',
-            // why: 'Test Cause', // Removed - invalid
+            what: 'Problema de Teste',
             when: '2024-01-09',
-            where_description: 'Test Location', // Mapped where -> where_description
-            who: 'Test User',
-            // how: 'Test How', // Removed
-            // how_much: '100', // Removed
+            where_description: 'Local de Teste',
+            who: 'Usuário Teste',
             root_causes: []
         } as unknown as RcaRecord
     ];
@@ -76,13 +82,13 @@ describe('CSV Import Debugging', () => {
         triggers: []
     };
 
-    it('should import triggers from template even with empty Area if linkable to RCA', () => {
+    it('deve importar gatilhos do template mesmo com área vazia se vinculável a uma RCA', () => {
         const csvContent = `AREA;Equip.;Subconjunto;Data/Hora Início;Data/Hora Fim;Duração (min);Tipo Parada;Razão Parada;Comentários;Tipo AF;Status;Responsável;ID AF;Path
 REF;;;09/01/2024 00:35;09/01/2024 03:35;180;MECANICA;A 1 - FADIGA;comment;MINI RCA;Concluído;Jonas;rca1;C:\\Users\\leona\\Downloads\\DADOS_ANALISE_FALHA\\REF\\2024\\LINHA_B\\10-OUTUBRO\\20241030_MEC_MINIRCA_TRINCA DEVIDO ABERTURA DE VALVULA.xlsm`;
 
         const result = importFromCsv('TRIGGERS', csvContent, context, { mode: 'APPEND', inheritHierarchy: true });
 
-        console.log('Result:', JSON.stringify(result, null, 2));
+        console.log('Resultado:', JSON.stringify(result, null, 2));
 
         expect(result.success).toBe(true);
         expect(result.dataType).toBe('TRIGGERS');
@@ -90,22 +96,20 @@ REF;;;09/01/2024 00:35;09/01/2024 03:35;180;MECANICA;A 1 - FADIGA;comment;MINI R
         if (result.data) {
             expect(result.data.length).toBeGreaterThan(0);
             const trigger = result.data[0];
-            expect(trigger.area_id).toBe('area1'); // Inherited from RCA because CSV AREA 'REF' is likely not mapped to ID 'area1' directly unless we fix assets mock, but wait. 'REF' matches 'area_REF'.
-            // Wait, in my mock 'REF' is 'area_REF'.
-            // In real data, 'REF' might NOT be valid. Let's force it to be invalid in mock to test inheritance.
+            expect(trigger.area_id).toBe('area1'); // Herdado da RCA
         }
     });
 
-    it('should import triggers from template with INVALID Area but valid RCA Link', () => {
+    it('deve importar gatilhos do template com área INVÁLIDA mas com link de RCA válido', () => {
         const csvContent = `AREA;Equip.;Subconjunto;Data/Hora Início;Data/Hora Fim;Duração (min);Tipo Parada;Razão Parada;Comentários;Tipo AF;Status;Responsável;ID AF;Path
 INVALID_AREA;;;09/01/2024 00:35;09/01/2024 03:35;180;MECANICA;A 1 - FADIGA;comment;MINI RCA;Concluído;Jonas;rca1;C:\\Users\\leona\\Downloads\\DADOS_ANALISE_FALHA\\REF\\2024\\LINHA_B\\10-OUTUBRO\\20241030_MEC_MINIRCA_TRINCA DEVIDO ABERTURA DE VALVULA.xlsm`;
 
         const result = importFromCsv('TRIGGERS', csvContent, context, { mode: 'APPEND', inheritHierarchy: true });
 
-        console.log('Result Invalid Area:', JSON.stringify(result, null, 2));
+        console.log('Resultado Área Inválida:', JSON.stringify(result, null, 2));
 
         expect(result.success).toBe(true);
         expect(result.data.length).toBe(1);
-        expect(result.data[0].area_id).toBe('area1'); // Inherited from rca1
+        expect(result.data[0].area_id).toBe('area1'); // Herdado da rca1
     });
 });
