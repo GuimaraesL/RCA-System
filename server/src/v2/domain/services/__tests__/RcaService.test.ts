@@ -12,18 +12,23 @@ describe('RcaService', () => {
     const mockTaxonomy: TaxonomyConfig = {
         analysisStatuses: [
             { id: 'STATUS-01', name: 'Em Andamento' },
-            { id: 'STATUS-WAITING', name: 'Aguardando Verificação' },
+            { id: 'STATUS-02', name: 'Aguardando Verificação' },
             { id: 'STATUS-03', name: 'Concluída' }
         ],
         mandatoryFields: {
             rca: {
-                create: [], // Empty for test simplicity unless needed
+                create: [], 
                 conclude: ['what', 'root_causes']
             }
-        }
+        },
+        analysisTypes: [], specialties: [], failureModes: [], failureCategories: [],
+        componentTypes: [], rootCauseMs: [], triggerStatuses: []
     };
 
     beforeEach(() => {
+        // Reset mandatory fields to avoid test pollution
+        mockTaxonomy.mandatoryFields.rca.conclude = ['what', 'root_causes'];
+        
         // Create manual mocks
         rcaRepoMock = {
             create: vi.fn(),
@@ -92,24 +97,16 @@ describe('RcaService', () => {
 
             const result = service.calculateRcaStatus(rca, actions, mockTaxonomy);
 
-            expect(result.newStatus).toBe('STATUS-WAITING');
+            expect(result.newStatus).toBe('STATUS-02');
         });
     });
 
     describe('createRca', () => {
         it('should call repository create', () => {
-            const result = service.createRca({ what: 'New' }, mockTaxonomy);
+            const result = service.createRca({ what: 'New', root_causes: ['Cause'] }, mockTaxonomy);
 
             expect(rcaRepoMock.create).toHaveBeenCalled();
-            expect(result.rca.status).toBe('STATUS-03'); // Expect Concluded because 'what' is present and 'create' mandatory is empty, and no actions.
-            // Wait, calculateStatus logic uses 'conclude' mandatory fields logic for status calculation usually?
-            // logic: if !isMandatoryComplete -> In Progress.
-            // isMandatoryComplete checks 'conclude' fields.
-            // In mockTaxonomy, conclude needs 'root_causes'. 'New' rca has undefined root_causes.
-            // migrateRcaData ensures root_causes is []. length is 0?
-            // validateMandatory: 'root_causes' -> valid if length > 0.
-            // So [] is INVALID.
-            // So status should be IN_PROGRESS.
+            expect(result.rca.status).toBe('STATUS-03'); 
         });
 
         it('should verify STATUS-01 when mandatory fields missing', () => {

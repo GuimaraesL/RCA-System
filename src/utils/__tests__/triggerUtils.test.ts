@@ -1,9 +1,62 @@
 
 import { describe, it, expect } from 'vitest';
-import { getFarol, calculateDuration, getStatusColor } from '../triggerHelpers';
-import { TaxonomyConfig } from '../../types';
+import { getFarol, calculateDuration, getStatusColor, getAssetName, findAssetPath } from '../triggerHelpers';
+import { TaxonomyConfig, AssetNode } from '../../types';
 
 describe('triggerHelpers', () => {
+    const mockAssets: AssetNode[] = [
+        {
+            id: 'A1', name: 'Area 1', type: 'AREA', children: [
+                {
+                    id: 'E1', name: 'Equip 1', type: 'EQUIPMENT', children: [
+                        { id: 'S1', name: 'Sub 1', type: 'SUBGROUP' }
+                    ]
+                }
+            ]
+        }
+    ];
+
+    describe('getAssetName', () => {
+        it('should return empty string if no ID provided', () => {
+            expect(getAssetName('', mockAssets)).toBe('');
+        });
+
+        it('should return the ID if no assets list provided', () => {
+            expect(getAssetName('A1', [])).toBe('A1');
+        });
+
+        it('should return the correct name for a top level area', () => {
+            expect(getAssetName('A1', mockAssets)).toBe('Area 1');
+        });
+
+        it('should return the correct name for a nested equipment', () => {
+            expect(getAssetName('E1', mockAssets)).toBe('Equip 1');
+        });
+
+        it('should return the correct name for a deeply nested subgroup', () => {
+            expect(getAssetName('S1', mockAssets)).toBe('Sub 1');
+        });
+
+        it('should return the ID if asset not found', () => {
+            expect(getAssetName('UNKNOWN', mockAssets)).toBe('UNKNOWN');
+        });
+    });
+
+    describe('findAssetPath', () => {
+        it('should return the path to a deeply nested node', () => {
+            const path = findAssetPath(mockAssets, 'S1');
+            expect(path).toBeDefined();
+            expect(path?.length).toBe(3);
+            expect(path?.[0].id).toBe('A1');
+            expect(path?.[1].id).toBe('E1');
+            expect(path?.[2].id).toBe('S1');
+        });
+
+        it('should return null if node not found', () => {
+            expect(findAssetPath(mockAssets, 'UNKNOWN')).toBeNull();
+        });
+    });
+
     describe('calculateDuration', () => {
         it('should calculate duration in minutes correctly', () => {
             const start = '2023-01-01T10:00:00';
@@ -36,11 +89,9 @@ describe('triggerHelpers', () => {
             expect(getStatusColor('STATUS-01', mockTaxonomy)).toContain('bg-blue-100');
         });
 
-        it('should return purple for WAITING_VERIFICATION', () => {
-            // Note: triggerHelpers.ts has a special case for 'STATUS-02' returning blue in switch, 
-            // but then another case for WAITING_VERIFICATION (which is also 'STATUS-02') returning purple.
-            // Wait, let's check triggerHelpers.ts again.
-            expect(getStatusColor('STATUS-02', mockTaxonomy)).toContain('bg-blue-100');
+        it('should return purple for WAITING_VERIFICATION and legacy STATUS-02', () => {
+            expect(getStatusColor('STATUS-02', mockTaxonomy)).toContain('bg-purple-100');
+            expect(getStatusColor('STATUS-WAITING', mockTaxonomy)).toContain('bg-purple-100');
         });
 
         it('should return green for CONCLUDED', () => {

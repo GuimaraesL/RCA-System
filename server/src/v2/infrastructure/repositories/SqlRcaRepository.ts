@@ -9,8 +9,28 @@ export class SqlRcaRepository {
     }
 
     public findAll(): Rca[] {
-        // Legacy: Find All
+        // Legacy: Find All (Full Data) - Usage: Export, etc.
         const rows = this.db.query('SELECT * FROM rcas ORDER BY created_at DESC');
+        return rows.map(this.mapRowToRca);
+    }
+
+    public findAllSummary(): Rca[] {
+        // Optimized: Exclude heavy JSON blobs (Ishikawa, 5 Whys, etc.)
+        // Keep root_causes for Dashboard 6M chart
+        const sql = `
+            SELECT 
+                id, version, analysis_date, analysis_duration_minutes, analysis_type, status,
+                participants, facilitator, start_date, completion_date, requires_operation_support,
+                failure_date, failure_time, downtime_minutes, financial_impact, os_number,
+                area_id, equipment_id, subgroup_id, component_type, asset_name_display,
+                specialty_id, failure_mode_id, failure_category_id,
+                who, what, "when", where_description, problem_description, 
+                root_causes, -- Needed for Dashboard
+                created_at, updated_at
+            FROM rcas 
+            ORDER BY created_at DESC
+        `;
+        const rows = this.db.query(sql);
         return rows.map(this.mapRowToRca);
     }
 

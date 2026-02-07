@@ -215,8 +215,8 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                 isOpen={deleteModalOpen}
                 onCancel={() => setDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
-                title={t('confirmModal.deleteTitle')}
-                message={t('confirmModal.deleteMessage')}
+                title={t('modals.deleteTitle')}
+                message={t('modals.deleteMessage')}
             />
         </div>
     );

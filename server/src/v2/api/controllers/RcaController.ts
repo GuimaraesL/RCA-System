@@ -35,8 +35,8 @@ export class RcaController {
                     }
                 });
             } else {
-                // Legacy behavior: Return array directly
-                const rcas = this.rcaRepo.findAll();
+                // Optimized behavior: Return summary array directly
+                const rcas = this.rcaRepo.findAllSummary();
                 res.json(rcas);
             }
         } catch (error) {

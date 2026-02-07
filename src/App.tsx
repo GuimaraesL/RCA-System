@@ -39,16 +39,27 @@ const AppContent: React.FC = () => {
         setIsEditorOpen(true);
     };
 
-    const openEdit = (rec: RcaRecord) => {
-        setEditingRecord(rec);
+    const openEdit = async (rec: RcaRecord) => {
+        // Optimization: Fetch full record details before editing
+        // The list view now returns a summary payload.
+        const fullRecord = await import('./services/apiService').then(m => m.fetchRecordById(rec.id));
+        setEditingRecord(fullRecord || rec); // Fallback to list record if fetch fails (shouldn't happen)
         setIsEditorOpen(true);
     };
 
-    const handleOpenRca = (rcaId: string) => {
-        const record = records.find(r => r.id === rcaId);
-        if (record) {
-            setEditingRecord(record);
+    const handleOpenRca = async (rcaId: string) => {
+        // Optimization: Fetch full record here too
+        const fullRecord = await import('./services/apiService').then(m => m.fetchRecordById(rcaId));
+        if (fullRecord) {
+            setEditingRecord(fullRecord);
             setIsEditorOpen(true);
+        } else {
+            // Fallback: try finding in list (might be incomplete)
+            const record = records.find(r => r.id === rcaId);
+            if (record) {
+                setEditingRecord(record);
+                setIsEditorOpen(true);
+            }
         }
     };
 

@@ -73,12 +73,22 @@ CREATE TABLE IF NOT EXISTS actions (
 
 CREATE TABLE IF NOT EXISTS triggers (
     id TEXT PRIMARY KEY,
-    title TEXT,
-    description TEXT,
+    area_id TEXT,
+    equipment_id TEXT,
+    subgroup_id TEXT,
     start_date TEXT,
     end_date TEXT,
+    duration_minutes INTEGER,
+    stop_type TEXT,
+    stop_reason TEXT,
+    comments TEXT,
+    analysis_type_id TEXT,
     status TEXT,
-    file_path TEXT -- Added in v1.1
+    responsible TEXT,
+    rca_id TEXT,
+    file_path TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS taxonomy (

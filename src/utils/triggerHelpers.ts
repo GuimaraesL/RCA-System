@@ -62,8 +62,8 @@ export const findAssetPath = (nodes: AssetNode[], targetId: string): AssetNode[]
 export const getStatusColor = (statusId: string, taxonomy: TaxonomyConfig) => {
     switch (statusId) {
         case STATUS_IDS.IN_PROGRESS:
-        case 'STATUS-02': // Legacy handling or Waiting Verification common color
             return 'bg-blue-100 text-blue-700';
+        case 'STATUS-02': // Legacy handling
         case STATUS_IDS.WAITING_VERIFICATION:
             return 'bg-purple-100 text-purple-700'; // Differentiating Waiting Verification
         case STATUS_IDS.CONCLUDED:
