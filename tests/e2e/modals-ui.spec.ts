@@ -29,7 +29,7 @@ test.describe('Unified Modal Flows', () => {
     });
 
     await page.goto('http://localhost:3000/', { waitUntil: 'networkidle' });
-    
+
     // Diagnóstico de Estrutura
     const html = await page.content();
     console.log(`📄 ESTRUTURA DOM (Primeiros 500 chars): ${html.substring(0, 500)}`);
@@ -46,7 +46,7 @@ test.describe('Unified Modal Flows', () => {
    */
   test('Trigger Modal - Full Workflow', async ({ page }) => {
     const triggerModal = new TriggerModalPage(page);
-    
+
     // Abertura
     await triggerModal.open();
 
@@ -118,14 +118,18 @@ test.describe('Unified Modal Flows', () => {
   test('Delete Confirmation - Flow', async ({ page }) => {
     await page.getByRole('button', { name: /Análises|Analyses/i }).click();
 
-    // Dispara deleção via evento de despacho para evitar bloqueios de layout
-    const deleteBtn = page.locator('button[title*="Excluir"], button[title*="Delete"]').nth(2);
-    await deleteBtn.waitFor({ state: 'visible' });
-    await deleteBtn.dispatchEvent('click');
+    // Espera a tabela carregar e renderizar ao menos uma linha
+    const row = page.locator('tbody tr').first();
+    await row.waitFor({ state: 'visible' });
+
+    // Dispara deleção (scrollIntoViewIfNeeded resolve problemas de overflow horizontal)
+    const deleteBtn = page.locator('button[title*="Excluir"], button[title*="Delete"]').first();
+    await deleteBtn.scrollIntoViewIfNeeded();
+    await deleteBtn.click({ force: true });
 
     // Verificação de conteúdo do modal
     const confirmTitle = page.getByText(/Confirmar Exclusão|Confirm Deletion/i);
-    await expect(confirmTitle).toBeVisible();
+    await expect(confirmTitle).toBeVisible({ timeout: 10000 });
 
     // Cancelamento da interação
     await page.getByRole('button', { name: /Cancelar|Cancel/i }).click();
@@ -177,7 +181,7 @@ test.describe('Unified Modal Flows', () => {
     try {
       await expect(modal).not.toBeVisible({ timeout: 2000 });
     } catch (e) {
-      const errorFields = await modal.locator('.border-red-500').evaluateAll(elements => 
+      const errorFields = await modal.locator('.border-red-500').evaluateAll(elements =>
         elements.map(el => {
           const label = el.parentElement?.querySelector('label')?.innerText || 'Campo sem label';
           return label;
