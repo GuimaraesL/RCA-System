@@ -8,31 +8,40 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { RcaFactory, TriggerFactory, TaxonomyFactory } from '../factories/rcaFactory';
+import { RcaFactory, TriggerFactory, TaxonomyFactory, ActionFactory, SystemFactory } from '../factories/rcaFactory';
 import { TriggerModalPage } from '../pages/TriggerModalPage';
 
 test.describe('Unified Modal Flows', () => {
 
   test.beforeEach(async ({ page }) => {
-    // 🛡️ API MOCKING: Intercepta chamadas para evitar dependência do backend real
-    await page.route('**/api/taxonomy', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify(TaxonomyFactory.createDefault()) });
-    });
-
-    await page.route('**/api/rcas*', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify([RcaFactory.create()]) });
-    });
-
-    await page.route('**/api/triggers', async route => {
-      if (route.request().method() === 'POST') {
-        await route.fulfill({ status: 201, body: JSON.stringify({ message: 'Success' }) });
-      } else {
-        await route.fulfill({ status: 200, body: JSON.stringify([TriggerFactory.create()]) });
+    // 🛡️ FULL API SHADOWING: Intercepta todas as chamadas /api/*
+    await page.route('**/api/**', async route => {
+      const url = route.request().url();
+      const method = route.request().method();
+      
+      if (url.includes('/api/health')) {
+        return route.fulfill({ status: 200, body: JSON.stringify(SystemFactory.health()) });
       }
-    });
+      if (url.includes('/api/taxonomy')) {
+        return route.fulfill({ status: 200, body: JSON.stringify(TaxonomyFactory.createDefault()) });
+      }
+      if (url.includes('/api/assets')) {
+        return route.fulfill({ status: 200, body: JSON.stringify([{ id: 'AREA-01', name: 'Área Teste', type: 'AREA', children: [] }]) });
+      }
+      if (url.includes('/api/rcas')) {
+        return route.fulfill({ status: 200, body: JSON.stringify([RcaFactory.create()]) });
+      }
+      if (url.includes('/api/triggers')) {
+        if (method === 'POST') return route.fulfill({ status: 201, body: JSON.stringify({ message: 'Success' }) });
+        return route.fulfill({ status: 200, body: JSON.stringify([TriggerFactory.create()]) });
+      }
+      if (url.includes('/api/actions')) {
+        return route.fulfill({ status: 200, body: JSON.stringify([ActionFactory.create()]) });
+      }
 
-    await page.route('**/api/assets', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify([{ id: 'AREA-01', name: 'Área Teste', type: 'AREA', children: [] }]) });
+      // Catch-all para outras chamadas de API para evitar 404s que bloqueiam a UI
+      console.log(`[MOCK] Interceptando rota não mapeada: ${url}`);
+      return route.fulfill({ status: 200, body: JSON.stringify([]) });
     });
 
     await page.goto('http://localhost:3000/');

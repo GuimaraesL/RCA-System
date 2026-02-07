@@ -14,15 +14,19 @@ import { RcaFactory, TaxonomyFactory } from '../factories/rcaFactory';
 test.describe('RCA Editor - Ferramentas de Investigação (POM + Mock)', () => {
 
   test.beforeEach(async ({ page }) => {
-    // 🛡️ API MOCKING
-    await page.route('**/api/taxonomy', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify(TaxonomyFactory.createDefault()) });
-    });
-    await page.route('**/api/rcas*', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify([RcaFactory.create()]) });
-    });
-    await page.route('**/api/assets', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify([{ id: 'AREA-01', name: 'Área Teste', type: 'AREA', children: [] }]) });
+    // 🛡️ FULL API SHADOWING
+    await page.route('**/api/**', async route => {
+      const url = route.request().url();
+      if (url.includes('/api/taxonomy')) {
+        return route.fulfill({ status: 200, body: JSON.stringify(TaxonomyFactory.createDefault()) });
+      }
+      if (url.includes('/api/assets')) {
+        return route.fulfill({ status: 200, body: JSON.stringify([{ id: 'AREA-01', name: 'Área Teste', type: 'AREA', children: [] }]) });
+      }
+      if (url.includes('/api/rcas')) {
+        return route.fulfill({ status: 200, body: JSON.stringify([RcaFactory.create()]) });
+      }
+      return route.fulfill({ status: 200, body: JSON.stringify([]) });
     });
 
     await page.goto('/');

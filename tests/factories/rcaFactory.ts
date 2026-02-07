@@ -38,6 +38,26 @@ export const TriggerFactory = {
   }
 };
 
+export const ActionFactory = {
+  create(overrides = {}) {
+    return {
+      id: `ACT-${Math.random().toString(36).substr(2, 9)}`,
+      rca_id: 'RCA-TEST-01',
+      action: 'Ação Corretiva de Teste',
+      responsible: 'QA Engine',
+      date: new Date().toISOString().split('T')[0],
+      status: '1',
+      ...overrides
+    };
+  }
+};
+
+export const SystemFactory = {
+  health() {
+    return { status: 'ok', timestamp: new Date().toISOString() };
+  }
+};
+
 export const TaxonomyFactory = {
   createDefault() {
     return {
