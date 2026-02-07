@@ -8,10 +8,33 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { RcaFactory, TriggerFactory, TaxonomyFactory } from '../factories/rcaFactory';
+import { TriggerModalPage } from '../pages/TriggerModalPage';
 
 test.describe('Unified Modal Flows', () => {
 
   test.beforeEach(async ({ page }) => {
+    // 🛡️ API MOCKING: Intercepta chamadas para evitar dependência do backend real
+    await page.route('**/api/taxonomy', async route => {
+      await route.fulfill({ status: 200, body: JSON.stringify(TaxonomyFactory.createDefault()) });
+    });
+
+    await page.route('**/api/rcas*', async route => {
+      await route.fulfill({ status: 200, body: JSON.stringify([RcaFactory.create()]) });
+    });
+
+    await page.route('**/api/triggers', async route => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({ status: 201, body: JSON.stringify({ message: 'Success' }) });
+      } else {
+        await route.fulfill({ status: 200, body: JSON.stringify([TriggerFactory.create()]) });
+      }
+    });
+
+    await page.route('**/api/assets', async route => {
+      await route.fulfill({ status: 200, body: JSON.stringify([{ id: 'AREA-01', name: 'Área Teste', type: 'AREA', children: [] }]) });
+    });
+
     await page.goto('http://localhost:3000/');
     await expect(page.locator('aside')).toBeVisible();
   });
@@ -21,27 +44,22 @@ test.describe('Unified Modal Flows', () => {
    * Cobertura: Abertura, tratamento de erros de validação, edição e cancelamento.
    */
   test('Trigger Modal - Full Workflow', async ({ page }) => {
-    await page.getByRole('button', { name: /Gatilhos|Triggers/i }).click();
-
+    const triggerModal = new TriggerModalPage(page);
+    
     // Abertura
-    await page.getByRole('button', { name: /Novo Gatilho|New Trigger/i }).click();
-    const modalTitle = page.getByText(/Editar Evento Gatilho|Edit Trigger Event/i);
-    await expect(modalTitle).toBeVisible();
+    await triggerModal.open();
 
     // Validação (Tentativa de salvar vazio)
-    const saveBtn = page.getByRole('button', { name: /Salvar Gatilho|Save Trigger/i });
-    await saveBtn.click({ force: true });
+    await triggerModal.save();
     // Deve permanecer aberto devido a erros de validação (bug mapeado: conflito de 'description')
-    await expect(modalTitle).toBeVisible();
+    await expect(triggerModal.modal).toBeVisible();
 
     // Edição de campos
-    await page.locator('input[type="datetime-local"]').first().fill('2026-02-06T10:00');
-    await page.locator('input[type="text"]').nth(0).fill('E2E TEST TYPE');
-    await page.locator('input[type="text"]').nth(1).fill('E2E TEST REASON');
+    await triggerModal.fillDates('2026-02-06T10:00', '2026-02-06T11:00');
+    await triggerModal.fillDetails('E2E TEST TYPE', 'E2E TEST REASON', 'E2E Responsible');
 
     // Cancelamento
-    await page.getByRole('button', { name: /Cancelar|Cancel/i }).click();
-    await expect(modalTitle).not.toBeVisible();
+    await triggerModal.cancel();
   });
 
   /**
