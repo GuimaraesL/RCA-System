@@ -33,3 +33,7 @@ rca.db
 /testsprite_tests/ 
 test-results/
 coverage/
+test_output_utf8.txt
+test_output.txt
+server/data/rca.db
+
