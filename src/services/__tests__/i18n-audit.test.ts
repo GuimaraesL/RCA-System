@@ -19,18 +19,24 @@ describe('Auditoria de Internacionalização (Anti-Hardcoded)', () => {
     files.forEach(file => {
       const filePath = path.join(dir, file);
       if (fs.statSync(filePath).isDirectory()) {
-        if (!filePath.includes('node_modules') && !filePath.includes('dist')) {
+        // Ignora pastas de tradução, node_modules e diretórios de build/teste
+        if (!['node_modules', 'dist', 'locales', '__tests__', 'coverage', '.agent'].includes(file)) {
           getAllFiles(filePath, fileList);
         }
-      } else if (filePath.endsWith('.tsx') && !filePath.includes('.test.') && !filePath.includes('.spec.')) {
+      } else if ((filePath.endsWith('.tsx') || filePath.endsWith('.ts')) && 
+                 !filePath.includes('.test.') && 
+                 !filePath.includes('.spec.') &&
+                 !filePath.endsWith('types.ts') &&
+                 !filePath.endsWith('en.ts') && // Exclusão explícita do dicionário EN
+                 !filePath.endsWith('pt.ts')) { // Exclusão explícita do dicionário PT
         fileList.push(filePath);
       }
     });
     return fileList;
   };
 
-  const componentsDir = path.resolve(process.cwd(), 'src/components');
-  const files = getAllFiles(componentsDir);
+  const srcDir = path.resolve(process.cwd(), 'src');
+  const files = getAllFiles(srcDir);
 
   it('Nenhum componente deve conter strings fixas em atributos (placeholder, title, label)', () => {
     const violations: string[] = [];
