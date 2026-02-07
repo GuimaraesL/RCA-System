@@ -10,13 +10,12 @@ test.describe('Dashboard Interactivity & Visuals', () => {
         // Wait for dashboard to load
         await expect(page.locator('text=Dashboard')).toBeVisible();
 
-        // Hover over the Info icon in the first KPI card
-        const infoIcon = page.locator('.lucide-info').first();
-        await infoIcon.hover();
+        // The tooltip is implemented as a native `title` attribute on the parent wrapper.
+        // Locate the first Info icon and verify its container has a `title` attribute with the expected text.
+        const infoIconContainer = page.locator('.lucide-info').first().locator('..');
 
-        // Tooltip text should be visible (using the PT text added in translations)
-        // "Soma total dos minutos..." for Duration Min
-        await expect(page.locator('text=Soma total dos minutos')).toBeVisible();
+        // Assert title attribute contains expected PT text (partial match)
+        await expect(infoIconContainer).toHaveAttribute('title', /Soma total dos minutos/);
     });
 
     test('Chart Click triggers Cross-Filtering', async ({ page }) => {

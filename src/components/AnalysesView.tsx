@@ -340,6 +340,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                         </td>
                                         <td className="px-6 py-4">
                                             <button
+                                                data-testid="delete-rca-btn"
                                                 onClick={(e) => handleDelete(e, r.id)}
                                                 className="text-slate-400 hover:text-red-600 p-1 rounded transition-colors"
                                                 title={t('analysesPage.tooltips.deleteRca')}
