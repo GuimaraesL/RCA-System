@@ -32,6 +32,7 @@ describe('Performance Benchmark (V2 Core)', () => {
         const dbConn = DatabaseConnection.getInstance();
         await dbConn.initialize();
         const db = dbConn.getRawDatabase();
+        db.run("DROP TABLE IF EXISTS actions");
         db.run("DROP TABLE IF EXISTS rcas");
         
         db.run(`CREATE TABLE rcas (

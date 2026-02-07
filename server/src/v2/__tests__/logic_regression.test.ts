@@ -40,7 +40,8 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
         await dbConn.initialize();
         const db = dbConn.getRawDatabase();
 
-        // Configuração do DB
+        // Configuração do DB - Ordem de exclusão respeitando chaves estrangeiras
+        db.run("DROP TABLE IF EXISTS actions");
         db.run("DROP TABLE IF EXISTS rcas");
         db.run(`CREATE TABLE rcas (
             id TEXT PRIMARY KEY, what TEXT, status TEXT, 

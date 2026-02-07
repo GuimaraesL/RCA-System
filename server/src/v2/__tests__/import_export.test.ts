@@ -40,7 +40,8 @@ describe('Import/Export Data Validation', () => {
         await dbConn.initialize();
         const db = dbConn.getRawDatabase();
 
-        // Recria schema para garantir isolamento e limpeza
+        // Recria schema para garantir isolamento e limpeza - Ordem correta de DROP
+        db.run("DROP TABLE IF EXISTS actions");
         db.run("DROP TABLE IF EXISTS rcas");
         db.run(`CREATE TABLE rcas (
             id TEXT PRIMARY KEY, what TEXT, status TEXT, 

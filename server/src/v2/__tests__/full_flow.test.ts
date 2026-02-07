@@ -39,8 +39,9 @@ describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
         const dbConn = DatabaseConnection.getInstance();
         await dbConn.initialize();
 
-        // Reseta tabelas
+        // Reseta tabelas - Ordem de exclusão respeitando chaves estrangeiras
         const db = dbConn.getRawDatabase();
+        db.run("DROP TABLE IF EXISTS actions");
         db.run("DROP TABLE IF EXISTS rcas");
         db.run(`CREATE TABLE rcas (
             id TEXT PRIMARY KEY, what TEXT, status TEXT, 
