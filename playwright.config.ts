@@ -13,9 +13,9 @@ const config: PlaywrightTestConfig = {
     navigationTimeout: 30000,
   },
   webServer: {
-    command: 'npm run dev:client',
+    command: 'npm run dev',
     port: 3000,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     timeout: 180000,
   },
   projects: [
