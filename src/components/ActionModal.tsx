@@ -76,6 +76,8 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                             </div>
                         ) : (
                             <select
+                                id="action_rca_id"
+                                name="action_rca_id"
                                 required
                                 className="w-full border p-2 rounded text-sm bg-white text-slate-900"
                                 value={form.rca_id}
@@ -89,6 +91,8 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                     <div>
                         <label className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.actionDescription')} <span className="text-red-500">*</span></label>
                         <textarea
+                            id="action_description"
+                            name="action_description"
                             required
                             className="w-full border p-2 rounded text-sm h-24 bg-white text-slate-900"
                             value={form.action}
@@ -98,17 +102,39 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.responsible')} <span className="text-red-500">*</span></label>
-                            <input type="text" required className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.responsible} onChange={e => setForm({ ...form, responsible: e.target.value })} />
+                            <input
+                                id="action_responsible"
+                                name="action_responsible"
+                                type="text"
+                                required
+                                className="w-full border p-2 rounded text-sm bg-white text-slate-900"
+                                value={form.responsible}
+                                onChange={e => setForm({ ...form, responsible: e.target.value })}
+                            />
                         </div>
                         <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.dueDate')} <span className="text-red-500">*</span></label>
-                            <input type="date" required className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+                            <input
+                                id="action_date"
+                                name="action_date"
+                                type="date"
+                                required
+                                className="w-full border p-2 rounded text-sm bg-white text-slate-900"
+                                value={form.date}
+                                onChange={e => setForm({ ...form, date: e.target.value })}
+                            />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.statusBox')}</label>
-                            <select className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as any })}>
+                            <select
+                                id="action_status"
+                                name="action_status"
+                                className="w-full border p-2 rounded text-sm bg-white text-slate-900"
+                                value={form.status}
+                                onChange={e => setForm({ ...form, status: e.target.value as any })}
+                            >
                                 <option value="1">{t('actionModal.statusOptions.approved')}</option>
                                 <option value="2">{t('actionModal.statusOptions.inProgress')}</option>
                                 <option value="3">{t('actionModal.statusOptions.completed')}</option>
@@ -117,7 +143,14 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                         </div>
                         <div>
                             <label className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.mocNumber')}</label>
-                            <input type="text" className="w-full border p-2 rounded text-sm bg-white text-slate-900" value={form.moc_number || ''} onChange={e => setForm({ ...form, moc_number: e.target.value })} />
+                            <input
+                                id="action_moc"
+                                name="action_moc"
+                                type="text"
+                                className="w-full border p-2 rounded text-sm bg-white text-slate-900"
+                                value={form.moc_number || ''}
+                                onChange={e => setForm({ ...form, moc_number: e.target.value })}
+                            />
                         </div>
                     </div>
 

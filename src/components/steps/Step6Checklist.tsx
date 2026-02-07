@@ -85,6 +85,8 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
                                 <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'status', 'NOT_APPLICABLE')} className={`p-1 rounded ${item.status === 'NOT_APPLICABLE' ? 'text-slate-500 bg-slate-100' : 'text-slate-300'}`}>{item.status === 'NOT_APPLICABLE' ? <CheckSquare size={18} /> : <Square size={18} />}</button></td>
                                 <td className="p-3">
                                     <input
+                                        id={`checklist_comment_${item.id}`}
+                                        name={`checklist_comment_${item.id}`}
                                         type="text"
                                         className="w-full border-b border-slate-200 focus:border-blue-500 outline-none bg-transparent text-xs py-1 text-slate-900 placeholder:text-slate-400"
                                         placeholder={t('wizard.step6.addComment')}

@@ -81,6 +81,8 @@ const ListManager: React.FC<{
 
       <div className="flex gap-2 mt-auto pt-4 border-t border-slate-50">
         <input
+          id="newItemInput"
+          name="newItemInput"
           type="text"
           placeholder={t('settings.addItemPlaceholder')}
           className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all"

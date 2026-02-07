@@ -27,6 +27,8 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <Input
+                        id="who"
+                        name="who"
                         label={t('wizard.step2.who')}
                         required={isRequired('who')}
                         placeholder={t('wizard.step2.whoPlaceholder')}
@@ -36,6 +38,8 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                     />
 
                     <Input
+                        id="when"
+                        name="when"
                         label={t('wizard.step2.when')}
                         required={isRequired('when')}
                         placeholder={t('wizard.step2.whenPlaceholder')}
@@ -44,16 +48,24 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                         error={errors?.when}
                     />
 
-                    <Input
-                        label={t('wizard.step2.where')}
-                        required={isRequired('where_description')}
-                        placeholder={t('wizard.step2.wherePlaceholder')}
-                        value={data.where_description}
-                        onChange={(e) => onChange('where_description', e.target.value)}
-                        error={errors?.where_description}
-                    />
+                    <div className="md:col-span-2">
+                        <Input
+                            id="where_description"
+                            name="where_description"
+                            label={t('wizard.step2.where')}
+                            required={isRequired('where_description')}
+                            placeholder={t('wizard.step2.wherePlaceholder')}
+                            value={data.where_description}
+                            onChange={(e) => onChange('where_description', e.target.value)}
+                            error={errors?.where_description}
+                        />
+                    </div>
+                </div>
 
+                <div className="space-y-4 pt-4 border-t border-slate-100">
                     <Input
+                        id="what"
+                        name="what"
                         label={t('wizard.step2.what')}
                         required={isRequired('what')}
                         placeholder={t('wizard.step2.whatPlaceholder')}
@@ -61,35 +73,23 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                         onChange={(e) => onChange('what', e.target.value)}
                         error={errors?.what}
                     />
-                </div>
 
-                <div className="space-y-6">
-                    <Textarea
-                        label={t('wizard.step2.problemDescription')}
-                        required={isRequired('problem_description')}
-                        placeholder={t('wizard.step2.problemDescriptionPlaceholder')}
-                        rows={6}
-                        value={data.problem_description}
-                        onChange={(e) => onChange('problem_description', e.target.value)}
-                        error={errors?.problem_description}
+                    <Input
+                        id="potential_impacts"
+                        name="potential_impacts"
+                        label={t('wizard.step2.potentialImpacts') || "Impactos Potenciais"}
+                        placeholder={t('wizard.step2.potentialImpactsPlaceholder') || "Descreva os impactos..."}
+                        value={data.potential_impacts}
+                        onChange={(e) => onChange('potential_impacts', e.target.value)}
                     />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Textarea
-                            label={t('wizard.step2.potentialImpacts')}
-                            placeholder={t('wizard.step2.potentialImpactsPlaceholder')}
-                            rows={4}
-                            value={data.potential_impacts}
-                            onChange={(e) => onChange('potential_impacts', e.target.value)}
-                        />
-                        <Textarea
-                            label={t('wizard.step2.qualityImpacts')}
-                            placeholder={t('wizard.step2.qualityImpactsPlaceholder')}
-                            rows={4}
-                            value={data.quality_impacts || ''}
-                            onChange={(e) => onChange('quality_impacts', e.target.value)}
-                        />
-                    </div>
+                    <Textarea
+                        label={t('wizard.step2.qualityImpacts')}
+                        placeholder={t('wizard.step2.qualityImpactsPlaceholder')}
+                        rows={4}
+                        value={data.quality_impacts || ''}
+                        onChange={(e) => onChange('quality_impacts', e.target.value)}
+                    />
                 </div>
             </div>
         </div>

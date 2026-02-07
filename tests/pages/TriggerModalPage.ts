@@ -16,14 +16,15 @@ export class TriggerModalPage {
   constructor(page: Page) {
     this.page = page;
     this.modal = page.locator('div.fixed.inset-0.z-50');
-    this.saveBtn = page.getByRole('button', { name: /Salvar Gatilho|Save Trigger/i });
-    this.cancelBtn = page.getByRole('button', { name: /Cancelar|Cancel/i });
+    // Updated to target footer button specifically
+    this.saveBtn = page.locator('div.border-t button', { hasText: /Salvar Gatilho|Save Trigger/i });
+    this.cancelBtn = page.getByRole('button', { name: /Cancelar|Cancel/i }); // This might need update if in footer too
     this.newTriggerBtn = page.getByRole('button', { name: /Novo Gatilho|New Trigger/i });
   }
 
   async open() {
     await this.page.getByRole('button', { name: /Gatilhos|Triggers/i }).click();
-    
+
     // Aguarda carregar a view de gatilhos (Lazy Loaded)
     await expect(this.page.getByTestId('app-suspense-loading')).not.toBeVisible();
 
@@ -32,22 +33,23 @@ export class TriggerModalPage {
   }
 
   async fillDates(start: string, end: string) {
-    await this.modal.locator('input[type="datetime-local"]').first().fill(start);
-    await this.modal.locator('input[type="datetime-local"]').nth(1).fill(end);
+    await this.modal.locator('#trigger_start_date').fill(start);
+    await this.modal.locator('#trigger_end_date').fill(end);
   }
 
   async selectFirstAsset() {
-    const assetItem = this.modal.locator('div.border.rounded li').first();
+    // Asset selector uses divs, not li
+    // Target the first clickable asset node (selectable)
+    const assetItem = this.modal.locator('div.border.rounded div.flex.items-center.cursor-pointer').first();
     if (await assetItem.isVisible()) {
       await assetItem.click();
     }
   }
 
   async fillDetails(type: string, reason: string, responsible: string) {
-    const textInputs = this.modal.locator('input[type="text"]');
-    await textInputs.nth(0).fill(type);
-    await textInputs.nth(1).fill(reason);
-    await textInputs.nth(2).fill(responsible);
+    await this.modal.locator('#trigger_stop_type').fill(type);
+    await this.modal.locator('#trigger_stop_reason').fill(reason);
+    await this.modal.locator('#trigger_responsible').fill(responsible);
   }
 
   async save() {
@@ -55,12 +57,19 @@ export class TriggerModalPage {
   }
 
   async cancel() {
-    await this.cancelBtn.click();
+    // If cancel button is also in footer, we should target it more safely
+    // But getByRole('button', { name: 'Cancel' }) usually works if unique or we take first/last
+    // Let's use the one in footer if possible, or just click the one visible
+    if (await this.page.locator('div.border-t button', { hasText: /Cancelar|Cancel/i }).isVisible()) {
+      await this.page.locator('div.border-t button', { hasText: /Cancelar|Cancel/i }).click();
+    } else {
+      await this.cancelBtn.last().click();
+    }
     await expect(this.modal).not.toBeVisible();
   }
 
   async getValidationErrors() {
-    return await this.modal.locator('.border-red-500').evaluateAll(elements => 
+    return await this.modal.locator('.border-red-500').evaluateAll(elements =>
       elements.map(el => el.parentElement?.querySelector('label')?.innerText || 'Campo sem label')
     );
   }

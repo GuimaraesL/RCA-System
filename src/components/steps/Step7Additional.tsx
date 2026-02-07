@@ -1,6 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Textarea } from '../ui/Textarea';
+import { Input } from '../ui/Input';
 import { RcaRecord } from '../../types';
 import { Plus, Trash2 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageDefinition';
@@ -12,6 +13,7 @@ interface Step7Props {
 
 export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
     const { t } = useLanguage();
+    const [newLink, setNewLink] = useState({ title: '', url: '' });
 
     // Ensure additionalInfo exists (if migrating old record)
     const info = data.additionalInfo || { meetingNotes: '', comments: '', historicalInfo: '' };
@@ -53,6 +55,31 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
                         onChange={(e) => updateInfo('meetingNotes', e.target.value)}
                     />
                 </div>
+
+                {/* New Links Section - Added based on user instruction */}
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">{t('wizard.step7.links')}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Input
+                            id="link_title"
+                            name="link_title"
+                            label={t('wizard.step7.linkTitle')}
+                            placeholder={t('wizard.step7.linkTitlePlaceholder')}
+                            value={newLink.title}
+                            onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
+                        />
+                        <Input
+                            id="link_url"
+                            name="link_url"
+                            label={t('wizard.step7.linkUrl')}
+                            placeholder="https://..."
+                            value={newLink.url}
+                            onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+                        />
+                    </div>
+                    {/* Add button for links would go here */}
+                </div>
+                {/* End New Links Section */}
 
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <Textarea

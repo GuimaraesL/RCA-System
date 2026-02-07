@@ -92,6 +92,8 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                             {c.selected && (
                                 <div className="pl-8 animate-in fade-in slide-in-from-top-1">
                                     <Textarea
+                                        id={`hra_conclusion_description_${c.id}`}
+                                        name={`hra_conclusion_description_${c.id}`}
                                         placeholder={t('wizard.stepHRA.describeBriefly')}
                                         rows={2}
                                         value={c.description}

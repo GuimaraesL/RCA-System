@@ -43,59 +43,69 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('wizard.step3.title')}</h2>
                 <p className="text-gray-600 mb-6">{t('wizard.step3.subtitle')}</p>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <Select
+                        id="specialty"
+                        name="specialty"
                         label={t('wizard.step3.specialty')}
                         required={isRequired('specialty_id')}
-                        options={[{ value: '', label: t('wizard.select') }, ...taxonomy.specialties.map(s => ({ value: s.id, label: s.name }))]}
+                        options={[{ value: '', label: t('wizard.select') }, ...taxonomy.specialties.map(t => ({ value: t.id, label: t.name }))]}
                         value={data.specialty_id}
                         onChange={(e) => onChange('specialty_id', e.target.value)}
                         error={errors?.specialty_id}
                     />
 
                     <Select
+                        id="failure_mode"
+                        name="failure_mode"
                         label={t('wizard.step3.failureMode')}
                         required={isRequired('failure_mode_id')}
-                        options={[{ value: '', label: t('wizard.select') }, ...filteredFailureModes.map(fm => ({ value: fm.id, label: fm.name }))]}
+                        options={[{ value: '', label: t('wizard.select') }, ...filteredFailureModes.map(t => ({ value: t.id, label: t.name }))]}
                         value={data.failure_mode_id}
                         onChange={(e) => onChange('failure_mode_id', e.target.value)}
-                        disabled={!data.specialty_id}
                         error={errors?.failure_mode_id}
                     />
 
-                    <Select
-                        label={t('wizard.step3.failureCategory')}
-                        required={isRequired('failure_category_id')}
-                        options={[{ value: '', label: t('wizard.select') }, ...taxonomy.failureCategories.map(fc => ({ value: fc.id, label: fc.name }))]}
-                        value={data.failure_category_id}
-                        onChange={(e) => onChange('failure_category_id', e.target.value)}
-                        error={errors?.failure_category_id}
-                    />
-                </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('wizard.step3.quantitativeData')}</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Input
-                        label={t('wizard.step3.downtimeMinutes')}
-                        type="number"
-                        required
-                        placeholder="0"
-                        value={data.downtime_minutes}
-                        onChange={(e) => onChange('downtime_minutes', parseInt(e.target.value) || 0)}
-                    />
-
-                    <Input
-                        label={t('wizard.step3.financialImpact')}
-                        type="number"
-                        placeholder=""
-                        step="0.01"
-                        value={data.financial_impact}
-                        onChange={(e) => onChange('financial_impact', parseFloat(e.target.value) || 0)}
-                    />
+                    <div className="md:col-span-2">
+                        <Select
+                            id="failure_category"
+                            name="failure_category"
+                            label={t('wizard.step3.failureCategory')}
+                            required={isRequired('failure_category_id')}
+                            options={[{ value: '', label: t('wizard.select') }, ...taxonomy.failureCategories.map(t => ({ value: t.id, label: t.name }))]}
+                            value={data.failure_category_id}
+                            onChange={(e) => onChange('failure_category_id', e.target.value)}
+                            error={errors?.failure_category_id}
+                        />
+                    </div>
                 </div>
 
+                {/* Quantitative Data Section */}
+                <div>
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">
+                        {t('wizard.step3.quantitativeData')}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Input
+                            id="downtime_minutes"
+                            name="downtime_minutes"
+                            type="number"
+                            label={t('wizard.step3.downtimeMinutes')}
+                            value={data.downtime_minutes || 0}
+                            onChange={(e) => onChange('downtime_minutes', parseFloat(e.target.value))}
+                            placeholder="0"
+                        />
+                        <Input
+                            id="financial_impact"
+                            name="financial_impact"
+                            type="number"
+                            label={t('wizard.step3.financialImpact')}
+                            value={data.financial_impact || 0}
+                            onChange={(e) => onChange('financial_impact', parseFloat(e.target.value))}
+                            placeholder="0.00"
+                        />
+                    </div>
+                </div>
                 <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-sm text-blue-800">
                         <strong>{t('wizard.step3.estimatedImpact')}</strong>{' '}

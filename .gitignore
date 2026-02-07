@@ -52,3 +52,5 @@ build_output.txt
 debug_output_utf8.txt
 debug_output.txt
 test_output_2.txt
+debug_failed_tests_utf8.txt
+debug_failed_tests.txt

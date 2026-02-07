@@ -81,8 +81,10 @@ export const Step5Actions: React.FC<Step5Props> = ({
                     {data.containment_actions?.map((action, idx) => (
                         <div key={idx} className="flex gap-4 items-start p-3 bg-slate-50 rounded border border-slate-100 group">
                             <div className="flex-1 space-y-2">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase">{t('wizard.step5.whatAction')}</label>
+                                <label htmlFor={`containment_action_${idx}_action`} className="text-[10px] font-bold text-slate-400 uppercase">{t('wizard.step5.whatAction')}</label>
                                 <input
+                                    id={`containment_action_${idx}_action`}
+                                    name={`containment_action_${idx}_action`}
                                     className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
                                     placeholder={t('wizard.step5.whatPlaceholder')}
                                     value={action.action}
@@ -90,16 +92,20 @@ export const Step5Actions: React.FC<Step5Props> = ({
                                 />
                             </div>
                             <div className="w-32 space-y-2">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase">{t('wizard.step5.whoResponsible')}</label>
+                                <label htmlFor={`containment_action_${idx}_responsible`} className="text-[10px] font-bold text-slate-400 uppercase">{t('wizard.step5.whoResponsible')}</label>
                                 <input
+                                    id={`containment_action_${idx}_responsible`}
+                                    name={`containment_action_${idx}_responsible`}
                                     className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
                                     value={action.responsible}
                                     onChange={e => updateInternalAction(idx, 'responsible', e.target.value)}
                                 />
                             </div>
                             <div className="w-32 space-y-2">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase">{t('wizard.step5.whenDate')}</label>
+                                <label htmlFor={`containment_action_${idx}_date`} className="text-[10px] font-bold text-slate-400 uppercase">{t('wizard.step5.whenDate')}</label>
                                 <input
+                                    id={`containment_action_${idx}_date`}
+                                    name={`containment_action_${idx}_date`}
                                     type="date"
                                     className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
                                     value={action.date}

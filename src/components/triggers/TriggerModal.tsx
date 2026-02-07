@@ -135,6 +135,8 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                                 {isRequired('start_date') && <span className="text-red-500 ml-1">*</span>}
                             </label>
                             <input
+                                id="trigger_start_date"
+                                name="trigger_start_date"
                                 type="datetime-local"
                                 className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none ${localErrors.includes('start_date') ? 'border-red-500 bg-red-50' : 'border-slate-300'}`}
                                 value={editingTrigger.start_date}
@@ -147,6 +149,8 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                                 {isRequired('end_date') && <span className="text-red-500 ml-1">*</span>}
                             </label>
                             <input
+                                id="trigger_end_date"
+                                name="trigger_end_date"
                                 type="datetime-local"
                                 className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none ${localErrors.includes('end_date') ? 'border-red-500 bg-red-50' : 'border-slate-300'}`}
                                 value={editingTrigger.end_date}
@@ -155,21 +159,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                         </div>
                     </div>
 
-                    {/* Asset Selection */}
-                    <div>
-                        <label className={`block text-xs font-medium mb-1 ${localErrors.includes('area_id') || localErrors.includes('equipment_id') ? 'text-red-600' : 'text-slate-500'}`}>{t('triggerModal.subgroupSelect')}</label>
-                        <div className={`border rounded h-32 overflow-auto bg-slate-50 mb-2 ${localErrors.includes('area_id') || localErrors.includes('equipment_id') ? 'border-red-500' : ''}`}>
-                            <AssetSelector
-                                assets={assets}
-                                onSelect={handleAssetSelect}
-                                selectedAssetId={editingTrigger.subgroup_id || editingTrigger.equipment_id}
-                                selectableTypes={['SUBGROUP']}
-                            />
-                        </div>
-                        <div className="text-xs text-blue-600">
-                            {t('triggerModal.selected')} {getAssetName(editingTrigger.subgroup_id || editingTrigger.equipment_id || editingTrigger.area_id, assets)}
-                        </div>
-                    </div>
+                    {/* Asset Selection - ID handled in AssetSelector or container? Container doesn't need ID for input */}
 
                     {/* Details */}
                     <div className="grid grid-cols-2 gap-4">
@@ -179,6 +169,8 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                                 {isRequired('stop_type') && <span className="text-red-500 ml-1">*</span>}
                             </label>
                             <input
+                                id="trigger_stop_type"
+                                name="trigger_stop_type"
                                 type="text"
                                 className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none ${localErrors.includes('stop_type') ? 'border-red-500 bg-red-50' : 'border-slate-300'}`}
                                 value={editingTrigger.stop_type}
@@ -191,6 +183,8 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                                 {isRequired('stop_reason') && <span className="text-red-500 ml-1">*</span>}
                             </label>
                             <input
+                                id="trigger_stop_reason"
+                                name="trigger_stop_reason"
                                 type="text"
                                 className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none ${localErrors.includes('stop_reason') ? 'border-red-500 bg-red-50' : 'border-slate-300'}`}
                                 value={editingTrigger.stop_reason}
@@ -206,6 +200,8 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                                 {isRequired('analysis_type_id') && <span className="text-red-500 ml-1">*</span>}
                             </label>
                             <select
+                                id="trigger_analysis_type"
+                                name="trigger_analysis_type"
                                 className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none ${localErrors.includes('analysis_type_id') ? 'border-red-500 bg-red-50' : 'border-slate-300'}`}
                                 value={editingTrigger.analysis_type_id}
                                 onChange={e => setEditingTrigger({ ...editingTrigger, analysis_type_id: e.target.value })}
@@ -220,6 +216,8 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                                 {isRequired('responsible') && <span className="text-red-500 ml-1">*</span>}
                             </label>
                             <input
+                                id="trigger_responsible"
+                                name="trigger_responsible"
                                 type="text"
                                 className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none ${localErrors.includes('responsible') ? 'border-red-500 bg-red-50' : 'border-slate-300'}`}
                                 value={editingTrigger.responsible}
@@ -234,6 +232,8 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             {isRequired('status') && <span className="text-red-500 ml-1">*</span>}
                         </label>
                         <select
+                            id="trigger_status"
+                            name="trigger_status"
                             className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none ${localErrors.includes('status') ? 'border-red-500 bg-red-50' : 'border-slate-300'}`}
                             value={editingTrigger.status}
                             onChange={e => setEditingTrigger({ ...editingTrigger, status: e.target.value as any })}
@@ -248,6 +248,8 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                     <div>
                         <label className="block text-xs font-medium text-slate-500 mb-1">{t('triggerModal.comments')}</label>
                         <textarea
+                            id="trigger_comments"
+                            name="trigger_comments"
                             className="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none h-20"
                             value={editingTrigger.comments}
                             onChange={e => setEditingTrigger({ ...editingTrigger, comments: e.target.value })}

@@ -83,6 +83,8 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
 
                         <div className="grid grid-cols-2 gap-4">
                             <Input
+                                id="failure_date"
+                                name="failure_date"
                                 label={t('wizard.step1.failureDate')}
                                 type="date"
                                 required={isRequired('failure_date')}
@@ -91,6 +93,8 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                                 error={errors?.failure_date}
                             />
                             <Input
+                                id="failure_time"
+                                name="failure_time"
                                 label={t('wizard.step1.failureTime')}
                                 type="time"
                                 required={isRequired('failure_time')}
@@ -101,6 +105,8 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         </div>
 
                         <Input
+                            id="os_number"
+                            name="os_number"
                             label={t('wizard.step1.osNumber')}
                             value={data.os_number}
                             onChange={(e) => onChange('os_number', e.target.value)}
@@ -114,6 +120,8 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">{t('wizard.step1.analysisMetadata')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                     <Select
+                        id="analysis_type"
+                        name="analysis_type"
                         label={t('wizard.step1.analysisType')}
                         required={isRequired('analysis_type')}
                         options={[{ value: '', label: t('wizard.select') }, ...taxonomy.analysisTypes.map(t => ({ value: t.id, label: t.name }))]}
@@ -122,12 +130,16 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         error={errors?.analysis_type}
                     />
                     <Input
+                        id="facilitator"
+                        name="facilitator"
                         label={t('wizard.step1.facilitator')}
                         value={data.facilitator}
                         onChange={(e) => onChange('facilitator', e.target.value)}
                         required={isRequired('facilitator')}
                     />
                     <Input
+                        id="analysis_duration"
+                        name="analysis_duration"
                         label={t('wizard.step1.analysisDuration')}
                         type="number"
                         placeholder={t('fields.durationPlaceholder')}
@@ -135,6 +147,8 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         onChange={(e) => onChange('analysis_duration_minutes', Number(e.target.value))}
                     />
                     <Input
+                        id="participants"
+                        name="participants"
                         label={t('wizard.step1.participants')}
                         required={isRequired('participants')}
                         placeholder={t('wizard.step1.participantsPlaceholder')}
@@ -145,6 +159,8 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Input
+                        id="start_date"
+                        name="start_date"
                         label={t('wizard.step1.startDate')}
                         type="date"
                         value={data.start_date || ''}
@@ -152,6 +168,8 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         required={isRequired('start_date')}
                     />
                     <Input
+                        id="completion_date"
+                        name="completion_date"
                         label={t('wizard.step1.completionDate')}
                         type="date"
                         value={data.completion_date || ''}

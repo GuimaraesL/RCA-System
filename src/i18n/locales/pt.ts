@@ -24,8 +24,6 @@ export const pt: TranslationSchema = {
         version: "Ver:",
         noDescription: "Sem descrição (O que)",
         box: "Box",
-        noDescription: "Sem descrição (What)",
-        box: "Box",
         tooltips: {
             deleteKey: "Remover este nível",
             resize: "Arraste para redimensionar",
