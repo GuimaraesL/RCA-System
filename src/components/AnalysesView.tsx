@@ -304,9 +304,9 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                 const statusName = translateStatus(r.status, rawName);
                                 return (
                                     <tr key={r.id} onClick={() => onEdit(r)} className="hover:bg-blue-50 cursor-pointer transition-colors group">
-                                        <td className="px-6 py-4">
-                                            <div className="font-mono text-xs text-slate-500">{r.id}</div>
-                                            <div className="text-xs font-bold text-blue-600">{getName('analysisTypes', r.analysis_type)}</div>
+                                        <td className="px-6 py-5">
+                                            <div className="font-mono text-[10px] text-slate-400 group-hover:text-blue-400 transition-colors">#RCA-{r.id.substring(0, 6)}</div>
+                                            <div className="text-xs font-bold text-blue-600 uppercase tracking-tight">{getName('analysisTypes', r.analysis_type)}</div>
                                         </td>
                                         <td className="px-6 py-4 max-w-sm">
                                             <div className="font-medium text-slate-900 truncate" title={r.what}>{r.what}</div>
@@ -319,11 +319,11 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                             <div className="text-xs text-slate-400 truncate">{getName('componentTypes', r.component_type)}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${r.status === STATUS_IDS.CONCLUDED ? 'bg-green-100 text-green-700' :
-                                                r.status === STATUS_IDS.CANCELLED ? 'bg-red-100 text-red-700' :
-                                                    r.status === STATUS_IDS.WAITING_VERIFICATION ? 'bg-purple-100 text-purple-700' :
-                                                        r.status === STATUS_IDS.IN_PROGRESS ? 'bg-blue-100 text-blue-700' :
-                                                            'bg-slate-100 text-slate-600'
+                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${r.status === STATUS_IDS.CONCLUDED ? 'bg-status-concluded/10 text-status-concluded border border-status-concluded/20' :
+                                                r.status === STATUS_IDS.CANCELLED ? 'bg-status-delayed/10 text-status-delayed border border-status-delayed/20' :
+                                                    r.status === STATUS_IDS.WAITING_VERIFICATION ? 'bg-status-wait/10 text-status-wait border border-status-wait/20' :
+                                                        r.status === STATUS_IDS.IN_PROGRESS ? 'bg-status-in-progress/10 text-status-in-progress border border-status-in-progress/20' :
+                                                            'bg-slate-100 text-slate-600 border border-slate-200'
                                                 }`}>
                                                 {statusName}
                                             </span>

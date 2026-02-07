@@ -11,6 +11,8 @@ import { useLanguage } from '../context/LanguageDefinition'; // i18n
 import { filterAssetsByUsage } from '../services/utils';
 import { AnimatedCounter } from './ui/AnimatedCounter';
 import { useEnterAnimation } from '../hooks/useEnterAnimation';
+import { Skeleton } from './ui/Skeleton';
+import { Info } from 'lucide-react';
 
 // Professional Color Palette (Cool Tones + Accents)
 const COLORS = [
@@ -57,7 +59,8 @@ const ChartCard: React.FC<{
     children: React.ReactNode;
     icon?: React.ReactNode;
     isInteractive?: boolean;
-}> = ({ title, children, icon, isInteractive }) => {
+    isLoading?: boolean;
+}> = ({ title, children, icon, isInteractive, isLoading }) => {
     const { t } = useLanguage();
     return (
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[350px] transition-all hover:shadow-md relative group">
@@ -73,14 +76,23 @@ const ChartCard: React.FC<{
                 )}
             </div>
             <div className="flex-1 w-full min-h-0 relative">
-                {children}
+                {isLoading ? (
+                    <div className="h-full w-full flex flex-col gap-4">
+                        <Skeleton className="flex-1 w-full" />
+                        <div className="flex justify-between gap-2">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-4 w-20" />
+                        </div>
+                    </div>
+                ) : children}
             </div>
         </div>
     );
 };
 
 export const Dashboard: React.FC = () => {
-    const { records, assets, taxonomy } = useRcaContext();
+    const { records, assets, taxonomy, isLoading } = useRcaContext();
     const { t, language } = useLanguage();
 
     // Animation Refs
@@ -330,35 +342,33 @@ export const Dashboard: React.FC = () => {
 
             {/* KPI Cards */}
             <div ref={kpiRef as any} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden group">
-                    <div className="text-xs text-blue-600 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><Clock size={14} /> {t('dashboard.kpi.durationMin')}</div>
-                    <div className="text-4xl font-bold text-slate-800 relative z-10">
-                        <AnimatedCounter value={totalDowntimeMin} />
+                {[
+                    { label: t('dashboard.kpi.durationMin'), value: totalDowntimeMin, icon: <Clock size={14} />, color: 'text-blue-600', tooltip: t('dashboard.tooltips.durationMin') },
+                    { label: t('dashboard.kpi.durationHours'), value: Number(totalDowntimeHours.toFixed(1)), icon: <Clock size={14} />, color: 'text-indigo-600', tooltip: t('dashboard.tooltips.durationHours') },
+                    { label: t('dashboard.kpi.totalCost'), value: totalCost, icon: <TrendingUp size={14} />, color: 'text-emerald-600', prefix: language === 'pt' ? 'R$ ' : '$', tooltip: t('dashboard.tooltips.totalCost') },
+                    { label: t('dashboard.kpi.totalRcas'), value: filteredRecords.length, icon: <PieIcon size={14} />, color: 'text-slate-500', tooltip: t('dashboard.tooltips.totalRcas') }
+                ].map((kpi, i) => (
+                    <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden group hover:border-blue-300 transition-colors">
+                        <div className={`text-xs ${kpi.color} font-bold uppercase tracking-wider mb-2 flex items-center justify-between`}>
+                            <div className="flex items-center gap-1">{kpi.icon} {kpi.label}</div>
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity" title={kpi.tooltip}>
+                                <Info size={14} className="text-slate-300 cursor-help" />
+                            </div>
+                        </div>
+                        <div className="text-4xl font-bold text-slate-800 relative z-10">
+                            {isLoading ? (
+                                <Skeleton className="h-10 w-3/4" />
+                            ) : (
+                                <AnimatedCounter value={kpi.value} prefix={kpi.prefix} />
+                            )}
+                        </div>
                     </div>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden group">
-                    <div className="text-xs text-indigo-600 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><Clock size={14} /> {t('dashboard.kpi.durationHours')}</div>
-                    <div className="text-4xl font-bold text-slate-800 relative z-10">
-                        <AnimatedCounter value={Number(totalDowntimeHours.toFixed(1))} />
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden group">
-                    <div className="text-xs text-emerald-600 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><TrendingUp size={14} /> {t('dashboard.kpi.totalCost')}</div>
-                    <div className="text-4xl font-bold text-slate-800 relative z-10">
-                        <AnimatedCounter value={totalCost} prefix={language === 'pt' ? 'R$ ' : '$'} />
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden group">
-                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><PieIcon size={14} /> {t('dashboard.kpi.totalRcas')}</div>
-                    <div className="text-4xl font-bold text-slate-800 relative z-10">
-                        <AnimatedCounter value={filteredRecords.length} />
-                    </div>
-                </div>
+                ))}
             </div>
 
             {/* Main Grid */}
             <div ref={chartsRef as any} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <ChartCard title={t('dashboard.charts.totalByStatus')} icon={<CheckCircle size={16} />} isInteractive>
+                <ChartCard title={t('dashboard.charts.totalByStatus')} icon={<CheckCircle size={16} />} isInteractive isLoading={isLoading}>
                     {isMounted && dataStatus.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <PieChart>

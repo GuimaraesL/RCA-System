@@ -1,5 +1,14 @@
-/* Tailwind v4 - Nova sintaxe de importação */
 @import "tailwindcss";
+
+@theme {
+  --color-status-concluded: #10b981;
+  --color-status-in-progress: #3b82f6;
+  --color-status-wait: #f59e0b;
+  --color-status-delayed: #ef4444;
+  
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+}
 
 /* ============================================
    Global Styles
