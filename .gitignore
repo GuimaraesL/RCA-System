@@ -47,3 +47,8 @@ audit_output.txt
 test-results.txt
 docs/PROBLEMAS_ATUAIS.md
 git_status.txt
+build_output_utf8.txt
+build_output.txt
+debug_output_utf8.txt
+debug_output.txt
+test_output_2.txt
