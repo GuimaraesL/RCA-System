@@ -61,16 +61,39 @@ export const SystemFactory = {
 export const TaxonomyFactory = {
   createDefault() {
     return {
-      analysisTypes: [{ id: 'TYPE-01', name: 'Falha de Equipamento' }],
+      analysisTypes: [
+        { id: 'TYPE-01', name: 'Falha de Equipamento' },
+        { id: 'TYPE-02', name: 'Falha de Processo' }
+      ],
       analysisStatuses: [
         { id: 'STATUS-01', name: 'Em Andamento' },
         { id: 'STATUS-WAITING', name: 'Aguardando Verificação' },
-        { id: 'STATUS-03', name: 'Concluída' }
+        { id: 'STATUS-03', name: 'Concluída' },
+        { id: 'STATUS-04', name: 'Cancelada' }
       ],
-      triggerStatuses: [{ id: 'T-STATUS-01', name: 'Novo' }],
+      specialties: [
+        { id: 'SPEC-01', name: 'Mecânica' },
+        { id: 'SPEC-02', name: 'Elétrica' }
+      ],
+      failureModes: [],
+      failureCategories: [],
+      componentTypes: [],
+      rootCauseMs: [
+        { id: 'M1', name: 'Máquina' },
+        { id: 'M2', name: 'Método' }
+      ],
+      triggerStatuses: [
+        { id: 'T-STATUS-01', name: 'Novo' },
+        { id: 'T-STATUS-02', name: 'Em Análise' }
+      ],
       mandatoryFields: {
-        trigger: { save: ['start_date', 'stop_reason'] },
-        rca: { create: ['what'], conclude: ['root_causes'] }
+        trigger: {
+          save: ['start_date', 'stop_reason', 'responsible', 'status']
+        },
+        rca: {
+          create: ['subgroup_id', 'failure_date', 'analysis_type', 'what'],
+          conclude: ['root_causes', 'five_whys', 'ishikawa']
+        }
       }
     };
   }

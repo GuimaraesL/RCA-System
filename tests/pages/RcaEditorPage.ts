@@ -21,7 +21,14 @@ export class RcaEditorPage {
 
   async open() {
     await this.page.getByRole('button', { name: /Análises|Analyses/i }).click();
+    
+    // Aguarda carregar a view de análises
+    await expect(this.page.getByTestId('app-suspense-loading')).not.toBeVisible();
+
     await this.page.getByRole('button', { name: /Nova Análise|New Analysis/i }).click();
+    
+    // Aguarda carregar o editor
+    await expect(this.page.getByTestId('app-suspense-loading')).not.toBeVisible();
     await expect(this.editorHeader).toBeVisible();
   }
 

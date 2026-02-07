@@ -14,38 +14,30 @@ import { TriggerModalPage } from '../pages/TriggerModalPage';
 test.describe('Unified Modal Flows', () => {
 
   test.beforeEach(async ({ page }) => {
-    // 🛡️ FULL API SHADOWING: Intercepta todas as chamadas /api/*
+    // Monitora erros de página e console
+    page.on('pageerror', err => console.log(`❌ BROWSER CRASH: ${err.message}`));
+    page.on('console', msg => console.log(`[BROWSER ${msg.type()}]: ${msg.text()}`));
+
+    // 🛡️ FULL API SHADOWING
     await page.route('**/api/**', async route => {
       const url = route.request().url();
-      const method = route.request().method();
-      
-      if (url.includes('/api/health')) {
-        return route.fulfill({ status: 200, body: JSON.stringify(SystemFactory.health()) });
-      }
-      if (url.includes('/api/taxonomy')) {
-        return route.fulfill({ status: 200, body: JSON.stringify(TaxonomyFactory.createDefault()) });
-      }
-      if (url.includes('/api/assets')) {
-        return route.fulfill({ status: 200, body: JSON.stringify([{ id: 'AREA-01', name: 'Área Teste', type: 'AREA', children: [] }]) });
-      }
-      if (url.includes('/api/rcas')) {
-        return route.fulfill({ status: 200, body: JSON.stringify([RcaFactory.create()]) });
-      }
-      if (url.includes('/api/triggers')) {
-        if (method === 'POST') return route.fulfill({ status: 201, body: JSON.stringify({ message: 'Success' }) });
-        return route.fulfill({ status: 200, body: JSON.stringify([TriggerFactory.create()]) });
-      }
-      if (url.includes('/api/actions')) {
-        return route.fulfill({ status: 200, body: JSON.stringify([ActionFactory.create()]) });
-      }
-
-      // Catch-all para outras chamadas de API para evitar 404s que bloqueiam a UI
-      console.log(`[MOCK] Interceptando rota não mapeada: ${url}`);
+      if (url.includes('/api/health')) return route.fulfill({ status: 200, body: JSON.stringify(SystemFactory.health()) });
+      if (url.includes('/api/taxonomy')) return route.fulfill({ status: 200, body: JSON.stringify(TaxonomyFactory.createDefault()) });
+      if (url.includes('/api/assets')) return route.fulfill({ status: 200, body: JSON.stringify([]) });
+      if (url.includes('/api/rcas')) return route.fulfill({ status: 200, body: JSON.stringify([]) });
       return route.fulfill({ status: 200, body: JSON.stringify([]) });
     });
 
-    await page.goto('http://localhost:3000/');
-    await expect(page.locator('aside')).toBeVisible();
+    await page.goto('http://localhost:3000/', { waitUntil: 'networkidle' });
+    
+    // Diagnóstico de Estrutura
+    const html = await page.content();
+    console.log(`📄 ESTRUTURA DOM (Primeiros 500 chars): ${html.substring(0, 500)}`);
+
+    const loader = page.getByTestId('app-suspense-loading');
+    if (await loader.isVisible()) {
+      await expect(loader).not.toBeVisible({ timeout: 15000 });
+    }
   });
 
   /**

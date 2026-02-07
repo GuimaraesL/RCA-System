@@ -23,6 +23,10 @@ export class TriggerModalPage {
 
   async open() {
     await this.page.getByRole('button', { name: /Gatilhos|Triggers/i }).click();
+    
+    // Aguarda carregar a view de gatilhos (Lazy Loaded)
+    await expect(this.page.getByTestId('app-suspense-loading')).not.toBeVisible();
+
     await this.newTriggerBtn.click();
     await expect(this.modal).toBeVisible();
   }

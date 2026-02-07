@@ -5,9 +5,12 @@ const config: PlaywrightTestConfig = {
   timeout: 60000,
   use: {
     baseURL: 'http://localhost:3000',
+    viewport: { width: 1280, height: 720 },
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     headless: true,
+    actionTimeout: 15000,
+    navigationTimeout: 30000,
   },
   webServer: {
     command: 'npm run dev:client',
