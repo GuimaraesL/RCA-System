@@ -1,14 +1,13 @@
-
 // [ALLOWED-USAGE] This file interacts with localStorage solely for UI preference persistence (filters, view modes).
 // It does NOT handle business data (Records, Assets, etc.).
 import { useState, useEffect } from 'react';
 import { FilterState } from '../components/FilterBar';
-
-const GLOBAL_MODE_KEY = 'rca_filter_is_global';
-const GLOBAL_FILTERS_KEY = 'rca_global_filters';
+import { useGlobalFilters } from '../context/FilterContext';
 
 export const useFilterPersistence = (pageKey: string, defaultFilters: FilterState, defaultOpen: boolean = true) => {
-    // 1. Persistence for visibility (Expanded/Collapsed)
+    const { isGlobal, globalFilters, setGlobalFilters, toggleGlobal: toggleGlobalContext } = useGlobalFilters();
+
+    // 1. Persistence for visibility (Expanded/Collapsed) - Always Page Specific
     const [showFilters, setShowFilters] = useState(() => {
         try {
             const saved = localStorage.getItem(`${pageKey}_show`);
@@ -16,28 +15,28 @@ export const useFilterPersistence = (pageKey: string, defaultFilters: FilterStat
         } catch { return defaultOpen; }
     });
 
-    // 2. Global Mode State (Shared across the app)
-    const [isGlobal, setIsGlobalState] = useState(() => {
+    // 2. Local Filter Values State (Used only when isGlobal is FALSE)
+    const [localFilters, setLocalFilters] = useState<FilterState>(() => {
         try {
-            return localStorage.getItem(GLOBAL_MODE_KEY) === 'true';
-        } catch { return false; }
-    });
-
-    // 3. Filter Values State
-    const [filters, setFilters] = useState<FilterState>(() => {
-        try {
-            // Determine source: Global Key or Page Specific Key
-            const globalMode = localStorage.getItem(GLOBAL_MODE_KEY) === 'true';
-            const sourceKey = globalMode ? GLOBAL_FILTERS_KEY : `${pageKey}_criteria`;
-
-            const saved = localStorage.getItem(sourceKey);
-            if (saved) {
-                // Merge saved filters with defaults to ensure all fields exist (migration safety)
-                return { ...defaultFilters, ...JSON.parse(saved) };
-            }
-            return defaultFilters;
+            const saved = localStorage.getItem(`${pageKey}_criteria`);
+            return saved ? { ...defaultFilters, ...JSON.parse(saved) } : defaultFilters;
         } catch { return defaultFilters; }
     });
+
+    // --- Derived Values ---
+    // The "live" filters depend on the current mode
+    const filters = isGlobal ? globalFilters : localFilters;
+
+    const setFilters = (newFilters: FilterState | ((prev: FilterState) => FilterState)) => {
+        const value = typeof newFilters === 'function' ? newFilters(filters) : newFilters;
+        
+        if (isGlobal) {
+            setGlobalFilters(value);
+        } else {
+            setLocalFilters(value);
+            localStorage.setItem(`${pageKey}_criteria`, JSON.stringify(value));
+        }
+    };
 
     // --- Effects ---
 
@@ -46,36 +45,13 @@ export const useFilterPersistence = (pageKey: string, defaultFilters: FilterStat
         localStorage.setItem(`${pageKey}_show`, JSON.stringify(showFilters));
     }, [showFilters, pageKey]);
 
-    // Persist Filters (Sensitive to Global Mode)
-    useEffect(() => {
-        const targetKey = isGlobal ? GLOBAL_FILTERS_KEY : `${pageKey}_criteria`;
-        localStorage.setItem(targetKey, JSON.stringify(filters));
-    }, [filters, isGlobal, pageKey]);
-
-    // --- Handlers ---
-
+    // Handle Global Toggle with data carry-over
     const toggleGlobal = () => {
-        const newGlobalState = !isGlobal;
-        setIsGlobalState(newGlobalState);
-        localStorage.setItem(GLOBAL_MODE_KEY, String(newGlobalState));
-
-        // When switching modes, immediately load the data from that mode's storage
-        // This ensures if I switch to Global, I see what was set on Dashboard, not what was on Actions
-        const sourceKey = newGlobalState ? GLOBAL_FILTERS_KEY : `${pageKey}_criteria`;
-        const saved = localStorage.getItem(sourceKey);
-
-        if (saved) {
-            setFilters({ ...defaultFilters, ...JSON.parse(saved) });
-        } else {
-            // If switching to a mode that has no data yet, keep current or reset? 
-            // Better to keep current filters as a starting point for the new mode if it's empty
-            if (newGlobalState) {
-                // Switching to Global for the first time? Carry over current page filters
-                localStorage.setItem(GLOBAL_FILTERS_KEY, JSON.stringify(filters));
-            } else {
-                setFilters(defaultFilters);
-            }
+        if (!isGlobal) {
+            // Turning Global ON: Carry current local filters to global
+            setGlobalFilters(localFilters);
         }
+        toggleGlobalContext();
     };
 
     const handleReset = (defaults: FilterState) => {

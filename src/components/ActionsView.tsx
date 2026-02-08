@@ -10,6 +10,7 @@ import { ActionModal } from './ActionModal';
 import { useSorting } from '../hooks/useSorting';
 import { SortHeader } from './ui/SortHeader';
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
+import { useFilteredData } from '../hooks/useFilteredData';
 // useEnterAnimation disabled for performance (Issue #11)
 
 interface ActionsViewProps {
@@ -31,7 +32,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
   };
 
   const { actions, rcaList, isModalOpen, setIsModalOpen, editingAction, openNew, openEdit, handleSave, handleDelete, deleteModalOpen, confirmDelete, cancelDelete } = useActionsLogic();
-  const { records, assets, taxonomy } = useRcaContext();
+  const { assets, taxonomy } = useRcaContext();
 
   const defaultFilters: FilterState = {
     searchTerm: '',
@@ -55,86 +56,16 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
     true
   );
 
+  // --- Intelligent Cross-Filtering Hook ---
+  const { filteredActions: filteredContent } = useFilteredData(filters);
 
-  // --- Strict Cross-Filtering Logic for Options (Copied from AnalysesView for consistency) ---
   const dynamicOptions = useMemo(() => {
-    // Helper: Global filters (Date, Search) - SIMPLIFIED for Actions
-    // Actions don't have problem_description etc directly, but we might want to search parent RCA.
-    // For now, let's filter based on Action props.
-
-    // Actually, we need to generate options based on AVAILABLE actions.
-    // Let's iterate available actions to get used assets/statuses.
-
-    const usedAssetIds = new Set<string>();
-    const usedStatuses = new Set<string>();
-    const usedSpecialties = new Set<string>();
-
-    actions.forEach(a => {
-      if (a.areaId) usedAssetIds.add(a.areaId);
-      if (a.equipmentId) usedAssetIds.add(a.equipmentId);
-      if (a.subgroupId) usedAssetIds.add(a.subgroupId);
-      if (a.status) usedStatuses.add(a.status);
-      if (a.specialtyId) usedSpecialties.add(a.specialtyId);
-    });
-
     return {
-      assets: assets ? assets.filter(a => usedAssetIds.has(a.id)) : [], // Naive filter, better to use filterAssetsByUsage if imported
-      statuses: ['1', '2', '3', '4'], // Box statuses are fixed 1-4
-      specialties: taxonomy?.specialties.filter(s => usedSpecialties.has(s.id)) || []
+      assets: assets,
+      statuses: ['1', '2', '3', '4'],
+      specialties: taxonomy?.specialties || []
     };
-  }, [actions, assets, taxonomy]);
-
-  // Mapping for Parent RCAs for deep filtering
-  const rcaMap = useMemo(() => new Map(records.map(r => [r.id, r])), [records]);
-
-
-  // --- Filtering Logic (View) --- 
-  const filteredContent = useMemo(() => {
-    const searchLower = filters.searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
-    return actions.filter(a => {
-      // 1. Text Search - using pre-computed searchContext (Issue #11 optimization)
-      const matchesSearch = !filters.searchTerm || a.searchContext.includes(searchLower);
-
-      // 2. Status (Box)
-      const matchesStatus = filters.status === 'ALL' || a.status === filters.status;
-
-      // 3. Date - using pre-computed yearStr/monthStr (Issue #11 optimization)
-      const matchesYear = !filters.year || a.yearStr === filters.year;
-      const matchesMonth = filters.months.length === 0 || filters.months.includes(a.monthStr);
-
-      // 4. Assets
-      let matchesAsset = true;
-      if (filters.subgroup !== 'ALL') matchesAsset = a.subgroupId === filters.subgroup;
-      else if (filters.equipment !== 'ALL') matchesAsset = a.equipmentId === filters.equipment;
-      else if (filters.area !== 'ALL') matchesAsset = a.areaId === filters.area;
-
-      // 5. Specialty
-      const matchesSpecialty = filters.specialty === 'ALL' || a.specialtyId === filters.specialty;
-
-      // --- Technical Filters (Deep check on Parent RCA) ---
-      const parent = rcaMap.get(a.rca_id);
-
-      let matchesFailureMode = true;
-      let matchesFailureCategory = true;
-      let matchesComponent = true;
-      let matches6M = true;
-
-      // Only apply these if parent exists and filter is set
-      if (parent) {
-        if (filters.failureMode !== 'ALL') matchesFailureMode = parent.failure_mode_id === filters.failureMode;
-        if (filters.failureCategory !== 'ALL') matchesFailureCategory = parent.failure_category_id === filters.failureCategory;
-        if (filters.componentType !== 'ALL') matchesComponent = parent.component_type === filters.componentType;
-        if (filters.rootCause6M !== 'ALL') matches6M = parent.root_causes?.some((rc: any) => rc.root_cause_m_id === filters.rootCause6M);
-      } else if (filters.failureMode !== 'ALL' || filters.failureCategory !== 'ALL' || filters.componentType !== 'ALL' || filters.rootCause6M !== 'ALL') {
-        // If filtering by technical details but no parent found, exclude.
-        return false;
-      }
-
-      return matchesSearch && matchesStatus && matchesYear && matchesMonth && matchesAsset && matchesSpecialty
-        && matchesFailureMode && matchesFailureCategory && matchesComponent && matches6M;
-    });
-  }, [actions, records, filters, rcaMap]);
+  }, [assets, taxonomy]);
 
   // --- Sorting Hook ---
   const { sortedItems: filteredActions, sortConfig, handleSort } = useSorting(filteredContent, { key: 'date', direction: 'desc' });

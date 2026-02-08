@@ -16,6 +16,7 @@ const MigrationView = lazy(() => import('./components/MigrationView').then(m => 
 
 import { RcaProvider, useRcaContext } from './context/RcaContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { FilterProvider } from './context/FilterContext';
 import { useLanguage } from './context/LanguageDefinition';
 import { LanguageSelector } from './components/LanguageSelector'; // i18n
 import { generateId } from './services/utils';
@@ -241,9 +242,11 @@ const AppContent: React.FC = () => {
 export default function App() {
     return (
         <LanguageProvider>
-            <RcaProvider>
-                <AppContent />
-            </RcaProvider>
+            <FilterProvider>
+                <RcaProvider>
+                    <AppContent />
+                </RcaProvider>
+            </FilterProvider>
         </LanguageProvider>
     );
 }

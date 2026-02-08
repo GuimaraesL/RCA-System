@@ -11,6 +11,7 @@ import { useRcaContext } from '../context/RcaContext';
 import { filterAssetsByUsage } from '../services/utils';
 import { ConfirmModal } from './ConfirmModal';
 import { getAssetName } from '../utils/triggerHelpers';
+import { useFilteredData } from '../hooks/useFilteredData';
 // useEnterAnimation disabled for performance with large datasets
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
 
@@ -21,7 +22,7 @@ interface AnalysesViewProps {
 
 export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => {
     const { t, formatDate, language } = useLanguage();
-    const { records, assets, taxonomy, deleteRecord } = useRcaContext();
+    const { assets, taxonomy, deleteRecord } = useRcaContext();
 
     // Delete Modal State
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -49,6 +50,9 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         defaultFilters,
         true
     );
+
+    // --- Intelligent Cross-Filtering Hook ---
+    const { filteredRCAs: filteredContent } = useFilteredData(filters);
 
     // --- Performance Optimization: Taxonomy Maps for O(1) Lookup ---
     const taxonomyMaps = useMemo(() => {
@@ -81,140 +85,14 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         }
     };
 
-    // --- Delete Handlers ---
-    const handleDelete = (e: React.MouseEvent, id: string) => {
-        e.stopPropagation(); // Prevent row click from triggering edit
-        setRecordToDelete(id);
-        setDeleteModalOpen(true);
-    };
-
-    const confirmDelete = async () => {
-        if (!recordToDelete) return;
-        try {
-            await deleteRecord(recordToDelete);
-            console.log('✅ RCA excluída:', recordToDelete);
-        } catch (error) {
-            console.error('❌ Erro ao excluir RCA:', error);
-        }
-        setDeleteModalOpen(false);
-        setRecordToDelete(null);
-    };
-
-    // --- Strict Cross-Filtering Logic for Options ---
-    // --- Optimization: Pre-compute Search Context ---
-    const recordsWithContext = useMemo(() => {
-        return records.map(r => {
-            const searchContext = `${r.what || ''} ${r.problem_description || ''} ${r.id || ''} ${r.who || ''} ${r.where_description || ''} ${r.participants?.join(' ') || ''} ${r.root_causes?.map((rc: any) => rc.cause).join(' ') || ''}`
-                .toLowerCase()
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "");
-
-            const rDate = new Date(r.failure_date);
-            const isValidDate = !isNaN(rDate.getTime());
-            const yearStr = isValidDate ? rDate.getFullYear().toString() : '';
-            const monthStr = isValidDate ? (rDate.getMonth() + 1).toString().padStart(2, '0') : '';
-
-            return { ...r, searchContext, yearStr, monthStr };
-        });
-    }, [records]);
-
     const dynamicOptions = useMemo(() => {
-        // Helper: Global filters (Date, Search)
-        const matchesGlobal = (r: typeof recordsWithContext[0]) => {
-            // Text Search
-            const searchLower = filters.searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            const matchesSearch = !filters.searchTerm || r.searchContext.includes(searchLower);
-
-            // Date
-            const matchesYear = !filters.year || r.yearStr === filters.year;
-            const matchesMonth = filters.months.length === 0 || filters.months.includes(r.monthStr);
-
-            return matchesSearch && matchesYear && matchesMonth;
-        };
-
-        // Helper: Asset filters
-        const matchesAssets = (r: any) => {
-            if (filters.subgroup !== 'ALL' && r.subgroup_id !== filters.subgroup) return false;
-            if (filters.equipment !== 'ALL' && r.equipment_id !== filters.equipment) return false;
-            if (filters.area !== 'ALL' && r.area_id !== filters.area) return false;
-            return true;
-        };
-
-        // Helper: Attribute filters
-        const matchesAttributes = (r: any, ignore: 'status' | 'type' | 'specialty' | null) => {
-            if (ignore !== 'status' && filters.status !== 'ALL' && r.status !== filters.status) return false;
-            if (ignore !== 'type' && filters.analysisType !== 'ALL' && r.analysis_type !== filters.analysisType) return false;
-            if (ignore !== 'specialty' && filters.specialty !== 'ALL' && r.specialty_id !== filters.specialty) return false;
-            return true;
-        };
-
-        // 1. Assets: Match Global + Attributes
-        const recordsForAssets = recordsWithContext.filter(r => matchesGlobal(r) && matchesAttributes(r, null));
-        const usedAssetIds = new Set<string>();
-        recordsForAssets.forEach(r => {
-            if (r.area_id) usedAssetIds.add(r.area_id);
-            if (r.equipment_id) usedAssetIds.add(r.equipment_id);
-            if (r.subgroup_id) usedAssetIds.add(r.subgroup_id);
-        });
-
-        // 2. Statuses: Match Global + Assets + Attributes(ignore Status)
-        const recordsForStatuses = recordsWithContext.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'status'));
-        const usedStatuses = new Set(recordsForStatuses.map(r => r.status));
-
-        // 3. Specialties: Match Global + Assets + Attributes(ignore Specialty)
-        const recordsForSpecialties = recordsWithContext.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'specialty'));
-        const usedSpecialties = new Set(recordsForSpecialties.map(r => r.specialty_id));
-
-        // 4. Types: Match Global + Assets + Attributes(ignore Type)
-        const recordsForTypes = recordsWithContext.filter(r => matchesGlobal(r) && matchesAssets(r) && matchesAttributes(r, 'type'));
-        const usedTypes = new Set(recordsForTypes.map(r => r.analysis_type));
-
         return {
-            assets: filterAssetsByUsage(assets, usedAssetIds),
-            statuses: taxonomy.analysisStatuses.filter(s => usedStatuses.has(s.id)),
-            specialties: taxonomy.specialties.filter(s => usedSpecialties.has(s.id)),
-            analysisTypes: taxonomy.analysisTypes.filter(t => usedTypes.has(t.id))
+            assets: filterAssetsByUsage(assets, new Set()),
+            statuses: taxonomy.analysisStatuses,
+            specialties: taxonomy.specialties,
+            analysisTypes: taxonomy.analysisTypes
         };
-    }, [recordsWithContext, assets, taxonomy, filters]);
-
-    // --- Filtering Logic (View) --- 
-    const filteredContent = useMemo(() => {
-        // 1. Prepare Search Term (Normalized)
-        const searchLower = filters.searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
-        return recordsWithContext.filter(r => {
-            // Text Search - O(1)
-            const matchesSearch = !filters.searchTerm || r.searchContext.includes(searchLower);
-
-            // Date - O(1)
-            const matchesYear = !filters.year || r.yearStr === filters.year;
-            const matchesMonth = filters.months.length === 0 || filters.months.includes(r.monthStr);
-
-            // Dropdown Filters
-            const matchesStatus = filters.status === 'ALL' || r.status === filters.status;
-            const matchesType = filters.analysisType === 'ALL' || r.analysis_type === filters.analysisType;
-            const matchesSpecialty = filters.specialty === 'ALL' || r.specialty_id === filters.specialty;
-
-            // Assets Hierarchy
-            let matchesAsset = true;
-            if (filters.subgroup !== 'ALL') matchesAsset = r.subgroup_id === filters.subgroup;
-            else if (filters.equipment !== 'ALL') matchesAsset = r.equipment_id === filters.equipment;
-            else if (filters.area !== 'ALL') matchesAsset = r.area_id === filters.area;
-
-            // --- Technical Filters (Dashboard Click-through) ---
-            const matchesFailureMode = filters.failureMode === 'ALL' || r.failure_mode_id === filters.failureMode;
-            const matchesFailureCategory = filters.failureCategory === 'ALL' || r.failure_category_id === filters.failureCategory;
-            const matchesComponent = filters.componentType === 'ALL' || r.component_type === filters.componentType;
-
-            let matches6M = true;
-            if (filters.rootCause6M !== 'ALL') {
-                matches6M = r.root_causes?.some((rc: any) => rc.root_cause_m_id === filters.rootCause6M);
-            }
-
-            return matchesSearch && matchesYear && matchesMonth && matchesStatus && matchesAsset && matchesType && matchesSpecialty
-                && matchesFailureMode && matchesFailureCategory && matchesComponent && matches6M;
-        });
-    }, [recordsWithContext, filters]);
+    }, [assets, taxonomy]);
 
     // Use the Hook!
     const { sortedItems: filteredRecords, sortConfig, handleSort } = useSorting(filteredContent, { key: 'failure_date', direction: 'desc' });
