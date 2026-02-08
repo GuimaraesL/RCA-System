@@ -13,13 +13,15 @@ export interface TranslationSchema {
         status: string;
         date: string;
         confirm: string;
-        appTitle: string;
         portuguese: string;
         english: string;
+        appTitle: string;
         runningOn: string;
         failurePrefix: string;
         requiredField: string;
         version: string;
+        noDescription: string;
+        box: string;
         tooltips: {
             deleteKey: string;
             resize: string;
@@ -96,7 +98,7 @@ export interface TranslationSchema {
             totalByType: string;
             topEquipments: string;
             topSubgroups: string;
-            rootCauses6M: string;
+            rootCause6M: string;
             totalByComponent: string;
             failureMode: string;
             failureCategory: string;
@@ -105,6 +107,10 @@ export interface TranslationSchema {
         tooltips: {
             records: string;
             clickToFilter: string;
+            durationMin: string;
+            durationHours: string;
+            totalCost: string;
+            totalRcas: string;
         };
     };
     status: {
@@ -245,6 +251,8 @@ export interface TranslationSchema {
         failureCategories: string;
         rootCauseMs: string;
         addItemPlaceholder: string;
+        addItemButton: string;
+        editItemLabel: string;
         emptyList: string;
         deleteItemTitle: string;
         deleteItemMessage: string;
@@ -271,6 +279,7 @@ export interface TranslationSchema {
         when: string;
         whereDescription: string;
         problemDescription: string;
+        durationPlaceholder: string;
         specialty: string;
         failureMode: string;
         failureCategory: string;
@@ -335,48 +344,64 @@ export interface TranslationSchema {
             architecture: string;
             workflow: string;
             integrations: string;
-        },
-        architecture: {
-            p1: string;
-            entitiesTitle: string;
+        };
+        rcaRecord: string;
+        rcaRecordLabel: string;
+        assetNode: string;
+        assetNodeLabel: string;
+        actionRecord: string;
+        actionRecordLabel: string;
+        stateTitle: string;
+        contextApi: string;
+        contextApiLabel: string;
+        viewModels: string;
+        viewModelsLabel: string;
+        noDescription: string;
+        box: string;
+        labels: {
             rcaRecord: string;
-            assetNode: string;
-            actionRecord: string;
-            stateTitle: string;
             contextApi: string;
             viewModels: string;
-        },
-        workflow: {
-            step1Title: string;
-            step1Desc: string;
-            step2Title: string;
-            step2Desc: string;
-            step3Title: string;
-            step3Desc: string;
-            validationTitle: string;
-            hraDesc: string;
-            draftDesc: string;
-            linkDesc: string;
-        },
-        integrations: {
-            geminiTitle: string;
-            geminiDesc: string;
-            geminiItem1: string;
-            geminiItem2: string;
-            geminiItem3: string;
-            jsonTitle: string;
-            jsonDesc: string;
-            jsonItem1: string;
-            jsonItem2: string;
-            jsonItem3: string;
-            csvTitle: string;
-            csvDesc: string;
-            csvItem1: string;
-            csvItem2: string;
-            csvItem3: string;
-        },
-        footer: string;
+        }
     },
+    workflow: {
+        step1Title: string;
+        step1Desc: string;
+        step2Title: string;
+        step2Desc: string;
+        step3Title: string;
+        step3Desc: string;
+        validationTitle: string;
+        hraTag: string;
+        hraDesc: string;
+        draftTag: string;
+        draftDesc: string;
+        linkTag: string;
+        linkDesc: string;
+        tags: {
+            hra: string;
+            draft: string;
+            link: string;
+        }
+    },
+    integrations: {
+        geminiTitle: string;
+        geminiDesc: string;
+        geminiItem1: string;
+        geminiItem2: string;
+        geminiItem3: string;
+        jsonTitle: string;
+        jsonDesc: string;
+        jsonItem1: string;
+        jsonItem2: string;
+        jsonItem3: string;
+        csvTitle: string;
+        csvDesc: string;
+        csvItem1: string;
+        csvItem2: string;
+        csvItem3: string;
+    },
+    footer: string;
     modals: {
         confirm: string;
         portuguese: string;
@@ -640,6 +665,11 @@ export interface TranslationSchema {
             lessonsEmpty: string;
             tip: string;
             tipText: string;
+            links: string;
+            linkTitle: string;
+            linkTitlePlaceholder: string;
+            linkUrl: string;
+            linkUrlPlaceholder: string;
         };
         // Step HRA - Human Reliability Analysis
         stepHRA: {

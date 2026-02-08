@@ -253,6 +253,8 @@ export const pt: TranslationSchema = {
         failureCategories: "Categorias de Falha",
         rootCauseMs: "6M (Causas Raízes)",
         addItemPlaceholder: "Adicionar novo item...",
+        addItemButton: "Adicionar Item",
+        editItemLabel: "Editar Nome do Item",
         emptyList: "Nenhum item definido.",
         deleteItemTitle: "Excluir Item",
         deleteItemMessage: "Você tem certeza que deseja excluir \"{0}\"? Esta ação não pode ser desfeita.",

@@ -71,7 +71,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                     <div>
                         <label htmlFor="action_rca_id" className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.linkedAnalysis')} <span className="text-red-500" aria-hidden="true">*</span></label>
                         {fixedRca ? (
-                            <div className="w-full border p-2 rounded text-sm bg-slate-100 text-slate-700 font-medium">
+                            <div id="action_rca_id" className="w-full border p-2 rounded text-sm bg-slate-100 text-slate-700 font-medium">
                                 {fixedRca.title}
                             </div>
                         ) : (

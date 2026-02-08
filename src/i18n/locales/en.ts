@@ -253,6 +253,8 @@ export const en: TranslationSchema = {
         failureCategories: "Failure Categories",
         rootCauseMs: "Root Cause Ms (6M)",
         addItemPlaceholder: "Add new item...",
+        addItemButton: "Add Item",
+        editItemLabel: "Edit Item Name",
         emptyList: "No items defined.",
         deleteItemTitle: "Delete Item",
         deleteItemMessage: "Are you sure you want to delete \"{0}\"? This action cannot be undone.",
@@ -356,6 +358,8 @@ export const en: TranslationSchema = {
         contextApiLabel: "Context API",
         viewModels: "Abstraction layer in Hooks (e.g., useActionsLogic) to resolve relationships (IDs to Names) at runtime.",
         viewModelsLabel: "ViewModels",
+        noDescription: "No description available.",
+        box: "Box",
         labels: {
             rcaRecord: "RcaRecord:",
             contextApi: "Context API:",
