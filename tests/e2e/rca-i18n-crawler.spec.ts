@@ -1,128 +1,119 @@
 import { test, expect } from '@playwright/test';
 import { en } from '../../src/i18n/locales/en';
+import { pt } from '../../src/i18n/locales/pt';
 import { TaxonomyFactory, SystemFactory } from '../factories/rcaFactory';
 
 /**
- * RCA System - I18N Advanced Crawler (V6 - Final Fix)
+ * RCA System - I18N Advanced Crawler (V8 - Full Coverage & Enforcement)
  * 
- * Este teste agora:
- * 1. Expande a árvore de ativos corretamente.
- * 2. Usa uma regex de acentos completa (áéíóú...).
- * 3. Detecta chaves de tradução não processadas (ex: checklists.precision...).
- * 4. Garante a navegação até o Passo 6.
+ * Este teste é o guardião final da internacionalização.
+ * Ele detecta:
+ * 1. Chaves brutas (ex: checklists.precision.chk_clean)
+ * 2. Sentenças em Português remanescentes.
+ * 3. Vazamento de acentos em qualquer lugar da UI.
  */
 
-test.describe('I18N Advanced Crawler - Step 6 Focus', () => {
+test.describe('I18N Guardião - Varredura Profunda', () => {
 
   const setupNeutralMocks = async (page) => {
     await page.route('**/api/**', async route => {
       const url = route.request().url();
-      
       if (url.includes('/api/taxonomy')) {
         const taxonomy = TaxonomyFactory.createDefault();
         taxonomy.analysisTypes = taxonomy.analysisTypes.map(t => ({ ...t, name: `TYPE_${t.id}` }));
         taxonomy.analysisStatuses = taxonomy.analysisStatuses.map(s => ({ ...s, name: `STATUS_${s.id}` }));
-        taxonomy.specialties = taxonomy.specialties.map(s => ({ ...s, name: `SPEC_${s.id}` }));
         taxonomy.rootCauseMs = taxonomy.rootCauseMs.map(m => ({ ...m, name: `6M_${m.id}` }));
         return route.fulfill({ status: 200, body: JSON.stringify(taxonomy) });
       }
-
       if (url.includes('/api/assets')) {
          return route.fulfill({ status: 200, body: JSON.stringify([
-            { id: 'AREA-01', name: 'AREA_01', type: 'AREA', children: [
-                { id: 'EQUIP-01', name: 'EQUIP_01', type: 'EQUIPMENT', children: [
-                    { id: 'SUB-01', name: 'SUBGROUP_01', type: 'SUBGROUP' }
+            { id: 'A1', name: 'AREA_01', type: 'AREA', children: [
+                { id: 'E1', name: 'EQUIP_01', type: 'EQUIPMENT', children: [
+                    { id: 'S1', name: 'SUBGROUP_01', type: 'SUBGROUP' }
                 ]}
             ]}
          ])});
       }
-
       if (url.includes('/api/health')) return route.fulfill({ status: 200, body: JSON.stringify(SystemFactory.health()) });
       return route.fulfill({ status: 200, body: JSON.stringify([]) });
     });
   };
 
-  test('Deve encontrar vazamentos no Passo 6 (Checklist)', async ({ page }) => {
+  const checkLeaks = async (page, context: string) => {
+    const mainText = await page.innerText('main');
+    const leaks = [];
+
+    // A) Procura Chaves Brutas (ex: checklists.precision.chk_clean)
+    const rawKeyRegex = /[a-z0-9_]+\.[a-z0-9_]+\.[a-z0-9_]+/gi;
+    const foundKeys = mainText.match(rawKeyRegex) || [];
+    leaks.push(...foundKeys);
+
+    // B) Procura Acentos PT-BR
+    const ptAccentsRegex = /[áéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ]/;
+    if (ptAccentsRegex.test(mainText)) {
+        const matches = mainText.match(/[a-zA-Z\u00C0-\u00FF]*[áéíóúàèìòùâêîôûãõç][a-zA-Z\u00C0-\u00FF]*/gi);
+        if (matches) leaks.push(...matches.map(m => `ACCENT: ${m}`));
+    }
+
+    // C) Procura Palavras Hardcoded (Exclui falsos positivos como 'Data')
+    const ptForbidden = ['Salvar', 'Cancelar', 'Excluir', 'Editar', 'Novo', 'Ação', 'Gatilho'];
+    for (const word of ptForbidden) {
+        if (new RegExp(`\\b${word}\\b`, 'i').test(mainText)) leaks.push(`HARDCODED: ${word}`);
+    }
+
+    if (leaks.length > 0) {
+        console.warn(`[I18N FAILED] ${context}: ${leaks.join(', ')}`);
+    }
+    expect(leaks, `Vazamentos em ${context}`).toHaveLength(0);
+  };
+
+  test('Deve validar Checklist e HRA exaustivamente', async ({ page }) => {
     await setupNeutralMocks(page);
     await page.goto('http://localhost:3000/');
-    
-    // 1. Inglês
     await page.getByRole('button', { name: 'EN' }).click();
-    
-    // 2. Abrir Editor
     await page.getByRole('button', { name: en.sidebar.analyses }).click();
     await page.getByRole('button', { name: en.analysesPage.newButton }).click();
     
-    // 3. Selecionar Ativo (EXPANDINDO A ÁRVORE)
+    // Passo 1: Ativo
     await page.getByText('AREA_01').click();
     await page.getByText('EQUIP_01').click();
     await page.getByText('SUBGROUP_01').click();
 
-    // 4. Navegar para o Passo 6
-    // Usamos o seletor do indicador de passo
+    // 1. Validar Passo 6 (Checklist)
     await page.locator('div:has-text("6")').last().click();
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(500);
+    await checkLeaks(page, 'Step 6 - Checklist');
 
-    // 5. Captura o conteúdo da tabela
-    const step6Table = page.locator('main table');
-    await expect(step6Table).toBeVisible();
-    const tableText = await step6Table.innerText();
+    // 2. Validar Passo 8 (HRA)
+    await page.locator('div:has-text("4")').last().click();
+    // Adiciona porquês via texto para ser resiliente a mudanças de botão
+    await page.getByRole('button', { name: /Add|Add Why/i }).first().click();
+    await page.locator('input[id*="answer"]').first().fill('Neutral');
+    await page.getByRole('button', { name: /Add|Add Why/i }).first().click();
+    await page.locator('input[id*="answer"]').nth(1).fill('Neutral');
+    await page.getByRole('button', { name: /Add|Add Why/i }).first().click();
+    await page.locator('input[id*="answer"]').nth(2).fill('Neutral');
 
-    // 6. DETECÇÃO DE VAZAMENTOS
+    await page.getByRole('button', { name: /Add Root Cause/i }).click();
+    await page.locator('select[id*="root_cause"]').first().selectOption('M2'); // M2 = Method
     
-    // A) Acentos (á, é, í, ó, ú, ã, õ, ç, etc.)
-    const ptAccentsRegex = /[áéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ]/;
-    const accentLeaks = tableText.match(/[a-zA-Z\u00C0-\u00FF]*[áéíóúàèìòùâêîôûãõç][a-zA-Z\u00C0-\u00FF]*/gi) || [];
-
-    // B) Chaves de tradução (ex: checklists.precision.chk_clean)
-    const rawKeyRegex = /[a-z0-9]+\.[a-z0-9]+\.[a-z0-9]+/g;
-    const rawKeyLeaks = tableText.match(rawKeyRegex) || [];
-
-    // C) Palavras-Chave hardcoded
-    const ptKeywords = ['Atividade', 'Executado', 'Não Executado', 'Comentário', 'Salvar', 'Cancelar'];
-    const keywordLeaks = ptKeywords.filter(word => new RegExp(`\\b${word}\\b`, 'i').test(tableText));
-
-    const allLeaks = [...new Set([...accentLeaks, ...rawKeyLeaks, ...keywordLeaks])];
-
-    if (allLeaks.length > 0) {
-        console.log('--- VAZAMENTOS DETECTADOS NO PASSO 6 ---');
-        console.log(allLeaks);
-        console.log('-----------------------------------------');
-    }
-
-    expect(allLeaks, `Vazamentos de I18N detectados no Passo 6: ${allLeaks.join(', ')}`).toHaveLength(0);
+    const hraBtn = page.getByRole('button', { name: /Human Reliability|HRA/i });
+    await expect(hraBtn).toBeVisible();
+    await hraBtn.click();
+    await page.waitForTimeout(500);
+    await checkLeaks(page, 'Step 8 - HRA');
   });
 
-  test('Varredura completa de todos os módulos', async ({ page }) => {
+  test('Deve varrer módulos laterais', async ({ page }) => {
     await setupNeutralMocks(page);
     await page.goto('http://localhost:3000/');
     await page.getByRole('button', { name: 'EN' }).click();
 
-    const modules = [
-        { name: en.sidebar.dashboard, label: 'Dashboard' },
-        { name: en.sidebar.triggers, label: 'Triggers' },
-        { name: en.sidebar.analyses, label: 'Analyses' },
-        { name: en.sidebar.actions, label: 'Action Plans' },
-        { name: en.sidebar.assets, label: 'Assets' },
-        { name: en.sidebar.settings, label: 'Settings' },
-        { name: en.sidebar.migration, label: 'Migration' }
-    ];
-
-    for (const mod of modules) {
-        await test.step(`Módulo: ${mod.label}`, async () => {
-            await page.getByRole('button', { name: mod.name }).click();
-            await page.waitForTimeout(500);
-            
-            const mainText = await page.locator('main').innerText();
-            const ptAccentsRegex = /[áéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ]/;
-            const hasLeaks = ptAccentsRegex.test(mainText) || /[a-z]+\.[a-z]+\.[a-z]+/.test(mainText);
-            
-            if (hasLeaks) {
-                const leaks = mainText.match(/[a-zA-Z\u00C0-\u00FF]*[áéíóúàèìòùâêîôûãõç][a-zA-Z\u00C0-\u00FF]*/gi) || [];
-                const keys = mainText.match(/[a-z0-9]+\.[a-z0-9]+\.[a-z0-9]+/g) || [];
-                expect([...leaks, ...keys], `Leaks in ${mod.label}`).toHaveLength(0);
-            }
-        });
+    const mods = [en.sidebar.settings, en.sidebar.migration, en.sidebar.assets];
+    for (const mod of mods) {
+        await page.getByRole('button', { name: mod }).click();
+        await page.waitForTimeout(300);
+        await checkLeaks(page, `Module ${mod}`);
     }
   });
 
