@@ -22,17 +22,28 @@ test.describe('I18N Guardião - Varredura Profunda', () => {
         const taxonomy = TaxonomyFactory.createDefault();
         taxonomy.analysisTypes = taxonomy.analysisTypes.map(t => ({ ...t, name: `TYPE_${t.id}` }));
         taxonomy.analysisStatuses = taxonomy.analysisStatuses.map(s => ({ ...s, name: `STATUS_${s.id}` }));
+        taxonomy.specialties = taxonomy.specialties.map(s => ({ ...s, name: `SPEC_${s.id}` }));
         taxonomy.rootCauseMs = taxonomy.rootCauseMs.map(m => ({ ...m, name: `6M_${m.id}` }));
+        taxonomy.triggerStatuses = taxonomy.triggerStatuses.map(s => ({ ...s, name: `TRG_STATUS_${s.id}` }));
+        taxonomy.componentTypes = taxonomy.componentTypes.map(c => ({ ...c, name: `COMP_${c.id}` }));
+        taxonomy.failureModes = taxonomy.failureModes.map(f => ({ ...f, name: `MODE_${f.id}` }));
+        taxonomy.failureCategories = taxonomy.failureCategories.map(c => ({ ...c, name: `CAT_${c.id}` }));
         return route.fulfill({ status: 200, body: JSON.stringify(taxonomy) });
       }
       if (url.includes('/api/assets')) {
-         return route.fulfill({ status: 200, body: JSON.stringify([
-            { id: 'A1', name: 'AREA_01', type: 'AREA', children: [
-                { id: 'E1', name: 'EQUIP_01', type: 'EQUIPMENT', children: [
+        return route.fulfill({
+          status: 200, body: JSON.stringify([
+            {
+              id: 'A1', name: 'AREA_01', type: 'AREA', children: [
+                {
+                  id: 'E1', name: 'EQUIP_01', type: 'EQUIPMENT', children: [
                     { id: 'S1', name: 'SUBGROUP_01', type: 'SUBGROUP' }
-                ]}
-            ]}
-         ])});
+                  ]
+                }
+              ]
+            }
+          ])
+        });
       }
       if (url.includes('/api/health')) return route.fulfill({ status: 200, body: JSON.stringify(SystemFactory.health()) });
       return route.fulfill({ status: 200, body: JSON.stringify([]) });
@@ -51,18 +62,18 @@ test.describe('I18N Guardião - Varredura Profunda', () => {
     // B) Procura Acentos PT-BR
     const ptAccentsRegex = /[áéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ]/;
     if (ptAccentsRegex.test(mainText)) {
-        const matches = mainText.match(/[a-zA-Z\u00C0-\u00FF]*[áéíóúàèìòùâêîôûãõç][a-zA-Z\u00C0-\u00FF]*/gi);
-        if (matches) leaks.push(...matches.map(m => `ACCENT: ${m}`));
+      const matches = mainText.match(/[a-zA-Z\u00C0-\u00FF]*[áéíóúàèìòùâêîôûãõç][a-zA-Z\u00C0-\u00FF]*/gi);
+      if (matches) leaks.push(...matches.map(m => `ACCENT: ${m}`));
     }
 
     // C) Procura Palavras Hardcoded (Exclui falsos positivos como 'Data')
     const ptForbidden = ['Salvar', 'Cancelar', 'Excluir', 'Editar', 'Novo', 'Ação', 'Gatilho'];
     for (const word of ptForbidden) {
-        if (new RegExp(`\\b${word}\\b`, 'i').test(mainText)) leaks.push(`HARDCODED: ${word}`);
+      if (new RegExp(`\\b${word}\\b`, 'i').test(mainText)) leaks.push(`HARDCODED: ${word}`);
     }
 
     if (leaks.length > 0) {
-        console.warn(`[I18N FAILED] ${context}: ${leaks.join(', ')}`);
+      console.warn(`[I18N FAILED] ${context}: ${leaks.join(', ')}`);
     }
     expect(leaks, `Vazamentos em ${context}`).toHaveLength(0);
   };
@@ -73,7 +84,7 @@ test.describe('I18N Guardião - Varredura Profunda', () => {
     await page.getByRole('button', { name: 'EN' }).click();
     await page.getByRole('button', { name: en.sidebar.analyses }).click();
     await page.getByRole('button', { name: en.analysesPage.newButton }).click();
-    
+
     // Passo 1: Ativo
     await page.getByText('AREA_01').click();
     await page.getByText('EQUIP_01').click();
@@ -84,10 +95,19 @@ test.describe('I18N Guardião - Varredura Profunda', () => {
     await page.waitForTimeout(500);
     await checkLeaks(page, 'Step 6 - Checklist');
 
-    // 2. Validar Passo 8 (HRA)
-    await page.locator('div:has-text("4")').last().click();
-    // Adiciona porquês via texto para ser resiliente a mudanças de botão
-    await page.getByRole('button', { name: /Add|Add Why/i }).first().click();
+    // 2. Validar Passo 8 (HRA) - Actually Step 4 (Investigation) + HRA check
+    // We are on Step 6. Let's go back 2 times to reach Step 4.
+    await page.getByRole('button', { name: 'Previous' }).click();
+    await page.getByRole('button', { name: 'Previous' }).click();
+    await page.waitForTimeout(500);
+
+    // Verify we are truly on Step 4 by checking for unique content
+    await expect(page.getByText(/5 Whys/i).first()).toBeVisible();
+
+    // Check for either "Add" (initial state) or "Add Why" (populated state) using a broad selector
+    const addBtn = page.getByRole('button').filter({ hasText: /Add/i }).first();
+    await addBtn.click();
+
     await page.locator('input[id*="answer"]').first().fill('Neutral');
     await page.getByRole('button', { name: /Add|Add Why/i }).first().click();
     await page.locator('input[id*="answer"]').nth(1).fill('Neutral');
@@ -96,7 +116,7 @@ test.describe('I18N Guardião - Varredura Profunda', () => {
 
     await page.getByRole('button', { name: /Add Root Cause/i }).click();
     await page.locator('select[id*="root_cause"]').first().selectOption('M2'); // M2 = Method
-    
+
     const hraBtn = page.getByRole('button', { name: /Human Reliability|HRA/i });
     await expect(hraBtn).toBeVisible();
     await hraBtn.click();
@@ -111,9 +131,9 @@ test.describe('I18N Guardião - Varredura Profunda', () => {
 
     const mods = [en.sidebar.settings, en.sidebar.migration, en.sidebar.assets];
     for (const mod of mods) {
-        await page.getByRole('button', { name: mod }).click();
-        await page.waitForTimeout(300);
-        await checkLeaks(page, `Module ${mod}`);
+      await page.getByRole('button', { name: mod }).click();
+      await page.waitForTimeout(300);
+      await checkLeaks(page, `Module ${mod}`);
     }
   });
 
