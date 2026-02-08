@@ -125,8 +125,8 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">{t('wizard.stepHRA.validation')}</h3>
                 <div className="flex items-start gap-4">
                     <div className="flex-1">
-                        <label htmlFor="hra_validation_selector" className="block text-xs font-medium text-slate-500 mb-1">{t('wizard.stepHRA.validationQuestion')}</label>
-                        <div id="hra_validation_selector" className="flex gap-4 mt-2" role="radiogroup" aria-label={t('wizard.stepHRA.validationQuestion')}>
+                        <span id="hra_validation_label" className="block text-xs font-medium text-slate-500 mb-1">{t('wizard.stepHRA.validationQuestion')}</span>
+                        <div id="hra_validation_selector" className="flex gap-4 mt-2" role="radiogroup" aria-labelledby="hra_validation_label">
                             <button
                                 aria-checked={data.human_reliability!.validation?.isValidated === 'YES'}
                                 role="radio"
