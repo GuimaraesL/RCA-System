@@ -448,31 +448,61 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard 
-                    title={t('dashboard.charts.totalByComponent')} 
-                    icon={<AlertCircle size={16} />} 
-                    isInteractive
-                >
-                    {isMounted && dataComp.length > 0 ? (
-                        <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
-                            <BarChart data={dataComp} margin={{ bottom: 20 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={60} tickFormatter={(val) => truncateLabel(val)} />
-                                <YAxis allowDecimals={false} />
-                                <Tooltip content={<CustomTooltip />} />
-                                <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]} barSize={30} onClick={(data) => handleChartClick('componentType', data.id)} cursor="pointer">
-                                    {dataComp.map((entry) => (
-                                        <Cell 
-                                            key={`cell-${entry.id}`} 
-                                            fill={getStableColor(entry.id)} 
-                                            opacity={filters.componentType !== 'ALL' && filters.componentType !== entry.id ? 0.2 : 1} 
-                                        />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </SafeResponsiveContainer>
-                    ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
-                </ChartCard>
+                                <ChartCard title={t('dashboard.charts.totalByComponent')} icon={<AlertCircle size={16} />} isInteractive>
+
+                                    {isMounted && dataComp.length > 0 ? (
+
+                                        <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+
+                                            <BarChart data={dataComp} layout="vertical">
+
+                                                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+
+                                                <XAxis type="number" hide />
+
+                                                <YAxis 
+
+                                                    dataKey="name" 
+
+                                                    type="category" 
+
+                                                    width={150} 
+
+                                                    tick={{ fontSize: 11 }} 
+
+                                                    tickFormatter={(val) => truncateLabel(val)} 
+
+                                                />
+
+                                                <Tooltip content={<CustomTooltip />} />
+
+                                                <Bar dataKey="count" fill="#10b981" radius={[0, 4, 4, 0]} barSize={20} onClick={(data) => handleChartClick('componentType', data.id)} cursor="pointer">
+
+                                                    {dataComp.map((entry) => (
+
+                                                        <Cell 
+
+                                                            key={`cell-${entry.id}`} 
+
+                                                            fill={getStableColor(entry.id)} 
+
+                                                            opacity={filters.componentType !== 'ALL' && filters.componentType !== entry.id ? 0.2 : 1} 
+
+                                                        />
+
+                                                    ))}
+
+                                                </Bar>
+
+                                            </BarChart>
+
+                                        </SafeResponsiveContainer>
+
+                                    ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
+
+                                </ChartCard>
+
+                
 
                 <ChartCard 
                     title={t('dashboard.charts.failureMode')} 
