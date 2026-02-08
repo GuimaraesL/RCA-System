@@ -135,14 +135,18 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredActions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(action => (
-                <tr key={action.id} className="hover:bg-slate-50">
+                <tr 
+                  key={action.id} 
+                  className="hover:bg-blue-50/50 cursor-pointer transition-colors"
+                  onClick={() => openEdit(action)}
+                >
                   <td className="px-6 py-4">{getStatusBadge(action.status)}</td>
                   <td className="px-6 py-4 font-medium text-slate-800 max-w-xs truncate" title={action.action}>{action.action}</td>
                   <td className="px-6 py-4">{action.responsible}</td>
                   <td className="px-6 py-4 font-mono">{formatDate(action.date)}</td>
                   <td className="px-6 py-4">
                     <button
-                      onClick={() => onOpenRca && onOpenRca(action.rca_id)}
+                      onClick={(e) => { e.stopPropagation(); onOpenRca && onOpenRca(action.rca_id); }}
                       className="group text-left focus:outline-none"
                       title={t('common.tooltips.viewDetails')}
                     >
@@ -154,8 +158,8 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
                     </button>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button onClick={() => openEdit(action)} className="text-slate-400 hover:text-blue-600 mr-3"><Edit2 size={16} /></button>
-                    <button onClick={() => handleDelete(action.id)} className="text-slate-400 hover:text-red-600"><Trash2 size={16} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); openEdit(action); }} className="text-slate-400 hover:text-blue-600 mr-3"><Edit2 size={16} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); handleDelete(action.id); }} className="text-slate-400 hover:text-red-600"><Trash2 size={16} /></button>
                   </td>
                 </tr>
               ))}

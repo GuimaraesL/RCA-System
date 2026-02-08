@@ -79,7 +79,11 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                             const statusName = getTaxonomyName(taxonomy.triggerStatuses || [], trigger.status);
 
                             return (
-                                <tr key={trigger.id} className="hover:bg-slate-50 group">
+                                <tr 
+                                    key={trigger.id} 
+                                    className="hover:bg-blue-50/50 cursor-pointer transition-colors group"
+                                    onClick={() => onEdit(trigger)}
+                                >
                                     <td className="px-4 py-3">
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${farol.color}`}>
                                             {farol.days === 'CHECK' ? <Check size={16} strokeWidth={3} /> : farol.days}
@@ -105,18 +109,18 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                         {trigger.rca_id ? (
                                             <div
                                                 className="flex items-center gap-1 text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded w-fit cursor-pointer hover:bg-blue-100 transition-colors"
-                                                onClick={() => onOpenRca(trigger.rca_id!)}
+                                                onClick={(e) => { e.stopPropagation(); onOpenRca(trigger.rca_id!); }}
                                                 title={t('triggersPage.tooltips.openRca')}
                                             >
                                                 <Link size={12} /> {linkedRca?.what ? linkedRca.what.substring(0, 15) + '...' : `#RCA-${trigger.rca_id.substring(0, 4)}`}
                                             </div>
                                         ) : (
                                             <div className="flex gap-2">
-                                                <button onClick={() => onCreateRca(trigger)} className="text-green-600 bg-green-50 hover:bg-green-100 p-1.5 rounded flex items-center gap-1" title={t('triggersPage.tooltips.createRca')}>
+                                                <button onClick={(e) => { e.stopPropagation(); onCreateRca(trigger); }} className="text-green-600 bg-green-50 hover:bg-green-100 p-1.5 rounded flex items-center gap-1" title={t('triggersPage.tooltips.createRca')}>
                                                     <Plus size={14} /> {t('triggersPage.buttons.new')}
                                                 </button>
                                                 <button
-                                                    onClick={() => onLinkRca(trigger)}
+                                                    onClick={(e) => { e.stopPropagation(); onLinkRca(trigger); }}
                                                     className="text-slate-500 bg-slate-50 hover:bg-slate-100 border border-slate-200 p-1.5 rounded flex items-center gap-1 text-[10px]"
                                                     title={t('triggersPage.tooltips.linkRca')}
                                                 >
@@ -127,8 +131,8 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                     </td>
                                     <td className="px-4 py-4 text-right">
                                         <div className="flex justify-end gap-2">
-                                            <button onClick={() => onEdit(trigger)} className="text-slate-400 hover:text-blue-600 p-1 rounded-full hover:bg-blue-50 transition-colors"><Edit2 size={16} /></button>
-                                            <button onClick={() => onDelete(trigger.id)} className="text-slate-400 hover:text-red-600 p-1 rounded-full hover:bg-red-50 transition-colors"><Trash2 size={16} /></button>
+                                            <button onClick={(e) => { e.stopPropagation(); onEdit(trigger); }} className="text-slate-400 hover:text-blue-600 p-1 rounded-full hover:bg-blue-50 transition-colors"><Edit2 size={16} /></button>
+                                            <button onClick={(e) => { e.stopPropagation(); onDelete(trigger.id); }} className="text-slate-400 hover:text-red-600 p-1 rounded-full hover:bg-red-50 transition-colors"><Trash2 size={16} /></button>
                                         </div>
                                     </td>
                                 </tr>

@@ -161,15 +161,29 @@ export const Step5Actions: React.FC<Step5Props> = ({
                                 </tr>
                             )}
                             {sortedActions.map(act => (
-                                <tr key={act.id} className="hover:bg-slate-50 opacity-0">
+                                <tr 
+                                    key={act.id} 
+                                    className="hover:bg-blue-50/50 cursor-pointer transition-colors opacity-0"
+                                    onClick={() => onEditActionPlan(act)}
+                                >
                                     <td className="px-4 py-2 font-bold text-center border-r border-slate-100 bg-slate-50/50 w-16">{t('common.box')} {act.status}</td>
                                     <td className="px-4 py-2">{act.action}</td>
                                     <td className="px-4 py-2">{act.responsible}</td>
                                     <td className="px-4 py-2 font-mono text-xs">{act.date}</td>
                                     <td className="px-4 py-2 text-right">
                                         <div className="flex justify-end gap-2">
-                                            <button onClick={() => onEditActionPlan(act)} className="text-slate-400 hover:text-blue-600"><Edit2 size={14} /></button>
-                                            <button onClick={() => onDeleteActionPlan(act.id)} className="text-slate-400 hover:text-red-600"><Trash2 size={14} /></button>
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); onEditActionPlan(act); }} 
+                                                className="text-slate-400 hover:text-blue-600"
+                                            >
+                                                <Edit2 size={14} />
+                                            </button>
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); onDeleteActionPlan(act.id); }} 
+                                                className="text-slate-400 hover:text-red-600"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
