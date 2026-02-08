@@ -407,8 +407,10 @@ export const MigrationView: React.FC = () => {
                     </div>
 
                     <div className="mb-6">
-                        <label className="block text-sm font-medium text-slate-700 mb-2">{t('migration.targetEntity')}</label>
+                        <label htmlFor="csv_target_entity" className="block text-sm font-medium text-slate-700 mb-2">{t('migration.targetEntity')}</label>
                         <select
+                            id="csv_target_entity"
+                            name="csv_target_entity"
                             className="w-full md:w-1/2 p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-900"
                             value={csvType}
                             onChange={e => { setCsvType(e.target.value as CsvEntityType); setMsg(null); }}
@@ -430,6 +432,7 @@ export const MigrationView: React.FC = () => {
                                     <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
                                         <input
                                             type="radio"
+                                            id="csv_mode_append"
                                             name="csvMode"
                                             value="APPEND"
                                             checked={importMode === 'APPEND' || importMode === 'REPLACE'}
@@ -441,6 +444,7 @@ export const MigrationView: React.FC = () => {
                                     <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
                                         <input
                                             type="radio"
+                                            id="csv_mode_update"
                                             name="csvMode"
                                             value="UPDATE"
                                             checked={importMode === 'UPDATE'}
@@ -456,6 +460,8 @@ export const MigrationView: React.FC = () => {
                                     <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
                                         <input
                                             type="checkbox"
+                                            id="csv_inherit_hierarchy"
+                                            name="csv_inherit_hierarchy"
                                             checked={inheritHierarchy}
                                             onChange={e => setInheritHierarchy(e.target.checked)}
                                             className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
@@ -488,6 +494,9 @@ export const MigrationView: React.FC = () => {
                         <div className="relative">
                             <input
                                 type="file"
+                                id="csv_file_import"
+                                name="csv_file_import"
+                                aria-label={t('migration.importCsv')}
                                 ref={csvInputRef}
                                 onChange={handleCsvImport}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
