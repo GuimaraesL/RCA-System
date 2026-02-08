@@ -78,7 +78,7 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
                             <tr key={item.id} className="hover:bg-slate-50">
                                 <td className="p-3 text-center text-xs font-mono text-slate-400 truncate max-w-[100px]" title={item.id}>{item.id}</td>
                                 <td className="p-3 font-medium text-slate-700">
-                                    {t(item.activity || '') || t(item.question_snapshot || '')}
+                                    {item.activity || item.question_snapshot || ''}
                                 </td>
                                 <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'status', 'EXECUTED')} className={`p-1 rounded ${item.status === 'EXECUTED' ? 'text-green-600 bg-green-50' : 'text-slate-300'}`}>{item.status === 'EXECUTED' ? <CheckSquare size={18} /> : <Square size={18} />}</button></td>
                                 <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'status', 'NOT_EXECUTED')} className={`p-1 rounded ${item.status === 'NOT_EXECUTED' ? 'text-red-500 bg-red-50' : 'text-slate-300'}`}>{item.status === 'NOT_EXECUTED' ? <XSquare size={18} /> : <Square size={18} />}</button></td>
@@ -90,7 +90,7 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
                                         type="text"
                                         className="w-full border-b border-slate-200 focus:border-blue-500 outline-none bg-transparent text-xs py-1 text-slate-900 placeholder:text-slate-400"
                                         placeholder={t('wizard.step6.addComment')}
-                                        aria-label={`${t('wizard.step6.comment')} - ${t(item.activity || '') || t(item.question_snapshot || '')}`}
+                                        aria-label={`${t('wizard.step6.comment')} - ${item.activity || item.question_snapshot || ''}`}
                                         value={item.comment || ''}
                                         onChange={(e) => updatePrecision(item.id, 'comment', e.target.value)}
                                     />

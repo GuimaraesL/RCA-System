@@ -433,6 +433,7 @@ export const en: TranslationSchema = {
         noActionsFound: "No open actions found matching filters.",
         overdue: "LATE"
     },
+
     rcaSelector: {
         searchPlaceholder: "Search RCA by ID, Title or OS...",
         resultsFound: "{0} analyses found",

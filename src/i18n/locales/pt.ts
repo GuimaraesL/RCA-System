@@ -447,8 +447,9 @@ export const pt: TranslationSchema = {
             year: "Ano",
             month: "Mês",
             clear: "Limpar Filtros"
-        }
+        },
     },
+
     actionModal: {
         titleEdit: "Editar Plano de Ação",
         titleNew: "Novo Plano de Ação",
