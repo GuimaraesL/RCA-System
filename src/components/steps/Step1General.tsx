@@ -54,7 +54,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                     {/* Left: Asset Tree */}
                     <div>
                         <span id="asset-selector-label" className="block text-xs font-medium text-slate-500 mb-1">{t('wizard.step1.assetSelectorLabel')} {isRequired('subgroup_id') && <span className="text-red-500">*</span>}</span>
-                        <div id="asset-selector-container" aria-labelledby="asset-selector-label" className={`border rounded h-64 overflow-auto mb-2 bg-slate-50 ${errors?.subgroup_id ? 'border-red-500 ring-2 ring-red-100' : 'border-slate-200'}`}>
+                        <div id="asset-selector-container" aria-labelledby="asset-selector-label" className={`mb-2 rounded-lg ${errors?.subgroup_id ? 'border-2 border-red-500 ring-4 ring-red-100' : ''}`}>
                             <AssetSelector
                                 assets={assets}
                                 onSelect={onAssetSelect}
