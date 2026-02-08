@@ -23,21 +23,49 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     // Recursive key lookup for dot notation e.g. "dashboard.title"
     const t = (key: string): string => {
-        const keys = key.split('.');
-        let current: any = locale;
+        if (!key) return '';
 
-        for (const k of keys) {
-            if (!current || current[k] === undefined) {
-                // Only warn if it looks like a dot-notation key
-                if (key.includes('.')) {
-                    console.warn(`Translation missing for key: ${key} in language: ${language}`);
-                }
-                return key;
-            }
-            current = current[k];
+        // Normalização agressiva para lidar com lixo do banco de dados (espaços duplos, invisíveis, etc)
+        const normalize = (s: string) => s.trim().replace(/\s+/g, ' ').replace(/\u2026/g, '...');
+        const cleanKey = normalize(key);
+
+        // 1. Tenta correspondência exata em locais conhecidos (Checklist/HRA) com normalização
+        const checklistMapping = locale.checklists?.precision as Record<string, string>;
+        if (checklistMapping) {
+            // Procura normalizando as chaves do dicionário também
+            const found = Object.keys(checklistMapping).find(k => normalize(k) === cleanKey);
+            if (found) return checklistMapping[found];
         }
 
-        return typeof current === 'string' ? current : key;
+        const hraMapping = locale.wizard?.stepHRA as Record<string, string>;
+        if (hraMapping) {
+            const found = Object.keys(hraMapping).find(k => normalize(k) === cleanKey);
+            if (found) return hraMapping[found];
+        }
+
+        const lookup = (k: string, obj: any): any => {
+            if (!k.includes('.')) return (obj && typeof obj[k] === 'string') ? obj[k] : undefined;
+            
+            const keys = k.split('.');
+            let current = obj;
+            for (const part of keys) {
+                if (!current || current[part] === undefined) return undefined;
+                current = current[part];
+            }
+            return typeof current === 'string' ? current : undefined;
+        };
+
+        // 2. Tenta busca por caminho (dot notation)
+        let translation = lookup(key, locale);
+        if (translation) return translation;
+
+        // 3. Fallback para strings legadas no nível raiz
+        if (!key.includes('.')) {
+            const rootFound = Object.keys(locale).find(k => normalize(k) === cleanKey);
+            if (rootFound) return (locale as any)[rootFound];
+        }
+
+        return key;
     };
 
     const formatDate = (date: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions): string => {

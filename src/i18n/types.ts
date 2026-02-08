@@ -301,6 +301,7 @@ export interface TranslationSchema {
     },
     checklists: {
         precision: {
+            [key: string]: string;
             chk_clean: string;
             chk_tol: string;
             chk_lube: string;
@@ -673,6 +674,7 @@ export interface TranslationSchema {
         };
         // Step HRA - Human Reliability Analysis
         stepHRA: {
+            [key: string]: string | { title: string; subtitle: string; } | undefined;
             title: string;
             subtitle: string;
             questionnaire: string;
