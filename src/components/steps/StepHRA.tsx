@@ -64,7 +64,7 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                                 <td className="p-3 font-mono text-xs text-slate-400 max-w-[80px] truncate" title={q.id}>{q.id}</td>
                                 <td className="p-3">
                                     <div className="text-xs text-slate-400 mb-1 font-bold uppercase">{t(q.category || '')}</div>
-                                    {t(q.question_snapshot || '') || t(q.question || '')}
+                                    {t(q.question || '')}
                                 </td>
                                 <td className="p-3 text-center"><button onClick={() => updateHraQuestion(q.id, 'answer', 'YES')} className={`p-1 rounded ${q.answer === 'YES' ? 'text-green-600 bg-green-50' : 'text-slate-300'}`}>{q.answer === 'YES' ? <CheckSquare size={18} /> : <Square size={18} />}</button></td>
                                 <td className="p-3 text-center"><button onClick={() => updateHraQuestion(q.id, 'answer', 'NO')} className={`p-1 rounded ${q.answer === 'NO' ? 'text-red-500 bg-red-50' : 'text-slate-300'}`}>{q.answer === 'NO' ? <XSquare size={18} /> : <Square size={18} />}</button></td>
