@@ -12,6 +12,7 @@ import { filterAssetsByUsage } from '../services/utils';
 import { AnimatedCounter } from './ui/AnimatedCounter';
 import { useEnterAnimation } from '../hooks/useEnterAnimation';
 import { Skeleton } from './ui/Skeleton';
+import { SafeResponsiveContainer } from './ui/SafeResponsiveContainer';
 import { Info } from 'lucide-react';
 
 // Professional Color Palette (Cool Tones + Accents)
@@ -75,7 +76,7 @@ const ChartCard: React.FC<{
                     </div>
                 )}
             </div>
-            <div className="flex-1 w-full min-h-0 relative">
+            <div className="flex-1 w-full min-h-0 relative" style={{ minHeight: '200px' }}>
                 {isLoading ? (
                     <div className="h-full w-full flex flex-col gap-4">
                         <Skeleton className="flex-1 w-full" />
@@ -370,7 +371,7 @@ export const Dashboard: React.FC = () => {
             <div ref={chartsRef as any} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <ChartCard title={t('dashboard.charts.totalByStatus')} icon={<CheckCircle size={16} />} isInteractive isLoading={isLoading}>
                     {isMounted && dataStatus.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+                        <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <PieChart>
                                 <Pie
                                     data={dataStatus}
@@ -389,13 +390,13 @@ export const Dashboard: React.FC = () => {
                                 <Tooltip content={<CustomTooltip />} />
                                 <Legend verticalAlign="middle" align="right" layout="vertical" iconType="circle" />
                             </PieChart>
-                        </ResponsiveContainer>
+                        </SafeResponsiveContainer>
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
                 <ChartCard title={t('dashboard.charts.totalByType')} icon={<PieIcon size={16} />} isInteractive>
                     {isMounted && dataType.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+                        <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <PieChart>
                                 <Pie
                                     data={dataType}
@@ -412,13 +413,13 @@ export const Dashboard: React.FC = () => {
                                 <Tooltip content={<CustomTooltip />} />
                                 <Legend verticalAlign="bottom" height={36} />
                             </PieChart>
-                        </ResponsiveContainer>
+                        </SafeResponsiveContainer>
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
                 <ChartCard title={t('dashboard.charts.rootCause6M')} icon={<PieIcon size={16} />} isInteractive>
                     {isMounted && dataRootCause.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+                        <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <PieChart>
                                 <Pie
                                     data={dataRootCause}
@@ -437,13 +438,13 @@ export const Dashboard: React.FC = () => {
                                 <Tooltip content={<CustomTooltip />} />
                                 <Legend verticalAlign="middle" align="right" layout="vertical" iconType="circle" />
                             </PieChart>
-                        </ResponsiveContainer>
+                        </SafeResponsiveContainer>
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
                 <ChartCard title={t('dashboard.charts.topEquipments')} icon={<TrendingUp size={16} />} isInteractive>
                     {isMounted && dataEquip.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+                        <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <BarChart data={dataEquip} layout="vertical">
                                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                                 <XAxis type="number" hide />
@@ -455,13 +456,13 @@ export const Dashboard: React.FC = () => {
                                     ))}
                                 </Bar>
                             </BarChart>
-                        </ResponsiveContainer>
+                        </SafeResponsiveContainer>
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
                 <ChartCard title={t('dashboard.charts.topSubgroups')} icon={<TrendingUp size={16} />} isInteractive>
                     {isMounted && dataSub.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+                        <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <BarChart data={dataSub} layout="vertical">
                                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                                 <XAxis type="number" hide />
@@ -473,13 +474,13 @@ export const Dashboard: React.FC = () => {
                                     ))}
                                 </Bar>
                             </BarChart>
-                        </ResponsiveContainer>
+                        </SafeResponsiveContainer>
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
                 <ChartCard title={t('dashboard.charts.totalByComponent')} icon={<AlertCircle size={16} />} isInteractive>
                     {isMounted && dataComp.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+                        <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <BarChart data={dataComp} margin={{ bottom: 20 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={60} tickFormatter={(val) => truncateLabel(val)} />
@@ -491,13 +492,13 @@ export const Dashboard: React.FC = () => {
                                     ))}
                                 </Bar>
                             </BarChart>
-                        </ResponsiveContainer>
+                        </SafeResponsiveContainer>
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
                 <ChartCard title={t('dashboard.charts.failureMode')} icon={<AlertCircle size={16} />} isInteractive>
                     {isMounted && dataMode.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+                        <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <BarChart data={dataMode} layout="vertical">
                                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                                 <XAxis type="number" hide />
@@ -509,7 +510,7 @@ export const Dashboard: React.FC = () => {
                                     ))}
                                 </Bar>
                             </BarChart>
-                        </ResponsiveContainer>
+                        </SafeResponsiveContainer>
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
             </div>
