@@ -334,7 +334,14 @@ export const Dashboard: React.FC = () => {
                                     ))}
                                 </Pie>
                                 <Tooltip content={<CustomTooltip />} />
-                                <Legend verticalAlign="middle" align="right" layout="vertical" iconType="circle" />
+                                <Legend 
+                                    verticalAlign="middle" 
+                                    align="right" 
+                                    layout="vertical" 
+                                    iconType="circle" 
+                                    onClick={(data: any) => handleChartClick('status', data.payload.id)}
+                                    wrapperStyle={{ cursor: 'pointer' }}
+                                />
                             </PieChart>
                         </SafeResponsiveContainer>
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
@@ -365,7 +372,12 @@ export const Dashboard: React.FC = () => {
                                     ))}
                                 </Pie>
                                 <Tooltip content={<CustomTooltip />} />
-                                <Legend verticalAlign="bottom" height={36} />
+                                <Legend 
+                                    verticalAlign="bottom" 
+                                    height={36} 
+                                    onClick={(data: any) => handleChartClick('analysisType', data.payload.id)}
+                                    wrapperStyle={{ cursor: 'pointer' }}
+                                />
                             </PieChart>
                         </SafeResponsiveContainer>
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
@@ -398,7 +410,14 @@ export const Dashboard: React.FC = () => {
                                     ))}
                                 </Pie>
                                 <Tooltip content={<CustomTooltip />} />
-                                <Legend verticalAlign="middle" align="right" layout="vertical" iconType="circle" />
+                                <Legend 
+                                    verticalAlign="middle" 
+                                    align="right" 
+                                    layout="vertical" 
+                                    iconType="circle" 
+                                    onClick={(data: any) => handleChartClick('rootCause6M', data.payload.id)}
+                                    wrapperStyle={{ cursor: 'pointer' }}
+                                />
                             </PieChart>
                         </SafeResponsiveContainer>
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
