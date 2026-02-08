@@ -55,3 +55,6 @@ test_output_2.txt
 debug_failed_tests_utf8.txt
 debug_failed_tests.txt
 docs/PROBLEMAS_ATUAIS.md
+test_output_3.txt
+.gitignore
+test_output_4.txt
