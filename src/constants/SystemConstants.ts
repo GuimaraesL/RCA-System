@@ -6,6 +6,14 @@ export enum STATUS_IDS {
     CANCELLED = 'STATUS-05'
 }
 
+export const STATUS_COLORS: Record<string, string> = {
+    [STATUS_IDS.IN_PROGRESS]: '#3b82f6', // Blue 500
+    [STATUS_IDS.WAITING_VERIFICATION]: '#f59e0b', // Amber 500
+    [STATUS_IDS.CONCLUDED]: '#10b981', // Emerald 500
+    [STATUS_IDS.DELAYED]: '#ef4444', // Red 500
+    [STATUS_IDS.CANCELLED]: '#64748b', // Slate 500
+};
+
 export enum ROOT_CAUSE_M_IDS {
     MANPOWER = 'M1',
     METHOD = 'M2',
@@ -14,3 +22,12 @@ export enum ROOT_CAUSE_M_IDS {
     MEASUREMENT = 'M5',
     ENVIRONMENT = 'M6'
 }
+
+export const ROOT_CAUSE_COLORS: Record<string, string> = {
+    [ROOT_CAUSE_M_IDS.MANPOWER]: '#3b82f6',    // Blue
+    [ROOT_CAUSE_M_IDS.METHOD]: '#10b981',      // Emerald
+    [ROOT_CAUSE_M_IDS.MACHINE]: '#f59e0b',     // Amber
+    [ROOT_CAUSE_M_IDS.MATERIAL]: '#6366f1',    // Indigo
+    [ROOT_CAUSE_M_IDS.MEASUREMENT]: '#ec4899', // Pink
+    [ROOT_CAUSE_M_IDS.ENVIRONMENT]: '#06b6d4', // Cyan
+};

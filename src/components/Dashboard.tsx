@@ -1,7 +1,7 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { AssetNode, RcaRecord } from '../types';
-import { STATUS_IDS } from '../constants/SystemConstants';
+import { STATUS_IDS, STATUS_COLORS, ROOT_CAUSE_COLORS } from '../constants/SystemConstants';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Clock, TrendingUp, AlertCircle, CheckCircle, PieChart as PieIcon, Activity, MousePointerClick } from 'lucide-react';
 import { FilterBar, FilterState } from './FilterBar';
@@ -29,6 +29,17 @@ const COLORS = [
     '#84cc16', // Lime 500 (kept as accent)
     '#14b8a6', // Teal 500
 ];
+
+const getStableColor = (id: string, mapping?: Record<string, string>) => {
+    if (mapping && mapping[id]) return mapping[id];
+    
+    // Stable hash-based color selection from the COLORS palette
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+        hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return COLORS[Math.abs(hash) % COLORS.length];
+};
 
 const CustomTooltip = ({ active, payload, label }: any) => {
     const { t } = useLanguage();
@@ -319,8 +330,12 @@ export const Dashboard: React.FC = () => {
                                     onClick={(data) => handleChartClick('status', data.id)}
                                     cursor="pointer"
                                 >
-                                    {dataStatus.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} opacity={filters.status !== 'ALL' && filters.status !== entry.id ? 0.2 : 1} />
+                                    {dataStatus.map((entry) => (
+                                        <Cell 
+                                            key={`cell-${entry.id}`} 
+                                            fill={getStableColor(entry.id, STATUS_COLORS)} 
+                                            opacity={filters.status !== 'ALL' && filters.status !== entry.id ? 0.2 : 1} 
+                                        />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<CustomTooltip />} />
@@ -342,8 +357,12 @@ export const Dashboard: React.FC = () => {
                                     onClick={(data) => handleChartClick('analysisType', data.id)}
                                     cursor="pointer"
                                 >
-                                    {dataType.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[(index + 3) % COLORS.length]} opacity={filters.analysisType !== 'ALL' && filters.analysisType !== entry.id ? 0.2 : 1} />
+                                    {dataType.map((entry) => (
+                                        <Cell 
+                                            key={`cell-${entry.id}`} 
+                                            fill={getStableColor(entry.id)} 
+                                            opacity={filters.analysisType !== 'ALL' && filters.analysisType !== entry.id ? 0.2 : 1} 
+                                        />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<CustomTooltip />} />
@@ -367,8 +386,12 @@ export const Dashboard: React.FC = () => {
                                     onClick={(data) => handleChartClick('rootCause6M', data.id)}
                                     cursor="pointer"
                                 >
-                                    {dataRootCause.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} opacity={filters.rootCause6M !== 'ALL' && filters.rootCause6M !== entry.id ? 0.2 : 1} />
+                                    {dataRootCause.map((entry) => (
+                                        <Cell 
+                                            key={`cell-${entry.id}`} 
+                                            fill={getStableColor(entry.id, ROOT_CAUSE_COLORS)} 
+                                            opacity={filters.rootCause6M !== 'ALL' && filters.rootCause6M !== entry.id ? 0.2 : 1} 
+                                        />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<CustomTooltip />} />
@@ -423,8 +446,12 @@ export const Dashboard: React.FC = () => {
                                 <YAxis allowDecimals={false} />
                                 <Tooltip content={<CustomTooltip />} />
                                 <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]} barSize={30} onClick={(data) => handleChartClick('componentType', data.id)} cursor="pointer">
-                                    {dataComp.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} opacity={filters.componentType !== 'ALL' && filters.componentType !== entry.id ? 0.2 : 1} />
+                                    {dataComp.map((entry) => (
+                                        <Cell 
+                                            key={`cell-${entry.id}`} 
+                                            fill={getStableColor(entry.id)} 
+                                            opacity={filters.componentType !== 'ALL' && filters.componentType !== entry.id ? 0.2 : 1} 
+                                        />
                                     ))}
                                 </Bar>
                             </BarChart>
