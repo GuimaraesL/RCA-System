@@ -3,7 +3,7 @@ import { ResponsiveContainer, ResponsiveContainerProps } from 'recharts';
 
 export const SafeResponsiveContainer = (props: ResponsiveContainerProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [shouldRender, setShouldRender] = useState(false);
+    const [dimensions, setDimensions] = useState<{ width: number, height: number } | null>(null);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -12,9 +12,7 @@ export const SafeResponsiveContainer = (props: ResponsiveContainerProps) => {
             for (const entry of entries) {
                 const { width, height } = entry.contentRect;
                 if (width > 0 && height > 0) {
-                    setShouldRender(true);
-                } else {
-                    // Optional: hide if it collapses, but usually we just want to wait for first valid size
+                    setDimensions({ width, height });
                 }
             }
         });
@@ -24,11 +22,26 @@ export const SafeResponsiveContainer = (props: ResponsiveContainerProps) => {
         return () => resizeObserver.disconnect();
     }, []);
 
+    const { width, height, minWidth, minHeight, children, className, ...rest } = props;
+
     return (
-        <div ref={containerRef} style={{ width: props.width || '100%', height: props.height || '100%', minWidth: props.minWidth, minHeight: props.minHeight }} className={props.className}>
-            {shouldRender && (
-                <ResponsiveContainer {...props}>
-                    {props.children}
+        <div 
+            ref={containerRef} 
+            style={{ 
+                width: width || '100%', 
+                height: height || '100%', 
+                minWidth: minWidth, 
+                minHeight: minHeight 
+            }} 
+            className={className}
+        >
+            {dimensions && (
+                <ResponsiveContainer 
+                    {...rest}
+                    width={dimensions.width} 
+                    height={dimensions.height}
+                >
+                    {children}
                 </ResponsiveContainer>
             )}
         </div>

@@ -76,7 +76,7 @@ const ChartCard: React.FC<{
                     </div>
                 )}
             </div>
-            <div className="flex-1 w-full min-h-0 relative" style={{ minHeight: '200px' }}>
+            <div className="flex-1 w-full relative min-h-[300px]">
                 {isLoading ? (
                     <div className="h-full w-full flex flex-col gap-4">
                         <Skeleton className="flex-1 w-full" />
