@@ -173,7 +173,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     };
 
     return (
-        <div ref={containerRef} className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-full w-full max-w-7xl mx-auto relative opacity-0"> {/* Initial opacity 0 for animejs */}
+        <div ref={containerRef} className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-full w-full max-w-[1600px] mx-auto relative opacity-0"> {/* Initial opacity 0 for animejs */}
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white z-10 rounded-t-xl">
                 <div className="flex items-center gap-3">

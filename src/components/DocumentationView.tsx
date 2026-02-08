@@ -7,7 +7,7 @@ import { useLanguage } from '../context/LanguageDefinition';
 export const DocumentationView: React.FC = () => {
     const { t } = useLanguage();
     return (
-        <div className="p-8 max-w-5xl mx-auto animate-in fade-in space-y-8 pb-20">
+        <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in space-y-8 pb-20">
             <div className="flex items-center gap-3 border-b border-slate-200 pb-6">
                 <div className="p-3 bg-blue-100 text-blue-700 rounded-lg">
                     <Book size={32} />

@@ -126,7 +126,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
     // const listRef = useEnterAnimation([filteredRecords, currentPage]);
 
     return (
-        <div className="p-8 max-w-7xl mx-auto h-full flex flex-col">
+        <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col">
             {/* Header */}
             <div className="flex justify-between items-center mb-6 flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-500">
                 <div>

@@ -77,7 +77,7 @@ export const AssetsManager: React.FC = () => {
   /* TreeNode component moved to AssetTreeNode.tsx */
 
   return (
-    <div ref={containerRef} className="flex h-full p-8 gap-0 max-w-7xl mx-auto">
+    <div ref={containerRef} className="flex h-full p-8 gap-0 max-w-[1600px] mx-auto">
       {/* Sidebar Tree - Resizable */}
       <div
         className="bg-white rounded-l-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden"

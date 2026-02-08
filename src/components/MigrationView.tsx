@@ -231,7 +231,7 @@ export const MigrationView: React.FC = () => {
 
 
     return (
-        <div className="p-8 max-w-5xl mx-auto animate-in fade-in pb-32">
+        <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in pb-32">
             <h1 className="text-3xl font-bold text-slate-900 mb-2">{t('migration.title')}</h1>
             <p className="text-slate-500 mb-8">{t('migration.description')}</p>
 
