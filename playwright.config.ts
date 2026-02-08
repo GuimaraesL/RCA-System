@@ -17,6 +17,9 @@ const config: PlaywrightTestConfig = {
     port: 3000,
     reuseExistingServer: !process.env.CI,
     timeout: 180000,
+    env: {
+      NODE_ENV: 'test'
+    }
   },
   projects: [
     {

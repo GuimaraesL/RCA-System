@@ -8,10 +8,13 @@ export class DatabaseConnection {
     private dbPath: string;
 
     private constructor() {
-        // Resolve path: server/data/rca.db
+        // Resolve path: server/data/rca.db (or rca_test.db if in test mode)
+        const isTest = process.env.NODE_ENV === 'test' || process.env.CI === 'true';
+        const dbFileName = isTest ? 'rca_test.db' : 'rca.db';
+        
         const DATA_DIR = join(__dirname, '..', '..', '..', '..', 'data');
-        this.dbPath = this.resolveDbPath(DATA_DIR);
-        console.log(`[V2] 💾 Database Path Resolved: ${this.dbPath}`);
+        this.dbPath = this.resolveDbPath(DATA_DIR, dbFileName);
+        console.log(`[V2] 💾 Database Path Resolved (${isTest ? 'TEST' : 'PROD'}): ${this.dbPath}`);
     }
 
     public static getInstance(): DatabaseConnection {
@@ -21,18 +24,18 @@ export class DatabaseConnection {
         return DatabaseConnection.instance;
     }
 
-    private resolveDbPath(dataDir: string): string {
+    private resolveDbPath(dataDir: string, fileName: string): string {
         // 1. Try standard relative path
-        let path = join(dataDir, 'rca.db');
+        let path = join(dataDir, fileName);
 
         // 2. Fallback logic similar to original implementation
         if (!existsSync(dirname(path))) {
             console.warn(`[V2] ⚠️ Data dir not found at ${dirname(path)}, trying CWD...`);
             const cwd = process.cwd();
             if (cwd.endsWith('server')) {
-                path = join(cwd, 'data', 'rca.db');
+                path = join(cwd, 'data', fileName);
             } else {
-                path = join(cwd, 'server', 'data', 'rca.db');
+                path = join(cwd, 'server', 'data', fileName);
             }
         }
         return path;
