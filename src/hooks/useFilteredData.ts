@@ -21,6 +21,17 @@ export const useFilteredData = (filters: FilterState) => {
 
     const normalize = (s: string) => s?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
 
+    // Otimização: Indexa ações por RCA ID para busca O(1)
+    const actionsByRcaMap = useMemo(() => {
+        const map = new Map<string, ActionRecord[]>();
+        actions.forEach(a => {
+            const list = map.get(a.rca_id) || [];
+            list.push(a);
+            map.set(a.rca_id, list);
+        });
+        return map;
+    }, [actions]);
+
     const findAssetName = (id: string, nodes: AssetNode[]): string => {
         for (const n of nodes) {
             if (n.id === id) return n.name;
@@ -34,6 +45,12 @@ export const useFilteredData = (filters: FilterState) => {
 
     // 1. Processamento de RCAs
     const filteredRCAs = useMemo(() => {
+        const searchTerm = normalize(filters.searchTerm);
+        const hasSearch = !!searchTerm;
+        const statusFilter = filters.status;
+        const isActionStatus = ['1', '2', '3', '4'].includes(statusFilter);
+        const isTriggerStatus = statusFilter.startsWith('T-STATUS');
+
         return records.filter(r => {
             // A) Filtros de Ativos (Hierarquia)
             if (filters.subgroup !== 'ALL' && r.subgroup_id !== filters.subgroup) return false;
@@ -47,38 +64,29 @@ export const useFilteredData = (filters: FilterState) => {
             if (filters.year && rYear !== filters.year) return false;
             if (filters.months.length > 0 && !filters.months.includes(rMonth)) return false;
 
-            // C) Busca Textual Inteligente (Busca na RCA e em suas Ações filhas)
-            if (filters.searchTerm) {
-                const term = normalize(filters.searchTerm);
+            // C) Busca Textual Inteligente (Otimizada via Map e pre-normalização)
+            if (hasSearch) {
                 const rContent = normalize(`${r.id} ${r.what} ${r.problem_description} ${r.who} ${r.os_number}`);
+                const rActions = actionsByRcaMap.get(r.id) || [];
+                const aContent = rActions.length > 0 ? rActions.map(a => normalize(`${a.action} ${a.responsible}`)).join(" ") : "";
                 
-                // Se não deu match na RCA, procura nas ações dela
-                const rActions = actions.filter(a => a.rca_id === r.id);
-                const aContent = rActions.map(a => normalize(`${a.action} ${a.responsible}`)).join(" ");
-                
-                if (!rContent.includes(term) && !aContent.includes(term)) return false;
+                if (!rContent.includes(searchTerm) && !aContent.includes(searchTerm)) return false;
             }
 
-            // D) Filtro de Status Inteligente
-            if (filters.status !== 'ALL') {
-                const isActionStatus = ['1', '2', '3', '4'].includes(filters.status);
-                const isTriggerStatus = filters.status.startsWith('T-STATUS');
-
+            // D) Filtro de Status Inteligente (Otimizado via Map)
+            if (statusFilter !== 'ALL') {
                 if (isActionStatus) {
-                    // Se o status selecionado for de Ação (1-4), mostra RCAs que tenham pelo menos uma ação nesse status
-                    const rActions = actions.filter(a => a.rca_id === r.id);
-                    if (!rActions.some(a => a.status === filters.status)) return false;
+                    const rActions = actionsByRcaMap.get(r.id) || [];
+                    if (!rActions.some(a => a.status === statusFilter)) return false;
                 } else if (isTriggerStatus) {
-                    // Se filtrar por status de gatilho, mostra RCAs vinculadas a gatilhos nesse status
-                    const linkedTrigger = triggers.find(trig => trig.rca_id === r.id && trig.status === filters.status);
+                    const linkedTrigger = triggers.find(trig => trig.rca_id === r.id && trig.status === statusFilter);
                     if (!linkedTrigger) return false;
                 } else {
-                    // Se for status de RCA (STATUS-01...), filtra direto
-                    if (r.status !== filters.status) return false;
+                    if (r.status !== statusFilter) return false;
                 }
             }
 
-            // E) Filtros Técnicos / Especialidade
+            // E) Filtros Técnicos
             if (filters.specialty !== 'ALL' && r.specialty_id !== filters.specialty) return false;
             if (filters.analysisType !== 'ALL' && r.analysis_type !== filters.analysisType) return false;
             if (filters.failureMode !== 'ALL' && r.failure_mode_id !== filters.failureMode) return false;
@@ -88,7 +96,7 @@ export const useFilteredData = (filters: FilterState) => {
 
             return true;
         });
-    }, [records, actions, triggers, filters, taxonomy]);
+    }, [records, actionsByRcaMap, triggers, filters, taxonomy]);
 
     // 2. Processamento de Ações (com conversão para ViewModel)
     const filteredActions = useMemo(() => {
