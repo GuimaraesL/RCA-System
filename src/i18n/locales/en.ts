@@ -192,6 +192,20 @@ export const en: TranslationSchema = {
         exportData: "Export Current Data",
         importCsv: "Import CSV",
         targetEntity: "Target Entity",
+        entities: {
+            assets: "Assets (Areas/Equipment)",
+            actions: "Actions (Status/Tracking)",
+            triggers: "Triggers (Stops/Triggers)",
+            recordsSummary: "Records Summary (Update Only)",
+            taxonomyAnalysisTypes: "Taxonomy: Analysis Types",
+            taxonomyStatuses: "Taxonomy: Statuses",
+            taxonomySpecialties: "Taxonomy: Specialties",
+            taxonomyFailureModes: "Taxonomy: Failure Modes",
+            taxonomyFailureCategories: "Taxonomy: Failure Categories",
+            taxonomyComponentTypes: "Taxonomy: Component Types",
+            taxonomyRootCauseMs: "Taxonomy: 6M Factors",
+            taxonomyTriggerStatuses: "Taxonomy: Trigger Statuses"
+        },
         mode: "Mode",
         modes: {
             append: "Append",

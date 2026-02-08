@@ -190,6 +190,20 @@ export interface TranslationSchema {
         exportData: string;
         importCsv: string;
         targetEntity: string;
+        entities: {
+            assets: string;
+            actions: string;
+            triggers: string;
+            recordsSummary: string;
+            taxonomyAnalysisTypes: string;
+            taxonomyStatuses: string;
+            taxonomySpecialties: string;
+            taxonomyFailureModes: string;
+            taxonomyFailureCategories: string;
+            taxonomyComponentTypes: string;
+            taxonomyRootCauseMs: string;
+            taxonomyTriggerStatuses: string;
+        };
         mode: string;
         modes: {
             append: string;

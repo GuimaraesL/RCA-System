@@ -192,6 +192,20 @@ export const pt: TranslationSchema = {
         exportData: "Exportar Dados Atuais",
         importCsv: "Importar CSV",
         targetEntity: "Entidade Alvo",
+        entities: {
+            assets: "Ativos (Áreas/Equipamentos)",
+            actions: "Ações (Status/Rastreamento)",
+            triggers: "Gatilhos (Paradas/Gatilhos)",
+            recordsSummary: "Resumo de Registros (Apenas Atualização)",
+            taxonomyAnalysisTypes: "Taxonomia: Tipos de Análise",
+            taxonomyStatuses: "Taxonomia: Status",
+            taxonomySpecialties: "Taxonomia: Especialidades",
+            taxonomyFailureModes: "Taxonomia: Modos de Falha",
+            taxonomyFailureCategories: "Taxonomia: Categorias de Falha",
+            taxonomyComponentTypes: "Taxonomia: Tipos de Componente",
+            taxonomyRootCauseMs: "Taxonomia: Fatores 6M",
+            taxonomyTriggerStatuses: "Taxonomia: Status de Gatilho"
+        },
         mode: "Modo",
         modes: {
             append: "Adicionar (Append)",

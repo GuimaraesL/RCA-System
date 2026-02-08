@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Upload, Download, FileSpreadsheet, Database, RefreshCw, CheckCircle, AlertTriangle } from 'lucide-react';
 import { importData, saveAssets, saveActions, saveRecords, saveTriggers, saveTaxonomy } from '../services/storageService';
 import { importDataToApi, importRecordsToApi, importActionsToApi, importTriggersToApi, importAssetsToApi, importTaxonomyToApi } from '../services/apiService';
@@ -37,21 +37,20 @@ export const MigrationView: React.FC = () => {
     // Access Context
     const { refreshAll, useApi, records, assets, actions, triggers, taxonomy } = useRcaContext();
 
-    // Constant: Entity Options for CSV
-    const entityOptions: { value: CsvEntityType, label: string }[] = [
-        { value: 'ASSETS', label: 'Assets (Areas/Equipment)' },
-        { value: 'ACTIONS', label: 'Actions (Status/Tracking)' },
-        { value: 'TRIGGERS', label: 'Triggers (Paradas/Gatilhos)' },
-        { value: 'RECORDS_SUMMARY', label: 'Records Summary (Update Only)' },
-        { value: 'TAXONOMY_ANALYSIS_TYPES', label: 'Taxonomy: Analysis Types' },
-        { value: 'TAXONOMY_STATUSES', label: 'Taxonomy: Statuses' },
-        { value: 'TAXONOMY_SPECIALTIES', label: 'Taxonomy: Specialties' },
-        { value: 'TAXONOMY_FAILURE_MODES', label: 'Taxonomy: Failure Modes' },
-        { value: 'TAXONOMY_FAILURE_CATEGORIES', label: 'Taxonomy: Failure Categories' },
-        { value: 'TAXONOMY_COMPONENT_TYPES', label: 'Taxonomy: Component Types' },
-        { value: 'TAXONOMY_ROOT_CAUSE_MS', label: 'Taxonomy: 6M Factors' },
-        { value: 'TAXONOMY_TRIGGER_STATUSES', label: 'Taxonomy: Trigger Statuses' },
-    ];
+    const entityOptions = useMemo(() => [
+        { value: 'ASSETS' as CsvEntityType, label: t('migration.entities.assets') },
+        { value: 'ACTIONS' as CsvEntityType, label: t('migration.entities.actions') },
+        { value: 'TRIGGERS' as CsvEntityType, label: t('migration.entities.triggers') },
+        { value: 'RECORDS_SUMMARY' as CsvEntityType, label: t('migration.entities.recordsSummary') },
+        { value: 'TAXONOMY_ANALYSIS_TYPES' as CsvEntityType, label: t('migration.entities.taxonomyAnalysisTypes') },
+        { value: 'TAXONOMY_STATUSES' as CsvEntityType, label: t('migration.entities.taxonomyStatuses') },
+        { value: 'TAXONOMY_SPECIALTIES' as CsvEntityType, label: t('migration.entities.taxonomySpecialties') },
+        { value: 'TAXONOMY_FAILURE_MODES' as CsvEntityType, label: t('migration.entities.taxonomyFailureModes') },
+        { value: 'TAXONOMY_FAILURE_CATEGORIES' as CsvEntityType, label: t('migration.entities.taxonomyFailureCategories') },
+        { value: 'TAXONOMY_COMPONENT_TYPES' as CsvEntityType, label: t('migration.entities.taxonomyComponentTypes') },
+        { value: 'TAXONOMY_ROOT_CAUSE_MS' as CsvEntityType, label: t('migration.entities.taxonomyRootCauseMs') },
+        { value: 'TAXONOMY_TRIGGER_STATUSES' as CsvEntityType, label: t('migration.entities.taxonomyTriggerStatuses') },
+    ], [t]);
 
     // Helper: File Encoding
     const readFileWithEncoding = (file: File): Promise<string> => {
@@ -407,18 +406,25 @@ export const MigrationView: React.FC = () => {
                     </div>
 
                     <div className="mb-6">
-                        <label htmlFor="csv_target_entity" className="block text-sm font-medium text-slate-700 mb-2">{t('migration.targetEntity')}</label>
+                        <label htmlFor="csv_target_entity" className="block text-sm font-medium text-slate-700 mb-2">
+                            {t('migration.targetEntity')}
+                        </label>
                         <select
                             id="csv_target_entity"
                             name="csv_target_entity"
-                            className="w-full md:w-1/2 p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-900"
+                            className="block w-full max-w-2xl p-2.5 bg-white border border-slate-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 shadow-sm transition-all"
                             value={csvType}
                             onChange={e => { setCsvType(e.target.value as CsvEntityType); setMsg(null); }}
                         >
                             {entityOptions.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                <option key={opt.value} value={opt.value} className="py-2">
+                                    {opt.label}
+                                </option>
                             ))}
                         </select>
+                        <p className="mt-2 text-[10px] text-slate-400 uppercase tracking-wider">
+                            {t('migration.csv.description')}
+                        </p>
                     </div>
 
                     {/* Trigger Import Options */}
