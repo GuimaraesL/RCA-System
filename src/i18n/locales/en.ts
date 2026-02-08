@@ -313,7 +313,26 @@ export const en: TranslationSchema = {
             chk_torque: "Torques and Tensions are correct, using appropriate torque wrenches",
             chk_parts: "Only parts according to equipment specification (BOM) were used",
             chk_func: "Functional test performed",
-            chk_doc: "Modifications were properly documented (drawings updated, procedures, etc.)"
+            chk_doc: "Modifications were properly documented (drawings updated, procedures, etc.)",
+
+            // Compatibility for legacy DB content (Portuguese text -> English translation)
+            "Área está limpa e arrumada": "Area is clean and tidy",
+            "Os ajustes e tolerâncias estão corretos": "Adjustments and tolerances are correct",
+            "A lubrificação é limpa, livre de contaminantes, com a quantidade e qualidade adequadas": "Lubrication is clean, contaminant-free, with proper quantity and quality",
+            "A correia tem tensão e alinhamento corretos": "Belt has correct tension and alignment",
+            "A correia tem tensão e alinhamento correctos": "The belt has correct tension and alignment",
+            "Cargas estão suportadas corretamente com montagens rígidas e suportes": "Loads are correctly supported with rigid mounts and supports",
+            "Cargas estão suportadas corretamento com montagens rígidas e suportes": "Loads are correctly supported with rigid mounts and supports",
+            "Componentes (eixos, motores, redutores, bombas, rolos, …) estão devidamente alinhados": "Components (shafts, motors, reducers, pumps, rollers, ...) are properly aligned",
+            "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão devidamente alinhados": "Components (shafts, motors, reducers, pumps, rollers, ...) are properly aligned",
+            "Componentes rotativos estão balanceados": "Rotating components are balanced",
+            "Torques e Tensões estão corretos, utilizando torquímetros apropriados": "Torques and Tensions are correct, using appropriate torque wrenches",
+            "Torques e Tensões estão correctos, utilizando torquimetros apropriados, ...": "Torques and Tensions are correct, using appropriate torque wrenches",
+            "Torques e Tensões estão correctos, utilizando torquimetros apropriados, ... ": "Torques and Tensions are correct, using appropriate torque wrenches",
+            "Utilizados somente peças de acordo com a especificação para o equipamento (no BOM)": "Only parts according to equipment specification (BOM) were used",
+            "Utilizados somente peças de acordo  com a especificação para o equipamento (no BOM)": "Only parts according to equipment specification (BOM) were used",
+            "Teste Funcional executado": "Functional test performed",
+            "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)": "Modifications were properly documented (drawings updated, procedures, etc.)"
         }
     },
     hraQuestionnaire: {
@@ -666,6 +685,27 @@ export const en: TranslationSchema = {
             tipText: "Use these sections to document important discussions, lessons learned, and relevant historical context for future analyses."
         },
         stepHRA: {
+            // Compatibility mappings for Portuguese DB content
+            "Procedimentos e Comunicação": "Procedures and Communication",
+            "Treinamentos, materiais e sua eficiência": "Training, materials and their efficiency",
+            "Impactos externos (físicos e cognitivos)": "External impacts (physical and cognitive)",
+            "Trabalho rotineiro e monótono": "Routine and monotonous work",
+            "Organização do ambiente e dos processos": "Environment and process organization",
+            "Medidas contra falhas": "Countermeasures against failure",
+            "Validação": "Validation",
+            "Os procedimentos são precisos e revisados?": "Are procedures accurate and reviewed?",
+            "Os procedimentos estão alinhados com as práticas reais?": "Are procedures aligned with actual practices?",
+            "Há comunicação apropriada e métodos de compartilhamento e escalonamento?": "Is there appropriate communication and methods for sharing and escalation?",
+            "Os materiais de treinamento refletem as informações e conhecimentos necessários para as competências identificadas?": "Do training materials reflect the information and knowledge required for identified competencies?",
+            "Os conhecimentos e habilidades estão sendo adquiridos e retidos?": "Is knowledge and skills being acquired and retained?",
+            "Há algum fator externo que possa afetar o desempenho do profissional: estresse, altos ruídos, calor/frio, vibração, atividades complexas, etc.?": "Are there any external factors that could affect professional performance: stress, high noise, heat/cold, vibration, complex activities, etc.?",
+            "Há flexibilidade e treinamentos cruzados disponíveis para os profissionais?": "Is there flexibility and cross-training available for professionals?",
+            "Os funcionários compreendem o valor e o impacto de seu trabalho?": "Do employees understand the value and impact of their work?",
+            "As condições de trabalho têm situações que criam dificuldades práticas para os funcionários: localização e acesso as ferramentas/equipamentos, sequência ideal de tarefas e padrões apropriados em vigor?": "Do working conditions have situations that create practical difficulties for employees: location and access to tools/equipment, ideal sequence of tasks and appropriate standards in place?",
+            "Existem medidas para ajudar a identificar erros potenciais durante tarefas críticas, atividades ou eventos não rotineiros?": "Are there measures to help identify potential errors during critical tasks, activities or non-routine events?",
+            "Há erros que podem ter acontecido por falta de atenção?": "Are there errors that may have happened due to lack of attention?",
+            "O coordenador da máquina valida a análise realizada?": "Does the machine coordinator validate the analysis performed?",
+
             title: "Human Reliability Analysis (HRA)",
             subtitle: "Explore losses related to \"Method\" and \"Manpower\" to identify potential human errors.",
             questionnaire: "Questionnaire",
