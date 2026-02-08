@@ -151,6 +151,17 @@ export const Dashboard: React.FC = () => {
 
     const resolveAssetName = (id: string) => assetMap.get(id) || id;
 
+    const translateStatus = (id: string, name: string) => {
+        switch (id) {
+            case STATUS_IDS.IN_PROGRESS: return t('status.inProgress');
+            case STATUS_IDS.CONCLUDED: return t('status.completed');
+            case STATUS_IDS.WAITING_VERIFICATION: return t('status.waiting');
+            case STATUS_IDS.CANCELLED: return t('status.canceled');
+            case STATUS_IDS.DELAYED: return t('status.delayed');
+            default: return name || id;
+        }
+    };
+
     const dynamicOptions = useMemo(() => {
         // Use raw records from context to determine which options have data
         const usedAssetIds = new Set<string>();
@@ -171,6 +182,46 @@ export const Dashboard: React.FC = () => {
 
     /* REMOVED REDUNDANT filteredRecords useMemo */
 
+    // --- Single-Pass Aggregator (Otimização de Performance O(N)) ---
+    const chartData = useMemo(() => {
+        const counts: Record<string, Record<string, number>> = {
+            status: {}, type: {}, equip: {}, sub: {}, comp: {}, mode: {}, cat: {}, root: {}
+        };
+
+        filteredRecords.forEach(r => {
+            if (r.status) counts.status[r.status] = (counts.status[r.status] || 0) + 1;
+            if (r.analysis_type) counts.type[r.analysis_type] = (counts.type[r.analysis_type] || 0) + 1;
+            if (r.equipment_id) counts.equip[r.equipment_id] = (counts.equip[r.equipment_id] || 0) + 1;
+            if (r.subgroup_id) counts.sub[r.subgroup_id] = (counts.sub[r.subgroup_id] || 0) + 1;
+            if (r.component_type) counts.comp[r.component_type] = (counts.comp[r.component_type] || 0) + 1;
+            if (r.failure_mode_id) counts.mode[r.failure_mode_id] = (counts.mode[r.failure_mode_id] || 0) + 1;
+            if (r.failure_category_id) counts.cat[r.failure_category_id] = (counts.cat[r.failure_category_id] || 0) + 1;
+            
+            r.root_causes?.forEach(rc => {
+                if (rc.root_cause_m_id) counts.root[rc.root_cause_m_id] = (counts.root[rc.root_cause_m_id] || 0) + 1;
+            });
+        });
+
+        const toChart = (data: Record<string, number>, resolver: (id: string) => string) => 
+            Object.entries(data)
+                .map(([id, count]) => ({ id, name: resolver(id), count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 10);
+
+        return {
+            status: toChart(counts.status, id => translateStatus(id, resolveTaxonomyName('analysisStatuses', id))),
+            type: toChart(counts.type, id => resolveTaxonomyName('analysisTypes', id)),
+            equip: toChart(counts.equip, id => resolveAssetName(id)),
+            sub: toChart(counts.sub, id => resolveAssetName(id)),
+            comp: toChart(counts.comp, id => resolveTaxonomyName('componentTypes', id)),
+            mode: toChart(counts.mode, id => resolveTaxonomyName('failureModes', id)),
+            cat: toChart(counts.cat, id => resolveTaxonomyName('failureCategories', id)),
+            root: toChart(counts.root, id => resolveTaxonomyName('rootCauseMs', id))
+        };
+    }, [filteredRecords, taxonomy, assetMap]); // Dependências otimizadas
+
+    const { status: dataStatus, type: dataType, equip: dataEquip, sub: dataSub, comp: dataComp, mode: dataMode, root: dataRootCause } = chartData;
+
     const handleChartClick = (field: keyof FilterState, id: string) => {
         if (!id) return;
         setFilters((prev) => {
@@ -188,55 +239,9 @@ export const Dashboard: React.FC = () => {
         });
     };
 
-    const aggregateCount = (keyFn: (r: any) => string, nameResolver: (id: string) => string) => {
-        const counts: Record<string, number> = {};
-        filteredRecords.forEach(r => {
-            const key = keyFn(r);
-            if (key) counts[key] = (counts[key] || 0) + 1;
-        });
-        return Object.keys(counts)
-            .map(id => ({ id, name: nameResolver(id), count: counts[id] }))
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 10);
-    };
-
-    const translateStatus = (id: string, name: string) => {
-        switch (id) {
-            case STATUS_IDS.IN_PROGRESS: return t('status.inProgress');
-            case STATUS_IDS.CONCLUDED: return t('status.completed');
-            case STATUS_IDS.WAITING_VERIFICATION: return t('status.waiting');
-            case STATUS_IDS.CANCELLED: return t('status.canceled');
-            case STATUS_IDS.DELAYED: return t('status.delayed');
-            default: return name || id;
-        }
-    };
-
-    const dataStatus = aggregateCount(r => r.status, id => {
-        const rawName = resolveTaxonomyName('analysisStatuses', id);
-        return translateStatus(id, rawName);
-    });
-    const dataType = aggregateCount(r => r.analysis_type, id => resolveTaxonomyName('analysisTypes', id));
-    const dataEquip = aggregateCount(r => r.equipment_id, id => resolveAssetName(id));
-    const dataSub = aggregateCount(r => r.subgroup_id, id => resolveAssetName(id));
-    const dataComp = aggregateCount(r => r.component_type, id => resolveTaxonomyName('componentTypes', id));
-    const dataMode = aggregateCount(r => r.failure_mode_id, id => resolveTaxonomyName('failureModes', id));
-    const dataCat = aggregateCount(r => r.failure_category_id, id => resolveTaxonomyName('failureCategories', id));
-
-    const dataRootCause = useMemo(() => {
-        const counts: Record<string, number> = {};
-        filteredRecords.forEach(r => {
-            r.root_causes?.forEach(rc => {
-                if (rc.root_cause_m_id) counts[rc.root_cause_m_id] = (counts[rc.root_cause_m_id] || 0) + 1;
-            });
-        });
-        return Object.keys(counts)
-            .map(id => ({ id, name: resolveTaxonomyName('rootCauseMs', id), count: counts[id] }))
-            .sort((a, b) => b.count - a.count);
-    }, [filteredRecords, taxonomy]);
-
-    const totalDowntimeMin = filteredRecords.reduce((acc, r) => acc + (r.downtime_minutes || 0), 0);
+    const totalDowntimeMin = useMemo(() => filteredRecords.reduce((acc, r) => acc + (r.downtime_minutes || 0), 0), [filteredRecords]);
     const totalDowntimeHours = totalDowntimeMin / 60;
-    const totalCost = filteredRecords.reduce((acc, r) => acc + (r.financial_impact || 0), 0);
+    const totalCost = useMemo(() => filteredRecords.reduce((acc, r) => acc + (r.financial_impact || 0), 0), [filteredRecords]);
 
     return (
         <div className="p-8 space-y-8 max-w-[1600px] mx-auto pb-20">

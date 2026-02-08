@@ -21,12 +21,22 @@ export const useFilteredData = (filters: FilterState) => {
 
     const normalize = (s: string) => s?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
 
-    // Otimização: Indexa ações por RCA ID para busca O(1)
+    // 1. Otimização: Pre-calcula índices de busca para RCAs e Ações (Apenas quando os dados mudam)
+    const indexedRCAs = useMemo(() => {
+        return records.map(r => ({
+            ...r,
+            _searchIndex: normalize(`${r.id} ${r.what} ${r.problem_description} ${r.who} ${r.os_number}`),
+            _year: r.failure_date ? new Date(r.failure_date).getFullYear().toString() : '',
+            _month: r.failure_date ? (new Date(r.failure_date).getMonth() + 1).toString().padStart(2, '0') : ''
+        }));
+    }, [records]);
+
     const actionsByRcaMap = useMemo(() => {
-        const map = new Map<string, ActionRecord[]>();
+        const map = new Map<string, (ActionRecord & { _searchIndex: string })[]>();
         actions.forEach(a => {
+            const indexedAction = { ...a, _searchIndex: normalize(`${a.action} ${a.responsible}`) };
             const list = map.get(a.rca_id) || [];
-            list.push(a);
+            list.push(indexedAction);
             map.set(a.rca_id, list);
         });
         return map;
@@ -43,7 +53,7 @@ export const useFilteredData = (filters: FilterState) => {
         return id;
     };
 
-    // 1. Processamento de RCAs
+    // 2. Processamento de RCAs (Agora com busca O(1) em strings pré-normalizadas)
     const filteredRCAs = useMemo(() => {
         const searchTerm = normalize(filters.searchTerm);
         const hasSearch = !!searchTerm;
@@ -51,29 +61,25 @@ export const useFilteredData = (filters: FilterState) => {
         const isActionStatus = ['1', '2', '3', '4'].includes(statusFilter);
         const isTriggerStatus = statusFilter.startsWith('T-STATUS');
 
-        return records.filter(r => {
-            // A) Filtros de Ativos (Hierarquia)
+        return indexedRCAs.filter(r => {
+            // A) Filtros de Ativos
             if (filters.subgroup !== 'ALL' && r.subgroup_id !== filters.subgroup) return false;
             if (filters.equipment !== 'ALL' && r.equipment_id !== filters.equipment) return false;
             if (filters.area !== 'ALL' && r.area_id !== filters.area) return false;
 
-            // B) Filtros de Data (Mês/Ano)
-            const rDate = new Date(r.failure_date);
-            const rYear = rDate.getFullYear().toString();
-            const rMonth = (rDate.getMonth() + 1).toString().padStart(2, '0');
-            if (filters.year && rYear !== filters.year) return false;
-            if (filters.months.length > 0 && !filters.months.includes(rMonth)) return false;
+            // B) Filtros de Data (Pré-calculados)
+            if (filters.year && r._year !== filters.year) return false;
+            if (filters.months.length > 0 && !filters.months.includes(r._month)) return false;
 
-            // C) Busca Textual Inteligente (Otimizada via Map e pre-normalização)
+            // C) Busca Textual Inteligente (Sem normalização no loop!)
             if (hasSearch) {
-                const rContent = normalize(`${r.id} ${r.what} ${r.problem_description} ${r.who} ${r.os_number}`);
                 const rActions = actionsByRcaMap.get(r.id) || [];
-                const aContent = rActions.length > 0 ? rActions.map(a => normalize(`${a.action} ${a.responsible}`)).join(" ") : "";
+                const aContentMatch = rActions.some(a => a._searchIndex.includes(searchTerm));
                 
-                if (!rContent.includes(searchTerm) && !aContent.includes(searchTerm)) return false;
+                if (!r._searchIndex.includes(searchTerm) && !aContentMatch) return false;
             }
 
-            // D) Filtro de Status Inteligente (Otimizado via Map)
+            // D) Filtro de Status Inteligente
             if (statusFilter !== 'ALL') {
                 if (isActionStatus) {
                     const rActions = actionsByRcaMap.get(r.id) || [];
@@ -96,7 +102,7 @@ export const useFilteredData = (filters: FilterState) => {
 
             return true;
         });
-    }, [records, actionsByRcaMap, triggers, filters, taxonomy]);
+    }, [indexedRCAs, actionsByRcaMap, triggers, filters, taxonomy]);
 
     // 2. Processamento de Ações (com conversão para ViewModel)
     const filteredActions = useMemo(() => {
