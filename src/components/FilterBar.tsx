@@ -146,15 +146,26 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     ];
 
     // Helper to resolve names for chips
-    const getAssetName = (id: string, list: AssetNode[]) => list.find(x => x.id === id)?.name || id;
+    const findAssetNameRecursive = (id: string, list: AssetNode[]): string => {
+        for (const item of list) {
+            if (item.id === id) return item.name;
+            if (item.children) {
+                const found = findAssetNameRecursive(id, item.children);
+                if (found) return found;
+            }
+        }
+        return id;
+    };
+
     const getOptionName = (id: string, list: FilterOption[]) => list.find(x => x.id === id)?.name || id;
 
     // --- Active Filters Chips Logic ---
     const activeFilters = [
         filters.year ? { label: `${t('filters.year')}: ${filters.year}`, onRemove: () => handleChange('year', '') } : null,
         (filters.months || []).length > 0 ? { label: `${t('filters.month')}: ${(filters.months || []).length}`, onRemove: () => handleChange('months', []) } : null,
-        filters.area !== 'ALL' ? { label: `${t('filters.area')}: ${getAssetName(filters.area, areas)}`, onRemove: () => handleChange('area', 'ALL') } : null,
-        filters.equipment !== 'ALL' ? { label: `${t('filters.equipment')}: ${getAssetName(filters.equipment, equipments)}`, onRemove: () => handleChange('equipment', 'ALL') } : null,
+        filters.area !== 'ALL' ? { label: `${t('filters.area')}: ${findAssetNameRecursive(filters.area, assets)}`, onRemove: () => handleChange('area', 'ALL') } : null,
+        filters.equipment !== 'ALL' ? { label: `${t('filters.equipment')}: ${findAssetNameRecursive(filters.equipment, assets)}`, onRemove: () => handleChange('equipment', 'ALL') } : null,
+        filters.subgroup !== 'ALL' ? { label: `${t('filters.subgroup')}: ${findAssetNameRecursive(filters.subgroup, assets)}`, onRemove: () => handleChange('subgroup', 'ALL') } : null,
         filters.status !== 'ALL' ? { label: `${t('filters.status')}: ${getOptionName(filters.status, statuses)}`, onRemove: () => handleChange('status', 'ALL') } : null,
         filters.specialty !== 'ALL' ? { label: `${t('filters.specialty')}: ${getOptionName(filters.specialty, specialties)}`, onRemove: () => handleChange('specialty', 'ALL') } : null,
         filters.analysisType !== 'ALL' ? { label: `${t('filters.analysisType')}: ${getOptionName(filters.analysisType, analysisTypes)}`, onRemove: () => handleChange('analysisType', 'ALL') } : null,
