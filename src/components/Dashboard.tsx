@@ -58,6 +58,7 @@ const truncateLabel = (text: string, maxLength: number = 25) => {
 const ChartCard: React.FC<{
     title: string;
     children: React.ReactNode;
+    icon?: React.ReactNode;
     isInteractive?: boolean;
     isLoading?: boolean;
 }> = ({ title, children, icon, isInteractive, isLoading }) => {
