@@ -242,6 +242,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                 <div className="relative">
                                     <input
                                         type="text"
+                                        id="filter_search"
+                                        name="filter_search"
                                         placeholder={t('filters.searchPlaceholder')}
                                         className="w-full pl-3 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                                         value={localSearch}
@@ -257,6 +259,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                         <Calendar size={14} /> {t('filters.year')}
                                     </label>
                                     <select
+                                        id="filter_year"
+                                        name="filter_year"
                                         value={filters.year}
                                         onChange={e => handleChange('year', e.target.value)}
                                         className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg p-2.5 font-semibold focus:ring-2 focus:ring-blue-500 outline-none"
@@ -307,6 +311,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                     <div>
                                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.area')}</label>
                                         <select
+                                            id="filter_area"
+                                            name="filter_area"
                                             className="w-full border border-slate-200 rounded-lg p-2 text-sm bg-white hover:border-blue-300 transition-colors"
                                             value={filters.area}
                                             onChange={e => handleChange('area', e.target.value)}
@@ -318,6 +324,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                     <div>
                                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.equipment')}</label>
                                         <select
+                                            id="filter_equipment"
+                                            name="filter_equipment"
                                             className="w-full border border-slate-200 rounded-lg p-2 text-sm bg-white disabled:opacity-50 hover:border-blue-300 transition-colors"
                                             value={filters.equipment}
                                             onChange={e => handleChange('equipment', e.target.value)}
@@ -330,6 +338,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                     <div>
                                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.subgroup')}</label>
                                         <select
+                                            id="filter_subgroup"
+                                            name="filter_subgroup"
                                             className="w-full border border-slate-200 rounded-lg p-2 text-sm bg-white disabled:opacity-50 hover:border-blue-300 transition-colors"
                                             value={filters.subgroup}
                                             onChange={e => handleChange('subgroup', e.target.value)}
@@ -354,6 +364,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                         <div>
                                             <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.analysisType')}</label>
                                             <select
+                                                id="filter_analysis_type"
+                                                name="filter_analysis_type"
                                                 className="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white"
                                                 value={filters.analysisType}
                                                 onChange={e => handleChange('analysisType', e.target.value)}
@@ -367,6 +379,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                         <div>
                                             <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.specialty')}</label>
                                             <select
+                                                id="filter_specialty"
+                                                name="filter_specialty"
                                                 className="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white"
                                                 value={filters.specialty}
                                                 onChange={e => handleChange('specialty', e.target.value)}
@@ -380,6 +394,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                         <div>
                                             <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.status')}</label>
                                             <select
+                                                id="filter_status"
+                                                name="filter_status"
                                                 className="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white font-medium text-slate-700"
                                                 value={filters.status}
                                                 onChange={e => handleChange('status', e.target.value)}
