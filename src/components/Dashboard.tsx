@@ -58,14 +58,13 @@ const truncateLabel = (text: string, maxLength: number = 25) => {
 const ChartCard: React.FC<{
     title: string;
     children: React.ReactNode;
-    icon?: React.ReactNode;
     isInteractive?: boolean;
     isLoading?: boolean;
 }> = ({ title, children, icon, isInteractive, isLoading }) => {
     const { t } = useLanguage();
     return (
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[350px] transition-all hover:shadow-md relative group">
-            <div className="flex items-center justify-between mb-4 border-b border-slate-50 pb-2">
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col min-h-[420px] transition-all hover:shadow-md relative group overflow-hidden">
+            <div className="flex items-center justify-between mb-4 border-b border-slate-50 pb-2 flex-shrink-0">
                 <div className="flex items-center gap-2">
                     {icon && <span className="text-slate-400">{icon}</span>}
                     <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">{title}</h3>
@@ -76,7 +75,7 @@ const ChartCard: React.FC<{
                     </div>
                 )}
             </div>
-            <div className="flex-1 w-full relative min-h-[300px]">
+            <div className="flex-1 w-full relative">
                 {isLoading ? (
                     <div className="h-full w-full flex flex-col gap-4">
                         <Skeleton className="flex-1 w-full" />
