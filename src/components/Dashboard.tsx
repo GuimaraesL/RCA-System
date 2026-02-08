@@ -7,6 +7,7 @@ import { Clock, TrendingUp, AlertCircle, CheckCircle, PieChart as PieIcon, Activ
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { useRcaContext } from '../context/RcaContext';
+import { translateStatus } from '../utils/statusUtils';
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
 import { useFilteredData } from '../hooks/useFilteredData';
 import { filterAssetsByUsage } from '../services/utils';
@@ -162,17 +163,6 @@ export const Dashboard: React.FC = () => {
 
     const resolveAssetName = (id: string) => assetMap.get(id) || id;
 
-    const translateStatus = (id: string, name: string) => {
-        switch (id) {
-            case STATUS_IDS.IN_PROGRESS: return t('status.inProgress');
-            case STATUS_IDS.CONCLUDED: return t('status.completed');
-            case STATUS_IDS.WAITING_VERIFICATION: return t('status.waiting');
-            case STATUS_IDS.CANCELLED: return t('status.canceled');
-            case STATUS_IDS.DELAYED: return t('status.delayed');
-            default: return name || id;
-        }
-    };
-
     const dynamicOptions = useMemo(() => {
         // Use raw records from context to determine which options have data
         const usedAssetIds = new Set<string>();
@@ -220,7 +210,7 @@ export const Dashboard: React.FC = () => {
                 .slice(0, 10);
 
         return {
-            status: toChart(counts.status, id => translateStatus(id, resolveTaxonomyName('analysisStatuses', id))),
+            status: toChart(counts.status, id => translateStatus(id, resolveTaxonomyName('analysisStatuses', id), t)),
             type: toChart(counts.type, id => resolveTaxonomyName('analysisTypes', id)),
             equip: toChart(counts.equip, id => resolveAssetName(id)),
             sub: toChart(counts.sub, id => resolveAssetName(id)),

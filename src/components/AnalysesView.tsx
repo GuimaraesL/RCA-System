@@ -11,6 +11,7 @@ import { useRcaContext } from '../context/RcaContext';
 import { filterAssetsByUsage } from '../services/utils';
 import { ConfirmModal } from './ConfirmModal';
 import { getAssetName } from '../utils/triggerHelpers';
+import { translateStatus } from '../utils/statusUtils';
 import { useFilteredData } from '../hooks/useFilteredData';
 // useEnterAnimation disabled for performance with large datasets
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
@@ -90,18 +91,6 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
     const getName = (type: keyof TaxonomyConfig, id: string) => {
         if (!id || !taxonomyMaps[type]) return id;
         return taxonomyMaps[type].get(id) || id;
-    };
-
-    // Helper to translate statuses (Consistency with Dashboard)
-    const translateStatus = (id: string, name: string) => {
-        switch (id) {
-            case STATUS_IDS.IN_PROGRESS: return t('status.inProgress');
-            case STATUS_IDS.CONCLUDED: return t('status.completed');
-            case STATUS_IDS.WAITING_VERIFICATION: return t('status.waiting');
-            case STATUS_IDS.CANCELLED: return t('status.canceled');
-            case STATUS_IDS.DELAYED: return t('status.delayed');
-            default: return name || id;
-        }
     };
 
     const dynamicOptions = useMemo(() => {
@@ -205,7 +194,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                             )}
                             {filteredRecords.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(r => {
                                 const rawName = getName('analysisStatuses', r.status);
-                                const statusName = translateStatus(r.status, rawName);
+                                const statusName = translateStatus(r.status, rawName, t);
                                 return (
                                     <tr key={r.id} onClick={() => onEdit(r)} className="hover:bg-blue-50 cursor-pointer transition-colors group">
                                         <td className="px-6 py-5">

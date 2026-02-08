@@ -8,6 +8,7 @@ import { Save, ArrowLeft, Lock, Check, ChevronDown } from 'lucide-react';
 import { useRcaLogic } from '../hooks/useRcaLogic';
 import { ActionModal } from './ActionModal';
 import { useLanguage } from '../context/LanguageDefinition';
+import { translateStatus } from '../utils/statusUtils';
 import { ConfirmModal } from './ConfirmModal';
 import { animateModalEnter } from '../services/animations'; // Animation
 
@@ -203,7 +204,9 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                                     }`}
                             >
                                 {taxonomy.analysisStatuses.map(s => (
-                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                    <option key={s.id} value={s.id}>
+                                        {translateStatus(s.id, s.name, t)}
+                                    </option>
                                 ))}
                             </select>
                             <ChevronDown size={14} className={`absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none ${isCompleted ? 'text-green-500' : 'text-slate-400'}`} />
