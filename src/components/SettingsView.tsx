@@ -58,8 +58,8 @@ const ListManager: React.FC<{
                   onChange={(e) => setEditValue(e.target.value)}
                   aria-label={`${t('settings.editItemLabel') || 'Editar item'} - ${item.name}`}
                 />
-                <button aria-label={t('common.save') || 'Salvar'} onClick={() => saveEdit(item.id)} className="p-1.5 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors"><Check size={16} /></button>
-                <button aria-label={t('common.cancel') || 'Cancelar'} onClick={() => setEditingId(null)} className="p-1.5 bg-red-50 text-red-500 rounded-md hover:bg-red-100 transition-colors"><X size={16} /></button>
+                <button aria-label={t('common.save')} onClick={() => saveEdit(item.id)} className="p-1.5 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors"><Check size={16} /></button>
+                <button aria-label={t('common.cancel')} onClick={() => setEditingId(null)} className="p-1.5 bg-red-50 text-red-500 rounded-md hover:bg-red-100 transition-colors"><X size={16} /></button>
               </div>
             ) : (
               <>
@@ -68,8 +68,8 @@ const ListManager: React.FC<{
                   <span className="text-[10px] text-slate-400 font-mono flex items-center gap-1 mt-0.5"><Lock size={8} /> {item.id}</span>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button aria-label={`${t('common.edit') || 'Editar'} - ${item.name}`} onClick={() => startEdit(item.id, item.name)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all"><Edit2 size={15} /></button>
-                  <button aria-label={`${t('common.delete') || 'Excluir'} - ${item.name}`} onClick={() => setDeleteData({ id: item.id, name: item.name })} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all"><Trash2 size={15} /></button>
+                  <button aria-label={`${t('common.edit')} - ${item.name}`} onClick={() => startEdit(item.id, item.name)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all"><Edit2 size={15} /></button>
+                  <button aria-label={`${t('common.delete')} - ${item.name}`} onClick={() => setDeleteData({ id: item.id, name: item.name })} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all"><Trash2 size={15} /></button>
                 </div>
               </>
             )}
@@ -97,7 +97,7 @@ const ListManager: React.FC<{
         <button
           onClick={handleAdd}
           disabled={!newItemName.trim()}
-          aria-label={`${t('settings.addItemButton') || 'Adicionar'} - ${title}`}
+          aria-label={`${t('settings.addItemButton')} - ${title}`}
           className="bg-blue-600 text-white p-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-blue-200 transition-all active:scale-95"
         >
           <Plus size={18} />

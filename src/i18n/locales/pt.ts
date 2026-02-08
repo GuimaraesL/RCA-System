@@ -313,7 +313,21 @@ export const pt: TranslationSchema = {
             chk_torque: "Torques e Tensões estão corretos, utilizando torquímetros apropriados",
             chk_parts: "Utilizados somente peças de acordo com a especificação para o equipamento (no BOM)",
             chk_func: "Teste Funcional executado",
-            chk_doc: "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)"
+            chk_doc: "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)",
+
+            // Compatibility for legacy DB content (Portuguese text as keys)
+            "A correia tem tensão e alinhamento correctos": "A correia tem tensão e alinhamento correctos",
+            "Teste Funcional executado": "Teste Funcional executado",
+            "Utilizados somente peças de acordo com a especificação para o equipamento (no BOM)": "Utilizados somente peças de acordo com a especificação para o equipamento (no BOM)",
+            "A lubrificação é limpa, livre de contaminantes, com a quantidade e qualidade adequadas": "A lubrificação é limpa, livre de contaminantes, com a quantidade e qualidade adequadas",
+            "Área está limpa e arrumada": "Área está limpa e arrumada",
+            "Cargas estão suportadas corretamente com montagens rígidas e suportes": "Cargas estão suportadas corretamente com montagens rígidas e suportes",
+            "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)": "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)",
+            "Os ajustes e tolerâncias estão corretos": "Os ajustes e tolerâncias estão corretos",
+            "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão": "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão devidamente alinhados",
+            "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão devidamente alinhados": "Componentes (eixos, motores, redutores, bombas, rolos, ...) estão devidamente alinhados",
+            "Torques e Tensões estão correctos, utilizando torquimetros apropriados, ...": "Torques e Tensões estão correctos, utilizando torquimetros apropriados, ...",
+            "Componentes rotativos estão balanceados": "Componentes rotativos estão balanceados"
         }
     },
     hraQuestionnaire: {
@@ -666,6 +680,18 @@ export const pt: TranslationSchema = {
             tipText: "Use estas seções para documentar discussões importantes, lições aprendidas e contexto histórico relevante para futuras análises."
         },
         stepHRA: {
+            // Compatibility mappings for Portuguese DB content
+            "PROCEDIMENTOS E COMUNICAÇÃO": "PROCEDIMENTOS E COMUNICAÇÃO",
+            "TREINAMENTOS, MATERIAIS E SUA EFICIÊNCIA": "TREINAMENTOS, MATERIAIS E SUA EFICIÊNCIA",
+            "VALIDAÇÃO": "VALIDAÇÃO",
+            "TRABALHO ROTINEIRO E MONÓTONO": "TRABALHO ROTINEIRO E MONÓTONO",
+            "IMPACTOS EXTERNOS (FÍSICOS E COGNITIVOS)": "IMPACTOS EXTERNOS (FÍSICOS E COGNITIVOS)",
+            "Há comunicação apropriada e métodos de compartilhamento e escalonamento?": "Há comunicação apropriada e métodos de compartilhamento e escalonamento?",
+            "Os materiais de treinamento refletem as informações e conhecimentos necessários para as competências identificadas?": "Os materiais de treinamento refletem as informações e conhecimentos necessários para as competências identificadas?",
+            "O coordenador da máquina valida a análise realizada?": "O coordenador da máquina valida a análise realizada?",
+            "Os funcionários compreendem o valor e o impacto de seu trabalho?": "Os funcionários compreendem o valor e o impacto de seu trabalho?",
+            "Há algum fator externo que possa afetar o desempenho do profissional: estresse, altos ruídos, calor/frio, vibração, atividades complexas, etc.?": "Há algum fator externo que possa afetar o desempenho do profissional: estresse, altos ruídos, calor/frio, vibração, atividades complexas, etc.?",
+
             title: "Análise de Confiabilidade Humana (HRA)",
             subtitle: "Explore perdas relacionadas a \"Método\" e \"Mão de Obra\" para identificar potenciais erros humanos.",
             questionnaire: "Questionário",
