@@ -152,20 +152,22 @@ export const Dashboard: React.FC = () => {
     const resolveAssetName = (id: string) => assetMap.get(id) || id;
 
     const dynamicOptions = useMemo(() => {
-        const { records } = useRcaContext.getState ? { records: [] } : { records: [] }; // Dummy to avoid unused records if needed, but we keep the memo
-        // Note: we still need dynamicOptions to show what's AVAILABLE in filters based on current selection
-        // But for simplicity in this step, let's just keep the dependencies correct.
-        // Actually, the original dynamicOptions was using 'records' directly. 
-        // We should keep it using 'records' from context to show all POSSIBLE options, or use filtered ones?
-        // Usually, options are filtered by GLOBAL context.
+        // Use raw records from context to determine which options have data
+        const usedAssetIds = new Set<string>();
+        records.forEach(r => {
+            if (r.area_id) usedAssetIds.add(r.area_id);
+            if (r.equipment_id) usedAssetIds.add(r.equipment_id);
+            if (r.subgroup_id) usedAssetIds.add(r.subgroup_id);
+        });
+
         return {
-            assets: filterAssetsByUsage(assets, new Set()), // Placeholder or keep original logic
+            assets: filterAssetsByUsage(assets, usedAssetIds),
             statuses: taxonomy.analysisStatuses,
             specialties: taxonomy.specialties,
             analysisTypes: taxonomy.analysisTypes,
             rootCause6Ms: taxonomy.rootCauseMs
         };
-    }, [assets, taxonomy]);
+    }, [records, assets, taxonomy]);
 
     /* REMOVED REDUNDANT filteredRecords useMemo */
 

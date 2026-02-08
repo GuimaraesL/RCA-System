@@ -22,7 +22,7 @@ interface AnalysesViewProps {
 
 export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => {
     const { t, formatDate, language } = useLanguage();
-    const { assets, taxonomy, deleteRecord } = useRcaContext();
+    const { records, assets, taxonomy, deleteRecord } = useRcaContext();
 
     // Delete Modal State
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -53,6 +53,25 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
 
     // --- Intelligent Cross-Filtering Hook ---
     const { filteredRCAs: filteredContent } = useFilteredData(filters);
+
+    // --- Delete Handlers ---
+    const handleDelete = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation(); // Prevent row click from triggering edit
+        setRecordToDelete(id);
+        setDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!recordToDelete) return;
+        try {
+            await deleteRecord(recordToDelete);
+            console.log('✅ RCA excluída:', recordToDelete);
+        } catch (error) {
+            console.error('❌ Erro ao excluir RCA:', error);
+        }
+        setDeleteModalOpen(false);
+        setRecordToDelete(null);
+    };
 
     // --- Performance Optimization: Taxonomy Maps for O(1) Lookup ---
     const taxonomyMaps = useMemo(() => {
@@ -86,13 +105,20 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
     };
 
     const dynamicOptions = useMemo(() => {
+        const usedAssetIds = new Set<string>();
+        records.forEach(r => {
+            if (r.area_id) usedAssetIds.add(r.area_id);
+            if (r.equipment_id) usedAssetIds.add(r.equipment_id);
+            if (r.subgroup_id) usedAssetIds.add(r.subgroup_id);
+        });
+
         return {
-            assets: filterAssetsByUsage(assets, new Set()),
+            assets: filterAssetsByUsage(assets, usedAssetIds),
             statuses: taxonomy.analysisStatuses,
             specialties: taxonomy.specialties,
             analysisTypes: taxonomy.analysisTypes
         };
-    }, [assets, taxonomy]);
+    }, [records, assets, taxonomy]);
 
     // Use the Hook!
     const { sortedItems: filteredRecords, sortConfig, handleSort } = useSorting(filteredContent, { key: 'failure_date', direction: 'desc' });
