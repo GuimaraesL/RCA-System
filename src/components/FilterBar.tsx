@@ -236,7 +236,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6 pb-6 border-b border-slate-100">
                         {showSearch && (
                             <div className="md:col-span-4">
-                                <label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase mb-2">
+                                <label htmlFor="filter_search" className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase mb-2">
                                     <Search size={14} /> {t('filters.searchLabel')}
                                 </label>
                                 <div className="relative">
@@ -255,7 +255,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         {showDate && (
                             <div className="md:col-span-8 flex flex-col md:flex-row gap-4">
                                 <div className="w-full md:w-40">
-                                    <label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase mb-2">
+                                    <label htmlFor="filter_year" className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase mb-2">
                                         <Calendar size={14} /> {t('filters.year')}
                                     </label>
                                     <select
@@ -270,8 +270,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                     </select>
                                 </div>
                                 <div className="flex-1">
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">{t('filters.month')}</label>
-                                    <div className="flex flex-wrap gap-1">
+                                    <span id="filter_month_label" className="block text-xs font-bold text-slate-500 uppercase mb-2">{t('filters.month')}</span>
+                                    <div className="flex flex-wrap gap-1" role="group" aria-labelledby="filter_month_label">
                                         {monthsList.map(m => {
                                             const isActive = (filters.months || []).includes(m.id);
                                             return (
@@ -309,7 +309,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                 </h4>
                                 <div className="bg-slate-50 p-4 rounded-lg space-y-3 border border-slate-100">
                                     <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.area')}</label>
+                                        <label htmlFor="filter_area" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.area')}</label>
                                         <select
                                             id="filter_area"
                                             name="filter_area"
@@ -322,7 +322,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.equipment')}</label>
+                                        <label htmlFor="filter_equipment" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.equipment')}</label>
                                         <select
                                             id="filter_equipment"
                                             name="filter_equipment"
@@ -336,7 +336,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.subgroup')}</label>
+                                        <label htmlFor="filter_subgroup" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.subgroup')}</label>
                                         <select
                                             id="filter_subgroup"
                                             name="filter_subgroup"
@@ -362,7 +362,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {showAnalysisType && (
                                         <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.analysisType')}</label>
+                                            <label htmlFor="filter_analysis_type" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.analysisType')}</label>
                                             <select
                                                 id="filter_analysis_type"
                                                 name="filter_analysis_type"
@@ -377,7 +377,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                     )}
                                     {showSpecialty && (
                                         <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.specialty')}</label>
+                                            <label htmlFor="filter_specialty" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.specialty')}</label>
                                             <select
                                                 id="filter_specialty"
                                                 name="filter_specialty"
@@ -392,7 +392,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                     )}
                                     {showStatus && (
                                         <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.status')}</label>
+                                            <label htmlFor="filter_status" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.status')}</label>
                                             <select
                                                 id="filter_status"
                                                 name="filter_status"
