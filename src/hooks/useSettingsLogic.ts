@@ -19,8 +19,19 @@ export const useSettingsLogic = () => {
   const addItem = (field: keyof TaxonomyConfig, name: string) => {
     if (!name.trim()) return;
 
-    // Gerar prefixo baseado no campo (ex: analysisTypes -> ANT)
-    const prefix = field.substring(0, 3).toUpperCase();
+    // Prefixos únicos por categoria para evitar colisões (Issue #49)
+    const prefixes: Record<string, string> = {
+      analysisTypes: 'TYP',
+      analysisStatuses: 'STA',
+      triggerStatuses: 'TRG',
+      componentTypes: 'CMP',
+      specialties: 'SPC',
+      failureModes: 'MOD',
+      failureCategories: 'CAT',
+      rootCauseMs: 'RCM'
+    };
+    
+    const prefix = prefixes[field] || 'GEN';
     const newItem: TaxonomyItem = {
       id: generateId(prefix),
       name: name.trim()

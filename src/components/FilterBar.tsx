@@ -44,6 +44,9 @@ interface FilterBarProps {
         analysisTypes?: FilterOption[];
         assets?: AssetNode[];
         rootCause6Ms?: FilterOption[];
+        failureModes?: FilterOption[];
+        failureCategories?: FilterOption[];
+        componentTypes?: FilterOption[];
     };
     isOpen: boolean;
     onToggle: () => void;
@@ -99,7 +102,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         specialties = [],
         analysisTypes = [],
         assets = [],
-        rootCause6Ms = []
+        rootCause6Ms = [],
+        failureModes = [],
+        failureCategories = [],
+        componentTypes = []
     } = options || {};
 
     const handleChange = (key: keyof FilterState, value: any) => {
@@ -172,10 +178,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         filters.searchTerm ? { label: `${t('common.search')}: "${filters.searchTerm}"`, onRemove: () => handleChange('searchTerm', '') } : null,
 
         // New Technical Filters Chips (Usually hidden in dropdown but shown as chips when clicked on charts)
-        filters.componentType !== 'ALL' && filters.componentType ? { label: `Comp: ${filters.componentType}`, onRemove: () => handleChange('componentType', 'ALL') } : null,
-        filters.failureMode !== 'ALL' && filters.failureMode ? { label: `Modo: ${filters.failureMode}`, onRemove: () => handleChange('failureMode', 'ALL') } : null,
-        filters.failureCategory !== 'ALL' && filters.failureCategory ? { label: `Cat: ${filters.failureCategory}`, onRemove: () => handleChange('failureCategory', 'ALL') } : null,
-        filters.rootCause6M !== 'ALL' && filters.rootCause6M ? { label: `6M: ${filters.rootCause6M}`, onRemove: () => handleChange('rootCause6M', 'ALL') } : null,
+        filters.componentType !== 'ALL' && filters.componentType ? { label: `${t('fields.componentType') || 'Comp'}: ${getOptionName(filters.componentType, componentTypes)}`, onRemove: () => handleChange('componentType', 'ALL') } : null,
+        filters.failureMode !== 'ALL' && filters.failureMode ? { label: `${t('fields.failureMode') || 'Modo'}: ${getOptionName(filters.failureMode, failureModes)}`, onRemove: () => handleChange('failureMode', 'ALL') } : null,
+        filters.failureCategory !== 'ALL' && filters.failureCategory ? { label: `${t('fields.failureCategory') || 'Cat'}: ${getOptionName(filters.failureCategory, failureCategories)}`, onRemove: () => handleChange('failureCategory', 'ALL') } : null,
+        filters.rootCause6M !== 'ALL' && filters.rootCause6M ? { label: `6M: ${getOptionName(filters.rootCause6M, rootCause6Ms)}`, onRemove: () => handleChange('rootCause6M', 'ALL') } : null,
 
     ].filter(Boolean);
 
