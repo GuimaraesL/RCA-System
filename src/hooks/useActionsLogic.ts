@@ -1,23 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { ActionRecord, AssetNode } from '../types';
+import { ActionRecord, AssetNode, ActionViewModel } from '../types';
 import { generateId } from '../services/utils';
 import { useRcaContext } from '../context/RcaContext';
 
 // ViewModel includes resolved RCA name and context IDs for filtering
-export interface ActionViewModel extends ActionRecord {
-  rcaTitle: string;
-  assetName: string;
-  areaId: string;
-  equipmentId: string;
-  subgroupId: string;
-  categoryId: string;
-  specialtyId: string;
-  // Pre-computed fields for optimized filtering (Issue #11)
-  searchContext: string; // Pre-lowercased search text
-  yearStr: string;       // e.g. "2024"
-  monthStr: string;      // e.g. "01", "02"
-}
 
 // Helper to find asset name recursively by ID
 const findAssetNameById = (nodes: AssetNode[], id: string): string | undefined => {

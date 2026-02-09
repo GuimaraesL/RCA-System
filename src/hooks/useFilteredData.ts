@@ -1,17 +1,8 @@
 import { useMemo } from 'react';
 import { useRcaContext } from '../context/RcaContext';
 import { FilterState } from '../components/FilterBar';
-import { RcaRecord, ActionRecord, AssetNode } from '../types';
+import { RcaRecord, ActionRecord, AssetNode, ActionViewModel } from '../types';
 
-export interface ActionViewModel extends ActionRecord {
-    rcaTitle: string;
-    assetName: string;
-    areaId: string;
-    equipmentId: string;
-    subgroupId: string;
-    categoryId: string;
-    specialtyId: string;
-}
 
 /**
  * Hook para processar filtros inteligentes e cruzados entre RCAs, Ações e Gatilhos.
@@ -75,7 +66,7 @@ export const useFilteredData = (filters: FilterState) => {
             if (hasSearch) {
                 const rActions = actionsByRcaMap.get(r.id) || [];
                 const aContentMatch = rActions.some(a => a._searchIndex.includes(searchTerm));
-                
+
                 if (!r._searchIndex.includes(searchTerm) && !aContentMatch) return false;
             }
 
@@ -120,6 +111,11 @@ export const useFilteredData = (filters: FilterState) => {
             })
             .map(a => {
                 const rca = parentRcaMap.get(a.rca_id)!;
+                const aDate = new Date(a.date);
+                const yearStr = isNaN(aDate.getTime()) ? '' : aDate.getFullYear().toString();
+                const monthStr = isNaN(aDate.getTime()) ? '' : (aDate.getMonth() + 1).toString().padStart(2, '0');
+                const searchContext = normalize(`${a.action} ${a.responsible} ${rca.what}`);
+
                 return {
                     ...a,
                     rcaTitle: rca.what || rca.id,
@@ -128,7 +124,10 @@ export const useFilteredData = (filters: FilterState) => {
                     equipmentId: rca.equipment_id || '',
                     subgroupId: rca.subgroup_id || '',
                     categoryId: rca.failure_category_id || '',
-                    specialtyId: rca.specialty_id || ''
+                    specialtyId: rca.specialty_id || '',
+                    searchContext,
+                    yearStr,
+                    monthStr
                 } as ActionViewModel;
             });
     }, [actions, filteredRCAs, filters.status, assets]);
@@ -166,7 +165,7 @@ export const useFilteredData = (filters: FilterState) => {
                         if (t.status !== filters.status) return false;
                     } else {
                         // Se filtrar por status de RCA/Ação, oculta gatilhos órfãos
-                        return false; 
+                        return false;
                     }
                 }
             }

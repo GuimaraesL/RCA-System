@@ -33,7 +33,7 @@ const COLORS = [
 
 const getStableColor = (id: string, mapping?: Record<string, string>) => {
     if (mapping && mapping[id]) return mapping[id];
-    
+
     // Stable hash-based color selection from the COLORS palette
     let hash = 0;
     for (let i = 0; i < id.length; i++) {
@@ -197,13 +197,13 @@ export const Dashboard: React.FC = () => {
             if (r.component_type) counts.comp[r.component_type] = (counts.comp[r.component_type] || 0) + 1;
             if (r.failure_mode_id) counts.mode[r.failure_mode_id] = (counts.mode[r.failure_mode_id] || 0) + 1;
             if (r.failure_category_id) counts.cat[r.failure_category_id] = (counts.cat[r.failure_category_id] || 0) + 1;
-            
+
             r.root_causes?.forEach(rc => {
                 if (rc.root_cause_m_id) counts.root[rc.root_cause_m_id] = (counts.root[rc.root_cause_m_id] || 0) + 1;
             });
         });
 
-        const toChart = (data: Record<string, number>, resolver: (id: string) => string) => 
+        const toChart = (data: Record<string, number>, resolver: (id: string) => string) =>
             Object.entries(data)
                 .map(([id, count]) => ({ id, name: resolver(id), count }))
                 .sort((a, b) => b.count - a.count)
@@ -221,7 +221,7 @@ export const Dashboard: React.FC = () => {
         };
     }, [filteredRecords, taxonomy, assetMap]); // Dependências otimizadas
 
-    const { status: dataStatus, type: dataType, equip: dataEquip, sub: dataSub, comp: dataComp, mode: dataMode, root: dataRootCause } = chartData;
+    const { status: dataStatus, type: dataType, equip: dataEquip, sub: dataSub, comp: dataComp, mode: dataMode, cat: dataCat, root: dataRootCause } = chartData;
 
     const handleChartClick = (field: keyof FilterState, id: string) => {
         if (!id) return;
@@ -271,7 +271,10 @@ export const Dashboard: React.FC = () => {
                         specialties: dynamicOptions.specialties,
                         analysisTypes: dynamicOptions.analysisTypes,
                         assets: dynamicOptions.assets,
-                        rootCause6Ms: dynamicOptions.rootCause6Ms
+                        rootCause6Ms: dynamicOptions.rootCause6Ms,
+                        componentTypes: taxonomy.componentTypes,
+                        failureModes: taxonomy.failureModes,
+                        failureCategories: taxonomy.failureCategories
                     }}
                     isGlobal={isGlobal}
                     onGlobalToggle={toggleGlobal}
@@ -306,10 +309,10 @@ export const Dashboard: React.FC = () => {
 
             {/* Main Grid */}
             <div ref={chartsRef as any} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <ChartCard 
-                    title={t('dashboard.charts.totalByStatus')} 
-                    icon={<CheckCircle size={16} />} 
-                    isInteractive 
+                <ChartCard
+                    title={t('dashboard.charts.totalByStatus')}
+                    icon={<CheckCircle size={16} />}
+                    isInteractive
                     isLoading={isLoading}
                 >
                     {isMounted && dataStatus.length > 0 ? (
@@ -326,19 +329,19 @@ export const Dashboard: React.FC = () => {
                                     cursor="pointer"
                                 >
                                     {dataStatus.map((entry) => (
-                                        <Cell 
-                                            key={`cell-${entry.id}`} 
-                                            fill={getStableColor(entry.id, STATUS_COLORS)} 
-                                            opacity={filters.status !== 'ALL' && filters.status !== entry.id ? 0.2 : 1} 
+                                        <Cell
+                                            key={`cell-${entry.id}`}
+                                            fill={getStableColor(entry.id, STATUS_COLORS)}
+                                            opacity={filters.status !== 'ALL' && filters.status !== entry.id ? 0.2 : 1}
                                         />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<CustomTooltip />} />
-                                <Legend 
-                                    verticalAlign="middle" 
-                                    align="right" 
-                                    layout="vertical" 
-                                    iconType="circle" 
+                                <Legend
+                                    verticalAlign="middle"
+                                    align="right"
+                                    layout="vertical"
+                                    iconType="circle"
                                     onClick={(data: any) => handleChartClick('status', data.payload.id)}
                                     wrapperStyle={{ cursor: 'pointer' }}
                                 />
@@ -347,9 +350,9 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard 
-                    title={t('dashboard.charts.totalByType')} 
-                    icon={<PieIcon size={16} />} 
+                <ChartCard
+                    title={t('dashboard.charts.totalByType')}
+                    icon={<PieIcon size={16} />}
                     isInteractive
                 >
                     {isMounted && dataType.length > 0 ? (
@@ -364,17 +367,17 @@ export const Dashboard: React.FC = () => {
                                     cursor="pointer"
                                 >
                                     {dataType.map((entry) => (
-                                        <Cell 
-                                            key={`cell-${entry.id}`} 
-                                            fill={getStableColor(entry.id)} 
-                                            opacity={filters.analysisType !== 'ALL' && filters.analysisType !== entry.id ? 0.2 : 1} 
+                                        <Cell
+                                            key={`cell-${entry.id}`}
+                                            fill={getStableColor(entry.id)}
+                                            opacity={filters.analysisType !== 'ALL' && filters.analysisType !== entry.id ? 0.2 : 1}
                                         />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<CustomTooltip />} />
-                                <Legend 
-                                    verticalAlign="bottom" 
-                                    height={36} 
+                                <Legend
+                                    verticalAlign="bottom"
+                                    height={36}
                                     onClick={(data: any) => handleChartClick('analysisType', data.payload.id)}
                                     wrapperStyle={{ cursor: 'pointer' }}
                                 />
@@ -383,9 +386,9 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard 
-                    title={t('dashboard.charts.rootCause6M')} 
-                    icon={<PieIcon size={16} />} 
+                <ChartCard
+                    title={t('dashboard.charts.rootCause6M')}
+                    icon={<PieIcon size={16} />}
                     isInteractive
                 >
                     {isMounted && dataRootCause.length > 0 ? (
@@ -402,19 +405,19 @@ export const Dashboard: React.FC = () => {
                                     cursor="pointer"
                                 >
                                     {dataRootCause.map((entry) => (
-                                        <Cell 
-                                            key={`cell-${entry.id}`} 
-                                            fill={getStableColor(entry.id, ROOT_CAUSE_COLORS)} 
-                                            opacity={filters.rootCause6M !== 'ALL' && filters.rootCause6M !== entry.id ? 0.2 : 1} 
+                                        <Cell
+                                            key={`cell-${entry.id}`}
+                                            fill={getStableColor(entry.id, ROOT_CAUSE_COLORS)}
+                                            opacity={filters.rootCause6M !== 'ALL' && filters.rootCause6M !== entry.id ? 0.2 : 1}
                                         />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<CustomTooltip />} />
-                                <Legend 
-                                    verticalAlign="middle" 
-                                    align="right" 
-                                    layout="vertical" 
-                                    iconType="circle" 
+                                <Legend
+                                    verticalAlign="middle"
+                                    align="right"
+                                    layout="vertical"
+                                    iconType="circle"
                                     onClick={(data: any) => handleChartClick('rootCause6M', data.payload.id)}
                                     wrapperStyle={{ cursor: 'pointer' }}
                                 />
@@ -423,9 +426,9 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard 
-                    title={t('dashboard.charts.topEquipments')} 
-                    icon={<TrendingUp size={16} />} 
+                <ChartCard
+                    title={t('dashboard.charts.topEquipments')}
+                    icon={<TrendingUp size={16} />}
                     isInteractive
                 >
                     {isMounted && dataEquip.length > 0 ? (
@@ -445,9 +448,9 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard 
-                    title={t('dashboard.charts.topSubgroups')} 
-                    icon={<TrendingUp size={16} />} 
+                <ChartCard
+                    title={t('dashboard.charts.topSubgroups')}
+                    icon={<TrendingUp size={16} />}
                     isInteractive
                 >
                     {isMounted && dataSub.length > 0 ? (
@@ -467,65 +470,65 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                                <ChartCard title={t('dashboard.charts.totalByComponent')} icon={<AlertCircle size={16} />} isInteractive>
+                <ChartCard title={t('dashboard.charts.totalByComponent')} icon={<AlertCircle size={16} />} isInteractive>
 
-                                    {isMounted && dataComp.length > 0 ? (
+                    {isMounted && dataComp.length > 0 ? (
 
-                                        <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+                        <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
 
-                                            <BarChart data={dataComp} layout="vertical">
+                            <BarChart data={dataComp} layout="vertical">
 
-                                                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
 
-                                                <XAxis type="number" hide />
+                                <XAxis type="number" hide />
 
-                                                <YAxis 
+                                <YAxis
 
-                                                    dataKey="name" 
+                                    dataKey="name"
 
-                                                    type="category" 
+                                    type="category"
 
-                                                    width={150} 
+                                    width={150}
 
-                                                    tick={{ fontSize: 11 }} 
+                                    tick={{ fontSize: 11 }}
 
-                                                    tickFormatter={(val) => truncateLabel(val)} 
+                                    tickFormatter={(val) => truncateLabel(val)}
 
-                                                />
+                                />
 
-                                                <Tooltip content={<CustomTooltip />} />
+                                <Tooltip content={<CustomTooltip />} />
 
-                                                <Bar dataKey="count" fill="#10b981" radius={[0, 4, 4, 0]} barSize={20} onClick={(data) => handleChartClick('componentType', data.id)} cursor="pointer">
+                                <Bar dataKey="count" fill="#10b981" radius={[0, 4, 4, 0]} barSize={20} onClick={(data) => handleChartClick('componentType', data.id)} cursor="pointer">
 
-                                                    {dataComp.map((entry) => (
+                                    {dataComp.map((entry) => (
 
-                                                        <Cell 
+                                        <Cell
 
-                                                            key={`cell-${entry.id}`} 
+                                            key={`cell-${entry.id}`}
 
-                                                            fill={getStableColor(entry.id)} 
+                                            fill={getStableColor(entry.id)}
 
-                                                            opacity={filters.componentType !== 'ALL' && filters.componentType !== entry.id ? 0.2 : 1} 
+                                            opacity={filters.componentType !== 'ALL' && filters.componentType !== entry.id ? 0.2 : 1}
 
-                                                        />
+                                        />
 
-                                                    ))}
+                                    ))}
 
-                                                </Bar>
+                                </Bar>
 
-                                            </BarChart>
+                            </BarChart>
 
-                                        </SafeResponsiveContainer>
+                        </SafeResponsiveContainer>
 
-                                    ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
+                    ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
 
-                                </ChartCard>
+                </ChartCard>
 
-                
 
-                <ChartCard 
-                    title={t('dashboard.charts.failureMode')} 
-                    icon={<AlertCircle size={16} />} 
+
+                <ChartCard
+                    title={t('dashboard.charts.failureMode')}
+                    icon={<AlertCircle size={16} />}
                     isInteractive
                 >
                     {isMounted && dataMode.length > 0 ? (
@@ -538,6 +541,28 @@ export const Dashboard: React.FC = () => {
                                 <Bar dataKey="count" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={15} onClick={(data) => handleChartClick('failureMode', data.id)} cursor="pointer">
                                     {dataMode.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill="#8b5cf6" opacity={filters.failureMode !== 'ALL' && filters.failureMode !== entry.id ? 0.2 : 1} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </SafeResponsiveContainer>
+                    ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
+                </ChartCard>
+
+                <ChartCard
+                    title={t('dashboard.charts.failureCategory')}
+                    icon={<Activity size={16} />}
+                    isInteractive
+                >
+                    {isMounted && dataCat.length > 0 ? (
+                        <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+                            <BarChart data={dataCat} layout="vertical">
+                                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                                <XAxis type="number" hide />
+                                <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 11 }} tickFormatter={(val) => truncateLabel(val)} />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Bar dataKey="count" fill="#f59e0b" radius={[0, 4, 4, 0]} barSize={15} onClick={(data) => handleChartClick('failureCategory', data.id)} cursor="pointer">
+                                    {dataCat.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill="#f59e0b" opacity={filters.failureCategory !== 'ALL' && filters.failureCategory !== entry.id ? 0.2 : 1} />
                                     ))}
                                 </Bar>
                             </BarChart>

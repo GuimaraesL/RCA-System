@@ -112,7 +112,11 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
           options={{
             statuses: dynamicOptions.statuses.map(s => ({ id: s, name: `Box ${s}` })), // Format for FilterBar
             assets: dynamicOptions.assets,
-            specialties: dynamicOptions.specialties
+            specialties: dynamicOptions.specialties,
+            failureModes: taxonomy.failureModes,
+            failureCategories: taxonomy.failureCategories,
+            componentTypes: taxonomy.componentTypes,
+            rootCause6Ms: taxonomy.rootCauseMs
           }}
           isGlobal={isGlobal}
           onGlobalToggle={toggleGlobal}
@@ -135,8 +139,8 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredActions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(action => (
-                <tr 
-                  key={action.id} 
+                <tr
+                  key={action.id}
                   className="hover:bg-blue-50/50 cursor-pointer transition-colors"
                   onClick={() => openEdit(action)}
                 >

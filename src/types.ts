@@ -109,7 +109,22 @@ export interface ActionRecord {
   moc_number?: string;
 }
 
-// Trigger Analysis Types
+// 9. ViewModels
+export interface ActionViewModel extends ActionRecord {
+  rcaTitle: string;
+  assetName: string;
+  areaId: string;
+  equipmentId: string;
+  subgroupId: string;
+  categoryId: string;
+  specialtyId: string;
+  // Pre-computed fields for optimized filtering (Issue #11)
+  searchContext: string; // Pre-lowercased search text
+  yearStr: string;       // e.g. "2024"
+  monthStr: string;      // e.g. "01", "02"
+}
+
+// 10. Trigger Analysis Types
 export interface TriggerRecord {
   id: string;
   // Asset Hierarchy Links

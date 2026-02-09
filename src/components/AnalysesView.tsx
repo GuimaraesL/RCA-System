@@ -161,7 +161,11 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                         statuses: dynamicOptions.statuses,
                         analysisTypes: dynamicOptions.analysisTypes,
                         specialties: dynamicOptions.specialties,
-                        assets: dynamicOptions.assets
+                        assets: dynamicOptions.assets,
+                        failureModes: taxonomy.failureModes,
+                        failureCategories: taxonomy.failureCategories,
+                        componentTypes: taxonomy.componentTypes,
+                        rootCause6Ms: taxonomy.rootCauseMs
                     }}
                     isGlobal={isGlobal}
                     onGlobalToggle={toggleGlobal}

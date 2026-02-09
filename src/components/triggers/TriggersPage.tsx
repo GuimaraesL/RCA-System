@@ -155,7 +155,11 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                     options={{
                         statuses: dynamicOptions.statuses,
                         analysisTypes: dynamicOptions.analysisTypes,
-                        assets: dynamicOptions.assets
+                        assets: dynamicOptions.assets,
+                        failureModes: taxonomy.failureModes,
+                        failureCategories: taxonomy.failureCategories,
+                        componentTypes: taxonomy.componentTypes,
+                        rootCause6Ms: taxonomy.rootCauseMs
                     }}
                     isGlobal={isGlobal}
                     onGlobalToggle={toggleGlobal}
