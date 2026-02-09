@@ -41,6 +41,7 @@ export const pt: TranslationSchema = {
         analysisType: "Tipo de Análise",
         specialty: "Especialidade",
         status: "Status Atual",
+        componentType: "Tipo de Componente",
         globalModeOn: "Global On",
         globalModeOff: "Global Off",
         globalModeOnDesc: "Modo Global Ativo: Filtros aplicados em todo o sistema",

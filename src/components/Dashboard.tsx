@@ -265,7 +265,7 @@ export const Dashboard: React.FC = () => {
                     onFilterChange={setFilters}
                     onReset={() => handleReset(defaultFilters)}
                     totalResults={filteredRecords.length}
-                    config={{ showSearch: true, showDate: true, showStatus: true, showAssetHierarchy: true, showSpecialty: true, showAnalysisType: true }}
+                    config={{ showSearch: true, showDate: true, showStatus: true, showAssetHierarchy: true, showSpecialty: true, showAnalysisType: true, showComponentType: true }}
                     options={{
                         statuses: dynamicOptions.statuses,
                         specialties: dynamicOptions.specialties,

@@ -91,7 +91,10 @@ describe('triggerHelpers', () => {
             failureCategories: [],
             componentTypes: [],
             rootCauseMs: [],
-            mandatoryFields: { rca: { create: [], conclude: [] } }
+            mandatoryFields: {
+                rca: { create: [], conclude: [] },
+                trigger: { save: [] }
+            }
         };
 
         it('deve retornar azul para IN_PROGRESS', () => {
@@ -125,7 +128,10 @@ describe('triggerHelpers', () => {
             failureCategories: [],
             componentTypes: [],
             rootCauseMs: [],
-            mandatoryFields: { rca: { create: [], conclude: [] } }
+            mandatoryFields: {
+                rca: { create: [], conclude: [] },
+                trigger: { save: [] }
+            }
         };
 
         it('deve retornar check para status concluído', () => {

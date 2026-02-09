@@ -39,6 +39,7 @@ export interface TranslationSchema {
         analysisType: string;
         specialty: string;
         status: string;
+        componentType: string;
         globalModeOn: string;
         globalModeOff: string;
         globalModeOnDesc: string;

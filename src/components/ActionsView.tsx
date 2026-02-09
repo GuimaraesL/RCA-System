@@ -108,6 +108,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
             showAssetHierarchy: true,
             showSpecialty: true,
             showAnalysisType: false,
+            showComponentType: true
           }}
           options={{
             statuses: dynamicOptions.statuses.map(s => ({ id: s, name: `Box ${s}` })), // Format for FilterBar

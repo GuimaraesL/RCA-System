@@ -55,6 +55,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
 
             const matchesStatus = filters.status === 'ALL' || r.status === filters.status;
             const matchesType = filters.analysisType === 'ALL' || r.analysis_type === filters.analysisType;
+            const matchesComponent = filters.componentType === 'ALL' || r.component_type === filters.componentType;
 
             // Simplified Asset Matches for Report (Can expand if needed)
             let matchesAsset = true;
@@ -62,7 +63,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
             else if (filters.equipment !== 'ALL') matchesAsset = r.equipment_id === filters.equipment;
             else if (filters.area !== 'ALL') matchesAsset = r.area_id === filters.area;
 
-            return matchesSearch && matchesYear && matchesMonth && matchesStatus && matchesType && matchesAsset;
+            return matchesSearch && matchesYear && matchesMonth && matchesStatus && matchesType && matchesAsset && matchesComponent;
         });
     }, [records, filters]);
 
@@ -114,7 +115,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                 onFilterChange={setFilters}
                 onReset={() => handleReset(defaultFilters)}
                 totalResults={filteredRecords.length}
-                config={{ showDate: true, showStatus: true, showSearch: true, showAnalysisType: true, showAssetHierarchy: true }}
+                config={{ showDate: true, showStatus: true, showSearch: true, showAnalysisType: true, showAssetHierarchy: true, showComponentType: true }}
             />
 
             {/* KPI Cards */}

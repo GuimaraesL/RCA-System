@@ -150,7 +150,8 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                         showStatus: true,
                         showAssetHierarchy: true,
                         showAnalysisType: true,
-                        showSpecialty: false
+                        showSpecialty: false,
+                        showComponentType: true
                     }}
                     options={{
                         statuses: dynamicOptions.statuses,

@@ -21,7 +21,10 @@ describe('csvService', () => {
         componentTypes: [],
         rootCauseMs: [],
         triggerStatuses: [{ id: 'TS1', name: 'Novo' }],
-        mandatoryFields: { rca: { create: [], conclude: [] } }
+        mandatoryFields: {
+            rca: { create: [], conclude: [] },
+            trigger: { save: [] }
+        }
     };
 
     describe('getCsvTemplate', () => {
@@ -75,13 +78,17 @@ describe('csvService', () => {
     describe('Importação de GATILHOS (TRIGGERS)', () => {
         it('deve importar gatilhos de um CSV estilo Excel', () => {
             const csv = 'AREA;Equip.;Subconjunto;Data/Hora Início;Status\nArea 1;Equip 1;Sub 1;01/01/2023 10:00;Novo';
-            
+
             const assets: AssetNode[] = [
-                { id: 'A1', name: 'Area 1', type: 'AREA', children: [
-                    { id: 'E1', name: 'Equip 1', type: 'EQUIPMENT', children: [
-                        { id: 'S1', name: 'Sub 1', type: 'SUBGROUP' }
-                    ]}
-                ]}
+                {
+                    id: 'A1', name: 'Area 1', type: 'AREA', children: [
+                        {
+                            id: 'E1', name: 'Equip 1', type: 'EQUIPMENT', children: [
+                                { id: 'S1', name: 'Sub 1', type: 'SUBGROUP' }
+                            ]
+                        }
+                    ]
+                }
             ];
 
             const result = importFromCsv('TRIGGERS', csv, { assets, taxonomy: mockTaxonomy });
@@ -104,7 +111,7 @@ describe('csvService', () => {
             } as any];
 
             const csv = 'AREA;Equip.;Subconjunto;Data/Hora Início;ID AF\n-;-;-;01/01/2023 10:00;RCA-001';
-            
+
             const result = importFromCsv('TRIGGERS', csv, { records, taxonomy: mockTaxonomy });
             expect(result.success).toBe(true);
             expect(result.data[0].area_id).toBe('A1');
@@ -114,7 +121,7 @@ describe('csvService', () => {
         it('deve lidar com datas seriais do Excel', () => {
             const csv = 'AREA;Equip.;Subconjunto;Data/Hora Início\nArea 1;E1;S1;44927.4166666667';
             const assets: AssetNode[] = [{ id: 'A1', name: 'Area 1', type: 'AREA' }];
-            
+
             const result = importFromCsv('TRIGGERS', csv, { assets, taxonomy: mockTaxonomy });
             expect(result.success).toBe(true);
             // 44927 é 2023-01-01. 0.41666 é 10:00
@@ -154,7 +161,7 @@ describe('csvService', () => {
             const actions = [{ id: '1', action: '=SUM(1+1)', responsible: 'Me' } as any];
             const csv = exportToCsv('ACTIONS', { actions });
             // O serviço prefixa com aspas simples strings que começam com caracteres especiais
-            expect(csv).toContain(";'=SUM(1+1)"); 
+            expect(csv).toContain(";'=SUM(1+1)");
         });
 
         it('deve lidar com campos multilinhas durante o parsing', () => {

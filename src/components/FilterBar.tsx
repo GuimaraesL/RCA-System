@@ -37,6 +37,7 @@ interface FilterBarProps {
         showStatus?: boolean;
         showSpecialty?: boolean;
         showAnalysisType?: boolean;
+        showComponentType?: boolean;
     };
     options?: {
         statuses?: FilterOption[];
@@ -95,6 +96,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         showStatus = true,
         showSpecialty = true,
         showAnalysisType = true,
+        showComponentType = false,
     } = config || {};
 
     const {
@@ -419,6 +421,21 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                             >
                                                 <option value="ALL">{t('filters.options.allStatus')}</option>
                                                 {statuses.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                            </select>
+                                        </div>
+                                    )}
+                                    {showComponentType && (
+                                        <div>
+                                            <label htmlFor="filter_component_type" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.componentType') || t('fields.componentType')}</label>
+                                            <select
+                                                id="filter_component_type"
+                                                name="filter_component_type"
+                                                className="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white font-medium text-slate-700"
+                                                value={filters.componentType || 'ALL'}
+                                                onChange={e => handleChange('componentType', e.target.value)}
+                                            >
+                                                <option value="ALL">{t('filters.options.all')}</option>
+                                                {componentTypes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                             </select>
                                         </div>
                                     )}

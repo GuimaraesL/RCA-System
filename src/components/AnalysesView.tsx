@@ -155,7 +155,8 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                         showStatus: true,
                         showAssetHierarchy: true,
                         showAnalysisType: true,
-                        showSpecialty: true
+                        showSpecialty: true,
+                        showComponentType: true
                     }}
                     options={{
                         statuses: dynamicOptions.statuses,
