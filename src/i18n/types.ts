@@ -71,7 +71,6 @@ export interface TranslationSchema {
         analyses: string;
         actions: string;
         assets: string;
-        docs: string;
         settings: string;
         migration: string;
     };

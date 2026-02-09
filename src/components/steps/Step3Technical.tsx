@@ -38,7 +38,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
     }, [data.specialty_id, data.failure_mode_id, filteredFailureModes, onChange]);
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('wizard.step3.title')}</h2>
                 <p className="text-gray-600 mb-6">{t('wizard.step3.subtitle')}</p>

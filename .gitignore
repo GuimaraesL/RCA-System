@@ -59,3 +59,6 @@ test_output_3.txt
 .gitignore
 test_output_4.txt
 playwright-report/
+docs/issues/
+*.txt
+*.diff

@@ -37,7 +37,7 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
     if (!data.human_reliability) return null;
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-lg flex gap-3 text-indigo-700 text-sm">
                 <UserCheck size={20} className="mt-0.5" />
                 <div>

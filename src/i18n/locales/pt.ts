@@ -73,7 +73,6 @@ export const pt: TranslationSchema = {
         analyses: "Análises",
         actions: "Planos de Ação",
         assets: "Ativos",
-        docs: "Documentação",
         settings: "Configurações",
         migration: "Migração"
     },

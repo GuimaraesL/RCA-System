@@ -82,7 +82,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
     };
 
     return (
-        <div className="space-y-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('wizard.step4.title')}</h2>
                 <p className="text-gray-600">{t('wizard.step4.subtitle')}</p>

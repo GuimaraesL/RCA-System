@@ -39,7 +39,7 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
     };
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('wizard.step7.title')}</h2>
                 <p className="text-gray-600">{t('wizard.step7.subtitle')}</p>

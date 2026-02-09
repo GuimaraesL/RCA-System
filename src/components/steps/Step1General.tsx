@@ -41,7 +41,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
     };
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                 <div className="flex justify-between items-center mb-4 border-b pb-2">
                     <h2 className="text-xl font-bold text-gray-900">{t('wizard.step1.title')}</h2>

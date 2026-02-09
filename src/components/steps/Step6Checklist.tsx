@@ -33,7 +33,7 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
     if (!data.precision_maintenance) return null;
 
     return (
-        <div className="space-y-6 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {/* Header */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex items-center justify-between">
                 <div className="flex items-center gap-4">
