@@ -1,3 +1,7 @@
+/**
+ * Proposta: Componente principal do Editor de RCA (Wizard).
+ * Fluxo: Orquestra a renderização dos passos da análise, gerenciamento de ações vinculadas e comunicação com a lógica de negócio (useRcaLogic).
+ */
 
 import React, { useEffect, useState, useRef } from 'react';
 import { RcaRecord, ActionRecord } from '../types';
@@ -10,9 +14,9 @@ import { ActionModal } from './ActionModal';
 import { useLanguage } from '../context/LanguageDefinition';
 import { translateStatus } from '../utils/statusUtils';
 import { ConfirmModal } from './ConfirmModal';
-import { animateModalEnter } from '../services/animations'; // Animation
+import { animateModalEnter } from '../services/animations'; 
 
-// Steps
+// Importação dos Passos do Wizard
 import { Step1General } from './steps/Step1General';
 import { Step2Problem } from './steps/Step2Problem';
 import { Step3Technical } from './steps/Step3Technical';
@@ -30,7 +34,8 @@ interface RcaEditorProps {
 
 export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, onSave }) => {
     const { t } = useLanguage();
-    // Contexto para Actions
+    
+    // Integração com o contexto global para gestão de planos de ação
     const { actions, addAction, updateAction, deleteAction } = useRcaContext();
 
     const {
@@ -43,43 +48,44 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         handleAnalyzeAI,
         handleSave,
         isFieldRequired,
-        validationErrors // Added
+        validationErrors 
     } = useRcaLogic(existingRecord || null, onSave);
 
-    // Local state for actions fetched by ID
+    // Estado local para ações vinculadas a esta análise específica
     const [linkedActions, setLinkedActions] = useState<ActionRecord[]>([]);
 
-    // Modal State for Actions
+    // Controle de modais internos
     const [isActionModalOpen, setIsActionModalOpen] = useState(false);
     const [editingAction, setEditingAction] = useState<ActionRecord | null>(null);
-
-    // Modal State for Delete Confirmation
     const [deleteActionModalOpen, setDeleteActionModalOpen] = useState(false);
     const [actionToDelete, setActionToDelete] = useState<string | null>(null);
 
-    // Animation Ref
     const containerRef = useRef<HTMLDivElement>(null);
 
+    // Dispara animação de entrada do modal principal
     useEffect(() => {
         if (containerRef.current) {
             animateModalEnter(containerRef.current);
         }
     }, []);
 
+    // Sincroniza planos de ação vinculados ao ID da análise
     const refreshActions = () => {
         if (formData.id) {
-            // Filtrar actions do contexto pelo RCA ID
             setLinkedActions(actions.filter(a => a.rca_id === formData.id));
         }
     };
 
+    // Recarrega ações sempre que entrar no passo 5 ou houver mudanças no contexto
     useEffect(() => {
         if (step === 5 && formData.id) {
             refreshActions();
         }
     }, [step, formData.id, actions]);
 
-    // Generic Field Updater (Deep Immutable)
+    /**
+     * Atualizador genérico de campos com suporte a caminhos aninhados (ex: 'ishikawa.method').
+     */
     const handleChange = (field: string, value: any) => {
         setFormData(prev => {
             if (!field.includes('.')) {
@@ -102,7 +108,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         });
     };
 
-    // Action Handlers
+    // Orquestradores de Planos de Ação
     const handleAddAction = () => {
         setEditingAction(null);
         setIsActionModalOpen(true);
@@ -122,10 +128,10 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         if (actionToDelete) {
             try {
                 await deleteAction(actionToDelete);
-                console.log('✅ Action excluída:', actionToDelete);
+                console.log('✅ Ação excluída:', actionToDelete);
                 refreshActions();
             } catch (error) {
-                console.error('❌ Erro ao excluir action:', error);
+                console.error('❌ Erro ao excluir ação:', error);
             }
         }
         setDeleteActionModalOpen(false);
@@ -134,10 +140,9 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
 
     const handleSaveAction = async (action: ActionRecord) => {
         if (!action.id) action.id = generateId('ACT');
-        action.rca_id = formData.id; // Garantir vínculo com RCA
+        action.rca_id = formData.id; 
 
         try {
-            // Verifica se é update ou create
             if (actions.find(a => a.id === action.id)) {
                 await updateAction(action);
             } else {
@@ -145,19 +150,20 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
             }
             refreshActions();
         } catch (error) {
-            console.error('❌ Erro ao salvar action:', error);
+            console.error('❌ Erro ao salvar ação:', error);
         }
         setIsActionModalOpen(false);
     };
 
-    // Is Completed Check for visual coloring only (Logic handled in hook)
+    // Flag visual para estilização baseada no status de conclusão
     const isCompleted = formData.status === STATUS_IDS.CONCLUDED;
 
-    // Logic to show Step 6 (Human Reliability)
+    // Lógica condicional para exibição do passo de Análise de Confiabilidade Humana (HRA)
     const showHra = formData.root_causes && formData.root_causes.some(rc =>
         (rc.root_cause_m_id === ROOT_CAUSE_M_IDS.MANPOWER || rc.root_cause_m_id === ROOT_CAUSE_M_IDS.METHOD) && !!rc.root_cause_m_id
     );
 
+    // Definição dos campos pertencentes a cada passo para validação visual nos indicadores
     const stepsList = [
         { id: 1, title: t('wizard.stepNames.step1.title'), subtitle: t('wizard.stepNames.step1.subtitle'), fields: ['subgroup_id', 'component_type', 'failure_date', 'failure_time', 'analysis_type', 'facilitator', 'participants', 'os_number', 'start_date', 'completion_date'] },
         { id: 2, title: t('wizard.stepNames.step2.title'), subtitle: t('wizard.stepNames.step2.subtitle'), fields: ['who', 'when', 'where_description', 'what', 'problem_description', 'potential_impacts', 'quality_impacts'] },
@@ -174,8 +180,8 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     };
 
     return (
-        <div ref={containerRef} className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-full w-full max-w-[1600px] mx-auto relative opacity-0"> {/* Initial opacity 0 for animejs */}
-            {/* Header */}
+        <div ref={containerRef} className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-full w-full max-w-[1600px] mx-auto relative opacity-0"> 
+            {/* Cabeçalho do Editor */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white z-10 rounded-t-xl">
                 <div className="flex items-center gap-3">
                     <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
@@ -216,31 +222,31 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                 </div>
             </div>
 
-            {/* Steps Indicator (New UI) */}
+            {/* Indicador de Passos (Stepper) */}
             <div className="px-6 py-6 bg-slate-50 border-b border-slate-200 overflow-x-auto">
                 <div className="flex justify-between items-start min-w-[800px]">
                     {stepsList.map((s, index) => {
-                        const isCompleted = step > s.id;
+                        const isCompletedStep = step > s.id;
                         const isCurrent = step === s.id;
                         const hasError = hasStepError(s.id);
 
                         return (
                             <div key={s.id} className="flex-1 flex flex-col items-center relative group cursor-pointer" onClick={() => setStep(s.id)}>
-                                {/* Connecting Line */}
+                                {/* Linha Conectora */}
                                 {index < stepsList.length - 1 && (
-                                    <div className={`absolute top-4 left-1/2 w-full h-[2px] -z-10 ${isCompleted ? 'bg-green-500' : 'bg-gray-200'}`} />
+                                    <div className={`absolute top-4 left-1/2 w-full h-[2px] -z-10 ${isCompletedStep ? 'bg-green-500' : 'bg-gray-200'}`} />
                                 )}
 
                                 <div
                                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all z-10
-                            ${isCompleted ? 'bg-green-500 border-green-500 text-white' :
+                            ${isCompletedStep ? 'bg-green-500 border-green-500 text-white' :
                                             isCurrent ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-110' :
                                                 hasError ? 'bg-red-50 border-red-500 text-red-500' :
                                                     'bg-white border-gray-300 text-gray-400 group-hover:border-blue-300'}`}
                                 >
-                                    {isCompleted ? <Check size={16} strokeWidth={3} /> : s.id}
+                                    {isCompletedStep ? <Check size={16} strokeWidth={3} /> : s.id}
                                 </div>
-                                <span className={`text-xs font-bold mt-2 transition-colors ${isCurrent ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-500'}`}>
+                                <span className={`text-xs font-bold mt-2 transition-colors ${isCurrent ? 'text-blue-600' : isCompletedStep ? 'text-green-600' : 'text-gray-500'}`}>
                                     {s.title}
                                 </span>
                                 <span className="text-[10px] text-gray-400 font-medium hidden md:block mt-0.5">
@@ -251,7 +257,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                     })}
                 </div>
 
-                {/* Conditional HRA Step Indicator */}
+                {/* Gatilho para o passo opcional de HRA */}
                 {showHra && (
                     <div className="flex justify-center mt-4 pt-4 border-t border-slate-200">
                         <button
@@ -268,7 +274,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                 )}
             </div>
 
-            {/* Content */}
+            {/* Área de Conteúdo dos Passos */}
             <div className="flex-1 overflow-y-auto p-8 pb-24 bg-slate-50/30">
 
                 {step === 1 && (
@@ -288,7 +294,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                     <Step2Problem
                         data={formData}
                         onChange={handleChange}
-                        taxonomy={taxonomy} // Added prop
+                        taxonomy={taxonomy} 
                         errors={validationErrors}
                         isFieldRequired={isFieldRequired}
                     />
@@ -353,7 +359,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
 
             </div>
 
-            {/* Sticky Footer */}
+            {/* Rodapé Fixo */}
             <div className="p-4 border-t border-slate-200 bg-white rounded-b-xl flex justify-between items-center z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                 <button
                     onClick={onClose}
@@ -400,7 +406,6 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                 onSave={handleSaveAction}
             />
 
-            {/* Modal de Confirmação de Exclusão de Action */}
             <ConfirmModal
                 isOpen={deleteActionModalOpen}
                 title={t('common.delete')}

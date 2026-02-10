@@ -1,16 +1,20 @@
+/**
+ * Proposta: Componente de input padrão com suporte a estados de erro e acessibilidade.
+ */
 
 import React, { InputHTMLAttributes } from 'react';
 import { useLanguage } from '../../context/LanguageDefinition';
 
 interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> {
-    id: string; // Required for accessibility
+    id: string; // Obrigatório para garantir a acessibilidade via label/id
     label?: string;
     error?: boolean;
 }
 
 export const Input: React.FC<InputProps> = ({ id, label, error, className, value, ...props }) => {
     const { t } = useLanguage();
-    // Fix: Convert null/undefined value to empty string to avoid React warning
+    
+    // Normalização: Converte valores nulos/indefinidos em string vazia para evitar alertas de componente não-controlado do React
     const safeValue = value ?? '';
 
     return (

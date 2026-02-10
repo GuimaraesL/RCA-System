@@ -1,3 +1,8 @@
+/**
+ * Proposta: Serviço de domínio para gestão do ciclo de vida de análises RCA.
+ * Fluxo: Recebe dados brutos, normaliza estruturas complexas e orquestra o cálculo automático de status.
+ */
+
 import { Rca, Action, TaxonomyConfig } from '../types/RcaTypes';
 import { SqlRcaRepository } from '../../infrastructure/repositories/SqlRcaRepository';
 import { SqlActionRepository } from '../../infrastructure/repositories/SqlActionRepository';
@@ -16,22 +21,22 @@ export class RcaService {
         this.actionRepo = actionRepo || new SqlActionRepository();
     }
 
-    // --- Public Business Methods ---
+    // --- Métodos Públicos de Negócio ---
 
     public getAllRcas(page: number = 1, limit: number = 50) {
         return this.rcaRepo.findAllPaginated(page, limit);
     }
 
     public createRca(data: Partial<Rca>, taxonomy: TaxonomyConfig): { rca: Rca, statusReason: string } {
-        // 1. Prepare data
+        // 1. Preparação dos dados
         const id = (data.id && data.id.trim()) ? data.id : randomUUID();
         let rca: Rca = { ...data, id } as Rca;
 
-        // 2. Migrate/Normalize
+        // 2. Migração e Normalização
         rca = this.migrateRcaData(rca);
 
-        // 3. Calculate Status
-        // New RCA has no actions usually, but we check anyway if ID was provided
+        // 3. Cálculo de Status
+        // Uma nova RCA geralmente não possui ações, mas verificamos caso o ID tenha sido fornecido
         const actions = this.actionRepo.findByRcaId(id);
         const statusResult = this.calculateRcaStatus(rca, actions, taxonomy);
 
@@ -40,24 +45,24 @@ export class RcaService {
             rca.completion_date = statusResult.completionDate;
         }
 
-        // 4. Save
+        // 4. Persistência
         this.rcaRepo.create(rca);
 
         return { rca, statusReason: statusResult.reason };
     }
 
     public updateRca(id: string, data: any, taxonomy: TaxonomyConfig): { rca: Rca, statusChanged: boolean, statusReason: string } {
-        // 1. Prepare data
+        // 1. Preparação dos dados
         let rca: Rca = { ...data, id };
 
-        // 2. Migrate/Normalize
+        // 2. Migração e Normalização
         rca = this.migrateRcaData(rca);
 
-        // 3. Calculate Status
+        // 3. Cálculo de Status
         const actions = this.actionRepo.findByRcaId(id);
         const statusResult = this.calculateRcaStatus(rca, actions, taxonomy);
 
-        // 4. Apply Status Logic
+        // 4. Aplicação da Lógica de Status
         if (statusResult.statusChanged) {
             rca.status = statusResult.newStatus;
         }
@@ -65,7 +70,7 @@ export class RcaService {
             rca.completion_date = statusResult.completionDate;
         }
 
-        // 5. Update
+        // 5. Atualização
         this.rcaRepo.update(rca);
 
         return {
@@ -76,7 +81,6 @@ export class RcaService {
     }
 
     public deleteRca(id: string): boolean {
-        // We could verify existence first, but repository delete is idempotent-ish
         const exists = this.rcaRepo.findById(id);
         if (!exists) return false;
 
@@ -90,16 +94,16 @@ export class RcaService {
 
     public bulkImport(data: any[], taxonomy: TaxonomyConfig, providedActions: Action[] = []): { count: number } {
         const processed = data.map(item => {
-            // 1. Prepare data
+            // 1. Preparação dos dados
             const id = (item.id && item.id.trim()) ? item.id : randomUUID();
             let rca: Rca = { ...item, id };
 
-            // 2. Migrate/Normalize
+            // 2. Migração e Normalização
             rca = this.migrateRcaData(rca);
 
-            // 3. Calculate Status
-            // Use provided actions if available (e.g. during full backup restore), 
-            // otherwise fetch from DB
+            // 3. Cálculo de Status
+            // Prioriza ações fornecidas no lote (ex: restauração de backup completo),
+            // caso contrário, busca no banco de dados.
             let rcaActions = providedActions.filter(a => a.rca_id?.trim().toLowerCase() === rca.id?.trim().toLowerCase());
             if (rcaActions.length === 0 && providedActions.length === 0) {
                 rcaActions = this.actionRepo.findByRcaId(rca.id);
@@ -115,19 +119,18 @@ export class RcaService {
             return rca;
         });
 
-        // 4. Save in bulk (uses transaction)
+        // 4. Persistência em massa via transação
         this.rcaRepo.bulkCreate(processed);
 
         return { count: processed.length };
     }
 
-    // --- Domain Logic (Ported from rcaStatusService.ts) ---
+    // --- Lógica de Domínio ---
 
-    // Copied exact logic from migration part
     public migrateRcaData(rca: any): Rca {
         const migrated = { ...rca };
 
-        // 1. Ensure root_causes
+        // 1. Garantir integridade de root_causes
         if (!migrated.root_causes) migrated.root_causes = [];
         if (migrated.root_cause && migrated.root_cause_m_id) {
             migrated.root_causes.push({
@@ -137,13 +140,13 @@ export class RcaService {
             });
         }
 
-        // 2. Participants
+        // 2. Normalização de Participantes
         if (typeof migrated.participants === 'string') {
             migrated.participants = migrated.participants.split(',').map((p: string) => p.trim()).filter((p: string) => p);
         }
         if (!Array.isArray(migrated.participants)) migrated.participants = [];
 
-        // 3. Five Whys
+        // 3. Inicialização de 5 Porquês (Modo Linear)
         if (!migrated.five_whys || !Array.isArray(migrated.five_whys)) {
             migrated.five_whys = [
                 { id: '1', why_question: '', answer: '' },
@@ -154,7 +157,7 @@ export class RcaService {
             ];
         }
 
-        // 4. Others
+        // 4. Garantir estruturas básicas para evitar erros de renderização
         if (!migrated.five_whys_chains) migrated.five_whys_chains = [];
         if (!migrated.ishikawa) migrated.ishikawa = { machine: [], method: [], material: [], manpower: [], measurement: [], environment: [] };
         if (!migrated.human_reliability) migrated.human_reliability = { questions: [], conclusions: [], validation: { isValidated: '', comment: '' } };
@@ -163,8 +166,7 @@ export class RcaService {
     }
 
     private isAutoManagedStatus(status: string | undefined, taxonomy: TaxonomyConfig): boolean {
-        // Status resolution logic
-        // FIX: Use ID mapping instead of Name
+        // Resolução de IDs de status via taxonomia para evitar dependência de nomes
         const doneItem = taxonomy.analysisStatuses.find(s => s.id === STATUS_IDS.CONCLUDED);
         const waitingItem = taxonomy.analysisStatuses.find(s => s.id === STATUS_IDS.WAITING_VERIFICATION);
         const openItem = taxonomy.analysisStatuses.find(s => s.id === STATUS_IDS.IN_PROGRESS);
@@ -193,6 +195,7 @@ export class RcaService {
                 } else if (field === 'root_causes') {
                     valid = Array.isArray(value) && value.length > 0 && value.every((rc: any) => rc.root_cause_m_id && rc.cause?.trim());
                 } else if (field === 'five_whys') {
+                    // Contabiliza respostas tanto do modo linear quanto do avançado (hierárquico)
                     const linearCount = Array.isArray(rca.five_whys) ? rca.five_whys.filter((w: any) => w.answer?.trim()).length : 0;
                     let advancedCount = 0;
                     if (Array.isArray(rca.five_whys_chains)) {
@@ -235,7 +238,7 @@ export class RcaService {
         const currentStatus = rca.status;
 
         if (!this.isAutoManagedStatus(currentStatus, taxonomy)) {
-            return { newStatus: currentStatus || openStatusId, statusChanged: false, reason: 'Protected status' };
+            return { newStatus: currentStatus || openStatusId, statusChanged: false, reason: 'Status protegido' };
         }
 
         const { valid: isMandatoryComplete, missing } = this.validateMandatoryFields(rca, actions, taxonomy);
@@ -249,18 +252,18 @@ export class RcaService {
 
         if (!isMandatoryComplete) {
             newStatus = openStatusId;
-            reason = `Missing: ${missing.join(', ')}`;
+            reason = `Campos ausentes: ${missing.join(', ')}`;
         } else {
-            // All mandatory fields are present.
-            // Decide between Concluded or Waiting Verification
+            // Todos os campos obrigatórios estão presentes.
+            // Decide entre Concluída ou Aguardando Verificação.
             if (hasMainActions && isActionsMandatory && !allActionsEffective) {
                 newStatus = waitingStatusId;
-                reason = 'Pending verification of mandatory actions';
+                reason = 'Aguardando verificação de eficácia das ações obrigatórias';
             } else {
                 newStatus = doneStatusId;
                 reason = hasMainActions 
-                    ? (allActionsEffective ? 'Complete, actions effective' : 'Complete, actions status ignored by config') 
-                    : 'Complete, no actions required';
+                    ? (allActionsEffective ? 'Completo, ações efetivas' : 'Completo, eficácia das ações ignorada pela config') 
+                    : 'Completo, sem ações necessárias';
             }
         }
 

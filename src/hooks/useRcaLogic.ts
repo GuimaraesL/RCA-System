@@ -1,3 +1,7 @@
+/**
+ * Proposta: Hook de orquestração da lógica de negócio e estado do Editor de RCA.
+ * Fluxo: Gerencia o estado do formulário, navegação entre passos, validação multinível e integração com a API via contexto.
+ */
 
 import { useState, useEffect } from 'react';
 import { RcaRecord, AssetNode, IshikawaDiagram } from '../types';
@@ -14,7 +18,7 @@ const createDefaultRecord = (): RcaRecord => ({
     analysis_date: new Date().toISOString().split('T')[0],
     analysis_duration_minutes: 0,
     analysis_type: '',
-    status: '', // Will be set by taxonomy logic
+    status: '', // Definido dinamicamente pela taxonomia
     participants: [],
     facilitator: '',
 
@@ -22,7 +26,7 @@ const createDefaultRecord = (): RcaRecord => ({
     completion_date: '',
     requires_operation_support: false,
 
-    failure_date: '', // FORCE USER SELECTION (Before: new Date())
+    failure_date: '', 
     failure_time: '00:00',
     downtime_minutes: 0,
     financial_impact: 0,
@@ -81,25 +85,23 @@ const findAssetPath = (nodes: AssetNode[], targetId: string): AssetNode[] | null
 export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: () => void) => {
     const { assets, taxonomy, actions, updateRecord, addRecord } = useRcaContext();
     const [step, setStep] = useState(1);
-    // AI analysis feature removed - isAnalyzing kept for API compatibility
-    const isAnalyzing = false;
+    const isAnalyzing = false; // Funcionalidade de IA desativada nesta versão
 
-    // Initialize with default or existing, BUT we need to validate status immediately
+    // Inicializa o formulário com dados existentes ou valores padrão
     const [formData, setFormData] = useState<RcaRecord>(() => {
         const base = createDefaultRecord();
         if (existingRecord) {
-            // Helper to safe-guard against SQL nulls
             const s = (val: any, def: any) => (val === null || val === undefined ? def : val);
 
             return {
                 ...base,
                 ...existingRecord,
-                // Sanitize critical fields that might cause RcaEditor inputs to crash if null
+                // Saneamento de campos críticos para evitar erros de renderização
                 financial_impact: s(existingRecord.financial_impact, 0),
                 downtime_minutes: s(existingRecord.downtime_minutes, 0),
                 status: s(existingRecord.status, base.status),
 
-                // Deep merge essential structures
+                // Mesclagem de estruturas profundas obrigatórias
                 human_reliability: existingRecord.human_reliability || base.human_reliability,
                 precision_maintenance: existingRecord.precision_maintenance || base.precision_maintenance,
                 five_whys: existingRecord.five_whys || base.five_whys,
@@ -109,28 +111,26 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         return base;
     });
 
-    // --- Initialization & Migration Logic ---
+    // Orquestração de Inicialização e Normalização de dados legados
     useEffect(() => {
         setFormData(prev => {
             let updated = { ...prev };
 
-            // 1. Ensure Status is Valid (Fix for "Desynchronized" issue)
+            // 1. Validação de Status via Taxonomia
             const validStatuses = taxonomy.analysisStatuses.map(s => s.id);
             const defaultStatus = validStatuses.length > 0 ? validStatuses[0] : 'STATUS-01';
 
-            // If current status is empty, DRAFT, or invalid ID -> reset to default
             if (!updated.status || !validStatuses.includes(updated.status)) {
-                console.warn(`Invalid status '${updated.status}' detected. Resetting to '${defaultStatus}'`);
+                console.warn(`Status inválido '${updated.status}' detectado. Resetando para '${defaultStatus}'`);
                 updated.status = defaultStatus;
             }
 
-            // 2. Ensure Structures (Optimisation)
+            // 2. Garantia de Estruturas de Investigação
             if (!updated.human_reliability) updated.human_reliability = getStandardHraStruct();
 
-            // 3. Migration: Array-ify Root Causes if missing
+            // 3. Migração de Causas Raiz (formato legado para array)
             if (!updated.root_causes) {
                 updated.root_causes = [];
-                // Handle legacy field migration if present in 'any' cast
                 const anyRec = updated as any;
                 if (anyRec.root_cause && anyRec.root_cause_m_id) {
                     updated.root_causes.push({
@@ -141,19 +141,17 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
                 }
             }
 
-            // 4. Migration: String participants to array
+            // 4. Normalização de Participantes
             if (typeof updated.participants === 'string') {
                 updated.participants = (updated.participants as string).split(',').map(p => p.trim()).filter(p => p);
             }
 
-            // 5. Ensure structures
-            if (!updated.human_reliability) updated.human_reliability = getStandardHraStruct();
+            // 5. Estruturas mínimas para UI
             if (!updated.five_whys) updated.five_whys = createDefaultRecord().five_whys;
             if (!updated.five_whys_chains) updated.five_whys_chains = [];
             if (!updated.ishikawa) updated.ishikawa = emptyIshikawa;
 
-            // 6. Migration: Precision Maintenance (NOT_APPLICABLE -> Empty)
-            // Ensures that old records with default 'NOT_APPLICABLE' are treated as unchecked.
+            // 6. Limpeza de estados legados de Manutenção de Precisão
             if (!updated.precision_maintenance) {
                 updated.precision_maintenance = getStandardPrecisionItems();
             } else {
@@ -164,46 +162,10 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
             }
             return updated;
         });
-    }, [existingRecord, taxonomy]); // Run when record loads or taxonomy loads
-
-    // --- Lógica de Validação Estrita & Auto-Promoção de Status ---
-    // Esta lógica garante que o status da análise reflita a qualidade dos dados em tempo real.
-    // 
-    // REGRAS DE NEGÓCIO:
-    // 1. Escopo de Atuação:
-    //    - Apenas status "Gerenciados" são alterados automaticamente: 
-    //      [Em Andamento, Aguardando Verificação, Concluída, Vazio].
-    //    - Status manuais (ex: Cancelada) são PROTEGIDOS e ignorados.
-    //
-    // 2. Pré-requisitos (Mandatory):
-    //    - Todos os campos de texto, IDs de Taxonomia, Listas (Participantes/Causas).
-    //    - **Crítico:** `subgroup_id` é obrigatório.
-    //    - Se falhar: Rebaixa para 'STATUS-01' (Em Andamento).
-    //
-    // 3. Critérios de Promoção (Se Pré-requisitos OK):
-    //    - Sem Ações? -> Considera 'Concluída' (STATUS-03).
-    //    - Com Ações? -> Verifica eficácia (Box 3 ou 4).
-    //      - TUDO Box 3/4? -> 'Concluída' (STATUS-03).
-    //      - Alguma Pendente? -> 'Aguardando Verificação' (STATUS-WAITING).
-    // 
-    // ⚠️ ISSUE #20 - MIGRAÇÃO DE LÓGICA PARA BACKEND
-    // ==============================================================================
-    // Esta lógica de auto-promoção de status foi REMOVIDA do frontend.
-    // O backend (rcaStatusService.ts) agora é a ÚNICA fonte da verdade.
-    // 
-    // Motivo: O useEffect tinha um bug - não incluía 'subgroup_id' nas dependências,
-    // causando status incorretos para análises com campos obrigatórios faltando.
-    // 
-    // Comportamento atual:
-    // 1. POST/PUT /api/rcas calcula o status automaticamente via rcaStatusService
-    // 2. POST/PUT/DELETE /api/actions recalcula o status da RCA associada
-    // 3. O frontend recebe o status correto na resposta da API
-    // 
-    // Para forçar recálculo de um registro antigo: abrir e salvar a análise.
-    // ==============================================================================
+    }, [existingRecord, taxonomy]);
 
     const refreshAssets = () => {
-        // Context handles asset syncing automatically
+        // Sincronização de ativos gerenciada via contexto
     };
 
     const handleAssetSelect = (asset: AssetNode) => {
@@ -230,25 +192,20 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         setFormData(prev => ({ ...prev, ...update }));
     };
 
-    // AI analysis feature removed - function kept as no-op for API compatibility
     const handleAnalyzeAI = async () => {
-        console.warn('AI analysis feature has been disabled');
+        console.warn('Funcionalidade de análise por IA desabilitada nesta versão.');
     };
 
-    // Helper to check if a field is required (either for Create or Conclude)
     const isFieldRequired = (fieldName: string) => {
         const createFields = taxonomy.mandatoryFields?.rca?.create || [];
         const concludeFields = taxonomy.mandatoryFields?.rca?.conclude || [];
         return createFields.includes(fieldName) || concludeFields.includes(fieldName);
     };
 
-    // Validation State
     const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
 
-    // Lista mínima de campos para SALVAR o registro (Permite Draft)
-    // Para considerá-la "Concluída", a lógica do useEffect acima (auto-status) continua verificando a lista completa.
     const isFieldEmpty = (field: string): boolean => {
-        // Special check for 'actions' since it's not in formData
+        // Validação especial para Planos de Ação (CAPA)
         if (field === 'actions') {
             const rcaActions = actions.filter(a => 
                 a.rca_id?.trim().toLowerCase() === formData.id?.trim().toLowerCase()
@@ -264,10 +221,9 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
             return !Array.isArray(val) || val.length === 0 || val.some(rc => !rc.root_cause_m_id || !rc.cause.trim());
         }
         if (field === 'five_whys') {
-            // Count answers in Linear Mode
+            // Contabiliza respostas tanto do modo linear quanto do modo avançado (cadeias)
             const linearCount = Array.isArray(formData.five_whys) ? formData.five_whys.filter((w: any) => w.answer?.trim()).length : 0;
             
-            // Count answers in Advanced Mode (Chains)
             let advancedCount = 0;
             if (Array.isArray(formData.five_whys_chains)) {
                 const countNodeAnswers = (node: any): number => {
@@ -282,7 +238,7 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
                 });
             }
             
-            return (linearCount + advancedCount) < 3; // Minimum 3 whys required if mandatory
+            return (linearCount + advancedCount) < 3; // Mínimo de 3 porquês preenchidos para validação de conclusão
         }
         if (field === 'ishikawa') {
             return !val || Object.values(val).every((arr: any) => Array.isArray(arr) && arr.length === 0);
@@ -296,11 +252,10 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
     const validateForm = (): boolean => {
         const errors: Record<string, boolean> = {};
 
-        // Dynamic from Settings - Only Source of Truth
         const createFields = taxonomy.mandatoryFields?.rca?.create || [];
         const concludeFields = taxonomy.mandatoryFields?.rca?.conclude || [];
 
-        // Flag ALL mandatory fields for visual reinforcement
+        // Marca TODOS os campos obrigatórios para feedback visual imediato (Reforço Vermelho)
         const allMandatory = Array.from(new Set([...createFields, ...concludeFields]));
         
         allMandatory.forEach(field => {
@@ -308,40 +263,34 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         });
 
         setValidationErrors(errors);
-        
-        // Logical result: would this pass a STRICT validation?
-        // (Not used for blocking anymore, handleSave handles that)
         return Object.keys(errors).length === 0;
     };
 
     const handleSave = async () => {
-        // 1. Refresh visual errors for ALL mandatory fields
         validateForm(); 
 
         const createFields = taxonomy.mandatoryFields?.rca?.create || [];
         const concludeFields = taxonomy.mandatoryFields?.rca?.conclude || [];
         const isTryingToConclude = formData.status === 'STATUS-03';
 
-        // 2. Determine blocking fields
         let currentBlockingFields: string[] = [];
         
-        // Critical: Creation fields always block
+        // Bloqueio Hard: Campos de criação sempre impedem o salvamento se vazios
         createFields.forEach(field => {
             if (isFieldEmpty(field)) currentBlockingFields.push(field);
         });
 
-        // Strict: Conclusion fields only block if saving as Concluded
+        // Bloqueio Seletivo: Campos de conclusão impedem salvamento apenas se o status for "Concluída"
         if (isTryingToConclude) {
             concludeFields.forEach(field => {
                 if (isFieldEmpty(field)) currentBlockingFields.push(field);
             });
         }
 
-        // 3. Prevent save only if current rules are violated
         if (currentBlockingFields.length > 0) {
-            console.warn('❌ Save Blocked:', {
-                reason: isTryingToConclude ? 'Missing conclusion data' : 'Missing minimum creation data',
-                fields: currentBlockingFields
+            console.warn('❌ Salvamento bloqueado: dados obrigatórios ausentes.', {
+                motivo: isTryingToConclude ? 'Campos de conclusão faltando' : 'Campos mínimos de criação faltando',
+                campos: currentBlockingFields
             });
             return false;
         }
@@ -352,7 +301,7 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
             } else {
                 await addRecord(formData);
             }
-            console.log('✅ RCA salva com sucesso:', formData.id);
+            console.log('✅ Context: RCA salva com sucesso');
             onSaveCallback();
             return true;
         } catch (error) {
@@ -371,6 +320,6 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         handleAnalyzeAI,
         handleSave,
         isFieldRequired,
-        validationErrors // Exposed
+        validationErrors
     };
 };

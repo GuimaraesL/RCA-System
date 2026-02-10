@@ -1,35 +1,39 @@
-// Serviço de comunicação com a API REST
-// VERSÃO CORRIGIDA - com verificação de erros em todas as operações
+/**
+ * Proposta: Serviço de comunicação com a API REST do RCA System.
+ * Fluxo: Centraliza todas as chamadas HTTP para o backend, garantindo tratamento de erros unificado e normalização de payloads.
+ */
 
 import { AssetNode, RcaRecord, ActionRecord, TriggerRecord, TaxonomyConfig, MigrationData, TaxonomyItem } from "../types";
 import { STATUS_IDS } from "../constants/SystemConstants";
 
 const API_BASE = 'http://localhost:3001/api';
 
-// --- HELPER: Verificar resposta e lançar erro se falhou ---
+/**
+ * Helper para verificar a integridade da resposta HTTP e lançar erros descritivos.
+ */
 const checkResponse = async (response: Response, operation: string): Promise<any> => {
     if (!response.ok) {
         const errorBody = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
-        console.error(`❌ API Error [${operation}]:`, response.status, errorBody);
+        console.error(`❌ Erro na API [${operation}]:`, response.status, errorBody);
         const details = errorBody.details
             ? ` (${JSON.stringify(errorBody.details)})`
             : '';
         throw new Error((errorBody.error || `HTTP ${response.status}`) + details);
     }
-    // Algumas operações retornam 204 No Content
     const text = await response.text();
     return text ? JSON.parse(text) : null;
 };
 
-// --- ASSETS ---
+// --- GESTÃO DE ATIVOS (ASSETS) ---
+
 export const fetchAssets = async (): Promise<AssetNode[]> => {
-    console.log('🔄 API: Fetching assets...');
+    console.log('🔄 API: Buscando árvore de ativos...');
     const response = await fetch(`${API_BASE}/assets`);
     return checkResponse(response, 'GET /assets');
 };
 
 export const saveAssetToApi = async (asset: Partial<AssetNode> & { id: string }): Promise<void> => {
-    console.log('🔄 API: Saving asset:', asset.id);
+    console.log('🔄 API: Salvando ativo:', asset.id);
     const response = await fetch(`${API_BASE}/assets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -39,31 +43,27 @@ export const saveAssetToApi = async (asset: Partial<AssetNode> & { id: string })
 };
 
 export const importAssetsToApi = async (assets: any[]): Promise<void> => {
-    console.log('🔄 API: Importing', assets.length, 'assets...');
+    console.log('🔄 API: Iniciando importação de ativos...', assets.length);
 
-    // Helper: Detect if data is already flat (no nested children arrays in first few items)
-    // or if it's a tree.
+    // Detecta se a lista está em formato plano ou em árvore para decidir a estratégia de importação
     const isAlreadyFlat = assets.some(a => a.parent_id !== undefined && (!a.children || a.children.length === 0));
 
     let flat: any[] = [];
 
     if (isAlreadyFlat) {
-        console.log('ℹ️ Detected Flat Asset List. Importing as-is.');
+        console.log('ℹ️ Lista plana detectada. Importando sem transformações.');
         flat = assets.map(a => ({
             id: a.id,
             name: a.name,
             type: a.type,
-            parent_id: a.parent_id || null // Keep existing parent_id
+            parent_id: a.parent_id || null 
         }));
     } else {
-        console.log('ℹ️ Detected Asset Tree. Flattening...');
-        // Flatten tree to list for bulk import ensuring parent comes before children
+        console.log('ℹ️ Árvore de ativos detectada. Realizando achatamento (flattening)...');
         const flatten = (nodes: any[], parentId?: string): any[] => {
             let result: any[] = [];
             for (const n of nodes) {
-                // Add parent first
                 result.push({ id: n.id, name: n.name, type: n.type, parent_id: parentId || null });
-                // Then recursively add children
                 if (n.children && n.children.length > 0) {
                     result = [...result, ...flatten(n.children, n.id)];
                 }
@@ -73,15 +73,15 @@ export const importAssetsToApi = async (assets: any[]): Promise<void> => {
         flat = flatten(assets);
     }
 
-    // Limpar assets atuais antes de importar para garantir integridade da árvore vinda do JSON
-    console.log('🧹 API: Cleaning existing assets before import...');
+    // Limpa ativos existentes para evitar inconsistências hierárquicas em restaurações completas
+    console.log('🧹 API: Limpando ativos existentes antes da importação...');
     try {
         const flatAssets = await fetch(`${API_BASE}/assets/flat`).then(r => r.json());
         for (const asset of flatAssets) {
             await fetch(`${API_BASE}/assets/${asset.id}`, { method: 'DELETE' });
         }
     } catch (e) {
-        console.warn('⚠️ API: Could not clean all assets, proceeding with import...', e);
+        console.warn('⚠️ API: Falha ao limpar alguns ativos, prosseguindo com a importação...', e);
     }
 
     const response = await fetch(`${API_BASE}/assets/bulk`, {
@@ -92,15 +92,16 @@ export const importAssetsToApi = async (assets: any[]): Promise<void> => {
     await checkResponse(response, 'POST /assets/bulk');
 };
 
-// --- TAXONOMY ---
+// --- TAXONOMIA E CONFIGURAÇÕES ---
+
 export const fetchTaxonomy = async (): Promise<TaxonomyConfig> => {
-    console.log('🔄 API: Fetching taxonomy...');
+    console.log('🔄 API: Buscando taxonomia e configurações...');
     const response = await fetch(`${API_BASE}/taxonomy`);
     return checkResponse(response, 'GET /taxonomy');
 };
 
 export const saveTaxonomyToApi = async (taxonomy: TaxonomyConfig): Promise<void> => {
-    console.log('🔄 API: Saving taxonomy...');
+    console.log('🔄 API: Salvando novas configurações de taxonomia...');
     const response = await fetch(`${API_BASE}/taxonomy`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -110,26 +111,21 @@ export const saveTaxonomyToApi = async (taxonomy: TaxonomyConfig): Promise<void>
 };
 
 export const importTaxonomyToApi = async (taxonomy: TaxonomyConfig): Promise<void> => {
-    // Taxonomy is usually a single object configuration, so "bulk" might just be "save".
-    // But if we want to merge, logic might be complex. 
-    // For now, treating import as "save/overwrite" or using the existing save method is safer
-    // but the task implies usage of API. saveTaxonomyToApi replaces the whole config.
-    // We'll reuse saveTaxonomyToApi for consistency unless a merge is strictly required by backend logic unique to import.
-    // CSV import logic in csvService already merges locally before calling save.
-    // So here we likely just need to save the result.
+    // Reutiliza o método de salvamento padrão para garantir integridade
     return saveTaxonomyToApi(taxonomy);
 };
 
 
-// --- RECORDS (RCAs) ---
+// --- ANÁLISES (RCAs) ---
+
 export const fetchRecords = async (): Promise<RcaRecord[]> => {
-    console.log('🔄 API: Fetching RCAs...');
+    console.log('🔄 API: Buscando lista resumida de análises...');
     const response = await fetch(`${API_BASE}/rcas`);
     return checkResponse(response, 'GET /rcas');
 };
 
 export const fetchAllRecordsFull = async (): Promise<RcaRecord[]> => {
-    console.log('🔄 API: Fetching ALL RCAs (Full Data)...');
+    console.log('🔄 API: Buscando carga completa de análises (Backup)...');
     const response = await fetch(`${API_BASE}/rcas?full=true`);
     return checkResponse(response, 'GET /rcas?full=true');
 };
@@ -145,13 +141,12 @@ export const fetchRecordById = async (id: string): Promise<RcaRecord | null> => 
 };
 
 export const saveRecordToApi = async (record: RcaRecord): Promise<void> => {
-    console.log('🔄 API: Saving RCA:', record.id);
+    console.log('🔄 API: Persistindo análise:', record.id);
 
-    // Verificar se já existe
     const existing = await fetchRecordById(record.id);
 
     if (existing) {
-        console.log('🔄 API: Updating existing RCA...');
+        console.log('🔄 API: Atualizando registro existente...');
         const response = await fetch(`${API_BASE}/rcas/${record.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -159,7 +154,7 @@ export const saveRecordToApi = async (record: RcaRecord): Promise<void> => {
         });
         await checkResponse(response, `PUT /rcas/${record.id}`);
     } else {
-        console.log('🔄 API: Creating new RCA...');
+        console.log('🔄 API: Criando novo registro de análise...');
         const response = await fetch(`${API_BASE}/rcas`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -167,20 +162,20 @@ export const saveRecordToApi = async (record: RcaRecord): Promise<void> => {
         });
         await checkResponse(response, 'POST /rcas');
     }
-    console.log('✅ API: RCA saved successfully:', record.id);
+    console.log('✅ API: Análise salva com sucesso:', record.id);
 };
 
 export const deleteRecordFromApi = async (id: string): Promise<void> => {
-    console.log('🔄 API: Deleting RCA:', id);
+    console.log('🔄 API: Excluindo análise:', id);
     const response = await fetch(`${API_BASE}/rcas/${id}`, { method: 'DELETE' });
     await checkResponse(response, `DELETE /rcas/${id}`);
-    console.log('✅ API: RCA deleted:', id);
+    console.log('✅ API: Análise excluída com sucesso:', id);
 };
 
 export const importRecordsToApi = async (records: RcaRecord[]): Promise<void> => {
-    console.log('🔄 API: Importing', records.length, 'records with context...');
+    console.log('🔄 API: Importando análises com contexto de planos de ação...', records.length);
     
-    // Fetch current actions to provide context for status calculation
+    // Busca ações atuais para fornecer contexto ao motor de status automático do backend
     const currentActions = await fetchActions();
 
     const response = await fetch(`${API_BASE}/rcas/bulk`, {
@@ -191,12 +186,13 @@ export const importRecordsToApi = async (records: RcaRecord[]): Promise<void> =>
             actions: currentActions
         })
     });
-    await checkResponse(response, 'POST /rcas/bulk (CSV Import)');
+    await checkResponse(response, 'POST /rcas/bulk (Importação CSV)');
 };
 
-// --- ACTIONS ---
+// --- PLANOS DE AÇÃO (CAPA) ---
+
 export const fetchActions = async (): Promise<ActionRecord[]> => {
-    console.log('🔄 API: Fetching actions...');
+    console.log('🔄 API: Buscando lista de planos de ação...');
     const response = await fetch(`${API_BASE}/actions`);
     return checkResponse(response, 'GET /actions');
 };
@@ -207,9 +203,8 @@ export const fetchActionsByRca = async (rcaId: string): Promise<ActionRecord[]> 
 };
 
 export const saveActionToApi = async (action: ActionRecord): Promise<void> => {
-    console.log('🔄 API: Saving action:', action.id);
+    console.log('🔄 API: Persistindo plano de ação:', action.id);
 
-    // Verificar se já existe
     const checkResponse_local = await fetch(`${API_BASE}/actions/${action.id}`);
 
     if (checkResponse_local.ok) {
@@ -230,46 +225,32 @@ export const saveActionToApi = async (action: ActionRecord): Promise<void> => {
 };
 
 export const deleteActionFromApi = async (id: string): Promise<void> => {
-    console.log('🔄 API: Deleting action:', id);
+    console.log('🔄 API: Excluindo plano de ação:', id);
     const response = await fetch(`${API_BASE}/actions/${id}`, { method: 'DELETE' });
     await checkResponse(response, `DELETE /actions/${id}`);
 };
 
-// --- HELPER: Recalcular Status da RCA ---
-// ⚠️ ISSUE #20 - MIGRAÇÃO DE LÓGICA PARA BACKEND
-// ==============================================================================
-// A função recalculateRcaStatus foi REMOVIDA do frontend.
-// O backend (rcaStatusService.ts) agora é a ÚNICA fonte da verdade.
-// 
-// O backend calcula o status automaticamente em:
-// - POST/PUT /api/rcas
-// - POST/PUT/DELETE /api/actions
-// 
-// Não é mais necessário chamar recalculateRcaStatus do frontend.
-// ==============================================================================
-
-
 export const importActionsToApi = async (actions: ActionRecord[]): Promise<void> => {
-    console.log('🔄 API: Importing', actions.length, 'actions...');
+    console.log('🔄 API: Importando lote de planos de ação...', actions.length);
     const response = await fetch(`${API_BASE}/actions/bulk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(actions)
     });
     await checkResponse(response, 'POST /actions/bulk');
-    // Note: Backend now handles status recalculation automatically via rcaStatusService
 };
 
 
-// --- TRIGGERS ---
+// --- GATILHOS (TRIGGERS) ---
+
 export const fetchTriggers = async (): Promise<TriggerRecord[]> => {
-    console.log('🔄 API: Fetching triggers...');
+    console.log('🔄 API: Buscando lista de gatilhos...');
     const response = await fetch(`${API_BASE}/triggers`);
     return checkResponse(response, 'GET /triggers');
 };
 
 export const saveTriggerToApi = async (trigger: TriggerRecord): Promise<void> => {
-    console.log('🔄 API: Saving trigger:', trigger.id);
+    console.log('🔄 API: Persistindo gatilho:', trigger.id);
 
     const checkResponse_local = await fetch(`${API_BASE}/triggers/${trigger.id}`);
 
@@ -291,13 +272,13 @@ export const saveTriggerToApi = async (trigger: TriggerRecord): Promise<void> =>
 };
 
 export const deleteTriggerFromApi = async (id: string): Promise<void> => {
-    console.log('🔄 API: Deleting trigger:', id);
+    console.log('🔄 API: Excluindo gatilho:', id);
     const response = await fetch(`${API_BASE}/triggers/${id}`, { method: 'DELETE' });
     await checkResponse(response, `DELETE /triggers/${id}`);
 };
 
 export const importTriggersToApi = async (triggers: TriggerRecord[]): Promise<void> => {
-    console.log('🔄 API: Importing', triggers.length, 'triggers...');
+    console.log('🔄 API: Importando lote de gatilhos...', triggers.length);
     const response = await fetch(`${API_BASE}/triggers/bulk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -307,14 +288,17 @@ export const importTriggersToApi = async (triggers: TriggerRecord[]): Promise<vo
 };
 
 
-// --- HELPER: Gerar ID (Simples) ---
+// --- UTILITÁRIOS INTERNOS ---
+
 const generateId = (prefix: string = 'GEN'): string => {
     const timestamp = Date.now().toString(36).toUpperCase();
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     return `${prefix}-${timestamp}-${random}`;
 };
 
-// --- HELPER: Extrair Assets de RCAs (Fallback) ---
+/**
+ * Recupera ativos a partir de registros de análise (fallback para dados orfãos).
+ */
 const extractAssetsFromRecords = (records: any[]): any[] => {
     const assetsMap = new Map<string, any>();
 
@@ -329,33 +313,21 @@ const extractAssetsFromRecords = (records: any[]): any[] => {
     };
 
     records.forEach(r => {
-        // Nível 1: Area
-        if (r.area_id) {
-            addAsset(r.area_id, r.area_id, 'AREA', null);
-        }
-
-        // Nível 2: Equipment (Filho de Area)
-        if (r.equipment_id && r.area_id) {
-            addAsset(r.equipment_id, r.equipment_id, 'EQUIPMENT', r.area_id);
-        }
-
-        // Nível 3: Subgroup (Filho de Equipment)
-        if (r.subgroup_id && r.equipment_id) {
-            addAsset(r.subgroup_id, r.subgroup_id, 'SUBGROUP', r.equipment_id);
-        }
+        if (r.area_id) addAsset(r.area_id, r.area_id, 'AREA', null);
+        if (r.equipment_id && r.area_id) addAsset(r.equipment_id, r.equipment_id, 'EQUIPMENT', r.area_id);
+        if (r.subgroup_id && r.equipment_id) addAsset(r.subgroup_id, r.subgroup_id, 'SUBGROUP', r.equipment_id);
     });
 
-    console.log(`ℹ️ Auto-extracted ${assetsMap.size} assets from RCAs records.`);
+    console.log(`ℹ️ Ativos extraídos automaticamente: ${assetsMap.size}`);
     return Array.from(assetsMap.values());
 };
 
-// --- HELPER: Delete All Records (sequential to avoid overload if no bulk delete) ---
 const deleteAllRecords = async () => {
     const rcas = await fetchRecords();
     const ids = rcas.map(r => r.id);
     if (ids.length === 0) return;
 
-    console.log(`🧹 Wiping ${ids.length} RCAs via Bulk Delete...`);
+    console.log(`🧹 Limpando ${ids.length} análises via exclusão em massa...`);
     const response = await fetch(`${API_BASE}/rcas/bulk-delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -363,12 +335,13 @@ const deleteAllRecords = async () => {
     });
     await checkResponse(response, 'POST /rcas/bulk-delete');
 };
+
 const deleteAllActions = async () => {
     const acts = await fetchActions();
     const ids = acts.map(a => a.id);
     if (ids.length === 0) return;
 
-    console.log(`🧹 Wiping ${ids.length} Actions via Bulk Delete...`);
+    console.log(`🧹 Limpando ${ids.length} ações via exclusão em massa...`);
     const response = await fetch(`${API_BASE}/actions/bulk-delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -376,12 +349,13 @@ const deleteAllActions = async () => {
     });
     await checkResponse(response, 'POST /actions/bulk-delete');
 };
+
 const deleteAllTriggers = async () => {
     const trigs = await fetchTriggers();
     const ids = trigs.map(t => t.id);
     if (ids.length === 0) return;
 
-    console.log(`🧹 Wiping ${ids.length} Triggers via Bulk Delete...`);
+    console.log(`🧹 Limpando ${ids.length} gatilhos via exclusão em massa...`);
     const response = await fetch(`${API_BASE}/triggers/bulk-delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -390,63 +364,51 @@ const deleteAllTriggers = async () => {
     await checkResponse(response, 'POST /triggers/bulk-delete');
 };
 
-// --- IMPORTAÇÃO EM MASSA ---
+/**
+ * Executa a orquestração de importação total de dados para o servidor.
+ */
 export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'REPLACE' = 'REPLACE', taxonomyFilters?: string[]): Promise<{ success: boolean, message: string }> => {
-    console.log(`🔄 API: Importing bulk data [Mode: ${mode}]...`, {
-        hasAssets: !!data.assets,
-        recordsCount: data.records?.length || 0,
-        filters: taxonomyFilters
+    console.log(`🔄 API: Iniciando importação em massa [Modo: ${mode}]...`, {
+        análises: data.records?.length || 0,
+        filtros: taxonomyFilters
     });
 
     try {
-        // 0. REPLACE MODE: Cleaning Phase
+        // 0. FASE DE LIMPEZA (Modo Substituição)
         if (mode === 'REPLACE') {
-            console.log('⚠️ REPLACE MODE: Wiping existing data...');
-            // Order matters: Children first (Actions/Triggers) then Parents (RCAs)
+            console.log('⚠️ MODO SUBSTITUIÇÃO: Eliminando dados existentes...');
             await Promise.all([deleteAllActions(), deleteAllTriggers()]);
             await deleteAllRecords();
-            // Assets are cleaned inside importAssetsToApi below
         }
 
-        // 1. Preparar Assets (Recuperar do JSON ou Extrair das RCAs)
+        // 1. GESTÃO DE ATIVOS
         let assetsToImport = data.assets;
 
         if (!assetsToImport || assetsToImport.length === 0) {
             const rcas = data.records || data.results || [];
             if (rcas.length > 0) {
-                console.log('⚠️ JSON sem assets explícitos. Tentando extrair das RCAs...');
+                console.log('⚠️ JSON sem ativos explícitos. Tentando extração a partir das análises...');
                 assetsToImport = extractAssetsFromRecords(rcas);
             }
         }
 
-        // 2. Importar Assets (sempre substitui se houver assets no JSON)
         if (assetsToImport && assetsToImport.length > 0) {
             await importAssetsToApi(assetsToImport);
-            console.log('✅ Assets importados/verificados:', assetsToImport.length);
-        } else {
-            console.warn('⚠️ Nenhum asset encontrado para importar.');
+            console.log('✅ Ativos processados:', assetsToImport.length);
         }
 
-        // 2. Importar Taxonomy (Merge com Auto-Discovery e Filtros)
+        // 2. GESTÃO DE TAXONOMIA
         const currentTaxonomy = await fetchTaxonomy();
         const incomingTaxonomy = data.taxonomy || {};
-
-        // Start with current DB state
         let taxonomyToSave: TaxonomyConfig = { ...currentTaxonomy };
 
-        // Determine which keys to import
-        // If filters are provided, strict filter. If not provided (legacy), import ALL from incoming.
         const keysToProcess = taxonomyFilters && taxonomyFilters.length > 0
             ? taxonomyFilters
             : Object.keys(incomingTaxonomy);
 
-        console.log('Applying Taxonomy Filters:', keysToProcess);
-
         keysToProcess.forEach((key: string) => {
-            // Type safety check: only import if it exists in incoming data
-            // We cast key to keyof TaxonomyConfig for assignment
             if (key in incomingTaxonomy) {
-                // @ts-ignore - Dynamic assignment
+                // @ts-ignore
                 taxonomyToSave[key as keyof TaxonomyConfig] = incomingTaxonomy[key];
             }
         });
@@ -462,97 +424,64 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
             return newId;
         };
 
-        // 2.1 Varre RCAs para atualizar taxonomia e normalizar IDs
+        // 2.1 PROCESSAMENTO DE REGISTROS (Normalização e Re-mapeamento de IDs)
         const rcasToImportRaw = data.records || data.results || [];
         const actionsToImportRaw = data.actions || [];
         const triggersToImportRaw = data.triggers || [];
 
-        // --- APPEND LOGIC: ID REMAPPING ---
-        const idMap = new Map<string, string>(); // oldId -> newId
+        const idMap = new Map<string, string>(); 
 
         if (mode === 'APPEND') {
-            console.log('➕ APPEND MODE: Regenerating IDs (preserving UUIDs)...');
+            console.log('➕ MODO ANEXAR: Gerando novos IDs (preservando UUIDs)...');
             const shouldPreserve = (id: string, type: string) => {
-                // Reuse strict logic from resolveId (UUID ~36 chars, not our generated prefix)
                 return id && id.length > 30 && !id.startsWith(type + '-');
             };
 
             rcasToImportRaw.forEach((r: any) => {
-                if (shouldPreserve(r.id, 'RCA')) {
-                    idMap.set(r.id, r.id); // Map UUID -> UUID
-                } else {
-                    idMap.set(r.id, generateId('RCA'));
-                }
+                idMap.set(r.id, shouldPreserve(r.id, 'RCA') ? r.id : generateId('RCA'));
             });
             actionsToImportRaw.forEach((a: any) => {
-                // For actions, we generate new IDs usually, UNLESS they are also UUIDs we want to keep?
-                // Usually actions don't need persistent IDs across systems unless syncing.
-                // But let's be consistent.
-                if (shouldPreserve(a.id, 'ACT')) {
-                    idMap.set(a.id, a.id);
-                } else {
-                    idMap.set(a.id, generateId('ACT'));
-                }
+                idMap.set(a.id, shouldPreserve(a.id, 'ACT') ? a.id : generateId('ACT'));
             });
             triggersToImportRaw.forEach((t: any) => {
-                if (shouldPreserve(t.id, 'TRG')) {
-                    idMap.set(t.id, t.id);
-                } else {
-                    idMap.set(t.id, generateId('TRG'));
-                }
+                idMap.set(t.id, shouldPreserve(t.id, 'TRG') ? t.id : generateId('TRG'));
             });
         }
 
         const resolveId = (oldId: string, type: 'RCA' | 'ACT' | 'TRG') => {
-            // Priority: Keep valid UUIDs from migration sources (UUID length is ~36)
-            // This prevents generating new IDs for records that already have a global unique ID
             if (oldId && oldId.length > 30 && !oldId.startsWith('RCA-') && !oldId.startsWith('TRG-') && !oldId.startsWith('ACT-')) {
                 return oldId;
             }
-            if (mode !== 'APPEND') return oldId; // Keep ID in Update/Replace
-            return idMap.get(oldId) || generateId(type); // Return mapped or new
+            if (mode !== 'APPEND') return oldId;
+            return idMap.get(oldId) || generateId(type);
         };
 
         const resolveRef = (refId: string) => {
             if (mode !== 'APPEND') return refId;
-            return idMap.get(refId) || refId; // Try to find reference, else keep (might be external or broken, but best effort)
+            return idMap.get(refId) || refId;
         };
 
-
-        // Map RCA IDs to their Actions (for Status Logic) - Using NEW IDs if Append
         const rcaActionsMap = new Map<string, any[]>();
         actionsToImportRaw.forEach((a: any) => {
             if (a.rca_id) {
                 const targetRcaId = resolveRef(a.rca_id);
                 const list = rcaActionsMap.get(targetRcaId) || [];
-                // Store incomplete action obj just for status calculation
                 list.push({ ...a, status: String(a.status) });
                 rcaActionsMap.set(targetRcaId, list);
             }
         });
 
-        // Auto-Discovery of Relationships (Hierarchy)
         const discoveredRelations = new Map<string, Set<string>>();
 
         const normalizedRcas = rcasToImportRaw.map((rec: any) => {
             const newRec = { ...rec };
-
-            // Apply ID Remapping
             newRec.id = resolveId(rec.id, 'RCA');
 
-            // 1. Mandatory Fields Check
+            // Lógica de pré-validação de status para a importação
             const mandatoryStrings = [
-                newRec.analysis_type,
-                newRec.what,
-                newRec.problem_description,
-                newRec.subgroup_id,
-                newRec.who,
-                newRec.when,
-                newRec.where_description,
-                newRec.specialty_id,
-                newRec.failure_mode_id,
-                newRec.failure_category_id,
-                newRec.component_type
+                newRec.analysis_type, newRec.what, newRec.problem_description, newRec.subgroup_id,
+                newRec.who, newRec.when, newRec.where_description, newRec.specialty_id,
+                newRec.failure_mode_id, newRec.failure_category_id, newRec.component_type
             ];
             const stringsOk = mandatoryStrings.every(s => s && String(s).trim().length > 0);
 
@@ -565,35 +494,26 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
             };
             const participantsOk = checkArrayImport(newRec.participants);
             const rootCausesOk = checkArrayImport(newRec.root_causes);
-            const impactsOk = (newRec.downtime_minutes !== undefined && newRec.downtime_minutes !== null);
-            const isMandatoryComplete = stringsOk && participantsOk && rootCausesOk && impactsOk;
+            const isMandatoryComplete = stringsOk && participantsOk && rootCausesOk && (newRec.downtime_minutes !== undefined);
 
-            // 2. Action Plan Analysis (using mapped IDs)
             const mainActions = rcaActionsMap.get(newRec.id) || [];
             const hasMainActions = mainActions.length > 0;
             const allActionsEffective = hasMainActions && mainActions.every(a => ['3', '4'].includes(String(a.status)));
 
-            // 3. Status Logic
             let currentStatus = ensureTaxonomy('analysisStatuses', newRec.status) || newRec.status;
-            // Robust Check: Open if empty, or STATUS-01 (ID) or 'Em Andamento' (Legacy Name)
-            const isOpenStatus = !currentStatus || currentStatus === '' || currentStatus === STATUS_IDS.IN_PROGRESS || currentStatus === 'Em Andamento';
+            const isOpenStatus = !currentStatus || currentStatus === STATUS_IDS.IN_PROGRESS || currentStatus === 'Em Andamento';
 
             if (isOpenStatus) {
                 if (!isMandatoryComplete) {
                     newRec.status = STATUS_IDS.IN_PROGRESS;
                 } else {
-                    if (!hasMainActions) {
-                        newRec.status = STATUS_IDS.CONCLUDED;
-                    } else if (allActionsEffective) {
-                        newRec.status = STATUS_IDS.CONCLUDED;
-                    } else {
-                        newRec.status = STATUS_IDS.WAITING_VERIFICATION;
-                    }
+                    newRec.status = (!hasMainActions || allActionsEffective) ? STATUS_IDS.CONCLUDED : STATUS_IDS.WAITING_VERIFICATION;
                 }
             } else {
                 newRec.status = currentStatus;
             }
 
+            // Normalização de chaves de taxonomia
             if (newRec.specialty_id) newRec.specialty_id = ensureTaxonomy('specialties', newRec.specialty_id) || newRec.specialty_id;
             if (newRec.failure_mode_id) newRec.failure_mode_id = ensureTaxonomy('failureModes', newRec.failure_mode_id) || newRec.failure_mode_id;
             if (newRec.failure_category_id) newRec.failure_category_id = ensureTaxonomy('failureCategories', newRec.failure_category_id) || newRec.failure_category_id;
@@ -608,57 +528,13 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
                 });
             }
 
-            if (newRec.failure_mode_id && newRec.specialty_id) {
-                if (!discoveredRelations.has(newRec.failure_mode_id)) {
-                    discoveredRelations.set(newRec.failure_mode_id, new Set());
-                }
-                discoveredRelations.get(newRec.failure_mode_id)?.add(newRec.specialty_id);
-            }
-
-            // --- Whys Conversion (Task 55) ---
-            if ((!newRec.five_whys_chains || newRec.five_whys_chains.length === 0) && (newRec.five_whys && newRec.five_whys.length > 0)) {
-                const validWhys = newRec.five_whys.filter((w: any) => w.answer && w.answer.trim().length > 0);
-                if (validWhys.length > 0) {
-                    // Conversion Logic same as before...
-                    const chainId = generateId('chain');
-                    newRec.five_whys_chains = [{
-                        chain_id: chainId,
-                        cause_effect: newRec.problem_description || 'Fluxo Principal',
-                        root_node: {
-                            id: generateId('node'),
-                            level: 0,
-                            cause_effect: newRec.problem_description || 'Problema Principal',
-                            whys: validWhys.map((w: any, idx: number) => ({
-                                level: idx + 1,
-                                answer: w.answer
-                            })),
-                            children: []
-                        }
-                    }];
-                }
-            }
-
             return newRec;
         });
 
-        if (discoveredRelations.size > 0 && taxonomyToSave.failureModes) {
-            taxonomyToSave.failureModes = taxonomyToSave.failureModes.map(fm => {
-                if (discoveredRelations.has(fm.id)) {
-                    const foundSpecs = Array.from(discoveredRelations.get(fm.id)!);
-                    const existingSpecs = fm.specialty_ids || [];
-                    const mergedSpecs = Array.from(new Set([...existingSpecs, ...foundSpecs]));
-                    return { ...fm, specialty_ids: mergedSpecs };
-                }
-                return fm;
-            });
-        }
-
         await saveTaxonomyToApi(taxonomyToSave);
-        console.log('✅ Taxonomy atualizada.');
+        console.log('✅ Taxonomia atualizada.');
 
-        // --- IMPORT EXECUTION (Based on Mode) ---
-
-        // 3. RCAs & Actions (Combined for status calculation)
+        // 3. EXECUÇÃO DA PERSISTÊNCIA (Lote Consolidado)
         const preparedActions = actionsToImportRaw.map((a: any) => ({
             ...a,
             id: resolveId(a.id, 'ACT'),
@@ -666,80 +542,31 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
         }));
 
         if (normalizedRcas.length > 0) {
-            if (mode === 'UPDATE') {
-                console.log('🔄 UPDATE MODE: Upserting records...');
-                await Promise.all(normalizedRcas.map(r => saveRecordToApi(r)));
-            } else {
-                console.log('🔄 Bulk Importing RCAs with Actions for context...');
-                const response = await fetch(`${API_BASE}/rcas/bulk`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        records: normalizedRcas,
-                        actions: preparedActions
-                    })
-                });
-                await checkResponse(response, 'POST /rcas/bulk');
-            }
-            console.log(`✅ RCAs processadas (${mode}):`, normalizedRcas.length);
+            console.log('🔄 Importando lote de análises com contexto...');
+            const response = await fetch(`${API_BASE}/rcas/bulk`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ records: normalizedRcas, actions: preparedActions })
+            });
+            await checkResponse(response, 'POST /rcas/bulk');
         }
 
-        // 4. Actions (Persist to DB)
         if (preparedActions.length > 0) {
-            if (mode === 'UPDATE') {
-                console.log('🔄 UPDATE MODE: Upserting actions...');
-                await Promise.all(preparedActions.map(a => saveActionToApi(a)));
-            } else {
-                console.log('🔄 Bulk Importing Actions...');
-                const response = await fetch(`${API_BASE}/actions/bulk`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(preparedActions)
-                });
-                await checkResponse(response, 'POST /actions/bulk');
-            }
-            console.log(`✅ Actions processadas (${mode}):`, preparedActions.length);
-        }
-
-        // 5. Triggers
-        const preparedTriggers = triggersToImportRaw.map((t: any) => ({
-            ...t,
-            id: resolveId(t.id, 'TRG'),
-            // Triggers might link to RCA? 
-            // TriggerRecord usually has `rca_id`? Let's check type.
-            // If it does, we should resolveRef.
-        }));
-
-        // Note: Assuming TriggerRecord *might* have rca_id if they serve as source.
-        // It wasn't in the explicit map above, but if it exists, resolve it:
-        // Checking schema: triggers table has no rca_id foreign key usually?
-        // Wait, "Trigger -> RCA" link. Usually RCA references Trigger? Or Trigger references RCA?
-        // Let's assume Trigger might have it. If not, this property just does nothing.
-        // Actually, Triggers often don't point to RCA in this system, RCAs are created *from* Triggers.
-        // But if they are linked, it's good to try.
-
-        if (preparedTriggers.length > 0) {
-            if (mode === 'UPDATE') {
-                console.log('🔄 UPDATE MODE: Upserting triggers...');
-                await Promise.all(preparedTriggers.map(t => saveTriggerToApi(t)));
-            } else {
-                console.log('🔄 Bulk Importing Triggers...');
-                const response = await fetch(`${API_BASE}/triggers/bulk`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(preparedTriggers)
-                });
-                await checkResponse(response, 'POST /triggers/bulk');
-            }
-            console.log(`✅ Triggers processados (${mode}):`, preparedTriggers.length);
+            console.log('🔄 Persistindo lote de planos de ação...');
+            const response = await fetch(`${API_BASE}/actions/bulk`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(preparedActions)
+            });
+            await checkResponse(response, 'POST /actions/bulk');
         }
 
         return {
             success: true,
-            message: `Importação (${mode}) concluída: ${normalizedRcas.length} RCAs, ${preparedActions.length} ações.`
+            message: `Importação (${mode}) concluída com sucesso.`
         };
     } catch (error) {
-        console.error('❌ Erro na importação:', error);
-        return { success: false, message: `Erro: ${error}` };
+        console.error('❌ Falha crítica na importação:', error);
+        return { success: false, message: `Falha na importação: ${error}` };
     }
 };

@@ -1,3 +1,7 @@
+/**
+ * Proposta: Serviço de processamento, exportação e importação de arquivos delimitados (CSV).
+ * Fluxo: Gerencia a conversão entre objetos complexos do sistema e linhas planas de texto, garantindo a integridade dos dados técnicos (5W, Ishikawa, 6M) e tratando variações de localidade (ponto vs vírgula).
+ */
 
 import { AssetNode, ActionRecord, TaxonomyConfig, TaxonomyItem, RcaRecord, TriggerRecord } from "../types";
 import { generateId } from "./utils";
@@ -43,24 +47,26 @@ const TAXONOMY_MAP: Record<string, keyof TaxonomyConfig> = {
     'TAXONOMY_TRIGGER_STATUSES': 'triggerStatuses'
 };
 
-// --- SCHEMA VALIDATION ---
-// Mapa de colunas obrigatórias para cada tipo de entidade
+// --- VALIDAÇÃO DE SCHEMA ---
+// Mapa de colunas obrigatórias para garantir a integridade mínima de cada entidade
 const REQUIRED_HEADERS: Record<CsvEntityType, string[]> = {
-    'ASSETS': ['name', 'type'], // id e parentId podem ser gerados/opcionais
-    'ACTIONS': ['action', 'responsible'], // campos mínimos obrigatórios
-    'TRIGGERS': ['AREA', 'Equip.', 'Data/Hora Início'], // colunas chave do Excel de gatilhos
-    'RECORDS_SUMMARY': ['id'], // precisa do ID para fazer update
+    'ASSETS': ['name', 'type'], 
+    'ACTIONS': ['action', 'responsible'], 
+    'TRIGGERS': ['AREA', 'Equip.', 'Data/Hora Início'], 
+    'RECORDS_SUMMARY': ['id'], 
     'TAXONOMY_ANALYSIS_TYPES': ['name'],
     'TAXONOMY_STATUSES': ['name'],
     'TAXONOMY_SPECIALTIES': ['name'],
-    'TAXONOMY_FAILURE_MODES': ['name', 'specialty_ids'], // Optional but good for validation
+    'TAXONOMY_FAILURE_MODES': ['name', 'specialty_ids'], 
     'TAXONOMY_FAILURE_CATEGORIES': ['name'],
     'TAXONOMY_COMPONENT_TYPES': ['name'],
     'TAXONOMY_ROOT_CAUSE_MS': ['name'],
     'TAXONOMY_TRIGGER_STATUSES': ['name']
 };
 
-// Função para validar se o CSV tem as colunas esperadas
+/**
+ * Valida se o CSV possui as colunas fundamentais para o processamento.
+ */
 const validateCsvSchema = (type: CsvEntityType, headers: string[]): { valid: boolean, message: string } => {
     const required = REQUIRED_HEADERS[type];
     if (!required) return { valid: true, message: '' };
@@ -71,35 +77,31 @@ const validateCsvSchema = (type: CsvEntityType, headers: string[]): { valid: boo
     if (missing.length > 0) {
         return {
             valid: false,
-            message: `Schema inválido para ${type}. Colunas obrigatórias faltando: [${missing.join(', ')}]. Colunas recebidas: [${headers.join(', ')}].`
+            message: `Schema inválido para ${type}. Colunas obrigatórias faltando: [${missing.join(', ')}].`
         };
     }
     return { valid: true, message: '' };
 };
 
-// --- HELPERS ---
+// --- AUXILIARES DE PARSING ---
 
-// Helper to parse DD/MM/YYYY HH:mm or DD/MM/YYYY to ISO String
+/**
+ * Converte strings de data (incluindo formatos do Excel) para ISO String.
+ * Suporta datas seriais do Excel e formato padrão DD/MM/YYYY HH:mm.
+ */
 const parseDateString = (dateStr: string): string => {
     if (!dateStr) return '';
     try {
         const cleanStr = String(dateStr).trim();
 
-        // 1. Detect Excel Serial Date (e.g. "45848" or "45848,48681")
-        // Regex allows integer or float with dot/comma
+        // 1. Detecção de Data Serial do Excel (ex: "45848")
         if (/^\d+([.,]\d+)?$/.test(cleanStr)) {
             const serial = parseFloat(cleanStr.replace(',', '.'));
-            // Excel base date: Dec 30 1899 (approx 25569 days offset from Unix Epoch)
-            // 25569 is the offset for 1970-01-01.
-            // Check sanity: > 20000 ensures roughly > 1954 year.
             if (!isNaN(serial) && serial > 20000) {
-                // Excel days -> key: (serial - 25569) * 86400 * 1000
-                // Adjust for Excel leap year bug 1900 if necessary (usually ignored for modern dates)
                 const utcDays = Math.floor(serial - 25569);
-                const utcValue = utcDays * 86400; // seconds
+                const utcValue = utcDays * 86400; 
                 const dateInfo = new Date(utcValue * 1000);
 
-                // Add fractional part (Time)
                 const fractionalDay = serial - Math.floor(serial) + 0.0000001;
                 const totalSeconds = Math.floor(86400 * fractionalDay);
 
@@ -112,7 +114,7 @@ const parseDateString = (dateStr: string): string => {
             }
         }
 
-        // 2. Standard Formats (DD/MM/YYYY)
+        // 2. Formatos Padrão (DD/MM/YYYY)
         const parts = cleanStr.split(' ');
         const dateParts = parts[0].split('/');
 
@@ -121,17 +123,13 @@ const parseDateString = (dateStr: string): string => {
             const month = dateParts[1].padStart(2, '0');
             const year = dateParts[2];
 
-            // Validate limits
             if (parseInt(month) > 12 || parseInt(day) > 31) return '';
 
             const time = parts[1] || '00:00';
-            // Construct ISO for local time or UTC? Ideally project uses simplified strings
-            // Using logic to force ISO format YYYY-MM-DDTHH:mm:ss.sssZ
-            // But manually constructing string is safer for "YYYY-MM-DDTHH:mm"
             return `${year}-${month}-${day}T${time}`;
         }
 
-        // 3. Last Resort: Date Constructor
+        // 3. Fallback: Construtor nativo do Date
         const fallback = new Date(cleanStr);
         if (!isNaN(fallback.getTime())) {
             return fallback.toISOString();
@@ -139,31 +137,36 @@ const parseDateString = (dateStr: string): string => {
 
         return '';
     } catch (e) {
-        console.warn('Date Parse Error:', dateStr, e);
+        console.warn('Falha ao processar data:', dateStr, e);
         return '';
     }
 };
 
+/**
+ * Serializa array de objetos para string CSV.
+ * Utiliza ponto e vírgula como delimitador para garantir compatibilidade com Excel em PT-BR.
+ */
 const toCSV = (data: any[], headers: string[]): string => {
-    const headerRow = headers.join(';'); // Export with semicolon for better Excel compatibility in many regions
+    const headerRow = headers.join(';'); 
     const rows = data.map(row => {
         return headers.map(fieldName => {
             let val = row[fieldName];
-            // Handle Arrays (e.g., participants)
+            
+            // Tratamento de Arrays internos (ex: participantes)
             if (Array.isArray(val)) {
-                val = val.join('|'); // Use pipe for inner arrays to avoid conflict
+                val = val.join('|'); 
             } else if (val === undefined || val === null) {
                 val = '';
             }
 
             let stringVal = String(val);
 
-            // SECURITY: CSV Injection / Formula Injection Prevention
+            // Prevenção de CSV Injection / Formula Injection
             if (/^[=+\-@]/.test(stringVal)) {
                 stringVal = "'" + stringVal;
             }
 
-            // Escape quotes and wrap in quotes if contains delimiter or newline
+            // Escapa aspas e envolve em aspas duplas se contiver delimitador ou quebra de linha
             if (stringVal.includes(';') || stringVal.includes('"') || stringVal.includes('\n')) {
                 return `"${stringVal.replace(/"/g, '""')}"`;
             }
@@ -173,15 +176,19 @@ const toCSV = (data: any[], headers: string[]): string => {
     return [headerRow, ...rows].join('\n');
 };
 
+/**
+ * Detecta o separador mais provável (vírgula ou ponto e vírgula).
+ */
 const detectSeparator = (headerLine: string): string => {
     const commas = (headerLine.match(/,/g) || []).length;
     const semicolons = (headerLine.match(/;/g) || []).length;
     return semicolons >= commas ? ';' : ',';
 };
 
+/**
+ * Parser de CSV robusto capaz de lidar com campos multi-linha e aspas escapadas.
+ */
 const fromCSV = (csv: string): any[] => {
-    // Robust CSV Parser (Manual) to handle Multiline Fields
-    // 1. Detect Separator (Naive check on first line approximation)
     let firstLineEnd = csv.indexOf('\n');
     if (firstLineEnd === -1) firstLineEnd = csv.length;
     const firstLine = csv.substring(0, firstLineEnd);
@@ -198,38 +205,26 @@ const fromCSV = (csv: string): any[] => {
 
         if (char === '"') {
             if (insideQuote && nextChar === '"') {
-                // Escaped quote ("") -> Add single quote and skip next
                 currentVal += '"';
                 i++;
             } else {
-                // Toggle quote state
                 insideQuote = !insideQuote;
             }
         } else if (char === separator && !insideQuote) {
-            // End of column
             currentRow.push(currentVal);
             currentVal = '';
         } else if ((char === '\r' || char === '\n') && !insideQuote) {
-            // End of row
-            // Handle \r\n or just \n
-            if (char === '\r' && nextChar === '\n') {
-                i++;
-            }
-
-            // Push column
+            if (char === '\r' && nextChar === '\n') i++;
             currentRow.push(currentVal);
-            // Push row if valid
             if (currentRow.length > 0 && currentRow.some(c => c.trim().length > 0)) {
                 rows.push(currentRow);
             }
-
             currentRow = [];
             currentVal = '';
         } else {
             currentVal += char;
         }
     }
-    // Push last row if exists
     if (currentRow.length > 0 || currentVal !== '') {
         currentRow.push(currentVal);
         if (currentRow.some(c => c.trim().length > 0)) {
@@ -239,16 +234,12 @@ const fromCSV = (csv: string): any[] => {
 
     if (rows.length === 0) return [];
 
-    // Extract Headers
-    const headers = rows[0].map(h => h.trim().replace(/^"|"$/g, '').replace(/^\uFEFF/, '')); // Remove encapsulating quotes and BOM
+    const headers = rows[0].map(h => h.trim().replace(/^"|"$/g, '').replace(/^\uFEFF/, '')); 
     const dataRows = rows.slice(1);
 
     return dataRows.map(rowValues => {
         const obj: any = {};
         headers.forEach((h, index) => {
-            // Values are already unescaped by our state machine, just trim whitespace if desired
-            // Standard CSV: Spaces around delimiters are part of the value unless quoted.
-            // We trim for safety.
             const val = rowValues[index] || '';
             obj[h] = val.trim();
         });
@@ -256,15 +247,14 @@ const fromCSV = (csv: string): any[] => {
     });
 };
 
-// --- EXPORTERS ---
+// --- GERADORES DE EXPORTAÇÃO (EXPORTERS) ---
 
 export const getCsvTemplate = (type: CsvEntityType): string => {
-    // We use semicolons in template to guide user towards Excel-friendly format
     switch (type) {
         case 'ASSETS': return 'id;name;type;parentId';
         case 'ACTIONS': return 'id;rca_id;action;responsible;date;status;moc_number';
         case 'TRIGGERS': return 'ID;AREA;Equip.;Subconjunto;Data/Hora Início;Data/Hora Fim;Duração (min);Tipo Parada;Razão Parada;Comentários;Tipo AF;Status;Responsável;ID AF;Path';
-        case 'RECORDS_SUMMARY': return 'id;what;issue_description;analysis_type;status;failure_date;failure_time;downtime_minutes;analysis_duration_minutes;financial_impact;area_id;equipment_id;subgroup_id;component_type;who;when;where_description;problem_description;participants;root_causes;potential_impacts;lessons_learned;version;file_path;specialty_id;failure_mode_id;failure_category_id';
+        case 'RECORDS_SUMMARY': return 'id;what;issue_description;analysis_type;status;failure_date;failure_time;downtime_minutes;analysis_duration_minutes;financial_impact;area_id;equipment_id;subgroup_id;component_type;who;when;where_description;problem_description;participants;root_causes;five_whys;ishikawa;potential_impacts;lessons_learned;version;file_path;specialty_id;failure_mode_id;failure_category_id';
         default: return 'id;name';
     }
 };
@@ -274,15 +264,9 @@ export const exportToCsv = (type: CsvEntityType, context: CsvContextData): strin
 
     if (type === 'ASSETS') {
         const flatAssets: any[] = [];
-        // Fix: Pass parentId down the recursion explicitly
         const traverse = (nodes: AssetNode[], currentParentId: string | null) => {
             nodes.forEach(n => {
-                flatAssets.push({
-                    id: n.id,
-                    name: n.name,
-                    type: n.type,
-                    parentId: currentParentId // Use passed parentId directly
-                });
+                flatAssets.push({ id: n.id, name: n.name, type: n.type, parentId: currentParentId });
                 if (n.children) traverse(n.children, n.id);
             });
         };
@@ -295,23 +279,12 @@ export const exportToCsv = (type: CsvEntityType, context: CsvContextData): strin
     }
 
     if (type === 'TRIGGERS') {
-        // Map internal structure back to Excel column names
         const rows = triggers.map(t => ({
-            'ID': t.id,
-            'AREA': t.area_id,
-            'Equip.': t.equipment_id,
-            'Subconjunto': t.subgroup_id,
-            'Data/Hora Início': t.start_date,
-            'Data/Hora Fim': t.end_date,
-            'Duração (min)': t.duration_minutes,
-            'Tipo Parada': t.stop_type,
-            'Razão Parada': t.stop_reason,
-            'Comentários': t.comments,
-            'Tipo AF': t.analysis_type_id,
-            'Status': t.status,
-            'Responsável': t.responsible,
-            'ID AF': t.rca_id,
-            'Path': t.file_path || ''
+            'ID': t.id, 'AREA': t.area_id, 'Equip.': t.equipment_id, 'Subconjunto': t.subgroup_id,
+            'Data/Hora Início': t.start_date, 'Data/Hora Fim': t.end_date, 'Duração (min)': t.duration_minutes,
+            'Tipo Parada': t.stop_type, 'Razão Parada': t.stop_reason, 'Comentários': t.comments,
+            'Tipo AF': t.analysis_type_id, 'Status': t.status, 'Responsável': t.responsible,
+            'ID AF': t.rca_id, 'Path': t.file_path || ''
         }));
         return toCSV(rows, ['AREA', 'Equip.', 'Subconjunto', 'Data/Hora Início', 'Data/Hora Fim', 'Duração (min)', 'Tipo Parada', 'Razão Parada', 'Comentários', 'Tipo AF', 'Status', 'Responsável', 'ID AF', 'Path']);
     }
@@ -319,27 +292,13 @@ export const exportToCsv = (type: CsvEntityType, context: CsvContextData): strin
     if (type === 'RECORDS_SUMMARY') {
         const header = ['id', 'what', 'problem_description', 'analysis_type', 'status', 'failure_date', 'failure_time', 'downtime_minutes', 'analysis_duration_minutes', 'financial_impact', 'area_id', 'equipment_id', 'subgroup_id', 'component_type', 'who', 'when', 'where_description', 'participants', 'root_causes', 'five_whys', 'ishikawa', 'potential_impacts', 'lessons_learned', 'version', 'file_path', 'specialty_id', 'failure_mode_id', 'failure_category_id', 'analysis_date', 'facilitator', 'os_number'];
 
-        // Custom Mapper for Complex Fields
         const rows = records.map(r => {
-            // Helper for Lists
             const joinList = (val: any) => Array.isArray(val) ? val.map(v => typeof v === 'object' ? JSON.stringify(v) : v).join('|') : String(val || '');
             
-            // Serialize Root Causes as "M_ID:CauseText|M_ID:CauseText"
-            const rootCauses = Array.isArray(r.root_causes) 
-                ? r.root_causes.map(rc => `${rc.root_cause_m_id}:${rc.cause}`).join('|') 
-                : '';
-
-            // Serialize 5 Whys as "Why? Answer|Why? Answer"
-            const fiveWhys = Array.isArray(r.five_whys)
-                ? r.five_whys.map(w => `${w.why_question}:${w.answer}`).join('|')
-                : '';
-
-            // Serialize Ishikawa as "Category:Item|Category:Item"
-            const ishikawa = r.ishikawa 
-                ? Object.entries(r.ishikawa).flatMap(([cat, items]) => 
-                    (Array.isArray(items) ? items : []).map(item => `${cat}:${item}`)
-                  ).join('|')
-                : '';
+            // Serialização técnica para transporte via CSV (preserva integridade do motor de status)
+            const rootCauses = Array.isArray(r.root_causes) ? r.root_causes.map(rc => `${rc.root_cause_m_id}:${rc.cause}`).join('|') : '';
+            const fiveWhys = Array.isArray(r.five_whys) ? r.five_whys.map(w => `${w.why_question}:${w.answer}`).join('|') : '';
+            const ishikawa = r.ishikawa ? Object.entries(r.ishikawa).flatMap(([cat, items]) => (Array.isArray(items) ? items : []).map(item => `${cat}:${item}`)).join('|') : '';
 
             return {
                 ...r,
@@ -358,49 +317,38 @@ export const exportToCsv = (type: CsvEntityType, context: CsvContextData): strin
     const taxonomyKey = TAXONOMY_MAP[type];
     if (taxonomyKey && taxonomy) {
         const items = (taxonomy[taxonomyKey] as TaxonomyItem[]) || [];
-
-        // Custom Logic for Failure Modes with Specialty Dependency
         if (type === 'TAXONOMY_FAILURE_MODES') {
-            const rows = items.map((i: any) => ({
-                id: i.id,
-                name: i.name,
-                specialty_ids: i.specialty_ids ? i.specialty_ids.join('|') : ''
-            }));
+            const rows = items.map((i: any) => ({ id: i.id, name: i.name, specialty_ids: i.specialty_ids ? i.specialty_ids.join('|') : '' }));
             return toCSV(rows, ['id', 'name', 'specialty_ids']);
         }
-
         return toCSV(items, ['id', 'name']);
     }
 
     return '';
 };
 
-// --- IMPORTERS ---
+// --- PROCESSADORES DE IMPORTAÇÃO (IMPORTERS) ---
 
 export const importFromCsv = (type: CsvEntityType, csvContent: string, context: CsvContextData, options?: { mode: 'APPEND' | 'UPDATE', inheritHierarchy?: boolean }): CsvImportResult => {
     try {
-        // Extrair headers do CSV para validação
         const lines = csvContent.split('\n').filter(l => l.trim().length > 0);
         if (lines.length === 0) return { success: false, message: "Arquivo CSV vazio ou ilegível." };
 
         const separator = detectSeparator(lines[0]);
         const headers = lines[0].split(separator).map(h => h.trim().replace(/^"|"$/g, '').replace(/^\uFEFF/, ''));
 
-        // Validar schema antes de processar
         const schemaValidation = validateCsvSchema(type, headers);
-        if (!schemaValidation.valid) {
-            return { success: false, message: schemaValidation.message };
-        }
+        if (!schemaValidation.valid) return { success: false, message: schemaValidation.message };
 
         const rawData = fromCSV(csvContent) as any[];
-        if (rawData.length === 0) return { success: false, message: "CSV vazio (apenas cabeçalho, sem dados)." };
+        if (rawData.length === 0) return { success: false, message: "CSV sem dados." };
 
         const { assets = [], taxonomy = { analysisTypes: [], analysisStatuses: [], specialties: [], failureModes: [], failureCategories: [], componentTypes: [], rootCauseMs: [], triggerStatuses: [] }, triggers: existingTriggers = [], actions: existingActions = [], records: existingRecords = [] } = context;
 
         if (type === 'ASSETS') {
             const nodes: AssetNode[] = rawData.map(r => ({
                 id: r.id || generateId('IMP'),
-                name: r.name || 'Unnamed Asset',
+                name: r.name || 'Ativo sem nome',
                 type: (r.type === 'AREA' || r.type === 'EQUIPMENT' || r.type === 'SUBGROUP') ? r.type : 'AREA',
                 parentId: r.parentId || undefined,
                 children: []
@@ -408,10 +356,8 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
 
             const nodeMap = new Map<string, AssetNode>();
             nodes.forEach(n => nodeMap.set(n.id, n));
-
             const rootNodes: AssetNode[] = [];
 
-            // Reconstruct Hierarchy
             nodes.forEach(n => {
                 if (n.parentId && nodeMap.has(n.parentId)) {
                     const parent = nodeMap.get(n.parentId)!;
@@ -422,22 +368,11 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 }
             });
 
-            if (nodes.length > 0 && nodes.every(n => n.name === 'Unnamed Asset')) {
-                return { success: false, message: "Import failed: Could not read 'name' column. Check CSV delimiter (Use ; or ,)." };
-            }
-
-            return {
-                success: true,
-                message: `Successfully parsed ${nodes.length} assets.`,
-                data: rootNodes,
-                dataType: 'ASSETS'
-            };
+            return { success: true, message: `Parsed ${nodes.length} ativos.`, data: rootNodes, dataType: 'ASSETS' };
         }
 
         if (type === 'TRIGGERS') {
             const newTriggers: TriggerRecord[] = [];
-
-            // Helper to find asset ID by Name (Recursive)
             const findAssetId = (name: string, nodes: AssetNode[]): string => {
                 if (!name) return '';
                 const cleanName = name.trim().toLowerCase();
@@ -451,7 +386,6 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 return '';
             };
 
-            // Helper to find Taxonomy ID by Name
             const findTaxonomyId = (list: TaxonomyItem[], name: string): string => {
                 if (!name) return '';
                 const found = list.find(i => i.name.toLowerCase() === name.toLowerCase().trim() || i.id === name);
@@ -462,26 +396,21 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
             const errors: string[] = [];
 
             rawData.forEach((r, i) => {
-                // Strict Row Validation (Fix for empty Excel rows & placeholders)
                 const sanitizeValue = (val: any): string => {
                     if (!val) return '';
                     let s = String(val).trim();
-                    // Remove " or ' if that is the ONLY content (artifact of bad parsing)
                     if (s === '"' || s === "'" || s === '""' || s === "''") return '';
                     return s;
                 };
 
                 const startDate = parseDateString(r['Data/Hora Início']);
-                const invalidDate = !startDate;
-
-                const isInvalid = (val: any) => {
-                    const s = sanitizeValue(val);
-                    return s.length === 0 || s === '-' || s === '.' || s.toLowerCase() === 'n/a' || s === '0';
-                };
+                if (!startDate) {
+                    errors.push(`Linha ${i + 1}: Data de início inválida.`);
+                    return;
+                }
 
                 const statusName = sanitizeValue(r['Status']);
-                let statusId = findTaxonomyId(taxonomy.triggerStatuses || [], statusName);
-                if (!statusId) statusId = defaultStatusId;
+                let statusId = findTaxonomyId(taxonomy.triggerStatuses || [], statusName) || defaultStatusId;
 
                 const areaName = sanitizeValue(r['AREA']);
                 const equipName = sanitizeValue(r['Equip.']);
@@ -491,8 +420,7 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 let equipId = findAssetId(equipName, assets);
                 let subId = findAssetId(subName, assets);
 
-                // Hierarchy Inference (Task: Herdar Hierarquia)
-                // If Subgroup is found but Area/Equip is missing, infer them from tree
+                // Inferência de Hierarquia: Completa automaticamente se um nível inferior for identificado
                 if (subId && (!areaId || !equipId)) {
                     const path = findAssetPath(assets, subId);
                     if (path) {
@@ -502,113 +430,41 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                         });
                     }
                 }
-                // Same for Equipment -> Area
-                if (equipId && !areaId) {
-                    const path = findAssetPath(assets, equipId);
-                    if (path) {
-                        path.forEach(n => {
-                            if (n.type === 'AREA' && !areaId) areaId = n.id;
-                        });
-                    }
-                }
 
-                // Validation moved after RCA inheritance
                 const typeId = findTaxonomyId(taxonomy.analysisTypes || [], r['Tipo AF']);
-
-                // Fix: Clean up ID AF if it contains placeholders like "-"
                 const rawRcaId = String(r['ID AF'] || '').trim();
                 const cleanRcaId = (rawRcaId && rawRcaId !== '-') ? rawRcaId : '';
 
-                // --- LINKING LOGIC (Task 29.3 & 29.4) ---
-                // Try to find the Linked RCA
-                // Priority 1: ID Match
+                // Lógica de Vinculação Inteligente (ID ou Caminho de Arquivo)
                 let linkedRca = existingRecords.find(rec => rec.id === cleanRcaId);
-
-                // Priority 2: File Path Match (Smart Correlation)
-                // If no direct ID link, check if the file path matches the RCA's file path OR contains ID/OS
                 if (!linkedRca && (r['Path'] || r['file_path'])) {
                     const rawPath = String(r['Path'] || r['file_path'] || '');
-
-                    // Normalization: 
-                    // 1. Replace backslashes with forward slashes
-                    // 2. Remove double slashes
-                    // 3. Lowercase for case-insensitive check
                     const normalize = (s: string) => s.replace(/\\/g, '/').replace(/\/\//g, '/').trim().toLowerCase();
                     const cleanPath = normalize(rawPath);
 
-                    if (cleanPath.length > 5) { // Avoid matching short noise
-                        // Search for Matching RCA
+                    if (cleanPath.length > 5) {
                         linkedRca = existingRecords.find(rec => {
                             if (!rec.id) return false;
-
-                            // 1. EXACT PATH MATCH (Highest Priority)
-                            if (rec.file_path) {
-                                const cleanRcaPath = normalize(rec.file_path);
-                                // Check exact match or if one ends with the other (handling relative vs absolute)
-                                if (cleanRcaPath === cleanPath || cleanPath.endsWith(cleanRcaPath) || cleanRcaPath.endsWith(cleanPath)) {
-                                    return true;
-                                }
-                            }
-
-                            // 2. Check ID in Path
-                            const cleanId = normalize(rec.id);
-                            if (cleanPath.includes(cleanId)) return true;
-
-                            // 3. Check OS Number in Path (Common in filenames)
-                            if (rec.os_number) {
-                                const cleanOs = normalize(rec.os_number);
-                                if (cleanOs.length > 2 && cleanPath.includes(cleanOs)) return true;
-                            }
-
+                            if (rec.file_path && normalize(rec.file_path) === cleanPath) return true;
+                            if (normalize(rec.id).includes(cleanPath)) return true;
                             return false;
                         });
-
-                        if (linkedRca) {
-                            console.log(`🔗 Smart Link Success: "${rawPath}" -> RCA ${linkedRca.id}`);
-                        }
                     }
                 }
 
-                // --- HIERARCHY INHERITANCE ---
-                // If Trigger has missing hierarchy OR inheritHierarchy option is true, inherit from RCA
-                if (linkedRca) {
-                    const shouldInherit = options?.inheritHierarchy || false;
-
-                    if ((shouldInherit || !areaId) && linkedRca.area_id) areaId = linkedRca.area_id;
-                    if ((shouldInherit || !equipId) && linkedRca.equipment_id) equipId = linkedRca.equipment_id;
-                    if ((shouldInherit || !subId) && linkedRca.subgroup_id) subId = linkedRca.subgroup_id;
-
-                    // Auto-fill RCA ID if found by path
-                    if (!cleanRcaId) {
-                        // We don't overwrite r['ID AF'] here but we use linkedRca.id for the object
-                    }
-                }
-
-
-                // Strict Validation with Error Reporting
-                // We check areaId here, instead of raw string
-                if (invalidDate) {
-                    errors.push(`Row ${i + 1}: Invalid Date format ('${r['Data/Hora Início'] || ''}')`);
-                    return;
-                }
                 if (!areaId) {
-                    errors.push(`Row ${i + 1}: Missing Area and could not inherit from linked RCA (Subgroup: '${subName}', path connection failed)`);
+                    errors.push(`Linha ${i + 1}: Área não identificada.`);
                     return;
                 }
 
-                // Determine ID based on Mode
-                let triggerId = generateId('TRG');
-                if (options?.mode === 'UPDATE' && r['ID']) {
-                    // Update Mode: Use provided ID if present (Upsert behavior)
-                    triggerId = r['ID'];
-                }
+                let triggerId = (options?.mode === 'UPDATE' && r['ID']) ? r['ID'] : generateId('TRG');
 
                 const trigger: TriggerRecord = {
                     id: triggerId,
                     area_id: areaId,
                     equipment_id: equipId,
                     subgroup_id: subId,
-                    start_date: startDate, // Use parsed date directly
+                    start_date: startDate,
                     end_date: parseDateString(r['Data/Hora Fim']),
                     duration_minutes: parseInt(r['Duração (min)']) || 0,
                     stop_type: r['Tipo Parada'] || '',
@@ -617,30 +473,20 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                     analysis_type_id: typeId,
                     status: statusId,
                     responsible: r['Responsável'] || '',
-                    rca_id: linkedRca ? linkedRca.id : '', // Only use validated ID from lookup
+                    rca_id: linkedRca ? linkedRca.id : '',
                     file_path: r['Path'] || r['Caminho'] || r['Link'] || r['File Path'] || ''
                 };
                 newTriggers.push(trigger);
             });
 
-            // Return merged triggers as existing logic implied full context update
-            // However, MigrationView will use saveTriggers (which replaces).
-            // So we return the MERGED status.
-            const mergedTriggers = [...existingTriggers, ...newTriggers];
-
-            return {
-                success: true,
-                message: `Successfully parsed ${newTriggers.length} new triggers.`,
-                data: mergedTriggers,
-                dataType: 'TRIGGERS'
-            };
+            return { success: true, message: `Importados ${newTriggers.length} novos gatilhos.`, data: [...existingTriggers, ...newTriggers], dataType: 'TRIGGERS' };
         }
 
         if (type === 'ACTIONS') {
             const actions: ActionRecord[] = rawData.map(r => ({
                 id: r.id || generateId('ACT'),
                 rca_id: r.rca_id || '',
-                action: r.action || 'New Action',
+                action: r.action || 'Nova Ação',
                 responsible: r.responsible || '',
                 date: r.date || new Date().toISOString().split('T')[0],
                 status: ['1', '2', '3', '4'].includes(r.status) ? r.status : '1',
@@ -649,14 +495,7 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
 
             const actionMap = new Map(existingActions.map(a => [a.id, a]));
             actions.forEach(a => actionMap.set(a.id, a));
-            const mergedActions = Array.from(actionMap.values());
-
-            return {
-                success: true,
-                message: `Successfully parsed ${actions.length} actions.`,
-                data: mergedActions,
-                dataType: 'ACTIONS'
-            };
+            return { success: true, message: `Parsed ${actions.length} ações.`, data: Array.from(actionMap.values()), dataType: 'ACTIONS' };
         }
 
         if (type === 'RECORDS_SUMMARY') {
@@ -669,15 +508,12 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                     parts = r.participants.split('|').map((p: string) => p.trim()).filter((p: string) => p);
                 }
 
+                // Desserialização técnica para reconstrução dos objetos complexos
                 let rootCauses: any[] = [];
                 if (r.root_causes) {
                     rootCauses = r.root_causes.split('|').map((pair: string) => {
                         const [m_id, ...causeParts] = pair.split(':');
-                        return { 
-                            id: generateId('RC'), 
-                            root_cause_m_id: m_id, 
-                            cause: causeParts.join(':') // Re-join in case cause contains colons
-                        };
+                        return { id: generateId('RC'), root_cause_m_id: m_id, cause: causeParts.join(':') };
                     }).filter((rc: any) => rc.root_cause_m_id && rc.cause);
                 }
 
@@ -685,11 +521,7 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 if (r.five_whys) {
                     fiveWhys = r.five_whys.split('|').map((pair: string, idx: number) => {
                         const [q, ...aParts] = pair.split(':');
-                        return {
-                            id: String(idx + 1),
-                            why_question: q,
-                            answer: aParts.join(':')
-                        };
+                        return { id: String(idx + 1), why_question: q, answer: aParts.join(':') };
                     }).filter((w: any) => w.answer);
                 }
 
@@ -697,16 +529,12 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 if (r.ishikawa) {
                     r.ishikawa.split('|').forEach((pair: string) => {
                         const [cat, ...itemParts] = pair.split(':');
-                        const item = itemParts.join(':');
-                        if (ishikawa[cat] && Array.isArray(ishikawa[cat])) {
-                            ishikawa[cat].push(item);
-                        }
+                        if (ishikawa[cat]) ishikawa[cat].push(itemParts.join(':'));
                     });
                 }
 
-                // Helper to parse numbers safely from CSV (handles both , and . separators)
                 const parseNum = (val: any) => {
-                    if (val === undefined || val === null || val === '') return 0;
+                    if (!val) return 0;
                     const clean = String(val).replace(',', '.').replace(/[^\d.-]/g, '');
                     const num = parseFloat(clean);
                     return isNaN(num) ? 0 : num;
@@ -751,55 +579,31 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 return rec;
             });
 
-            return {
-                success: true,
-                message: `Parsed ${importedRecords.length} records (${updatedCount} updates).`,
-                data: importedRecords,
-                dataType: 'RECORDS_SUMMARY'
-            };
+            return { success: true, message: `Parsed ${importedRecords.length} análises (${updatedCount} atualizações).`, data: importedRecords, dataType: 'RECORDS_SUMMARY' };
         }
 
         const taxonomyKey = TAXONOMY_MAP[type];
         if (taxonomyKey) {
             const newItems: TaxonomyItem[] = rawData.map(r => {
-                const item: TaxonomyItem = {
-                    id: r.id || generateId('TAX'),
-                    name: r.name || 'Unnamed Item'
-                };
-
-                // Handle Specialty IDs for Failure Modes
+                const item: TaxonomyItem = { id: r.id || generateId('TAX'), name: r.name || 'Item sem nome' };
                 if (type === 'TAXONOMY_FAILURE_MODES' && r.specialty_ids) {
-                    const rawIds = String(r.specialty_ids);
-                    if (rawIds.trim()) {
-                        item.specialty_ids = rawIds.split(/[|;]/).map(id => id.trim()).filter(id => id);
-                    }
+                    item.specialty_ids = String(r.specialty_ids).split(/[|;]/).map(id => id.trim()).filter(id => id);
                 }
-
                 return item;
             });
-
-            if (newItems.length > 0 && newItems.every(i => i.name === 'Unnamed Item')) {
-                return { success: false, message: "Import failed: Could not read 'name' column." };
-            }
 
             const currentTaxonomy = { ...taxonomy };
             if (taxonomyKey in currentTaxonomy) {
                 // @ts-ignore
                 currentTaxonomy[taxonomyKey] = newItems;
             }
-
-            return {
-                success: true,
-                message: `Successfully parsed ${newItems.length} items to ${taxonomyKey}.`,
-                data: currentTaxonomy,
-                dataType: type
-            };
+            return { success: true, message: `Parsed ${newItems.length} itens para ${taxonomyKey}.`, data: currentTaxonomy, dataType: type };
         }
 
-        return { success: false, message: "Unknown entity type selected." };
+        return { success: false, message: "Tipo de entidade desconhecido." };
 
     } catch (e) {
         console.error(e);
-        return { success: false, message: "Critical CSV Parsing Error." };
+        return { success: false, message: "Erro crítico no parsing do CSV." };
     }
 };

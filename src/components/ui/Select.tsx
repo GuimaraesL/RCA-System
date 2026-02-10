@@ -1,9 +1,12 @@
+/**
+ * Proposta: Componente de seleção (Dropdown) padrão com suporte a estados de erro e acessibilidade.
+ */
 
 import React, { SelectHTMLAttributes } from 'react';
 import { useLanguage } from '../../context/LanguageDefinition';
 
 interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'id'> {
-    id: string; // Required for accessibility
+    id: string; // Obrigatório para garantir a acessibilidade via label/id
     label?: string;
     options: { value: string | number; label: string }[];
     error?: boolean;
@@ -11,7 +14,8 @@ interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'id'
 
 export const Select: React.FC<SelectProps> = ({ id, label, options, error, className, value, ...props }) => {
     const { t } = useLanguage();
-    // Fix: Convert null/undefined value to empty string to avoid React warning
+    
+    // Normalização: Converte valores nulos/indefinidos em string vazia para evitar alertas de componente não-controlado
     const safeValue = value ?? '';
 
     return (

@@ -1,3 +1,8 @@
+/**
+ * Proposta: Vista de Migração e Gestão de Backup (JSON/CSV).
+ * Fluxo: Orquestra a importação e exportação de dados, permitindo restaurações completas, atualizações de lote e gerenciamento de taxonomia via arquivos externos.
+ */
+
 import React, { useState, useRef, useMemo } from 'react';
 import { Upload, Download, FileSpreadsheet, Database, RefreshCw, CheckCircle, AlertTriangle } from 'lucide-react';
 import { importData, saveAssets, saveActions, saveRecords, saveTriggers, saveTaxonomy } from '../services/storageService';
@@ -5,7 +10,7 @@ import { fetchAllRecordsFull, importDataToApi, importRecordsToApi, importActions
 import { MigrationData, TaxonomyConfig } from '../types';
 import { CsvEntityType, getCsvTemplate, exportToCsv as exportToCsvService, importFromCsv } from '../services/csvService';
 import { useRcaContext } from '../context/RcaContext';
-import { useLanguage } from '../context/LanguageDefinition'; // i18n
+import { useLanguage } from '../context/LanguageDefinition'; 
 
 export const MigrationView: React.FC = () => {
     const { t } = useLanguage();
@@ -13,11 +18,11 @@ export const MigrationView: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'JSON' | 'CSV'>('JSON');
     const [csvType, setCsvType] = useState<CsvEntityType>('ASSETS');
 
-    // Import Configuration State
+    // Estado da configuração de importação
     const [importMode, setImportMode] = useState<'APPEND' | 'UPDATE' | 'REPLACE'>('APPEND');
     const [inheritHierarchy, setInheritHierarchy] = useState<boolean>(false);
 
-    // Preview State (JSON)
+    // Estado de pré-visualização (JSON)
     const [previewData, setPreviewData] = useState<MigrationData | null>(null);
     const [taxonomySelection, setTaxonomySelection] = useState<Record<string, boolean>>({
         analysisTypes: true,
@@ -30,11 +35,11 @@ export const MigrationView: React.FC = () => {
         triggerStatuses: true
     });
 
-    // Refs to clear file inputs
+    // Referências para limpeza de inputs de arquivo
     const jsonInputRef = useRef<HTMLInputElement>(null);
     const csvInputRef = useRef<HTMLInputElement>(null);
 
-    // Access Context
+    // Acesso ao contexto global
     const { refreshAll, useApi, records, assets, actions, triggers, taxonomy } = useRcaContext();
 
     const entityOptions = useMemo(() => [
@@ -52,15 +57,18 @@ export const MigrationView: React.FC = () => {
         { value: 'TAXONOMY_TRIGGER_STATUSES' as CsvEntityType, label: t('migration.entities.taxonomyTriggerStatuses') },
     ], [t]);
 
-    // Helper: File Encoding
+    /**
+     * Lê um arquivo tratando problemas de codificação comuns no Excel/Windows.
+     */
     const readFileWithEncoding = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
 
             reader.onload = (e) => {
                 const content = e.target?.result as string;
-                if (content.includes('\uFFFD')) { // Check for replacement char
-                    console.log("Detected encoding issues, retrying with windows-1252...");
+                // Detecta caracteres inválidos para tentar recuperação via windows-1252
+                if (content.includes('\uFFFD')) { 
+                    console.log("Problemas de codificação detectados, tentando windows-1252...");
                     const retryReader = new FileReader();
                     retryReader.onload = (evt) => resolve(evt.target?.result as string);
                     retryReader.onerror = () => reject(retryReader.error);
@@ -74,7 +82,6 @@ export const MigrationView: React.FC = () => {
         });
     };
 
-    // Helper: Download File
     const downloadFile = (content: string, fileName: string, contentType: string) => {
         const blob = new Blob([content], { type: contentType });
         const url = URL.createObjectURL(blob);
@@ -85,13 +92,13 @@ export const MigrationView: React.FC = () => {
         URL.revokeObjectURL(url);
     };
 
-    // --- JSON HANDLERS ---
+    // --- GESTÃO DE BACKUP JSON ---
 
     const handleJsonFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        setMsg({ type: 'success', text: 'Analyzing JSON...' });
+        setMsg({ type: 'success', text: 'Analisando integridade do JSON...' });
         setPreviewData(null);
 
         try {
@@ -109,7 +116,7 @@ export const MigrationView: React.FC = () => {
     const executeImport = async () => {
         if (!previewData) return;
 
-        setMsg({ type: 'success', text: 'Executing Import...' });
+        setMsg({ type: 'success', text: 'Executando importação...' });
 
         try {
             const selectedTaxonomies = Object.entries(taxonomySelection)
@@ -119,7 +126,7 @@ export const MigrationView: React.FC = () => {
             let res: { success: boolean, message: string };
 
             if (useApi) {
-                console.log('🔄 Importando via API...', importMode, selectedTaxonomies);
+                console.log('🔄 Sincronizando dados via API...', importMode, selectedTaxonomies);
                 res = await importDataToApi(previewData, importMode, selectedTaxonomies);
             } else {
                 res = importData(JSON.stringify(previewData));
@@ -132,15 +139,15 @@ export const MigrationView: React.FC = () => {
                 if (jsonInputRef.current) jsonInputRef.current.value = '';
             }
         } catch (error) {
-            setMsg({ type: 'error', text: 'Import Failed.' });
+            setMsg({ type: 'error', text: 'Falha na importação.' });
             console.error(error);
         }
     };
 
     const handleJsonDownload = async () => {
-        setMsg({ type: 'success', text: 'Preparing full backup...' });
+        setMsg({ type: 'success', text: 'Preparando carga total de dados...' });
         try {
-            // Fetch full records if using API, otherwise use local records
+            // Garante que o backup contenha dados completos (full export), ignorando otimizações de tela
             const fullRecords = useApi ? await fetchAllRecordsFull() : records;
 
             const exportObj: MigrationData = {
@@ -148,7 +155,7 @@ export const MigrationView: React.FC = () => {
                     systemVersion: '17.0',
                     exportDate: new Date().toISOString(),
                     recordCount: fullRecords.length,
-                    description: 'Full System Backup'
+                    description: 'Backup Integral do Sistema'
                 },
                 assets,
                 records: fullRecords,
@@ -158,9 +165,9 @@ export const MigrationView: React.FC = () => {
             };
             const json = JSON.stringify(exportObj, null, 2);
             downloadFile(json, `rca_backup_v17_${new Date().toISOString().split('T')[0]}.json`, 'application/json');
-            setMsg({ type: 'success', text: 'Backup downloaded successfully.' });
+            setMsg({ type: 'success', text: 'Backup gerado e baixado com sucesso.' });
         } catch (error) {
-            setMsg({ type: 'error', text: 'Failed to generate backup.' });
+            setMsg({ type: 'error', text: 'Falha ao gerar backup.' });
             console.error(error);
         }
     };
@@ -169,7 +176,7 @@ export const MigrationView: React.FC = () => {
         setTaxonomySelection(prev => ({ ...prev, [key]: !prev[key] }));
     };
 
-    // --- CSV HANDLERS ---
+    // --- FERRAMENTAS CSV ---
 
     const handleDownloadTemplate = () => {
         const template = getCsvTemplate(csvType);
@@ -178,9 +185,9 @@ export const MigrationView: React.FC = () => {
     };
 
     const handleCsvExport = async () => {
-        setMsg({ type: 'success', text: 'Preparing export...' });
+        setMsg({ type: 'success', text: 'Preparando exportação CSV...' });
         try {
-            // Fetch full records if using API and target is records summary
+            // Força a busca de dados completos se a entidade alvo for Análises (RCA)
             const exportRecords = (useApi && csvType === 'RECORDS_SUMMARY') 
                 ? await fetchAllRecordsFull() 
                 : records;
@@ -188,9 +195,9 @@ export const MigrationView: React.FC = () => {
             const data = exportToCsvService(csvType, { assets, actions, triggers, records: exportRecords, taxonomy });
             const content = '\uFEFF' + data;
             downloadFile(content, `export_${csvType.toLowerCase()}_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8;');
-            setMsg({ type: 'success', text: 'Export completed.' });
+            setMsg({ type: 'success', text: 'Exportação concluída.' });
         } catch (error) {
-            setMsg({ type: 'error', text: 'Export failed.' });
+            setMsg({ type: 'error', text: 'Falha na exportação.' });
             console.error(error);
         }
     };
@@ -199,11 +206,11 @@ export const MigrationView: React.FC = () => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        setMsg({ type: 'success', text: 'Reading CSV...' });
+        setMsg({ type: 'success', text: 'Processando arquivo CSV...' });
 
         try {
             const content = await readFileWithEncoding(file);
-            // Default to APPEND if REPLACE is selected (since CSV doesn't support REPLACE)
+            // CSV não suporta REPLACE por natureza plana; converte para APPEND se selecionado
             const safeMode = importMode === 'REPLACE' ? 'APPEND' : importMode;
 
             const res = importFromCsv(csvType, content, {
@@ -244,7 +251,7 @@ export const MigrationView: React.FC = () => {
 
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
-            setMsg({ type: 'error', text: `Failed to process CSV: ${errorMsg}` });
+            setMsg({ type: 'error', text: `Falha ao processar CSV: ${errorMsg}` });
             console.error(error);
         } finally {
             if (csvInputRef.current) csvInputRef.current.value = '';
@@ -257,7 +264,7 @@ export const MigrationView: React.FC = () => {
             <h1 className="text-3xl font-bold text-slate-900 mb-2">{t('migration.title')}</h1>
             <p className="text-slate-500 mb-8">{t('migration.description')}</p>
 
-            {/* Tabs */}
+            {/* Abas de Formato */}
             <div className="flex border-b border-slate-200 mb-8">
                 <button
                     onClick={() => { setActiveTab('JSON'); setMsg(null); }}
@@ -273,7 +280,7 @@ export const MigrationView: React.FC = () => {
                 </button>
             </div>
 
-            {/* Alert Message */}
+            {/* Mensagens de Feedback */}
             {msg && (
                 <div className={`mb-6 p-4 border rounded-lg flex items-center gap-3 ${msg.type === 'success' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
                     {msg.type === 'success' ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
@@ -283,7 +290,7 @@ export const MigrationView: React.FC = () => {
 
             {activeTab === 'JSON' ? (
                 <div className="space-y-8">
-                    {/* 1. File Upload Block */}
+                    {/* 1. Upload de Arquivo Backup */}
                     {!previewData && (
                         <div className="bg-white p-12 rounded-xl border-2 border-dashed border-slate-300 shadow-sm text-center hover:border-blue-400 hover:bg-slate-50 transition-all cursor-pointer relative group">
                             <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-600 group-hover:scale-110 transition-transform">
@@ -306,7 +313,7 @@ export const MigrationView: React.FC = () => {
                         </div>
                     )}
 
-                    {/* 2. Configuration Block (Visible only after preview) */}
+                    {/* 2. Configuração de Importação (Visível após análise do arquivo) */}
                     {previewData && (
                         <div className="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden animate-in fade-in slide-in-from-bottom-4">
                             <div className="bg-slate-50 p-6 border-b border-slate-200 flex justify-between items-center">
@@ -325,7 +332,7 @@ export const MigrationView: React.FC = () => {
                             </div>
 
                             <div className="p-8 space-y-8">
-                                {/* Mode Selection */}
+                                {/* Seleção de Modo */}
                                 <div>
                                     <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">{t('migration.json.modeTitle')}</h4>
                                     <div className="flex gap-6">
@@ -353,7 +360,7 @@ export const MigrationView: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Granular Taxonomy Selection */}
+                                {/* Seleção Granular de Taxonomia */}
                                 <div>
                                     <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">{t('migration.json.taxonomyTitle')}</h4>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -384,7 +391,7 @@ export const MigrationView: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Action Buttons */}
+                                {/* Ações Finais */}
                                 <div className="flex justify-end pt-4 gap-4">
                                     <button
                                         onClick={() => setPreviewData(null)}
@@ -404,7 +411,7 @@ export const MigrationView: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Download Block */}
+                    {/* Bloco de Exportação */}
                     {!previewData && (
                         <div className="mt-12 pt-12 border-t border-slate-100 text-center">
                             <h3 className="text-lg font-semibold mb-2 text-slate-800">{t('migration.json.createBackup')}</h3>
@@ -444,17 +451,13 @@ export const MigrationView: React.FC = () => {
                                 </option>
                             ))}
                         </select>
-                        <p className="mt-2 text-[10px] text-slate-400 uppercase tracking-wider">
-                            {t('migration.csv.description')}
-                        </p>
                     </div>
 
-                    {/* Trigger Import Options */}
+                    {/* Opções de Importação de Gatilhos */}
                     {csvType === 'TRIGGERS' && (
                         <div className="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
                             <h4 className="text-sm font-semibold text-slate-800 mb-3">{t('migration.csv.importOptions')}</h4>
                             <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-8">
-                                {/* Import Mode */}
                                 <div className="flex items-center gap-4">
                                     <span className="text-sm text-slate-600">{t('migration.csv.modeLabel')}</span>
                                     <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
@@ -483,7 +486,6 @@ export const MigrationView: React.FC = () => {
                                     </label>
                                 </div>
 
-                                {/* Hierarchy Inheritance */}
                                 <div className="flex items-center gap-2">
                                     <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
                                         <input
@@ -498,10 +500,6 @@ export const MigrationView: React.FC = () => {
                                     </label>
                                 </div>
                             </div>
-                            <p className="text-xs text-slate-500 mt-2">
-                                {importMode === 'UPDATE' ? t('migration.csv.updateHint') : t('migration.csv.appendHint')}
-                                {inheritHierarchy ? ' ' + t('migration.csv.inheritHint') : ''}
-                            </p>
                         </div>
                     )}
 

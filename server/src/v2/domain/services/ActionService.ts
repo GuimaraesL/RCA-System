@@ -1,3 +1,8 @@
+/**
+ * Proposta: Serviço de domínio para gestão de Planos de Ação (CAPA).
+ * Fluxo: Gerencia o CRUD de ações e dispara o recálculo de status da RCA vinculada sempre que há alterações.
+ */
+
 import { SqlActionRepository } from '../../infrastructure/repositories/SqlActionRepository';
 import { SqlRcaRepository } from '../../infrastructure/repositories/SqlRcaRepository';
 import { SqlTaxonomyRepository } from '../../infrastructure/repositories/SqlTaxonomyRepository';
@@ -16,7 +21,7 @@ export class ActionService {
     ) {
         this.actionRepo = actionRepo;
         this.taxonomyRepo = taxonomyRepo;
-        // ActionService depends on RcaService for status recalculation
+        // ActionService depende do RcaService para o recálculo automático de status
         this.rcaService = new RcaService(rcaRepo, actionRepo);
     }
 
@@ -31,7 +36,7 @@ export class ActionService {
 
     public updateAction(id: string, actionData: Partial<Action>): void {
         const existing = this.actionRepo.findById(id);
-        if (!existing) throw new Error('Action not found');
+        if (!existing) throw new Error('Ação não encontrada');
 
         const updated = { ...existing, ...actionData };
         this.actionRepo.update(updated);
@@ -66,7 +71,7 @@ export class ActionService {
         const rca = this.rcaService['rcaRepo'].findById(rcaId);
 
         if (rca) {
-            // updateRca handles automatic status logic
+            // O método updateRca do serviço orquestra a lógica automática de status
             this.rcaService.updateRca(rcaId, rca, taxonomy);
         }
     }

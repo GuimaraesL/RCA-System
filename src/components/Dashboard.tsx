@@ -1,3 +1,7 @@
+/**
+ * Proposta: Painel analítico principal (Dashboard) para visualização de KPIs e tendências.
+ * Fluxo: Agrega dados filtrados em tempo real (O(N)), resolve nomes via taxonomia e renderiza gráficos interativos usando Recharts.
+ */
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { AssetNode, RcaRecord } from '../types';
@@ -8,7 +12,7 @@ import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { useRcaContext } from '../context/RcaContext';
 import { translateStatus, translate6M } from '../utils/statusUtils';
-import { useLanguage } from '../context/LanguageDefinition'; // i18n
+import { useLanguage } from '../context/LanguageDefinition'; 
 import { useFilteredData } from '../hooks/useFilteredData';
 import { filterAssetsByUsage } from '../services/utils';
 import { AnimatedCounter } from './ui/AnimatedCounter';
@@ -17,7 +21,7 @@ import { Skeleton } from './ui/Skeleton';
 import { SafeResponsiveContainer } from './ui/SafeResponsiveContainer';
 import { Info } from 'lucide-react';
 
-// Professional Color Palette (Cool Tones + Accents)
+// Paleta de Cores Profissional (Tons Frios + Acentos)
 const COLORS = [
     '#3b82f6', // Blue 500
     '#10b981', // Emerald 500
@@ -27,14 +31,17 @@ const COLORS = [
     '#06b6d4', // Cyan 500
     '#8b5cf6', // Violet 500
     '#ef4444', // Red 500
-    '#84cc16', // Lime 500 (kept as accent)
+    '#84cc16', // Lime 500
     '#14b8a6', // Teal 500
 ];
 
+/**
+ * Retorna uma cor estável para um ID, garantindo que o mesmo item sempre tenha a mesma cor.
+ */
 const getStableColor = (id: string, mapping?: Record<string, string>) => {
     if (mapping && mapping[id]) return mapping[id];
 
-    // Stable hash-based color selection from the COLORS palette
+    // Seleção baseada em hash para consistência visual
     let hash = 0;
     for (let i = 0; i < id.length; i++) {
         hash = id.charCodeAt(i) + ((hash << 5) - hash);
@@ -67,7 +74,7 @@ const truncateLabel = (text: string, maxLength: number = 25) => {
     return text.substring(0, maxLength) + '...';
 };
 
-// --- Reusable Chart Card ---
+// --- Componente de Card de Gráfico Reutilizável ---
 const ChartCard: React.FC<{
     title: string;
     children: React.ReactNode;
@@ -109,7 +116,6 @@ export const Dashboard: React.FC = () => {
     const { records, assets, taxonomy, isLoading } = useRcaContext();
     const { t, language } = useLanguage();
 
-    // Animation Refs
     const kpiRef = useEnterAnimation([]);
     const chartsRef = useEnterAnimation([]);
 
@@ -119,19 +125,9 @@ export const Dashboard: React.FC = () => {
     }, []);
 
     const defaultFilters: FilterState = {
-        searchTerm: '',
-        year: '',
-        months: [],
-        status: 'ALL',
-        area: 'ALL',
-        equipment: 'ALL',
-        subgroup: 'ALL',
-        specialty: 'ALL',
-        analysisType: 'ALL',
-        failureMode: 'ALL',
-        failureCategory: 'ALL',
-        componentType: 'ALL',
-        rootCause6M: 'ALL'
+        searchTerm: '', year: '', months: [], status: 'ALL', area: 'ALL',
+        equipment: 'ALL', subgroup: 'ALL', specialty: 'ALL', analysisType: 'ALL',
+        failureMode: 'ALL', failureCategory: 'ALL', componentType: 'ALL', rootCause6M: 'ALL'
     };
 
     const { showFilters, setShowFilters, filters, setFilters, handleReset, isGlobal, toggleGlobal } = useFilterPersistence(
@@ -140,7 +136,7 @@ export const Dashboard: React.FC = () => {
         false
     );
 
-    // --- Intelligent Cross-Filtering Hook ---
+    // Orquestrador de filtros cruzados inteligentes
     const { filteredRCAs: filteredRecords } = useFilteredData(filters);
 
     const resolveTaxonomyName = (type: keyof typeof taxonomy, id: string) => {
@@ -149,6 +145,9 @@ export const Dashboard: React.FC = () => {
         return item ? item.name : id;
     };
 
+    /**
+     * Mapeia IDs de ativos para nomes em tempo O(N) para buscas rápidas.
+     */
     const assetMap = useMemo(() => {
         const map = new Map<string, string>();
         const traverse = (nodes: AssetNode[]) => {
@@ -164,7 +163,7 @@ export const Dashboard: React.FC = () => {
     const resolveAssetName = (id: string) => assetMap.get(id) || id;
 
     const dynamicOptions = useMemo(() => {
-        // Use raw records from context to determine which options have data
+        // Identifica quais ativos possuem dados vinculados para otimizar os filtros do cabeçalho
         const usedAssetIds = new Set<string>();
         records.forEach(r => {
             if (r.area_id) usedAssetIds.add(r.area_id);
@@ -181,9 +180,10 @@ export const Dashboard: React.FC = () => {
         };
     }, [records, assets, taxonomy]);
 
-    /* REMOVED REDUNDANT filteredRecords useMemo */
-
-    // --- Single-Pass Aggregator (Otimização de Performance O(N)) ---
+    /**
+     * Agregador de passagem única (O(N)): Processa todos os dados dos gráficos em um único loop.
+     * Crucial para manter a performance com grandes volumes de dados.
+     */
     const chartData = useMemo(() => {
         const counts: Record<string, Record<string, number>> = {
             status: {}, type: {}, equip: {}, sub: {}, comp: {}, mode: {}, cat: {}, root: {}
@@ -219,7 +219,7 @@ export const Dashboard: React.FC = () => {
             cat: toChart(counts.cat, id => resolveTaxonomyName('failureCategories', id)),
             root: toChart(counts.root, id => translate6M(id, resolveTaxonomyName('rootCauseMs', id), t))
         };
-    }, [filteredRecords, taxonomy, assetMap, t]); // Dependências otimizadas
+    }, [filteredRecords, taxonomy, assetMap, t]); 
 
     const { status: dataStatus, type: dataType, equip: dataEquip, sub: dataSub, comp: dataComp, mode: dataMode, cat: dataCat, root: dataRootCause } = chartData;
 
@@ -246,7 +246,7 @@ export const Dashboard: React.FC = () => {
 
     return (
         <div className="p-8 space-y-8 max-w-[1600px] mx-auto pb-20">
-            {/* Header */}
+            {/* Cabeçalho */}
             <div className="flex justify-between items-end animate-in fade-in duration-700 slide-in-from-top-4">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
@@ -256,7 +256,7 @@ export const Dashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Filter Bar */}
+            {/* Barra de Filtros */}
             <div className="animate-in fade-in duration-700 slide-in-from-top-4 delay-100">
                 <FilterBar
                     isOpen={showFilters}
@@ -281,7 +281,7 @@ export const Dashboard: React.FC = () => {
                 />
             </div>
 
-            {/* KPI Cards */}
+            {/* Cartões de KPI */}
             <div ref={kpiRef as any} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                     { label: t('dashboard.kpi.durationMin'), value: totalDowntimeMin, icon: <Clock size={14} />, color: 'text-blue-600', tooltip: t('dashboard.tooltips.durationMin') },
@@ -307,14 +307,9 @@ export const Dashboard: React.FC = () => {
                 ))}
             </div>
 
-            {/* Main Grid */}
+            {/* Grade Principal de Gráficos */}
             <div ref={chartsRef as any} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <ChartCard
-                    title={t('dashboard.charts.totalByStatus')}
-                    icon={<CheckCircle size={16} />}
-                    isInteractive
-                    isLoading={isLoading}
-                >
+                <ChartCard title={t('dashboard.charts.totalByStatus')} icon={<CheckCircle size={16} />} isInteractive isLoading={isLoading}>
                     {isMounted && dataStatus.length > 0 ? (
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <PieChart>
@@ -350,11 +345,7 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard
-                    title={t('dashboard.charts.totalByType')}
-                    icon={<PieIcon size={16} />}
-                    isInteractive
-                >
+                <ChartCard title={t('dashboard.charts.totalByType')} icon={<PieIcon size={16} />} isInteractive>
                     {isMounted && dataType.length > 0 ? (
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <PieChart>
@@ -386,11 +377,7 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard
-                    title={t('dashboard.charts.rootCause6M')}
-                    icon={<PieIcon size={16} />}
-                    isInteractive
-                >
+                <ChartCard title={t('dashboard.charts.rootCause6M')} icon={<PieIcon size={16} />} isInteractive>
                     {isMounted && dataRootCause.length > 0 ? (
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <PieChart>
@@ -426,11 +413,7 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard
-                    title={t('dashboard.charts.topEquipments')}
-                    icon={<TrendingUp size={16} />}
-                    isInteractive
-                >
+                <ChartCard title={t('dashboard.charts.topEquipments')} icon={<TrendingUp size={16} />} isInteractive>
                     {isMounted && dataEquip.length > 0 ? (
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <BarChart data={dataEquip} layout="vertical">
@@ -448,11 +431,7 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard
-                    title={t('dashboard.charts.topSubgroups')}
-                    icon={<TrendingUp size={16} />}
-                    isInteractive
-                >
+                <ChartCard title={t('dashboard.charts.topSubgroups')} icon={<TrendingUp size={16} />} isInteractive>
                     {isMounted && dataSub.length > 0 ? (
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <BarChart data={dataSub} layout="vertical">
@@ -471,66 +450,28 @@ export const Dashboard: React.FC = () => {
                 </ChartCard>
 
                 <ChartCard title={t('dashboard.charts.totalByComponent')} icon={<AlertCircle size={16} />} isInteractive>
-
                     {isMounted && dataComp.length > 0 ? (
-
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
-
                             <BarChart data={dataComp} layout="vertical">
-
                                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
-
                                 <XAxis type="number" hide />
-
-                                <YAxis
-
-                                    dataKey="name"
-
-                                    type="category"
-
-                                    width={150}
-
-                                    tick={{ fontSize: 11 }}
-
-                                    tickFormatter={(val) => truncateLabel(val)}
-
-                                />
-
+                                <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 11 }} tickFormatter={(val) => truncateLabel(val)} />
                                 <Tooltip content={<CustomTooltip />} />
-
                                 <Bar dataKey="count" fill="#10b981" radius={[0, 4, 4, 0]} barSize={20} onClick={(data) => handleChartClick('componentType', data.id)} cursor="pointer">
-
                                     {dataComp.map((entry) => (
-
                                         <Cell
-
                                             key={`cell-${entry.id}`}
-
                                             fill={getStableColor(entry.id)}
-
                                             opacity={filters.componentType !== 'ALL' && filters.componentType !== entry.id ? 0.2 : 1}
-
                                         />
-
                                     ))}
-
                                 </Bar>
-
                             </BarChart>
-
                         </SafeResponsiveContainer>
-
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
-
                 </ChartCard>
 
-
-
-                <ChartCard
-                    title={t('dashboard.charts.failureMode')}
-                    icon={<AlertCircle size={16} />}
-                    isInteractive
-                >
+                <ChartCard title={t('dashboard.charts.failureMode')} icon={<AlertCircle size={16} />} isInteractive>
                     {isMounted && dataMode.length > 0 ? (
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <BarChart data={dataMode} layout="vertical">
@@ -548,11 +489,7 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard
-                    title={t('dashboard.charts.failureCategory')}
-                    icon={<Activity size={16} />}
-                    isInteractive
-                >
+                <ChartCard title={t('dashboard.charts.failureCategory')} icon={<Activity size={16} />} isInteractive>
                     {isMounted && dataCat.length > 0 ? (
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <BarChart data={dataCat} layout="vertical">
