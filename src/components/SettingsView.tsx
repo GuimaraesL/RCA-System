@@ -168,6 +168,7 @@ export const SettingsView: React.FC = () => {
     { value: 'stop_reason', label: t('fields.stopReason') },
     { value: 'analysis_type_id', label: t('fields.analysisTypeIndicated') },
     { value: 'responsible', label: t('fields.responsible') },
+    { value: 'status', label: t('common.status') },
     { value: 'comments', label: t('fields.comments') }
   ];
 

@@ -153,6 +153,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                                                 onChange('five_whys', newWhys);
                                             }}
                                             placeholder="..."
+                                            error={errors?.five_whys && !w.why_question.trim()}
                                         />
                                     </div>
                                     <div>
@@ -166,6 +167,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                                                 onChange('five_whys', newWhys);
                                             }}
                                             placeholder="..."
+                                            error={errors?.five_whys && !w.answer.trim()}
                                         />
                                     </div>
                                 </div>
@@ -286,7 +288,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                     )}
 
                     {(data.root_causes || []).map((rc, idx) => (
-                        <div key={rc.id} className="grid grid-cols-12 gap-4 items-start bg-white p-4 rounded-lg border border-yellow-200 shadow-sm group">
+                        <div key={rc.id} className={`grid grid-cols-12 gap-4 items-start bg-white p-4 rounded-lg border shadow-sm group ${(!rc.root_cause_m_id || !rc.cause.trim()) && errors?.root_causes ? 'border-red-300 ring-1 ring-red-50' : 'border-yellow-200'}`}>
                             <div className="col-span-12 md:col-span-4">
                                 <Select
                                     id={`root_cause_${idx}_m_id`}
@@ -294,6 +296,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                                     options={[{ value: '', label: t('wizard.select') }, ...(taxonomy?.rootCauseMs || []).map(m => ({ value: m.id, label: translate6M(m.id, m.name, t) }))]}
                                     value={rc.root_cause_m_id}
                                     onChange={e => updateRootCause(idx, 'root_cause_m_id', e.target.value)}
+                                    error={!rc.root_cause_m_id && errors?.root_causes}
                                 />
                             </div>
                             <div className="col-span-12 md:col-span-7">
@@ -304,6 +307,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                                     value={rc.cause}
                                     onChange={e => updateRootCause(idx, 'cause', e.target.value)}
                                     placeholder="..."
+                                    error={!rc.cause.trim() && errors?.root_causes}
                                 />
                             </div>
                             <div className="col-span-12 md:col-span-1 flex justify-center pt-8">

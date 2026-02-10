@@ -146,10 +146,11 @@ export class RcaController {
             // So we will use Repo.bulkCreate directly.
 
             // console.log(`[V2] 🔄 Bulk Importing ${parse.data.length} RCAs...`);
-            this.rcaRepo.bulkCreate(parse.data as any[]); // types might need casting depending on exact zod vs Rca match
+            const taxonomy = this.taxonomyRepo.getTaxonomy();
+            const result = this.rcaService.bulkImport(parse.data as any[], taxonomy);
 
             // console.log(`[V2] ✅ Bulk Import Completed.`);
-            res.json({ message: `Imported ${parse.data.length} RCAs successfully` });
+            res.json({ message: `Imported ${result.count} RCAs successfully with dynamic status calculation` });
 
         } catch (error) {
             console.error('[V2] Error bulk importing:', error);

@@ -53,15 +53,19 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                     {/* Left: Asset Tree */}
                     <div>
                         <span id="asset-selector-label" className="block text-xs font-medium text-slate-500 mb-1">{t('wizard.step1.assetSelectorLabel')} {isFieldRequired('subgroup_id') && <span className="text-red-500">*</span>}</span>
-                        <div id="asset-selector-container" aria-labelledby="asset-selector-label" className={`mb-2 rounded-lg ${errors?.subgroup_id ? 'border-2 border-red-500 ring-4 ring-red-100' : ''}`}>
+                        <div id="asset-selector-container" aria-labelledby="asset-selector-label" className={`mb-2 rounded-lg border-2 transition-all ${
+                            (errors?.subgroup_id || errors?.equipment_id || errors?.area_id) 
+                            ? 'border-red-500 ring-4 ring-red-100' 
+                            : 'border-transparent'
+                        }`}>
                             <AssetSelector
                                 assets={assets}
                                 onSelect={onAssetSelect}
-                                selectedAssetId={data.subgroup_id}
+                                selectedAssetId={data.subgroup_id || data.equipment_id || data.area_id}
                                 selectableTypes={['SUBGROUP']}
                             />
                         </div>
-                        {errors?.subgroup_id && isFieldRequired('subgroup_id') && <span className="text-[10px] text-red-500 font-medium block mb-2">{t('wizard.step1.subgroupRequired')}</span>}
+                        {(errors?.subgroup_id || errors?.equipment_id || errors?.area_id) && <span className="text-[10px] text-red-500 font-medium block mb-2">{t('common.requiredField')}</span>}
                         <div className="p-3 bg-blue-50 rounded border border-blue-100 text-xs text-blue-800 space-y-1">
                             <div><strong>{t('wizard.step1.area')}:</strong> {getAssetName(data.area_id, assets) || '-'}</div>
                             <div><strong>{t('wizard.step1.equipment')}:</strong> {getAssetName(data.equipment_id, assets) || '-'}</div>

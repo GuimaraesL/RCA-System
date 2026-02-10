@@ -92,7 +92,8 @@ describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
             const updatePayload: Partial<Rca> = {
                 ...fetched,
                 participants: ['Team A'],
-                root_causes: [{ id: 'rc1', cause: 'Leak' }]
+                root_causes: [{ id: 'rc1', root_cause_m_id: 'M1', cause: 'Leak' }],
+                five_whys: [{id:'1', answer:'A'}, {id:'2', answer:'B'}, {id:'3', answer:'C'}]
             };
 
             const updateResult = service.updateRca(createResult.rca.id!, updatePayload, mockTaxonomy);

@@ -78,7 +78,8 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
         const rcaData: Partial<Rca> = {
             what: 'Failure X',
             participants: ['User A'],
-            root_causes: [{ id: '1', cause: 'Cause A' }]
+            root_causes: [{ id: '1', root_cause_m_id: 'M1', cause: 'Cause A' }],
+            five_whys: [{id:'1', answer:'A'}, {id:'2', answer:'B'}, {id:'3', answer:'C'}]
         };
         const create = service.createRca(rcaData, mockTaxonomy);
         expect(create.rca.status).toBe('STATUS-03'); // Deve estar concluída inicialmente
@@ -97,53 +98,77 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
     });
 
     it('deve permanecer em Aguardando Verificação se houver ações pendentes', () => {
-        // 1. Cria RCA (Em Andamento inicialmente devido a campos faltando)
-        const rcaId = 'rca-with-actions';
-        service.createRca({ id: rcaId, what: 'Has Actions' }, mockTaxonomy);
+        // 1. Configura taxonomia para EXIGIR ações
+        const taxonomyWithActions = {
+            ...mockTaxonomy,
+            mandatoryFields: {
+                rca: {
+                    create: ['what'],
+                    conclude: ['what', 'root_causes', 'participants', 'actions']
+                }
+            }
+        };
 
-        // 2. Cria Ação Pendente
+        // 2. Cria RCA (Em Andamento inicialmente devido a campos faltando)
+        const rcaId = 'rca-with-actions';
+        service.createRca({ id: rcaId, what: 'Has Actions' }, taxonomyWithActions);
+
+        // 3. Cria Ação Pendente
         actionRepo.create({
             id: 'act-1',
             rca_id: rcaId,
             action: 'Fix it',
-            status: 'PENDING', // Diferente de '3' ou '4' (Efetivo)
+            status: '1', // Pendente
             responsible: 'Bob', date: '2023-01-01'
         });
 
-        // 3. Atualiza RCA para ter TODOS os campos obrigatórios
+        // 4. Atualiza RCA para ter TODOS os campos obrigatórios
         const rca = rcaRepo.findById(rcaId)!;
         const updateData = {
             ...rca,
             participants: ['Team'],
-            root_causes: [{ id: '1', cause: 'Root' }]
+            root_causes: [{ id: '1', root_cause_m_id: 'M1', cause: 'Root' }],
+            five_whys: [{id:'1', answer:'A'}, {id:'2', answer:'B'}, {id:'3', answer:'C'}]
         };
 
-        const result = service.updateRca(rcaId, updateData, mockTaxonomy);
+        const result = service.updateRca(rcaId, updateData, taxonomyWithActions);
 
-        // 4. Verifica que o Status NÃO é Concluída, mas sim Aguardando
+        // 5. Verifica que o Status NÃO é Concluída, mas sim Aguardando
         expect(result.rca.status).toBe('STATUS-02');
-        expect(result.statusReason).toBe('Pending verification');
+        expect(result.statusReason).toBe('Pending verification of mandatory actions');
     });
 
     it('deve transicionar para Concluída apenas quando a Ação se tornar Efetiva', () => {
+        // Configura taxonomia para EXIGIR ações
+        const taxonomyWithActions = {
+            ...mockTaxonomy,
+            mandatoryFields: {
+                rca: {
+                    create: ['what'],
+                    conclude: ['what', 'root_causes', 'participants', 'actions']
+                }
+            }
+        };
+
         // Configura estado
         const rcaId = 'rca-trans-action';
         service.createRca({
             id: rcaId, what: 'Action Flow',
             participants: ['Team'],
-            root_causes: [{ id: '1', cause: 'Root' }]
-        }, mockTaxonomy);
+            root_causes: [{ id: '1', root_cause_m_id: 'M1', cause: 'Root' }],
+            five_whys: [{id:'1', answer:'A'}, {id:'2', answer:'B'}, {id:'3', answer:'C'}]
+        }, taxonomyWithActions);
 
         // 1. Adiciona Ação Pendente -> Status deve ser Aguardando
         actionRepo.create({
             id: 'act-2', rca_id: rcaId, action: 'Fix',
-            status: 'PENDING',
+            status: '1', // Pendente
             responsible: 'Me', date: '2023-01-01'
         });
 
         // Dispara atualização para calcular status
         let rca = rcaRepo.findById(rcaId)!;
-        let result = service.updateRca(rcaId, rca, mockTaxonomy);
+        let result = service.updateRca(rcaId, rca, taxonomyWithActions);
         expect(result.rca.status).toBe('STATUS-02');
 
         // 2. Atualiza Ação para Efetiva ('3' = Concluída/Efetiva)
@@ -154,7 +179,7 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
         });
 
         // 3. Dispara atualização da RCA novamente
-        result = service.updateRca(rcaId, rca, mockTaxonomy);
+        result = service.updateRca(rcaId, rca, taxonomyWithActions);
 
         // 4. Verifica CONCLUÍDA
         expect(result.rca.status).toBe('STATUS-03');

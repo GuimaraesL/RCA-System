@@ -27,6 +27,7 @@ const mocks = vi.hoisted(() => {
             data: [{ id: 'rca-1' }],
             total: 1
         }),
+        mockBulkImport: vi.fn().mockReturnValue({ count: 1 }),
         mockFindAll: vi.fn().mockReturnValue([{ id: 'rca-legacy' }]),
         mockFindById: vi.fn(),
         mockBulkCreate: vi.fn(),
@@ -42,7 +43,8 @@ vi.mock('../../../domain/services/RcaService', () => {
             return {
                 createRca: mocks.mockCreateRca,
                 updateRca: mocks.mockUpdateRca,
-                getAllRcas: mocks.mockGetAllRcas
+                getAllRcas: mocks.mockGetAllRcas,
+                bulkImport: mocks.mockBulkImport
             };
         })
     };

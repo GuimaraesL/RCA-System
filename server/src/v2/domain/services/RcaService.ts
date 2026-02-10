@@ -88,6 +88,34 @@ export class RcaService {
         this.rcaRepo.bulkDelete(ids);
     }
 
+    public bulkImport(data: any[], taxonomy: TaxonomyConfig): { count: number } {
+        const processed = data.map(item => {
+            // 1. Prepare data
+            const id = (item.id && item.id.trim()) ? item.id : randomUUID();
+            let rca: Rca = { ...item, id };
+
+            // 2. Migrate/Normalize
+            rca = this.migrateRcaData(rca);
+
+            // 3. Calculate Status
+            // Check actions for this item
+            const actions = this.actionRepo.findByRcaId(rca.id);
+            const statusResult = this.calculateRcaStatus(rca, actions, taxonomy);
+
+            rca.status = statusResult.newStatus;
+            if (statusResult.completionDate && !rca.completion_date) {
+                rca.completion_date = statusResult.completionDate;
+            }
+
+            return rca;
+        });
+
+        // 4. Save in bulk (uses transaction)
+        this.rcaRepo.bulkCreate(processed);
+
+        return { count: processed.length };
+    }
+
     // --- Domain Logic (Ported from rcaStatusService.ts) ---
 
     // Copied exact logic from migration part
@@ -144,24 +172,47 @@ export class RcaService {
         return autoManagedStatuses.includes(status);
     }
 
-    private validateMandatoryFields(rca: any, taxonomy: TaxonomyConfig): { valid: boolean, missing: string[] } {
+    private validateMandatoryFields(rca: any, actions: Action[], taxonomy: TaxonomyConfig): { valid: boolean, missing: string[] } {
         const mandatoryList = taxonomy.mandatoryFields?.rca?.conclude || [];
 
         const missing: string[] = [];
         for (const field of mandatoryList) {
-            const value = rca[field];
-            // validation logic
             let valid = true;
-            if (['participants', 'root_causes', 'five_whys'].includes(field)) {
-                valid = Array.isArray(value) && value.length > 0;
-            } else if (field === 'ishikawa') {
-                valid = value !== null && value !== undefined;
-            } else if (['downtime_minutes', 'financial_impact'].includes(field)) {
-                valid = value !== undefined && value !== null;
+            
+            if (field === 'actions') {
+                valid = actions.length > 0;
             } else {
-                if (!value) valid = false;
-                if (typeof value === 'string' && value.trim().length === 0) valid = false;
+                const value = rca[field];
+                if (field === 'participants') {
+                    valid = Array.isArray(value) && value.length > 0 && !(value.length === 1 && value[0] === '');
+                } else if (field === 'root_causes') {
+                    valid = Array.isArray(value) && value.length > 0 && value.every((rc: any) => rc.root_cause_m_id && rc.cause?.trim());
+                } else if (field === 'five_whys') {
+                    const linearCount = Array.isArray(rca.five_whys) ? rca.five_whys.filter((w: any) => w.answer?.trim()).length : 0;
+                    let advancedCount = 0;
+                    if (Array.isArray(rca.five_whys_chains)) {
+                        const countNodeAnswers = (node: any): number => {
+                            let count = Array.isArray(node.whys) ? node.whys.filter((w: any) => w.answer?.trim()).length : 0;
+                            if (Array.isArray(node.children)) {
+                                node.children.forEach((child: any) => { count += countNodeAnswers(child); });
+                            }
+                            return count;
+                        };
+                        rca.five_whys_chains.forEach((chain: any) => {
+                            if (chain.root_node) advancedCount += countNodeAnswers(chain.root_node);
+                        });
+                    }
+                    valid = (linearCount + advancedCount) >= 3;
+                } else if (field === 'ishikawa') {
+                    valid = value && Object.values(value).some((arr: any) => Array.isArray(arr) && arr.length > 0);
+                } else if (['downtime_minutes', 'financial_impact'].includes(field)) {
+                    valid = value !== undefined && value !== null;
+                } else {
+                    if (!value) valid = false;
+                    if (typeof value === 'string' && value.trim().length === 0) valid = false;
+                }
             }
+            
             if (!valid) missing.push(field);
         }
         return { valid: missing.length === 0, missing };
@@ -182,10 +233,11 @@ export class RcaService {
             return { newStatus: currentStatus || openStatusId, statusChanged: false, reason: 'Protected status' };
         }
 
-        const { valid: isMandatoryComplete, missing } = this.validateMandatoryFields(rca, taxonomy);
-        const rcaActions = actions.filter(a => a.rca_id === rca.id);
+        const { valid: isMandatoryComplete, missing } = this.validateMandatoryFields(rca, actions, taxonomy);
+        const rcaActions = actions.filter(a => a.rca_id?.trim().toLowerCase() === rca.id?.trim().toLowerCase());
         const hasMainActions = rcaActions.length > 0;
         const allActionsEffective = hasMainActions && rcaActions.every(a => ['3', '4'].includes(String(a.status)));
+        const isActionsMandatory = taxonomy.mandatoryFields?.rca?.conclude?.includes('actions');
 
         let newStatus = currentStatus;
         let reason = '';
@@ -194,15 +246,16 @@ export class RcaService {
             newStatus = openStatusId;
             reason = `Missing: ${missing.join(', ')}`;
         } else {
-            if (!hasMainActions) {
-                newStatus = doneStatusId;
-                reason = 'Complete, no actions';
-            } else if (allActionsEffective) {
-                newStatus = doneStatusId;
-                reason = 'Complete, actions effective';
-            } else {
+            // All mandatory fields are present.
+            // Decide between Concluded or Waiting Verification
+            if (hasMainActions && isActionsMandatory && !allActionsEffective) {
                 newStatus = waitingStatusId;
-                reason = 'Pending verification';
+                reason = 'Pending verification of mandatory actions';
+            } else {
+                newStatus = doneStatusId;
+                reason = hasMainActions 
+                    ? (allActionsEffective ? 'Complete, actions effective' : 'Complete, actions status ignored by config') 
+                    : 'Complete, no actions required';
             }
         }
 

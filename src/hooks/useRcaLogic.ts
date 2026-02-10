@@ -247,60 +247,105 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
 
     // Lista mínima de campos para SALVAR o registro (Permite Draft)
     // Para considerá-la "Concluída", a lógica do useEffect acima (auto-status) continua verificando a lista completa.
+    const isFieldEmpty = (field: string): boolean => {
+        // Special check for 'actions' since it's not in formData
+        if (field === 'actions') {
+            const rcaActions = actions.filter(a => 
+                a.rca_id?.trim().toLowerCase() === formData.id?.trim().toLowerCase()
+            );
+            return rcaActions.length === 0;
+        }
+
+        const val = (formData as any)[field];
+        if (field === 'participants') {
+            return !Array.isArray(val) || val.length === 0 || (val.length === 1 && val[0] === '');
+        }
+        if (field === 'root_causes') {
+            return !Array.isArray(val) || val.length === 0 || val.some(rc => !rc.root_cause_m_id || !rc.cause.trim());
+        }
+        if (field === 'five_whys') {
+            // Count answers in Linear Mode
+            const linearCount = Array.isArray(formData.five_whys) ? formData.five_whys.filter((w: any) => w.answer?.trim()).length : 0;
+            
+            // Count answers in Advanced Mode (Chains)
+            let advancedCount = 0;
+            if (Array.isArray(formData.five_whys_chains)) {
+                const countNodeAnswers = (node: any): number => {
+                    let count = Array.isArray(node.whys) ? node.whys.filter((w: any) => w.answer?.trim()).length : 0;
+                    if (Array.isArray(node.children)) {
+                        node.children.forEach((child: any) => { count += countNodeAnswers(child); });
+                    }
+                    return count;
+                };
+                formData.five_whys_chains.forEach(chain => {
+                    if (chain.root_node) advancedCount += countNodeAnswers(chain.root_node);
+                });
+            }
+            
+            return (linearCount + advancedCount) < 3; // Minimum 3 whys required if mandatory
+        }
+        if (field === 'ishikawa') {
+            return !val || Object.values(val).every((arr: any) => Array.isArray(arr) && arr.length === 0);
+        }
+        if (['downtime_minutes', 'financial_impact'].includes(field)) {
+            return val === undefined || val === null;
+        }
+        return !val || (typeof val === 'string' && val.trim() === '');
+    };
+
     const validateForm = (): boolean => {
         const errors: Record<string, boolean> = {};
-
-        // Helper to check if a field value is effectively empty
-        const isFieldEmpty = (field: string): boolean => {
-            const val = (formData as any)[field];
-            if (['participants', 'root_causes', 'five_whys'].includes(field)) {
-                return !Array.isArray(val) || val.length === 0 || (field === 'participants' && val.length === 1 && val[0] === '');
-            }
-            if (field === 'ishikawa') {
-                return !val || Object.values(val).every((arr: any) => Array.isArray(arr) && arr.length === 0);
-            }
-            if (['downtime_minutes', 'financial_impact'].includes(field)) {
-                return val === undefined || val === null;
-            }
-            return !val || (typeof val === 'string' && val.trim() === '');
-        };
 
         // Dynamic from Settings - Only Source of Truth
         const createFields = taxonomy.mandatoryFields?.rca?.create || [];
         const concludeFields = taxonomy.mandatoryFields?.rca?.conclude || [];
 
-        // 1. Always validate 'create' fields (Minimum for existence)
-        createFields.forEach(field => {
+        // Flag ALL mandatory fields for visual reinforcement
+        const allMandatory = Array.from(new Set([...createFields, ...concludeFields]));
+        
+        allMandatory.forEach(field => {
             if (isFieldEmpty(field)) errors[field] = true;
         });
 
-        // 2. Validate 'conclude' fields only if user is advanced in the wizard (Step 4+) 
-        // or if the record is already Concluded.
-        const isConcludePhase = step >= 4 || formData.status === 'STATUS-03';
-        if (isConcludePhase) {
-            concludeFields.forEach(field => {
-                if (isFieldEmpty(field)) errors[field] = true;
-            });
-        }
-
         setValidationErrors(errors);
+        
+        // Logical result: would this pass a STRICT validation?
+        // (Not used for blocking anymore, handleSave handles that)
         return Object.keys(errors).length === 0;
     };
 
     const handleSave = async () => {
-        // Validation (Strict on Create, visual feedback on Edit too)
-        // User requested visual feedback on "Create Only" page effectively, but strictly validating is safer.
-        // If we want to allow Drafts, we might skip this block or make it a warning.
-        // Given the request for "Visual Feedback of Mandatory Fields", stopping save is the standard trigger for feedback.
-        if (!validateForm()) {
-            console.warn('❌ Validation Failed:', validationErrors);
-            // We assume the caller (RcaEditor) will see the updated validationErrors state.
-            // But state updates are async. We should rely on the state set in validateForm.
-            // Actually, validateForm sets state.
-            // We should probably return false here to let component know.
-            return false;
+        // 1. Refresh visual errors for ALL mandatory fields
+        validateForm(); 
+
+        const createFields = taxonomy.mandatoryFields?.rca?.create || [];
+        const concludeFields = taxonomy.mandatoryFields?.rca?.conclude || [];
+        const isTryingToConclude = formData.status === 'STATUS-03';
+
+        // 2. Determine blocking fields
+        let currentBlockingFields: string[] = [];
+        
+        // Critical: Creation fields always block
+        createFields.forEach(field => {
+            if (isFieldEmpty(field)) currentBlockingFields.push(field);
+        });
+
+        // Strict: Conclusion fields only block if saving as Concluded
+        if (isTryingToConclude) {
+            concludeFields.forEach(field => {
+                if (isFieldEmpty(field)) currentBlockingFields.push(field);
+            });
         }
 
+        // 3. Prevent save only if current rules are violated
+        if (currentBlockingFields.length > 0) {
+            console.warn('❌ Save Blocked:', {
+                reason: isTryingToConclude ? 'Missing conclusion data' : 'Missing minimum creation data',
+                fields: currentBlockingFields
+            });
+            return false;
+        }
+        
         try {
             if (existingRecord) {
                 await updateRecord(formData);

@@ -85,8 +85,17 @@ describe('RcaService', () => {
             const rca: any = {
                 status: 'STATUS-01',
                 what: 'Filled',
-                root_causes: ['Cause']
+                participants: ['User'],
+                root_causes: [{ id: '1', root_cause_m_id: 'M1', cause: 'Technical' }],
+                five_whys: [
+                    { id: '1', answer: 'A' },
+                    { id: '2', answer: 'B' },
+                    { id: '3', answer: 'C' }
+                ]
             };
+            // Ensure all required fields are mocked as filled
+            mockTaxonomy.mandatoryFields.rca.conclude = ['what', 'root_causes', 'participants', 'five_whys'];
+            
             const result = service.calculateRcaStatus(rca, [], mockTaxonomy);
 
             expect(result.newStatus).toBe('STATUS-03');
@@ -98,8 +107,13 @@ describe('RcaService', () => {
                 id: '1',
                 status: 'STATUS-01',
                 what: 'Filled',
-                root_causes: ['Cause 1']
+                participants: ['User'],
+                root_causes: [{ id: '1', root_cause_m_id: 'M1', cause: 'Technical' }],
+                five_whys: [{ id: '1', answer: 'A' }, { id: '2', answer: 'B' }, { id: '3', answer: 'C' }]
             };
+            // NECESSÁRIO: Incluir 'actions' nos obrigatórios para disparar STATUS-02
+            mockTaxonomy.mandatoryFields.rca.conclude = ['what', 'root_causes', 'participants', 'five_whys', 'actions'];
+            
             // Ação pendente
             const actions: any[] = [{ rca_id: '1', status: '1' }];
 
@@ -111,7 +125,15 @@ describe('RcaService', () => {
 
     describe('createRca', () => {
         it('deve chamar o método create do repositório', () => {
-            const result = service.createRca({ what: 'New', root_causes: ['Cause'] }, mockTaxonomy);
+            const rcaData = { 
+                what: 'New', 
+                participants: ['User'],
+                root_causes: [{ id: '1', root_cause_m_id: 'M1', cause: 'Technical' }],
+                five_whys: [{ id: '1', answer: 'A' }, { id: '2', answer: 'B' }, { id: '3', answer: 'C' }]
+            };
+            mockTaxonomy.mandatoryFields.rca.conclude = ['what', 'root_causes'];
+            
+            const result = service.createRca(rcaData, mockTaxonomy);
 
             expect(rcaRepoMock.create).toHaveBeenCalled();
             expect(result.rca.status).toBe('STATUS-03'); 
