@@ -69,11 +69,11 @@ export class SqlTaxonomyRepository {
             ],
             mandatoryFields: {
                 trigger: {
-                    save: ['start_date', 'stop_reason']
+                    save: []
                 },
                 rca: {
-                    create: ['subgroup_id', 'failure_date', 'analysis_type', 'what'],
-                    conclude: ['root_causes', 'five_whys', 'ishikawa']
+                    create: [],
+                    conclude: []
                 }
             }
         } as TaxonomyConfig;
