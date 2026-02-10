@@ -74,7 +74,7 @@ export const getStatusColor = (statusId: string, taxonomy: TaxonomyConfig) => {
             return 'bg-blue-100 text-blue-700';
         case 'STATUS-02': 
         case STATUS_IDS.WAITING_VERIFICATION:
-            return 'bg-purple-100 text-purple-700'; 
+            return 'bg-indigo-100 text-indigo-700'; 
         case STATUS_IDS.CONCLUDED:
             return 'bg-green-100 text-green-700';
         case STATUS_IDS.DELAYED:
