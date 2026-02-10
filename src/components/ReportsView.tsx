@@ -1,8 +1,8 @@
 
 import React, { useMemo } from 'react';
 import { RcaRecord, ActionRecord } from '../types';
-import { STATUS_IDS } from '../constants/SystemConstants';
-import { ArrowUp, ArrowDown, Activity, AlertCircle, Calendar, CheckCircle2 } from 'lucide-react';
+import { STATUS_IDS, ACTION_STATUS_IDS } from '../constants/SystemConstants';
+import { ArrowUp, ArrowDown, Activity, AlertCircle, Calendar, CheckCircle2, Clock, ShieldCheck, Award } from 'lucide-react';
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { useSorting } from '../hooks/useSorting';
@@ -15,6 +15,40 @@ interface ReportsViewProps {
 
 export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
     const { t } = useLanguage();
+
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+          case ACTION_STATUS_IDS.APPROVED: 
+            return (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider border border-emerald-100 shadow-sm">
+                <CheckCircle2 size={12} strokeWidth={3} />
+                {t('actionModal.statusOptions.approved')}
+              </span>
+            );
+          case ACTION_STATUS_IDS.IN_PROGRESS: 
+            return (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px] font-black uppercase tracking-wider border border-amber-100 shadow-sm">
+                <Clock size={12} strokeWidth={3} />
+                {t('actionModal.statusOptions.inProgress')}
+              </span>
+            );
+          case ACTION_STATUS_IDS.COMPLETED: 
+            return (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-wider border border-blue-100 shadow-sm">
+                <ShieldCheck size={12} strokeWidth={3} />
+                {t('actionModal.statusOptions.completed')}
+              </span>
+            );
+          case ACTION_STATUS_IDS.VERIFIED: 
+            return (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-wider border border-indigo-100 shadow-sm">
+                <Award size={12} strokeWidth={3} />
+                {t('actionModal.statusOptions.verified')}
+              </span>
+            );
+          default: return <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-500 text-xs font-mono">{status || '-'}</span>;
+        }
+    };
 
     const defaultFilters: FilterState = {
         searchTerm: '',
@@ -182,7 +216,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                                         </td>
                                         <td className="px-6 py-4 max-w-xs truncate" title={action.action}>{action.action}</td>
                                         <td className="px-6 py-4">{action.responsible}</td>
-                                        <td className="px-6 py-4"><span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-600 text-xs font-medium">{t('common.box')} {action.status}</span></td>
+                                        <td className="px-6 py-4">{getStatusBadge(action.status)}</td>
                                     </tr>
                                 );
                             })}

@@ -141,37 +141,11 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
 
       {/* Grade de Dados */}
       <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-700 delay-200">
-        {/* Legenda de Status (Cheat Sheet) */}
-        <div className="px-6 py-3 bg-slate-50/50 border-b border-slate-100 flex flex-wrap items-center gap-6">
-          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-2">
-            <Info size={14} className="text-blue-500" />
-            Legenda de Status:
-          </div>
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 uppercase">
-              <div className="w-2 h-2 rounded-full bg-emerald-500" />
-              Box 1: {t('actionModal.statusOptions.approved')}
-            </div>
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 uppercase">
-              <div className="w-2 h-2 rounded-full bg-amber-500" />
-              Box 2: {t('actionModal.statusOptions.inProgress')}
-            </div>
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 uppercase">
-              <div className="w-2 h-2 rounded-full bg-blue-500" />
-              Box 3: {t('actionModal.statusOptions.completed')}
-            </div>
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 uppercase">
-              <div className="w-2 h-2 rounded-full bg-indigo-500" />
-              Box 4: {t('actionModal.statusOptions.verified')}
-            </div>
-          </div>
-        </div>
-
         <div className="overflow-auto flex-1 custom-scrollbar">
           <table className="w-full text-left text-sm text-slate-600">
             <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 bg-slate-50 group z-10">
               <tr>
-                <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} />
+                <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} width="w-44" />
                 <SortHeader label={t('table.what')} sortKey="action" currentSort={sortConfig} onSort={handleSort} />
                 <SortHeader label={t('table.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
                 <SortHeader label={t('table.dueDate')} sortKey="date" currentSort={sortConfig} onSort={handleSort} />
