@@ -129,9 +129,18 @@ export class RcaController {
     // POST /api/v2/rcas/bulk
     public bulkImport = (req: Request, res: Response) => {
         try {
-            const rcasRaw = req.body;
-            if (!Array.isArray(rcasRaw)) {
-                return res.status(400).json({ error: 'Body must be an array' });
+            const body = req.body;
+            let rcasRaw: any[] = [];
+            let actionsRaw: any[] = [];
+
+            // Support two formats: Direct Array or { records: [], actions: [] }
+            if (Array.isArray(body)) {
+                rcasRaw = body;
+            } else if (body && Array.isArray(body.records)) {
+                rcasRaw = body.records;
+                actionsRaw = Array.isArray(body.actions) ? body.actions : [];
+            } else {
+                return res.status(400).json({ error: 'Invalid body format. Expected array or { records: [] }' });
             }
 
             const parse = z.array(rcaSchema).safeParse(rcasRaw);
@@ -139,18 +148,9 @@ export class RcaController {
                 return res.status(400).json({ error: 'Invalid Data in Array', details: parse.error.format() });
             }
 
-            // For bulk import, we might bypass complex service logic for performance, 
-            // OR iterate. The repository supports bulkCreate.
-            // Given the requirements to maintain identical logic to "V1", 
-            // V1 uses "INSERT OR REPLACE" directly without service logic for EACH item (check rcas.ts L227).
-            // However, V1 DOES NOT run status calculation for bulk items. It just dumps them in.
-            // So we will use Repo.bulkCreate directly.
-
-            // console.log(`[V2] 🔄 Bulk Importing ${parse.data.length} RCAs...`);
             const taxonomy = this.taxonomyRepo.getTaxonomy();
-            const result = this.rcaService.bulkImport(parse.data as any[], taxonomy);
+            const result = this.rcaService.bulkImport(parse.data as any[], taxonomy, actionsRaw);
 
-            // console.log(`[V2] ✅ Bulk Import Completed.`);
             res.json({ message: `Imported ${result.count} RCAs successfully with dynamic status calculation` });
 
         } catch (error) {

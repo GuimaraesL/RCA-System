@@ -88,7 +88,7 @@ export class RcaService {
         this.rcaRepo.bulkDelete(ids);
     }
 
-    public bulkImport(data: any[], taxonomy: TaxonomyConfig): { count: number } {
+    public bulkImport(data: any[], taxonomy: TaxonomyConfig, providedActions: Action[] = []): { count: number } {
         const processed = data.map(item => {
             // 1. Prepare data
             const id = (item.id && item.id.trim()) ? item.id : randomUUID();
@@ -98,9 +98,14 @@ export class RcaService {
             rca = this.migrateRcaData(rca);
 
             // 3. Calculate Status
-            // Check actions for this item
-            const actions = this.actionRepo.findByRcaId(rca.id);
-            const statusResult = this.calculateRcaStatus(rca, actions, taxonomy);
+            // Use provided actions if available (e.g. during full backup restore), 
+            // otherwise fetch from DB
+            let rcaActions = providedActions.filter(a => a.rca_id?.trim().toLowerCase() === rca.id?.trim().toLowerCase());
+            if (rcaActions.length === 0 && providedActions.length === 0) {
+                rcaActions = this.actionRepo.findByRcaId(rca.id);
+            }
+            
+            const statusResult = this.calculateRcaStatus(rca, rcaActions, taxonomy);
 
             rca.status = statusResult.newStatus;
             if (statusResult.completionDate && !rca.completion_date) {

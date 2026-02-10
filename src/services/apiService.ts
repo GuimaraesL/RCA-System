@@ -655,38 +655,36 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
 
         // --- IMPORT EXECUTION (Based on Mode) ---
 
-        // 3. RCAs
-        if (normalizedRcas.length > 0) {
-            if (mode === 'UPDATE') {
-                console.log('🔄 UPDATE MODE: Upserting records...');
-                // Sequential to be safe with DB locks if any, or Promise.all for speed. 
-                // Promise.all is better for API calls.
-                await Promise.all(normalizedRcas.map(r => saveRecordToApi(r)));
-            } else {
-                // REPLACE (Bulk Insert after Delete) or APPEND (Bulk Insert with new IDs)
-                console.log('🔄 Bulk Importing RCAs...');
-                const response = await fetch(`${API_BASE}/rcas/bulk`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(normalizedRcas)
-                });
-                await checkResponse(response, 'POST /rcas/bulk');
-            }
-            console.log(`✅ RCAs processadas (${mode}):`, normalizedRcas.length);
-        }
-
-        // 4. Actions
+        // 3. RCAs & Actions (Combined for status calculation)
         const preparedActions = actionsToImportRaw.map((a: any) => ({
             ...a,
             id: resolveId(a.id, 'ACT'),
             rca_id: resolveRef(a.rca_id)
         }));
 
+        if (normalizedRcas.length > 0) {
+            if (mode === 'UPDATE') {
+                console.log('🔄 UPDATE MODE: Upserting records...');
+                await Promise.all(normalizedRcas.map(r => saveRecordToApi(r)));
+            } else {
+                console.log('🔄 Bulk Importing RCAs with Actions for context...');
+                const response = await fetch(`${API_BASE}/rcas/bulk`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        records: normalizedRcas,
+                        actions: preparedActions
+                    })
+                });
+                await checkResponse(response, 'POST /rcas/bulk');
+            }
+            console.log(`✅ RCAs processadas (${mode}):`, normalizedRcas.length);
+        }
+
+        // 4. Actions (Persist to DB)
         if (preparedActions.length > 0) {
             if (mode === 'UPDATE') {
                 console.log('🔄 UPDATE MODE: Upserting actions...');
-                // Actions might fail if RCA doesn't exist? (Foreign Key). 
-                // If UPDATE mode, we assume RCAs were processed above (Upserted).
                 await Promise.all(preparedActions.map(a => saveActionToApi(a)));
             } else {
                 console.log('🔄 Bulk Importing Actions...');
