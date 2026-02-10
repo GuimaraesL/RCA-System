@@ -1,6 +1,6 @@
 
 import React, { useState, Suspense, lazy } from 'react';
-import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Siren, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { RcaRecord, TriggerRecord } from './types';
 
 // Lazy Loading: Code Splitting para performance
@@ -18,7 +18,7 @@ import { RcaProvider, useRcaContext } from './context/RcaContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { FilterProvider } from './context/FilterContext';
 import { useLanguage } from './context/LanguageDefinition';
-import { LanguageSelector } from './components/LanguageSelector'; // i18n
+import { Sidebar } from './components/Sidebar';
 import { generateId } from './services/utils';
 
 const AppContent: React.FC = () => {
@@ -117,75 +117,10 @@ const AppContent: React.FC = () => {
 
     return (
         <div className="flex h-screen bg-page-gradient font-sans text-slate-900">
-            {/* Sidebar */}
-            <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 transition-all">
-                <div className="p-6 border-b border-slate-800">
-                    <div className="flex items-center gap-2 text-white font-bold text-lg">
-                        <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center shadow-lg shadow-blue-900/50">
-                            <AlertTriangle size={18} className="text-white" />
-                        </div>
-                        {t('common.appTitle')}
-                    </div>
-                </div>
-                <nav className="flex-1 p-4 space-y-2">
-                    <button
-                        onClick={() => setView('DASHBOARD')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'DASHBOARD' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
-                    >
-                        <LayoutDashboard size={20} /> {t('sidebar.dashboard')}
-                    </button>
-                    <button
-                        onClick={() => setView('TRIGGERS')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'TRIGGERS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
-                    >
-                        <Siren size={20} /> {t('sidebar.triggers')}
-                    </button>
-                    <button
-                        onClick={() => setView('ANALYSES')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'ANALYSES' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
-                    >
-                        <List size={20} /> {t('sidebar.analyses')}
-                    </button>
-                    <button
-                        onClick={() => setView('ACTIONS')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'ACTIONS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
-                    >
-                        <CheckSquare size={20} /> {t('sidebar.actions')}
-                    </button>
-                    <button
-                        onClick={() => setView('ASSETS')}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'ASSETS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
-                    >
-                        <Database size={20} /> {t('sidebar.assets')}
-                    </button>
-
-                    <div className="pt-4 mt-4 border-t border-slate-800">
-
-                        <button
-                            onClick={() => setView('SETTINGS')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'SETTINGS' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
-                        >
-                            <Settings size={20} /> {t('sidebar.settings')}
-                        </button>
-                        <button
-                            onClick={() => setView('MIGRATION')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${view === 'MIGRATION' ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}`}
-                        >
-                            <Upload size={20} /> {t('sidebar.migration')}
-                        </button>
-                    </div>
-                </nav>
-                <div className="p-6 border-t border-slate-800 text-xs text-slate-500">
-                    v17.2 Context API<br />
-                    {t('common.runningOn')} React 18
-                    <div className="mt-4 pt-4 border-t border-slate-800">
-                        <LanguageSelector />
-                    </div>
-                </div>
-            </aside>
+            <Sidebar view={view} setView={setView} />
 
             {/* Main Content */}
-            <main className="flex-1 overflow-hidden relative flex flex-col">
+            <main className="flex-1 overflow-hidden relative flex flex-col w-full">
                 {/* Suspense: Fallback exibido enquanto o componente lazy é carregado */}
                 <Suspense fallback={
                     <div className="flex-1 flex items-center justify-center bg-slate-50/50" data-testid="app-suspense-loading">
