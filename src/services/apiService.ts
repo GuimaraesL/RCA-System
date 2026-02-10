@@ -128,6 +128,12 @@ export const fetchRecords = async (): Promise<RcaRecord[]> => {
     return checkResponse(response, 'GET /rcas');
 };
 
+export const fetchAllRecordsFull = async (): Promise<RcaRecord[]> => {
+    console.log('🔄 API: Fetching ALL RCAs (Full Data)...');
+    const response = await fetch(`${API_BASE}/rcas?full=true`);
+    return checkResponse(response, 'GET /rcas?full=true');
+};
+
 export const fetchRecordById = async (id: string): Promise<RcaRecord | null> => {
     try {
         const response = await fetch(`${API_BASE}/rcas/${id}`);

@@ -22,6 +22,7 @@ export class RcaController {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 0; // 0 = all (compatibility)
+            const full = req.query.full === 'true';
 
             if (limit > 0) {
                 const result = this.rcaService.getAllRcas(page, limit);
@@ -35,8 +36,8 @@ export class RcaController {
                     }
                 });
             } else {
-                // Optimized behavior: Return summary array directly
-                const rcas = this.rcaRepo.findAllSummary();
+                // Return all records. Use full version or summary based on query param.
+                const rcas = full ? this.rcaRepo.findAll() : this.rcaRepo.findAllSummary();
                 res.json(rcas);
             }
         } catch (error) {

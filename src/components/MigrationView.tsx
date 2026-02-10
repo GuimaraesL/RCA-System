@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { Upload, Download, FileSpreadsheet, Database, RefreshCw, CheckCircle, AlertTriangle } from 'lucide-react';
 import { importData, saveAssets, saveActions, saveRecords, saveTriggers, saveTaxonomy } from '../services/storageService';
-import { importDataToApi, importRecordsToApi, importActionsToApi, importTriggersToApi, importAssetsToApi, importTaxonomyToApi } from '../services/apiService';
+import { fetchAllRecordsFull, importDataToApi, importRecordsToApi, importActionsToApi, importTriggersToApi, importAssetsToApi, importTaxonomyToApi } from '../services/apiService';
 import { MigrationData, TaxonomyConfig } from '../types';
 import { CsvEntityType, getCsvTemplate, exportToCsv as exportToCsvService, importFromCsv } from '../services/csvService';
 import { useRcaContext } from '../context/RcaContext';
@@ -137,22 +137,32 @@ export const MigrationView: React.FC = () => {
         }
     };
 
-    const handleJsonDownload = () => {
-        const exportObj: MigrationData = {
-            metadata: {
-                systemVersion: '17.0',
-                exportDate: new Date().toISOString(),
-                recordCount: records.length,
-                description: 'Full System Backup'
-            },
-            assets,
-            records,
-            actions,
-            triggers,
-            taxonomy
-        };
-        const json = JSON.stringify(exportObj, null, 2);
-        downloadFile(json, `rca_backup_v17_${new Date().toISOString().split('T')[0]}.json`, 'application/json');
+    const handleJsonDownload = async () => {
+        setMsg({ type: 'success', text: 'Preparing full backup...' });
+        try {
+            // Fetch full records if using API, otherwise use local records
+            const fullRecords = useApi ? await fetchAllRecordsFull() : records;
+
+            const exportObj: MigrationData = {
+                metadata: {
+                    systemVersion: '17.0',
+                    exportDate: new Date().toISOString(),
+                    recordCount: fullRecords.length,
+                    description: 'Full System Backup'
+                },
+                assets,
+                records: fullRecords,
+                actions,
+                triggers,
+                taxonomy
+            };
+            const json = JSON.stringify(exportObj, null, 2);
+            downloadFile(json, `rca_backup_v17_${new Date().toISOString().split('T')[0]}.json`, 'application/json');
+            setMsg({ type: 'success', text: 'Backup downloaded successfully.' });
+        } catch (error) {
+            setMsg({ type: 'error', text: 'Failed to generate backup.' });
+            console.error(error);
+        }
     };
 
     const toggleTaxonomy = (key: string) => {
