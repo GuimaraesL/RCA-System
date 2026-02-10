@@ -113,7 +113,8 @@ class UXAuditor:
 
         # Pre-calculate common flags
         has_long_text = bool(re.search(r'<p|<div.*class=.*text|article|<span.*text', content, re.IGNORECASE))
-        has_form = bool(re.search(r'<form|<input|password|credit|card|payment', content, re.IGNORECASE))
+        # Improved form detection: avoid matching "Card" or "Credit" in text/component names
+        has_form = bool(re.search(r'<form|<input\b|<select\b|<textarea\b|type=["\']password["\']', content, re.IGNORECASE))
         complex_elements = len(re.findall(r'<input|<select|<textarea|<option', content, re.IGNORECASE))
 
         # --- 1. PSYCHOLOGY LAWS ---
@@ -674,7 +675,7 @@ class UXAuditor:
     def audit_directory(self, directory: str) -> None:
         extensions = {'.tsx', '.jsx', '.html', '.vue', '.svelte', '.css'}
         for root, dirs, files in os.walk(directory):
-            dirs[:] = [d for d in dirs if d not in {'node_modules', '.git', 'dist', 'build', '.next'}]
+            dirs[:] = [d for d in dirs if d not in {'node_modules', '.git', 'dist', 'build', '.next', 'playwright-report', 'test-results', 'coverage'}]
             for file in files:
                 if Path(file).suffix in extensions:
                     self.audit_file(os.path.join(root, file))

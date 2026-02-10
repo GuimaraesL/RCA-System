@@ -290,6 +290,12 @@ export const pt: TranslationSchema = {
             general: "Geral & Taxonomia",
             validation: "Validação & Campos Obrigatórios"
         },
+        categories: {
+            rcaTaxonomy: "Taxonomia RCA",
+            triggerTaxonomy: "Taxonomia de Gatilhos",
+            components: "Componentes",
+            validation: "Regras de Validação"
+        },
         validation: {
             rcaSaveTitle: "RCA: Criação & Salvamento",
             rcaSaveDesc: "Campos obrigatórios para salvar uma análise (mesmo como rascunho).",

@@ -29,7 +29,7 @@ const COLORS = [
     '#6366f1', // Indigo 500
     '#ec4899', // Pink 500
     '#06b6d4', // Cyan 500
-    '#8b5cf6', // Violet 500
+    '#6366f1', // Indigo 500
     '#ef4444', // Red 500
     '#84cc16', // Lime 500
     '#14b8a6', // Teal 500
@@ -479,9 +479,9 @@ export const Dashboard: React.FC = () => {
                                 <XAxis type="number" hide />
                                 <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 11 }} tickFormatter={(val) => truncateLabel(val)} />
                                 <Tooltip content={<CustomTooltip />} />
-                                <Bar dataKey="count" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={15} onClick={(data) => handleChartClick('failureMode', data.id)} cursor="pointer">
+                                <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} barSize={15} onClick={(data) => handleChartClick('failureMode', data.id)} cursor="pointer">
                                     {dataMode.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill="#8b5cf6" opacity={filters.failureMode !== 'ALL' && filters.failureMode !== entry.id ? 0.2 : 1} />
+                                        <Cell key={`cell-${index}`} fill="#6366f1" opacity={filters.failureMode !== 'ALL' && filters.failureMode !== entry.id ? 0.2 : 1} />
                                     ))}
                                 </Bar>
                             </BarChart>

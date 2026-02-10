@@ -290,6 +290,12 @@ export const en: TranslationSchema = {
             general: "General & Taxonomy",
             validation: "Validation & Mandatory Fields"
         },
+        categories: {
+            rcaTaxonomy: "RCA Taxonomy",
+            triggerTaxonomy: "Trigger Taxonomy",
+            components: "Components",
+            validation: "Validation Rules"
+        },
         validation: {
             rcaSaveTitle: "RCA: Creation & Saving",
             rcaSaveDesc: "Required fields to save an analysis (even as draft).",

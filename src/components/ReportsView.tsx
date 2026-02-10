@@ -147,7 +147,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
 
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="p-2 bg-purple-50 text-purple-600 rounded-lg"><Calendar size={20} /></div>
+                        <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><Calendar size={20} /></div>
                     </div>
                     <div className="text-3xl font-bold text-slate-800">{openActions.length}</div>
                     <div className="text-sm text-slate-500 font-medium">{t('reports.pendingActions')}</div>

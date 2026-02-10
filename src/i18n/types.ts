@@ -293,6 +293,12 @@ export interface TranslationSchema {
             general: string;
             validation: string;
         };
+        categories: {
+            rcaTaxonomy: string;
+            triggerTaxonomy: string;
+            components: string;
+            validation: string;
+        };
         validation: {
             rcaSaveTitle: string;
             rcaSaveDesc: string;

@@ -83,7 +83,7 @@ export const DocumentationView: React.FC = () => {
                         <h3 className="font-bold text-slate-800 flex items-center gap-2"><ShieldCheck size={16} /> {t('documentation.workflow.validationTitle')}</h3>
                         <ul className="space-y-3">
                             <li className="flex gap-2">
-                                <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-1.5 py-0.5 rounded border border-purple-200">
+                                <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded border border-indigo-200">
                                     {t('workflow.tags.hra')}
                                 </span>
                                 <span className="text-slate-600">{t('documentation.workflow.hraTag')}</span>
@@ -108,12 +108,12 @@ export const DocumentationView: React.FC = () => {
             {/* 3. Integrações */}
             <section className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
                 <div className="flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
-                    <Share2 className="text-purple-600" size={24} />
+                    <Share2 className="text-indigo-600" size={24} />
                     <h2 className="text-xl font-bold text-slate-800">3. {t('documentation.sections.integrations')}</h2>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="p-4 rounded-lg border border-purple-100 bg-purple-50/50">
-                        <div className="flex items-center gap-2 mb-2 text-purple-800 font-bold">
+                    <div className="p-4 rounded-lg border border-indigo-100 bg-indigo-50/50">
+                        <div className="flex items-center gap-2 mb-2 text-indigo-800 font-bold">
                             <Cpu size={18} />
                             <h3>{t('documentation.integrations.geminiTitle')}</h3>
                         </div>

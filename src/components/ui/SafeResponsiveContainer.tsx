@@ -33,7 +33,7 @@ export const SafeResponsiveContainer = (props: ResponsiveContainerProps) => {
                 minWidth: minWidth, 
                 minHeight: minHeight 
             }} 
-            className={className}
+            className={className as string | undefined}
         >
             {dimensions && (
                 <ResponsiveContainer 
