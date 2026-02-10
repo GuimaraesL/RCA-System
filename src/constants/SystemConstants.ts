@@ -21,6 +21,20 @@ export const STATUS_COLORS: Record<string, string> = {
     [STATUS_IDS.CANCELLED]: '#64748b', // Slate 500
 };
 
+export const ACTION_STATUS_IDS = {
+    APPROVED: '1',
+    IN_PROGRESS: '2',
+    COMPLETED: '3',
+    VERIFIED: '4'
+};
+
+export const ACTION_STATUS_COLORS: Record<string, string> = {
+    [ACTION_STATUS_IDS.APPROVED]: '#10b981',    // Emerald 500
+    [ACTION_STATUS_IDS.IN_PROGRESS]: '#f59e0b', // Amber 500
+    [ACTION_STATUS_IDS.COMPLETED]: '#3b82f6',   // Blue 500
+    [ACTION_STATUS_IDS.VERIFIED]: '#6366f1',    // Indigo 500
+};
+
 export enum ROOT_CAUSE_M_IDS {
     MANPOWER = 'M1',
     METHOD = 'M2',

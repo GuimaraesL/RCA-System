@@ -6,7 +6,7 @@
 import React, { useMemo, useState, useRef } from 'react';
 import { useRcaContext } from '../context/RcaContext';
 import { useActionsLogic } from '../hooks/useActionsLogic';
-import { Plus, Edit2, Trash2, ExternalLink } from 'lucide-react';
+import { Plus, Edit2, Trash2, ExternalLink, CheckCircle2, Clock, ShieldCheck, Award, Info } from 'lucide-react';
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { ConfirmModal } from './ConfirmModal';
@@ -15,6 +15,7 @@ import { useSorting } from '../hooks/useSorting';
 import { SortHeader } from './ui/SortHeader';
 import { useLanguage } from '../context/LanguageDefinition'; 
 import { useFilteredData } from '../hooks/useFilteredData';
+import { ACTION_STATUS_IDS } from '../constants/SystemConstants';
 
 interface ActionsViewProps {
   onOpenRca?: (id: string) => void;
@@ -28,10 +29,34 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
    */
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case '1': return <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-bold">{t('actionModal.statusOptions.approved')}</span>;
-      case '2': return <span className="inline-flex items-center px-2 py-1 rounded bg-amber-100 text-amber-700 text-xs font-bold">{t('actionModal.statusOptions.inProgress')}</span>;
-      case '3': return <span className="inline-flex items-center px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-bold">{t('actionModal.statusOptions.completed')}</span>;
-      case '4': return <span className="inline-flex items-center px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold">{t('actionModal.statusOptions.verified')}</span>;
+      case ACTION_STATUS_IDS.APPROVED: 
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider border border-emerald-100 shadow-sm">
+            <CheckCircle2 size={12} strokeWidth={3} />
+            {t('actionModal.statusOptions.approved')}
+          </span>
+        );
+      case ACTION_STATUS_IDS.IN_PROGRESS: 
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px] font-black uppercase tracking-wider border border-amber-100 shadow-sm">
+            <Clock size={12} strokeWidth={3} />
+            {t('actionModal.statusOptions.inProgress')}
+          </span>
+        );
+      case ACTION_STATUS_IDS.COMPLETED: 
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-wider border border-blue-100 shadow-sm">
+            <ShieldCheck size={12} strokeWidth={3} />
+            {t('actionModal.statusOptions.completed')}
+          </span>
+        );
+      case ACTION_STATUS_IDS.VERIFIED: 
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-wider border border-indigo-100 shadow-sm">
+            <Award size={12} strokeWidth={3} />
+            {t('actionModal.statusOptions.verified')}
+          </span>
+        );
       default: return <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-500 text-xs font-mono">{status || '-'}</span>;
     }
   };
@@ -116,6 +141,32 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
 
       {/* Grade de Dados */}
       <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-700 delay-200">
+        {/* Legenda de Status (Cheat Sheet) */}
+        <div className="px-6 py-3 bg-slate-50/50 border-b border-slate-100 flex flex-wrap items-center gap-6">
+          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-2">
+            <Info size={14} className="text-blue-500" />
+            Legenda de Status:
+          </div>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 uppercase">
+              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+              Box 1: {t('actionModal.statusOptions.approved')}
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 uppercase">
+              <div className="w-2 h-2 rounded-full bg-amber-500" />
+              Box 2: {t('actionModal.statusOptions.inProgress')}
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 uppercase">
+              <div className="w-2 h-2 rounded-full bg-blue-500" />
+              Box 3: {t('actionModal.statusOptions.completed')}
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 uppercase">
+              <div className="w-2 h-2 rounded-full bg-indigo-500" />
+              Box 4: {t('actionModal.statusOptions.verified')}
+            </div>
+          </div>
+        </div>
+
         <div className="overflow-auto flex-1 custom-scrollbar">
           <table className="w-full text-left text-sm text-slate-600">
             <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 bg-slate-50 group z-10">

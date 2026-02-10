@@ -5,11 +5,12 @@
 
 import React, { useRef } from 'react';
 import { RcaRecord, ActionRecord } from '../../types';
-import { ClipboardList, Plus, Target, CheckCircle2, AlertTriangle, Edit2, Trash2 } from 'lucide-react';
+import { ClipboardList, Plus, Target, CheckCircle2, AlertTriangle, Edit2, Trash2, Clock, ShieldCheck, Award, Info } from 'lucide-react';
 import { useSorting } from '../../hooks/useSorting';
 import { SortHeader } from '../ui/SortHeader';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { useEnterAnimation } from '../../hooks/useEnterAnimation'; 
+import { ACTION_STATUS_IDS } from '../../constants/SystemConstants';
 
 interface Step5Props {
     data: RcaRecord;
@@ -26,6 +27,40 @@ export const Step5Actions: React.FC<Step5Props> = ({
     data, onChange, linkedActions, onAddActionPlan, onEditActionPlan, onDeleteActionPlan, isFieldRequired, errors
 }) => {
     const { t, formatDate } = useLanguage();
+
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+          case ACTION_STATUS_IDS.APPROVED: 
+            return (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider border border-emerald-100 shadow-sm">
+                <CheckCircle2 size={10} strokeWidth={3} />
+                {t('common.box')} 1
+              </span>
+            );
+          case ACTION_STATUS_IDS.IN_PROGRESS: 
+            return (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-black uppercase tracking-wider border border-amber-100 shadow-sm">
+                <Clock size={10} strokeWidth={3} />
+                {t('common.box')} 2
+              </span>
+            );
+          case ACTION_STATUS_IDS.COMPLETED: 
+            return (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-wider border border-blue-100 shadow-sm">
+                <ShieldCheck size={10} strokeWidth={3} />
+                {t('common.box')} 3
+              </span>
+            );
+          case ACTION_STATUS_IDS.VERIFIED: 
+            return (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-wider border border-indigo-100 shadow-sm">
+                <Award size={10} strokeWidth={3} />
+                {t('common.box')} 4
+              </span>
+            );
+          default: return <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-500 text-[10px] font-mono">{status || '-'}</span>;
+        }
+    };
 
     // --- Lógica de Ordenação de Ações ---
     const { sortedItems: sortedActions, sortConfig, handleSort } = useSorting(linkedActions, { key: 'status', direction: 'asc' });
@@ -128,12 +163,6 @@ export const Step5Actions: React.FC<Step5Props> = ({
                         <CheckCircle2 size={16} className="text-green-600" /> {t('wizard.step5.correctiveTitle')} {isFieldRequired('actions') && <span className="text-red-500">*</span>}
                     </h3>
                     <div className="flex gap-2">
-                        <div className="flex items-center gap-4 mr-4 text-[10px] font-mono text-slate-400 border-r pr-4 border-slate-200">
-                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500"></span> {t('common.box')} 1</span>
-                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span> {t('common.box')} 2</span>
-                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500"></span> {t('common.box')} 3</span>
-                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-500"></span> {t('common.box')} 4</span>
-                        </div>
                         <button
                             onClick={() => onAddActionPlan('CORRECTIVE')}
                             className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition-colors"
@@ -143,11 +172,35 @@ export const Step5Actions: React.FC<Step5Props> = ({
                     </div>
                 </div>
 
+                {/* Legenda de Status Interna */}
+                <div className="px-4 py-2.5 mb-4 bg-slate-50 border border-slate-100 rounded-xl flex flex-wrap items-center gap-x-6 gap-y-2">
+                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                        <Info size={12} className="text-blue-500" />
+                        Status:
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-600 uppercase">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        1: {t('actionModal.statusOptions.approved')}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-600 uppercase">
+                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                        2: {t('actionModal.statusOptions.inProgress')}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-600 uppercase">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                        3: {t('actionModal.statusOptions.completed')}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-600 uppercase">
+                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                        4: {t('actionModal.statusOptions.verified')}
+                    </div>
+                </div>
+
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-slate-600">
                         <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-semibold">
                             <tr>
-                                <SortHeader label={t('common.box')} sortKey="status" currentSort={sortConfig} onSort={handleSort} width="w-16" />
+                                <SortHeader label={t('common.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} width="w-24" />
                                 <SortHeader label={t('actionModal.actionDescription')} sortKey="action" currentSort={sortConfig} onSort={handleSort} width="w-1/2" />
                                 <SortHeader label={t('actionModal.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label={t('actionModal.dueDate')} sortKey="date" currentSort={sortConfig} onSort={handleSort} />
@@ -168,21 +221,23 @@ export const Step5Actions: React.FC<Step5Props> = ({
                                     className="hover:bg-blue-50/50 cursor-pointer transition-colors opacity-0"
                                     onClick={() => onEditActionPlan(act)}
                                 >
-                                    <td className="px-4 py-2 font-bold text-center border-r border-slate-100 bg-slate-50/50 w-16">{t('common.box')} {act.status}</td>
-                                    <td className="px-4 py-2">{act.action}</td>
-                                    <td className="px-4 py-2">{act.responsible}</td>
+                                    <td className="px-4 py-2 w-24">
+                                        {getStatusBadge(act.status)}
+                                    </td>
+                                    <td className="px-4 py-2 font-medium text-slate-800">{act.action}</td>
+                                    <td className="px-4 py-2 text-xs">{act.responsible}</td>
                                     <td className="px-4 py-2 font-mono text-xs">{formatDate(act.date)}</td>
                                     <td className="px-4 py-2 text-right">
                                         <div className="flex justify-end gap-2">
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onEditActionPlan(act); }}
-                                                className="text-slate-400 hover:text-blue-600"
+                                                className="text-slate-400 hover:text-blue-600 p-1 hover:bg-blue-50 rounded"
                                             >
                                                 <Edit2 size={14} />
                                             </button>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onDeleteActionPlan(act.id); }}
-                                                className="text-slate-400 hover:text-red-600"
+                                                className="text-slate-400 hover:text-red-600 p-1 hover:bg-red-50 rounded"
                                             >
                                                 <Trash2 size={14} />
                                             </button>
