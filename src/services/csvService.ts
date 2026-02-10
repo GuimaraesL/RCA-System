@@ -317,18 +317,36 @@ export const exportToCsv = (type: CsvEntityType, context: CsvContextData): strin
     }
 
     if (type === 'RECORDS_SUMMARY') {
-        const header = ['id', 'what', 'problem_description', 'analysis_type', 'status', 'failure_date', 'failure_time', 'downtime_minutes', 'analysis_duration_minutes', 'financial_impact', 'area_id', 'equipment_id', 'subgroup_id', 'component_type', 'who', 'when', 'where_description', 'participants', 'root_causes', 'potential_impacts', 'lessons_learned', 'version', 'file_path', 'specialty_id', 'failure_mode_id', 'failure_category_id'];
+        const header = ['id', 'what', 'problem_description', 'analysis_type', 'status', 'failure_date', 'failure_time', 'downtime_minutes', 'analysis_duration_minutes', 'financial_impact', 'area_id', 'equipment_id', 'subgroup_id', 'component_type', 'who', 'when', 'where_description', 'participants', 'root_causes', 'five_whys', 'ishikawa', 'potential_impacts', 'lessons_learned', 'version', 'file_path', 'specialty_id', 'failure_mode_id', 'failure_category_id', 'analysis_date', 'facilitator', 'os_number'];
 
         // Custom Mapper for Complex Fields
         const rows = records.map(r => {
             // Helper for Lists
             const joinList = (val: any) => Array.isArray(val) ? val.map(v => typeof v === 'object' ? JSON.stringify(v) : v).join('|') : String(val || '');
-            const rootCauses = Array.isArray(r.root_causes) ? r.root_causes.map(rc => rc.cause).join('|') : '';
+            
+            // Serialize Root Causes as "M_ID:CauseText|M_ID:CauseText"
+            const rootCauses = Array.isArray(r.root_causes) 
+                ? r.root_causes.map(rc => `${rc.root_cause_m_id}:${rc.cause}`).join('|') 
+                : '';
+
+            // Serialize 5 Whys as "Why? Answer|Why? Answer"
+            const fiveWhys = Array.isArray(r.five_whys)
+                ? r.five_whys.map(w => `${w.why_question}:${w.answer}`).join('|')
+                : '';
+
+            // Serialize Ishikawa as "Category:Item|Category:Item"
+            const ishikawa = r.ishikawa 
+                ? Object.entries(r.ishikawa).flatMap(([cat, items]) => 
+                    (Array.isArray(items) ? items : []).map(item => `${cat}:${item}`)
+                  ).join('|')
+                : '';
 
             return {
                 ...r,
                 participants: joinList(r.participants),
                 root_causes: rootCauses,
+                five_whys: fiveWhys,
+                ishikawa: ishikawa,
                 potential_impacts: joinList(r.potential_impacts),
                 lessons_learned: joinList(r.lessons_learned)
             };
@@ -645,36 +663,98 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
             const recordMap = new Map(existingRecords.map(r => [r.id, r]));
             let updatedCount = 0;
 
-            rawData.forEach(r => {
-                if (r.id && recordMap.has(r.id)) {
-                    const existingRec = recordMap.get(r.id)!;
-
-                    let parts: string[] = existingRec.participants;
-                    if (r.participants) {
-                        parts = r.participants.split('|').map((p: string) => p.trim()).filter((p: string) => p);
-                    }
-
-                    Object.assign(existingRec, {
-                        what: r.what || existingRec.what,
-                        participants: parts,
-                        problem_description: r.problem_description || existingRec.problem_description,
-                        analysis_type: r.analysis_type || existingRec.analysis_type,
-                        status: r.status || existingRec.status,
-                        failure_date: r.failure_date || existingRec.failure_date,
-                        downtime_minutes: Number(r.downtime_minutes) || existingRec.downtime_minutes,
-                        financial_impact: Number(r.financial_impact) || existingRec.financial_impact,
-                        analysis_duration_minutes: Number(r.analysis_duration_minutes) || existingRec.analysis_duration_minutes,
-                        area_id: r.area_id || existingRec.area_id
-                    });
-                    updatedCount++;
+            const importedRecords = rawData.map(r => {
+                let parts: string[] = [];
+                if (r.participants) {
+                    parts = r.participants.split('|').map((p: string) => p.trim()).filter((p: string) => p);
                 }
+
+                let rootCauses: any[] = [];
+                if (r.root_causes) {
+                    rootCauses = r.root_causes.split('|').map((pair: string) => {
+                        const [m_id, ...causeParts] = pair.split(':');
+                        return { 
+                            id: generateId('RC'), 
+                            root_cause_m_id: m_id, 
+                            cause: causeParts.join(':') // Re-join in case cause contains colons
+                        };
+                    }).filter((rc: any) => rc.root_cause_m_id && rc.cause);
+                }
+
+                let fiveWhys: any[] = [];
+                if (r.five_whys) {
+                    fiveWhys = r.five_whys.split('|').map((pair: string, idx: number) => {
+                        const [q, ...aParts] = pair.split(':');
+                        return {
+                            id: String(idx + 1),
+                            why_question: q,
+                            answer: aParts.join(':')
+                        };
+                    }).filter((w: any) => w.answer);
+                }
+
+                let ishikawa: any = { machine: [], method: [], material: [], manpower: [], measurement: [], environment: [] };
+                if (r.ishikawa) {
+                    r.ishikawa.split('|').forEach((pair: string) => {
+                        const [cat, ...itemParts] = pair.split(':');
+                        const item = itemParts.join(':');
+                        if (ishikawa[cat] && Array.isArray(ishikawa[cat])) {
+                            ishikawa[cat].push(item);
+                        }
+                    });
+                }
+
+                // Helper to parse numbers safely from CSV (handles both , and . separators)
+                const parseNum = (val: any) => {
+                    if (val === undefined || val === null || val === '') return 0;
+                    const clean = String(val).replace(',', '.').replace(/[^\d.-]/g, '');
+                    const num = parseFloat(clean);
+                    return isNaN(num) ? 0 : num;
+                };
+
+                const rec = {
+                    id: r.id,
+                    what: r.what,
+                    problem_description: r.problem_description,
+                    analysis_type: r.analysis_type,
+                    status: r.status,
+                    failure_date: r.failure_date,
+                    failure_time: r.failure_time,
+                    downtime_minutes: parseNum(r.downtime_minutes),
+                    financial_impact: parseNum(r.financial_impact),
+                    analysis_duration_minutes: parseNum(r.analysis_duration_minutes),
+                    area_id: r.area_id,
+                    equipment_id: r.equipment_id,
+                    subgroup_id: r.subgroup_id,
+                    component_type: r.component_type,
+                    who: r.who,
+                    when: r.when,
+                    where_description: r.where_description,
+                    participants: parts,
+                    root_causes: rootCauses,
+                    five_whys: fiveWhys,
+                    ishikawa: ishikawa,
+                    potential_impacts: r.potential_impacts || '',
+                    quality_impacts: r.quality_impacts || '',
+                    lessons_learned: r.lessons_learned ? r.lessons_learned.split('|') : [],
+                    version: r.version || '17.0',
+                    file_path: r.file_path,
+                    specialty_id: r.specialty_id,
+                    failure_mode_id: r.failure_mode_id,
+                    failure_category_id: r.failure_category_id,
+                    analysis_date: r.analysis_date,
+                    facilitator: r.facilitator,
+                    os_number: r.os_number
+                };
+
+                if (recordMap.has(rec.id)) updatedCount++;
+                return rec;
             });
-            const mergedRecords = Array.from(recordMap.values());
 
             return {
                 success: true,
-                message: `Updated ${updatedCount} records from summary.`,
-                data: mergedRecords,
+                message: `Parsed ${importedRecords.length} records (${updatedCount} updates).`,
+                data: importedRecords,
                 dataType: 'RECORDS_SUMMARY'
             };
         }

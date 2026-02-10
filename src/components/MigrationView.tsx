@@ -177,10 +177,22 @@ export const MigrationView: React.FC = () => {
         downloadFile(content, `template_${csvType.toLowerCase()}.csv`, 'text/csv;charset=utf-8;');
     };
 
-    const handleCsvExport = () => {
-        const data = exportToCsvService(csvType, { assets, actions, triggers, records, taxonomy });
-        const content = '\uFEFF' + data;
-        downloadFile(content, `export_${csvType.toLowerCase()}_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8;');
+    const handleCsvExport = async () => {
+        setMsg({ type: 'success', text: 'Preparing export...' });
+        try {
+            // Fetch full records if using API and target is records summary
+            const exportRecords = (useApi && csvType === 'RECORDS_SUMMARY') 
+                ? await fetchAllRecordsFull() 
+                : records;
+
+            const data = exportToCsvService(csvType, { assets, actions, triggers, records: exportRecords, taxonomy });
+            const content = '\uFEFF' + data;
+            downloadFile(content, `export_${csvType.toLowerCase()}_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8;');
+            setMsg({ type: 'success', text: 'Export completed.' });
+        } catch (error) {
+            setMsg({ type: 'error', text: 'Export failed.' });
+            console.error(error);
+        }
     };
 
     const handleCsvImport = async (e: React.ChangeEvent<HTMLInputElement>) => {

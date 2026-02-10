@@ -178,17 +178,20 @@ export const deleteRecordFromApi = async (id: string): Promise<void> => {
 };
 
 export const importRecordsToApi = async (records: RcaRecord[]): Promise<void> => {
-    console.log('🔄 API: Importing', records.length, 'records...');
-    // Assuming backend supports bulk import, otherwise we could iterate.
-    // For safety/consistency with Assets, trying bulk endpoint implies backend support.
-    // If backend doesn't support bulk for records, we might need a loop or update backend.
-    // Given the task, I will implement as bulk POST.
+    console.log('🔄 API: Importing', records.length, 'records with context...');
+    
+    // Fetch current actions to provide context for status calculation
+    const currentActions = await fetchActions();
+
     const response = await fetch(`${API_BASE}/rcas/bulk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(records)
+        body: JSON.stringify({
+            records: records,
+            actions: currentActions
+        })
     });
-    await checkResponse(response, 'POST /rcas/bulk');
+    await checkResponse(response, 'POST /rcas/bulk (CSV Import)');
 };
 
 // --- ACTIONS ---
