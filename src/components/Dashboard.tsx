@@ -300,7 +300,7 @@ export const Dashboard: React.FC = () => {
                                 <Info size={14} className="text-slate-300" />
                             </div>
                         </div>
-                        <div title={kpi.tooltip} className="text-4xl font-bold text-slate-800 relative z-10">
+                        <div title={kpi.tooltip} className="text-3xl font-black text-slate-800 relative z-10 whitespace-nowrap truncate leading-tight">
                             {isLoading ? (
                                 <Skeleton className="h-10 w-3/4" />
                             ) : (

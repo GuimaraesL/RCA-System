@@ -24,7 +24,7 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ value, prefix 
     }, [value, language]);
 
     return (
-        <span className="tabular-nums">
+        <span className="tabular-nums whitespace-nowrap">
             {prefix}<span ref={counterRef}>0</span>
         </span>
     );
