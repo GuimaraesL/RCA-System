@@ -1,10 +1,15 @@
 /**
- * Proposta: Vista de Migração e Gestão de Backup (JSON/CSV).
- * Fluxo: Orquestra a importação e exportação de dados, permitindo restaurações completas, atualizações de lote e gerenciamento de taxonomia via arquivos externos.
+ * Proposta: Vista de Migração e Gestão de Backup (JSON/CSV) com UI Premium.
+ * Fluxo: Orquestra a importação e exportação de dados, com visualização rica de metadados, agrupamento lógico de taxonomia e feedbacks visuais claros para evitar erros de operação.
  */
 
 import React, { useState, useRef, useMemo } from 'react';
-import { Upload, Download, FileSpreadsheet, Database, RefreshCw, CheckCircle, AlertTriangle } from 'lucide-react';
+import { 
+  Upload, Download, FileSpreadsheet, Database, 
+  RefreshCw, CheckCircle, AlertTriangle, FileJson, 
+  Layers, Activity, ClipboardList, ChevronRight,
+  Info, ShieldCheck, Box, Settings, X, Check
+} from 'lucide-react';
 import { importData, saveAssets, saveActions, saveRecords, saveTriggers, saveTaxonomy } from '../services/storageService';
 import { fetchAllRecordsFull, importDataToApi, importRecordsToApi, importActionsToApi, importTriggersToApi, importAssetsToApi, importTaxonomyToApi } from '../services/apiService';
 import { MigrationData, TaxonomyConfig } from '../types';
@@ -66,9 +71,7 @@ export const MigrationView: React.FC = () => {
 
             reader.onload = (e) => {
                 const content = e.target?.result as string;
-                // Detecta caracteres inválidos para tentar recuperação via windows-1252
                 if (content.includes('\uFFFD')) { 
-                    console.log("Problemas de codificação detectados, tentando windows-1252...");
                     const retryReader = new FileReader();
                     retryReader.onload = (evt) => resolve(evt.target?.result as string);
                     retryReader.onerror = () => reject(retryReader.error);
@@ -126,7 +129,6 @@ export const MigrationView: React.FC = () => {
             let res: { success: boolean, message: string };
 
             if (useApi) {
-                console.log('🔄 Sincronizando dados via API...', importMode, selectedTaxonomies);
                 res = await importDataToApi(previewData, importMode, selectedTaxonomies);
             } else {
                 res = importData(JSON.stringify(previewData));
@@ -147,7 +149,6 @@ export const MigrationView: React.FC = () => {
     const handleJsonDownload = async () => {
         setMsg({ type: 'success', text: 'Preparando carga total de dados...' });
         try {
-            // Garante que o backup contenha dados completos (full export), ignorando otimizações de tela
             const fullRecords = useApi ? await fetchAllRecordsFull() : records;
 
             const exportObj: MigrationData = {
@@ -187,7 +188,6 @@ export const MigrationView: React.FC = () => {
     const handleCsvExport = async () => {
         setMsg({ type: 'success', text: 'Preparando exportação CSV...' });
         try {
-            // Força a busca de dados completos se a entidade alvo for Análises (RCA)
             const exportRecords = (useApi && csvType === 'RECORDS_SUMMARY') 
                 ? await fetchAllRecordsFull() 
                 : records;
@@ -210,7 +210,6 @@ export const MigrationView: React.FC = () => {
 
         try {
             const content = await readFileWithEncoding(file);
-            // CSV não suporta REPLACE por natureza plana; converte para APPEND se selecionado
             const safeMode = importMode === 'REPLACE' ? 'APPEND' : importMode;
 
             const res = importFromCsv(csvType, content, {
@@ -258,283 +257,400 @@ export const MigrationView: React.FC = () => {
         }
     };
 
-
     return (
-        <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in pb-32">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">{t('migration.title')}</h1>
-            <p className="text-slate-500 mb-8">{t('migration.description')}</p>
+        <div className="h-full flex flex-col bg-page-gradient overflow-hidden">
+            {/* Header Modernizado */}
+            <div className="px-8 py-6 flex items-center justify-between border-b border-slate-200/60 bg-white/50 backdrop-blur-md sticky top-0 z-10">
+                <div className="flex items-center gap-4">
+                    <div className="p-2.5 bg-blue-600 shadow-lg shadow-blue-600/20 rounded-xl text-white">
+                        <Database size={22} />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold text-slate-800 font-display tracking-tight leading-tight">{t('migration.title')}</h1>
+                        <p className="text-xs text-slate-500 font-medium">{t('migration.description')}</p>
+                    </div>
+                </div>
 
-            {/* Abas de Formato */}
-            <div className="flex border-b border-slate-200 mb-8">
-                <button
-                    onClick={() => { setActiveTab('JSON'); setMsg(null); }}
-                    className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'JSON' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-                >
-                    {t('migration.backup')}
-                </button>
-                <button
-                    onClick={() => { setActiveTab('CSV'); setMsg(null); }}
-                    className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'CSV' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-                >
-                    {t('migration.csvTools')}
-                </button>
+                <div className="flex bg-slate-100/80 p-1 rounded-xl shadow-inner">
+                    <button
+                        onClick={() => { setActiveTab('JSON'); setMsg(null); }}
+                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'JSON' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'}`}
+                    >
+                        {t('migration.backup')}
+                    </button>
+                    <button
+                        onClick={() => { setActiveTab('CSV'); setMsg(null); }}
+                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'CSV' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'}`}
+                    >
+                        {t('migration.csvTools')}
+                    </button>
+                </div>
             </div>
 
-            {/* Mensagens de Feedback */}
-            {msg && (
-                <div className={`mb-6 p-4 border rounded-lg flex items-center gap-3 ${msg.type === 'success' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                    {msg.type === 'success' ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
-                    <span className="font-medium">{msg.text}</span>
-                </div>
-            )}
-
-            {activeTab === 'JSON' ? (
-                <div className="space-y-8">
-                    {/* 1. Upload de Arquivo Backup */}
-                    {!previewData && (
-                        <div className="bg-white p-12 rounded-xl border-2 border-dashed border-slate-300 shadow-sm text-center hover:border-blue-400 hover:bg-slate-50 transition-all cursor-pointer relative group">
-                            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-600 group-hover:scale-110 transition-transform">
-                                <Upload size={40} />
-                            </div>
-                            <h3 className="text-2xl font-semibold mb-2 text-slate-800">{t('migration.restore')}</h3>
-                            <p className="text-slate-500 mb-8">{t('migration.json.dragDrop')}</p>
-                            <div className="relative inline-block">
-                                <input
-                                    type="file"
-                                    ref={jsonInputRef}
-                                    onChange={handleJsonFileSelect}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                    accept=".json"
-                                />
-                                <button className="bg-blue-600 text-white font-medium py-3 px-8 rounded-lg shadow-md hover:bg-blue-700 transition-colors pointer-events-none">
-                                    {t('migration.json.selectButton')}
-                                </button>
-                            </div>
+            <main className="flex-1 overflow-y-auto custom-scrollbar">
+                <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in pb-32">
+                    
+                    {/* Mensagens de Feedback */}
+                    {msg && (
+                        <div className={`mb-8 p-4 rounded-2xl border flex items-center gap-3 animate-in slide-in-from-top-2 ${msg.type === 'success' ? 'bg-green-50 text-green-700 border-green-100 shadow-sm shadow-green-100/50' : 'bg-red-50 text-red-700 border-red-100 shadow-sm shadow-red-100/50'}`}>
+                            {msg.type === 'success' ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
+                            <span className="text-sm font-bold">{msg.text}</span>
+                            <button onClick={() => setMsg(null)} className="ml-auto p-1 hover:bg-black/5 rounded-lg"><X size={16} /></button>
                         </div>
                     )}
 
-                    {/* 2. Configuração de Importação (Visível após análise do arquivo) */}
-                    {previewData && (
-                        <div className="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden animate-in fade-in slide-in-from-bottom-4">
-                            <div className="bg-slate-50 p-6 border-b border-slate-200 flex justify-between items-center">
-                                <div>
-                                    <h3 className="text-lg font-bold text-slate-800">{t('migration.importConfig')}</h3>
-                                    <p className="text-sm text-slate-500">
-                                        {t('migration.json.foundInfo').replace('{0}', String(previewData.records?.length || 0)).replace('{1}', String(previewData.actions?.length || 0))}
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={() => { setPreviewData(null); if (jsonInputRef.current) jsonInputRef.current.value = ''; }}
-                                    className="text-sm text-red-600 hover:underline"
-                                >
-                                    {t('migration.json.changeFile')}
-                                </button>
-                            </div>
+                    {activeTab === 'JSON' ? (
+                        <div className="space-y-10">
+                            {/* 1. Upload ou Exportação Centralizada */}
+                            {!previewData && (
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                    {/* Card de Importação */}
+                                    <div className="bg-white p-10 rounded-3xl border border-slate-100 shadow-soft text-center group hover:border-blue-200 transition-all relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                            <Upload size={120} />
+                                        </div>
+                                        <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-blue-600 group-hover:scale-110 group-hover:rotate-3 transition-all">
+                                            <FileJson size={40} />
+                                        </div>
+                                        <h3 className="text-2xl font-bold mb-2 text-slate-800 tracking-tight">{t('migration.restore')}</h3>
+                                        <p className="text-sm text-slate-500 mb-8 max-w-xs mx-auto leading-relaxed">{t('migration.json.dragDrop')}</p>
+                                        <div className="relative inline-block">
+                                            <input
+                                                type="file"
+                                                ref={jsonInputRef}
+                                                onChange={handleJsonFileSelect}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                                accept=".json"
+                                            />
+                                            <button className="bg-blue-600 text-white font-bold py-3.5 px-10 rounded-xl shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all pointer-events-none active:scale-95">
+                                                {t('migration.json.selectButton')}
+                                            </button>
+                                        </div>
+                                    </div>
 
-                            <div className="p-8 space-y-8">
-                                {/* Seleção de Modo */}
-                                <div>
-                                    <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">{t('migration.json.modeTitle')}</h4>
-                                    <div className="flex gap-6">
-                                        <label className={`flex-1 p-4 rounded-lg border cursor-pointer transition-all ${importMode === 'APPEND' ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <input type="radio" name="jsonMode" value="APPEND" checked={importMode === 'APPEND'} onChange={() => setImportMode('APPEND')} className="w-5 h-5 text-blue-600 focus:ring-blue-500" />
-                                                <span className="font-semibold text-slate-800">{t('migration.modes.append')}</span>
+                                    {/* Card de Exportação */}
+                                    <div className="bg-white p-10 rounded-3xl border border-slate-100 shadow-soft text-center group hover:border-indigo-200 transition-all relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                            <Download size={120} />
+                                        </div>
+                                        <div className="w-20 h-20 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-indigo-600 group-hover:scale-110 group-hover:-rotate-3 transition-all">
+                                            <Database size={40} />
+                                        </div>
+                                        <h3 className="text-2xl font-bold mb-2 text-slate-800 tracking-tight">{t('migration.json.createBackup')}</h3>
+                                        <p className="text-sm text-slate-500 mb-8 max-w-xs mx-auto leading-relaxed">Crie um arquivo completo contendo Ativos, RCAs, Ações e Taxonomia para segurança.</p>
+                                        <button 
+                                            onClick={handleJsonDownload}
+                                            className="bg-indigo-600 text-white font-bold py-3.5 px-10 rounded-xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all active:scale-95"
+                                        >
+                                            {t('migration.json.downloadButton')}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 2. Visualização de Preview e Configuração (Após seleção) */}
+                            {previewData && (
+                                <div className="animate-in fade-in slide-in-from-bottom-6 duration-500">
+                                    <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden">
+                                        {/* Top Bar Preview */}
+                                        <div className="bg-slate-50/50 p-8 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                            <div className="flex items-center gap-5">
+                                                <div className="p-4 bg-white rounded-2xl shadow-sm text-blue-600">
+                                                    <ClipboardList size={32} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-xl font-bold text-slate-800">{t('migration.importConfig')}</h3>
+                                                    <p className="text-sm text-slate-500 font-medium">Versão do Schema: <span className="text-blue-600">{previewData.metadata?.systemVersion || '17.0'}</span> • Gerado em: {new Date(previewData.metadata?.exportDate).toLocaleDateString()}</p>
+                                                </div>
                                             </div>
-                                            <p className="text-xs text-slate-500 pl-8">{t('migration.json.modeDescriptions.append')}</p>
-                                        </label>
-                                        <label className={`flex-1 p-4 rounded-lg border cursor-pointer transition-all ${importMode === 'UPDATE' ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <input type="radio" name="jsonMode" value="UPDATE" checked={importMode === 'UPDATE'} onChange={() => setImportMode('UPDATE')} className="w-5 h-5 text-blue-600 focus:ring-blue-500" />
-                                                <span className="font-semibold text-slate-800">{t('migration.modes.update')}</span>
+                                            <button
+                                                onClick={() => { setPreviewData(null); if (jsonInputRef.current) jsonInputRef.current.value = ''; }}
+                                                className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors flex items-center gap-2"
+                                            >
+                                                <X size={16} /> {t('migration.json.changeFile')}
+                                            </button>
+                                        </div>
+
+                                        <div className="p-10 space-y-12">
+                                            {/* Grid de Contagens Encontradas */}
+                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                                                {[
+                                                    { label: 'Análises RCA', count: previewData.records?.length || 0, icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50' },
+                                                    { label: 'Planos de Ação', count: previewData.actions?.length || 0, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                                                    { label: 'Eventos Gatilho', count: previewData.triggers?.length || 0, icon: Activity, color: 'text-amber-600', bg: 'bg-amber-50' },
+                                                    { label: 'Nós de Ativos', count: previewData.assets?.length || 0, icon: Layers, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                                                ].map((item, i) => (
+                                                    <div key={i} className="p-6 rounded-2xl bg-slate-50/50 border border-slate-100 flex flex-col gap-1 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
+                                                        <div className={`w-10 h-10 ${item.bg} ${item.color} rounded-xl flex items-center justify-center mb-2`}>
+                                                            <item.icon size={20} />
+                                                        </div>
+                                                        <span className="text-2xl font-black text-slate-800">{item.count}</span>
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.label}</span>
+                                                    </div>
+                                                ))}
                                             </div>
-                                            <p className="text-xs text-slate-500 pl-8">{t('migration.json.modeDescriptions.update')}</p>
-                                        </label>
-                                        <label className={`flex-1 p-4 rounded-lg border cursor-pointer transition-all ${importMode === 'REPLACE' ? 'bg-red-50 border-red-500 ring-1 ring-red-500' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <input type="radio" name="jsonMode" value="REPLACE" checked={importMode === 'REPLACE'} onChange={() => setImportMode('REPLACE')} className="w-5 h-5 text-red-600 focus:ring-red-500" />
-                                                <span className="font-semibold text-red-800">{t('migration.modes.replace')}</span>
+
+                                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                                                {/* Seção de Modo de Importação */}
+                                                <div className="lg:col-span-5 space-y-6">
+                                                    <div className="flex items-center gap-2 mb-4">
+                                                        <Settings size={18} className="text-slate-400" />
+                                                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">{t('migration.json.modeTitle')}</h4>
+                                                    </div>
+                                                    <div className="flex flex-col gap-4">
+                                                        {[
+                                                            { id: 'APPEND', label: t('migration.modes.append'), desc: t('migration.json.modeDescriptions.append'), color: 'blue' },
+                                                            { id: 'UPDATE', label: t('migration.modes.update'), desc: t('migration.json.modeDescriptions.update'), color: 'blue' },
+                                                            { id: 'REPLACE', label: t('migration.modes.replace'), desc: t('migration.json.modeDescriptions.replace'), color: 'red', warning: true },
+                                                        ].map((mode) => (
+                                                            <button
+                                                                key={mode.id}
+                                                                onClick={() => setImportMode(mode.id as any)}
+                                                                className={`p-5 rounded-2xl border-2 text-left transition-all duration-300 group ${
+                                                                    importMode === mode.id 
+                                                                        ? `bg-${mode.color}-50 border-${mode.color}-500 shadow-md ring-4 ring-${mode.color}-500/10` 
+                                                                        : 'bg-white border-slate-100 hover:border-slate-200'
+                                                                }`}
+                                                            >
+                                                                <div className="flex items-center justify-between mb-1">
+                                                                    <span className={`font-bold text-sm ${importMode === mode.id ? `text-${mode.color}-700` : 'text-slate-700'}`}>{mode.label}</span>
+                                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${importMode === mode.id ? `bg-${mode.color}-600 border-${mode.color}-600` : 'border-slate-200'}`}>
+                                                                        {importMode === mode.id && <Check size={12} className="text-white" strokeWidth={4} />}
+                                                                    </div>
+                                                                </div>
+                                                                <p className={`text-[11px] leading-relaxed ${importMode === mode.id ? `text-${mode.color}-600/80` : 'text-slate-400'}`}>
+                                                                    {mode.warning && '⚠️ '}{mode.desc}
+                                                                </p>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {/* Seção de Taxonomia */}
+                                                <div className="lg:col-span-7 space-y-6">
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <ShieldCheck size={18} className="text-slate-400" />
+                                                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">{t('migration.json.taxonomyTitle')}</h4>
+                                                        </div>
+                                                        <div className="flex gap-4">
+                                                            <button onClick={() => setTaxonomySelection(prev => Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: true }), {}))} className="text-[10px] font-bold text-blue-600 hover:underline uppercase tracking-wider">{t('migration.json.selectAll')}</button>
+                                                            <button onClick={() => setTaxonomySelection(prev => Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: false }), {}))} className="text-[10px] font-bold text-slate-400 hover:underline uppercase tracking-wider">{t('migration.json.deselectAll')}</button>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100">
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                            {[
+                                                                { key: 'analysisTypes', label: t('settings.analysisTypes'), icon: Activity },
+                                                                { key: 'analysisStatuses', label: t('settings.analysisStatuses'), icon: CheckCircle },
+                                                                { key: 'specialties', label: t('settings.specialties'), icon: Settings },
+                                                                { key: 'failureModes', label: t('settings.failureModes'), icon: AlertTriangle },
+                                                                { key: 'failureCategories', label: t('settings.failureCategories'), icon: Box },
+                                                                { key: 'componentTypes', label: t('settings.componentTypes'), icon: Layers },
+                                                                { key: 'rootCauseMs', label: t('settings.rootCauseMs'), icon: FileSpreadsheet },
+                                                                { key: 'triggerStatuses', label: t('settings.triggerStatuses'), icon: RefreshCw }
+                                                            ].map(item => (
+                                                                <label key={item.key} className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${taxonomySelection[item.key] ? 'bg-white border-blue-200 shadow-sm text-blue-700' : 'bg-transparent border-transparent text-slate-500 hover:bg-white/50'}`}>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={!!taxonomySelection[item.key]}
+                                                                        onChange={() => toggleTaxonomy(item.key)}
+                                                                        className="w-4 h-4 text-blue-600 rounded-lg border-slate-300 focus:ring-4 focus:ring-blue-500/10"
+                                                                    />
+                                                                    <item.icon size={14} className={taxonomySelection[item.key] ? 'text-blue-500' : 'text-slate-300'} />
+                                                                    <span className="text-xs font-bold truncate">{item.label}</span>
+                                                                </label>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100/50 flex gap-3">
+                                                        <Info size={18} className="text-blue-500 flex-shrink-0" />
+                                                        <p className="text-[11px] text-blue-700/70 leading-relaxed">
+                                                            Ao importar taxonomias, os IDs existentes no sistema serão preservados se houver conflito, priorizando a integridade da base local.
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <p className="text-xs text-red-600 pl-8">⚠️ {t('migration.json.modeDescriptions.replace')}</p>
-                                        </label>
+
+                                            {/* Ações Finais */}
+                                            <div className="flex justify-end pt-8 border-t border-slate-100 gap-4">
+                                                <button
+                                                    onClick={() => setPreviewData(null)}
+                                                    className="px-8 py-3.5 text-slate-500 font-bold text-sm rounded-xl hover:bg-slate-50 transition-colors"
+                                                >
+                                                    {t('migration.cancel')}
+                                                </button>
+                                                <button
+                                                    onClick={executeImport}
+                                                    className="px-12 py-3.5 bg-green-600 text-white font-black text-sm rounded-xl hover:bg-green-700 shadow-lg shadow-green-600/20 transition-all flex items-center gap-2 active:scale-95"
+                                                >
+                                                    <RefreshCw size={18} />
+                                                    {t('migration.json.initializeButton')}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="space-y-8">
+                            <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-soft">
+                                <div className="flex items-start gap-6 mb-10 pb-10 border-b border-slate-50">
+                                    <div className="p-4 bg-green-50 text-green-600 rounded-2xl shadow-sm">
+                                        <FileSpreadsheet size={32} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-slate-800 tracking-tight">{t('migration.csvTools')}</h3>
+                                        <p className="text-slate-500 text-sm font-medium mt-1">{t('migration.csv.description')}</p>
                                     </div>
                                 </div>
 
-                                {/* Seleção Granular de Taxonomia */}
-                                <div>
-                                    <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">{t('migration.json.taxonomyTitle')}</h4>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        {[
-                                            { key: 'analysisTypes', label: t('settings.analysisTypes') },
-                                            { key: 'analysisStatuses', label: t('settings.analysisStatuses') },
-                                            { key: 'specialties', label: t('settings.specialties') },
-                                            { key: 'failureModes', label: t('settings.failureModes') },
-                                            { key: 'failureCategories', label: t('settings.failureCategories') },
-                                            { key: 'componentTypes', label: t('settings.componentTypes') },
-                                            { key: 'rootCauseMs', label: t('settings.rootCauseMs') },
-                                            { key: 'triggerStatuses', label: t('settings.triggerStatuses') }
-                                        ].map(item => (
-                                            <label key={item.key} className="flex items-center gap-3 p-3 bg-slate-50 rounded border border-slate-200 cursor-pointer hover:bg-slate-100">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={!!taxonomySelection[item.key]}
-                                                    onChange={() => toggleTaxonomy(item.key)}
-                                                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                                                />
-                                                <span className="text-sm text-slate-700">{item.label}</span>
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                                    <div className="lg:col-span-7 space-y-8">
+                                        <div>
+                                            <label htmlFor="csv_target_entity" className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 px-1">
+                                                {t('migration.targetEntity')}
                                             </label>
-                                        ))}
-                                    </div>
-                                    <div className="mt-3 flex gap-4 text-xs">
-                                        <button onClick={() => setTaxonomySelection(prev => Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: true }), {}))} className="text-blue-600 hover:underline">{t('migration.json.selectAll')}</button>
-                                        <button onClick={() => setTaxonomySelection(prev => Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: false }), {}))} className="text-slate-500 hover:underline">{t('migration.json.deselectAll')}</button>
-                                    </div>
-                                </div>
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                                                    <Layers size={18} />
+                                                </div>
+                                                <select
+                                                    id="csv_target_entity"
+                                                    name="csv_target_entity"
+                                                    className="block w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none text-slate-800 shadow-sm transition-all appearance-none cursor-pointer"
+                                                    value={csvType}
+                                                    onChange={e => { setCsvType(e.target.value as CsvEntityType); setMsg(null); }}
+                                                >
+                                                    {entityOptions.map(opt => (
+                                                        <option key={opt.value} value={opt.value}>
+                                                            {opt.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
+                                                    <ChevronRight size={18} className="rotate-90" />
+                                                </div>
+                                            </div>
+                                        </div>
 
-                                {/* Ações Finais */}
-                                <div className="flex justify-end pt-4 gap-4">
-                                    <button
-                                        onClick={() => setPreviewData(null)}
-                                        className="px-6 py-3 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors"
-                                    >
-                                        {t('migration.cancel')}
-                                    </button>
-                                    <button
-                                        onClick={executeImport}
-                                        className="px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 shadow-md hover:shadow-lg transition-all flex items-center gap-2"
-                                    >
-                                        <RefreshCw size={20} />
-                                        {t('migration.json.initializeButton')}
-                                    </button>
+                                        {/* Configurações Dinâmicas de CSV */}
+                                        <div className="p-8 rounded-3xl bg-slate-50/50 border border-slate-100 space-y-6">
+                                            <div className="flex items-center gap-2 text-slate-800">
+                                                <Settings size={18} />
+                                                <h4 className="text-sm font-bold">{t('migration.csv.importOptions')}</h4>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {[
+                                                    { id: 'APPEND', label: t('migration.csv.appendLabel'), desc: t('migration.csv.appendHint') },
+                                                    { id: 'UPDATE', label: t('migration.csv.updateLabel'), desc: t('migration.csv.updateHint') },
+                                                ].map((mode) => (
+                                                    <button
+                                                        key={mode.id}
+                                                        onClick={() => setImportMode(mode.id as any)}
+                                                        className={`p-4 rounded-xl border-2 text-left transition-all ${
+                                                            (importMode === mode.id || (mode.id === 'APPEND' && importMode === 'REPLACE'))
+                                                                ? 'bg-white border-blue-500 shadow-md ring-4 ring-blue-500/5' 
+                                                                : 'bg-transparent border-slate-100 hover:border-slate-200'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-3 mb-1">
+                                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${importMode === mode.id ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
+                                                                {importMode === mode.id && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                                            </div>
+                                                            <span className="text-xs font-bold text-slate-700">{mode.label}</span>
+                                                        </div>
+                                                        <p className="text-[10px] text-slate-400 pl-7 leading-relaxed">{mode.desc}</p>
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {csvType === 'TRIGGERS' && (
+                                                <label className="flex items-center gap-3 p-4 rounded-xl bg-blue-50/50 border border-blue-100/50 cursor-pointer group">
+                                                    <div className="relative flex items-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            id="csv_inherit_hierarchy"
+                                                            name="csv_inherit_hierarchy"
+                                                            checked={inheritHierarchy}
+                                                            onChange={e => setInheritHierarchy(e.target.checked)}
+                                                            className="w-5 h-5 rounded-lg border-slate-300 text-blue-600 focus:ring-4 focus:ring-blue-500/10 cursor-pointer"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-xs font-bold text-blue-800">{t('migration.csv.inheritHierarchy')}</span>
+                                                        <p className="text-[10px] text-blue-600/60 leading-relaxed mt-0.5">{t('migration.csv.inheritHint')}</p>
+                                                    </div>
+                                                </label>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Ações de CSV */}
+                                    <div className="lg:col-span-5 flex flex-col gap-4">
+                                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 px-1">Ações Disponíveis</label>
+                                        
+                                        <button
+                                            onClick={handleDownloadTemplate}
+                                            className="flex items-center gap-4 p-6 bg-slate-50/50 border border-slate-100 rounded-2xl hover:bg-white hover:shadow-md hover:border-slate-200 transition-all group text-left"
+                                        >
+                                            <div className="p-3 bg-white rounded-xl shadow-sm text-slate-400 group-hover:text-blue-500 transition-colors">
+                                                <FileSpreadsheet size={24} />
+                                            </div>
+                                            <div>
+                                                <span className="block font-bold text-slate-700">{t('migration.downloadTemplate')}</span>
+                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Baixar Estrutura (.csv)</span>
+                                            </div>
+                                            <ChevronRight size={18} className="ml-auto text-slate-300 group-hover:translate-x-1 transition-transform" />
+                                        </button>
+
+                                        <button
+                                            onClick={handleCsvExport}
+                                            className="flex items-center gap-4 p-6 bg-slate-50/50 border border-slate-100 rounded-2xl hover:bg-white hover:shadow-md hover:border-slate-200 transition-all group text-left"
+                                        >
+                                            <div className="p-3 bg-white rounded-xl shadow-sm text-slate-400 group-hover:text-emerald-500 transition-colors">
+                                                <Download size={24} />
+                                            </div>
+                                            <div>
+                                                <span className="block font-bold text-slate-700">{t('migration.exportData')}</span>
+                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Exportar registros atuais</span>
+                                            </div>
+                                            <ChevronRight size={18} className="ml-auto text-slate-300 group-hover:translate-x-1 transition-transform" />
+                                        </button>
+
+                                        <div className="relative group mt-4">
+                                            <input
+                                                type="file"
+                                                id="csv_file_import"
+                                                name="csv_file_import"
+                                                aria-label="Selecionar arquivo CSV para importação"
+                                                ref={csvInputRef}
+                                                onChange={handleCsvImport}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                                accept=".csv"
+                                            />
+                                            <div className="flex items-center gap-4 p-6 bg-blue-600 rounded-2xl shadow-lg shadow-blue-600/20 group-hover:bg-blue-700 transition-all text-left">
+                                                <div className="p-3 bg-white/10 rounded-xl text-white">
+                                                    <Upload size={24} />
+                                                </div>
+                                                <div>
+                                                    <span className="block font-bold text-white">{t('migration.importCsv')}</span>
+                                                    <span className="text-[10px] text-blue-100 uppercase font-bold tracking-tight">Processar arquivo local</span>
+                                                </div>
+                                                <ChevronRight size={18} className="ml-auto text-blue-200 group-hover:translate-x-1 transition-transform" />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     )}
-
-                    {/* Bloco de Exportação */}
-                    {!previewData && (
-                        <div className="mt-12 pt-12 border-t border-slate-100 text-center">
-                            <h3 className="text-lg font-semibold mb-2 text-slate-800">{t('migration.json.createBackup')}</h3>
-                            <button onClick={handleJsonDownload} className="inline-flex items-center gap-2 text-indigo-600 font-medium hover:text-indigo-800 py-2 px-4 rounded-lg bg-indigo-50 hover:bg-indigo-100 transition-colors">
-                                <Download size={20} />
-                                {t('migration.json.downloadButton')}
-                            </button>
-                        </div>
-                    )}
                 </div>
-            ) : (
-                <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
-                    <div className="flex items-start gap-4 mb-8">
-                        <div className="p-3 bg-green-50 text-green-600 rounded-lg">
-                            <FileSpreadsheet size={24} />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-slate-900">{t('migration.csvTools')}</h3>
-                            <p className="text-slate-500 text-sm">{t('migration.csv.description')}</p>
-                        </div>
-                    </div>
-
-                    <div className="mb-6">
-                        <label htmlFor="csv_target_entity" className="block text-sm font-medium text-slate-700 mb-2">
-                            {t('migration.targetEntity')}
-                        </label>
-                        <select
-                            id="csv_target_entity"
-                            name="csv_target_entity"
-                            className="block w-full max-w-2xl p-2.5 bg-white border border-slate-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 shadow-sm transition-all"
-                            value={csvType}
-                            onChange={e => { setCsvType(e.target.value as CsvEntityType); setMsg(null); }}
-                        >
-                            {entityOptions.map(opt => (
-                                <option key={opt.value} value={opt.value} className="py-2">
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Opções de Importação de Gatilhos */}
-                    {csvType === 'TRIGGERS' && (
-                        <div className="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                            <h4 className="text-sm font-semibold text-slate-800 mb-3">{t('migration.csv.importOptions')}</h4>
-                            <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-8">
-                                <div className="flex items-center gap-4">
-                                    <span className="text-sm text-slate-600">{t('migration.csv.modeLabel')}</span>
-                                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            id="csv_mode_append"
-                                            name="csvMode"
-                                            value="APPEND"
-                                            checked={importMode === 'APPEND' || importMode === 'REPLACE'}
-                                            onChange={() => setImportMode('APPEND')}
-                                            className="text-blue-600 focus:ring-blue-500"
-                                        />
-                                        {t('migration.csv.appendLabel')}
-                                    </label>
-                                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            id="csv_mode_update"
-                                            name="csvMode"
-                                            value="UPDATE"
-                                            checked={importMode === 'UPDATE'}
-                                            onChange={() => setImportMode('UPDATE')}
-                                            className="text-blue-600 focus:ring-blue-500"
-                                        />
-                                        {t('migration.csv.updateLabel')}
-                                    </label>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
-                                        <input
-                                            type="checkbox"
-                                            id="csv_inherit_hierarchy"
-                                            name="csv_inherit_hierarchy"
-                                            checked={inheritHierarchy}
-                                            onChange={e => setInheritHierarchy(e.target.checked)}
-                                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                                        />
-                                        {t('migration.csv.inheritHierarchy')}
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-100 pt-6">
-                        <button
-                            onClick={handleDownloadTemplate}
-                            className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
-                        >
-                            <FileSpreadsheet size={18} /> {t('migration.downloadTemplate')}
-                        </button>
-
-                        <button
-                            onClick={handleCsvExport}
-                            className="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg font-medium transition-colors"
-                        >
-                            <Database size={18} /> {t('migration.exportData')}
-                        </button>
-                        <div className="relative">
-                            <input
-                                type="file"
-                                id="csv_file_import"
-                                name="csv_file_import"
-                                aria-label="Selecionar arquivo CSV para importação"
-                                ref={csvInputRef}
-                                onChange={handleCsvImport}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                accept=".csv"
-                            />
-                            <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm pointer-events-none">
-                                <Upload size={18} /> {t('migration.importCsv')}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            </main>
         </div>
     );
 };

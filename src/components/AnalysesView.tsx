@@ -156,7 +156,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                         failureModes: taxonomy.failureModes,
                         failureCategories: taxonomy.failureCategories,
                         componentTypes: taxonomy.componentTypes,
-                        rootCauseMs: taxonomy.rootCauseMs
+                        rootCause6Ms: taxonomy.rootCauseMs
                     }}
                     isGlobal={isGlobal}
                     onGlobalToggle={toggleGlobal}
