@@ -5,6 +5,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { animateCounter } from '../../services/animations';
+import { useLanguage } from '../../context/LanguageDefinition';
 
 interface AnimatedCounterProps {
     value: number;
@@ -13,12 +14,14 @@ interface AnimatedCounterProps {
 
 export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ value, prefix = '' }) => {
     const counterRef = useRef<HTMLSpanElement>(null);
+    const { language } = useLanguage();
 
     useEffect(() => {
         if (counterRef.current) {
-            animateCounter(counterRef.current, value);
+            const locale = language === 'pt' ? 'pt-BR' : 'en-US';
+            animateCounter(counterRef.current, value, 1000, locale);
         }
-    }, [value]);
+    }, [value, language]);
 
     return (
         <span className="tabular-nums">

@@ -52,22 +52,33 @@ export const animateModalEnter = (target: any) => {
 };
 
 /**
- * Anima contadores numéricos de 0 até o valor final.
+ * Anima contadores numéricos de 0 até o valor final com formatação de localidade.
  */
 export const animateCounter = (
     target: any,
     value: number,
-    duration: number = 1000
+    duration: number = 1000,
+    locale: string = 'pt-BR'
 ) => {
     if ((window as any).isPlaywright || navigator.userAgent.includes('Playwright')) {
-        target.innerHTML = value;
+        target.textContent = new Intl.NumberFormat(locale, {
+            minimumFractionDigits: value % 1 !== 0 ? 1 : 0,
+            maximumFractionDigits: 2
+        }).format(value);
         return;
     }
+
+    const obj = { val: 0 };
     return anime({
-        targets: target,
-        innerHTML: [0, value],
-        round: 1, // Remove decimais durante a animação
+        targets: obj,
+        val: value,
         duration,
         easing: 'easeOutExpo',
+        update: () => {
+            target.textContent = new Intl.NumberFormat(locale, {
+                minimumFractionDigits: value % 1 !== 0 ? 1 : 0,
+                maximumFractionDigits: 2
+            }).format(obj.val);
+        }
     });
 };

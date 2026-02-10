@@ -50,13 +50,16 @@ const getStableColor = (id: string, mapping?: Record<string, string>) => {
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
+    const locale = language === 'pt' ? 'pt-BR' : 'en-US';
+    
     if (active && payload && payload.length) {
+        const formattedValue = new Intl.NumberFormat(locale).format(payload[0].value);
         return (
             <div className="bg-white/95 backdrop-blur-sm p-3 border border-slate-200 shadow-lg rounded-lg text-sm z-50">
                 <p className="font-bold text-slate-800 mb-1">{label || payload[0].payload.name}</p>
                 <p className="text-blue-600 font-medium">
-                    {payload[0].value} <span className="text-slate-500 text-xs">{t('dashboard.tooltips.records')}</span>
+                    {formattedValue} <span className="text-slate-500 text-xs">{t('dashboard.tooltips.records')}</span>
                 </p>
                 {payload[0].payload.id && (
                     <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wide">
@@ -81,17 +84,18 @@ const ChartCard: React.FC<{
     icon?: React.ReactNode;
     isInteractive?: boolean;
     isLoading?: boolean;
-}> = ({ title, children, icon, isInteractive, isLoading }) => {
+    tooltip?: string;
+}> = ({ title, children, icon, isInteractive, isLoading, tooltip }) => {
     const { t } = useLanguage();
     return (
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col min-h-[420px] transition-all hover:shadow-md relative group overflow-hidden">
-            <div className="flex items-center justify-between mb-4 border-b border-slate-50 pb-2 flex-shrink-0">
-                <div className="flex items-center gap-2">
-                    {icon && <span className="text-slate-400">{icon}</span>}
-                    <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider">{title}</h3>
+        <div title={tooltip} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col min-h-[420px] transition-all hover:shadow-md relative group overflow-hidden cursor-help">
+            <div title={tooltip} className="flex items-center justify-between mb-4 border-b border-slate-50 pb-2 flex-shrink-0">
+                <div title={tooltip} className="flex items-center gap-2">
+                    {icon && <span title={tooltip} className="text-slate-400">{icon}</span>}
+                    <h3 title={tooltip} className="font-bold text-slate-700 text-sm uppercase tracking-wider">{title}</h3>
                 </div>
                 {isInteractive && (
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-blue-500 flex items-center gap-1">
+                    <div title={tooltip} className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-blue-500 flex items-center gap-1">
                         <MousePointerClick size={12} /> {t('common.filter')}
                     </div>
                 )}
@@ -289,14 +293,14 @@ export const Dashboard: React.FC = () => {
                     { label: t('dashboard.kpi.totalCost'), value: totalCost, icon: <TrendingUp size={14} />, color: 'text-emerald-600', prefix: language === 'pt' ? 'R$ ' : '$', tooltip: t('dashboard.tooltips.totalCost') },
                     { label: t('dashboard.kpi.totalRcas'), value: filteredRecords.length, icon: <PieIcon size={14} />, color: 'text-slate-500', tooltip: t('dashboard.tooltips.totalRcas') }
                 ].map((kpi, i) => (
-                    <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden group hover:border-blue-300 transition-colors">
-                        <div className={`text-xs ${kpi.color} font-bold uppercase tracking-wider mb-2 flex items-center justify-between`}>
-                            <div className="flex items-center gap-1">{kpi.icon} {kpi.label}</div>
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity" title={kpi.tooltip}>
-                                <Info size={14} className="text-slate-300 cursor-help" />
+                    <div key={i} title={kpi.tooltip} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden group hover:border-blue-300 transition-colors cursor-help pointer-events-auto">
+                        <div title={kpi.tooltip} className={`text-xs ${kpi.color} font-bold uppercase tracking-wider mb-2 flex items-center justify-between`}>
+                            <div title={kpi.tooltip} className="flex items-center gap-1">{kpi.icon} {kpi.label}</div>
+                            <div title={kpi.tooltip} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Info size={14} className="text-slate-300" />
                             </div>
                         </div>
-                        <div className="text-4xl font-bold text-slate-800 relative z-10">
+                        <div title={kpi.tooltip} className="text-4xl font-bold text-slate-800 relative z-10">
                             {isLoading ? (
                                 <Skeleton className="h-10 w-3/4" />
                             ) : (
@@ -309,7 +313,13 @@ export const Dashboard: React.FC = () => {
 
             {/* Grade Principal de Gráficos */}
             <div ref={chartsRef as any} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <ChartCard title={t('dashboard.charts.totalByStatus')} icon={<CheckCircle size={16} />} isInteractive isLoading={isLoading}>
+                <ChartCard 
+                    title={t('dashboard.charts.totalByStatus')} 
+                    icon={<CheckCircle size={16} />} 
+                    isInteractive 
+                    isLoading={isLoading}
+                    tooltip={t('dashboard.tooltips.clickToFilter')}
+                >
                     {isMounted && dataStatus.length > 0 ? (
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <PieChart>
@@ -345,7 +355,12 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard title={t('dashboard.charts.totalByType')} icon={<PieIcon size={16} />} isInteractive>
+                <ChartCard 
+                    title={t('dashboard.charts.totalByType')} 
+                    icon={<PieIcon size={16} />} 
+                    isInteractive
+                    tooltip={t('dashboard.tooltips.clickToFilter')}
+                >
                     {isMounted && dataType.length > 0 ? (
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <PieChart>
@@ -377,7 +392,12 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard title={t('dashboard.charts.rootCause6M')} icon={<PieIcon size={16} />} isInteractive>
+                <ChartCard 
+                    title={t('dashboard.charts.rootCause6M')} 
+                    icon={<PieIcon size={16} />} 
+                    isInteractive
+                    tooltip={t('dashboard.tooltips.clickToFilter')}
+                >
                     {isMounted && dataRootCause.length > 0 ? (
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <PieChart>
@@ -413,7 +433,12 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard title={t('dashboard.charts.topEquipments')} icon={<TrendingUp size={16} />} isInteractive>
+                <ChartCard 
+                    title={t('dashboard.charts.topEquipments')} 
+                    icon={<TrendingUp size={16} />} 
+                    isInteractive
+                    tooltip={t('dashboard.tooltips.clickToFilter')}
+                >
                     {isMounted && dataEquip.length > 0 ? (
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <BarChart data={dataEquip} layout="vertical">
@@ -431,7 +456,12 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard title={t('dashboard.charts.topSubgroups')} icon={<TrendingUp size={16} />} isInteractive>
+                <ChartCard 
+                    title={t('dashboard.charts.topSubgroups')} 
+                    icon={<TrendingUp size={16} />} 
+                    isInteractive
+                    tooltip={t('dashboard.tooltips.clickToFilter')}
+                >
                     {isMounted && dataSub.length > 0 ? (
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <BarChart data={dataSub} layout="vertical">
@@ -449,7 +479,12 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard title={t('dashboard.charts.totalByComponent')} icon={<AlertCircle size={16} />} isInteractive>
+                <ChartCard 
+                    title={t('dashboard.charts.totalByComponent')} 
+                    icon={<AlertCircle size={16} />} 
+                    isInteractive
+                    tooltip={t('dashboard.tooltips.clickToFilter')}
+                >
                     {isMounted && dataComp.length > 0 ? (
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <BarChart data={dataComp} layout="vertical">
@@ -471,7 +506,12 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard title={t('dashboard.charts.failureMode')} icon={<AlertCircle size={16} />} isInteractive>
+                <ChartCard 
+                    title={t('dashboard.charts.failureMode')} 
+                    icon={<AlertCircle size={16} />} 
+                    isInteractive
+                    tooltip={t('dashboard.tooltips.clickToFilter')}
+                >
                     {isMounted && dataMode.length > 0 ? (
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <BarChart data={dataMode} layout="vertical">
@@ -489,7 +529,12 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard title={t('dashboard.charts.failureCategory')} icon={<Activity size={16} />} isInteractive>
+                <ChartCard 
+                    title={t('dashboard.charts.failureCategory')} 
+                    icon={<Activity size={16} />} 
+                    isInteractive
+                    tooltip={t('dashboard.tooltips.clickToFilter')}
+                >
                     {isMounted && dataCat.length > 0 ? (
                         <SafeResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                             <BarChart data={dataCat} layout="vertical">
