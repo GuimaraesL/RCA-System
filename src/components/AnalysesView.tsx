@@ -1,3 +1,7 @@
+/**
+ * Proposta: Vista principal de listagem e gestão de Análises RCA.
+ * Fluxo: Renderiza uma tabela interativa com suporte a ordenação, filtros cruzados inteligentes, paginação e integração com o contexto global de dados.
+ */
 
 import React, { useMemo, useState } from 'react';
 import { RcaRecord, TaxonomyConfig } from '../types';
@@ -13,8 +17,7 @@ import { ConfirmModal } from './ConfirmModal';
 import { getAssetName } from '../utils/triggerHelpers';
 import { translateStatus } from '../utils/statusUtils';
 import { useFilteredData } from '../hooks/useFilteredData';
-// useEnterAnimation disabled for performance with large datasets
-import { useLanguage } from '../context/LanguageDefinition'; // i18n
+import { useLanguage } from '../context/LanguageDefinition'; 
 
 interface AnalysesViewProps {
     onNew: () => void;
@@ -25,25 +28,15 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
     const { t, formatDate, language } = useLanguage();
     const { records, assets, taxonomy, deleteRecord } = useRcaContext();
 
-    // Delete Modal State
+    // Estado para o modal de confirmação de exclusão
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
 
-    // --- Persistent Filter State ---
+    // --- Gestão de Estado dos Filtros Persistentes ---
     const defaultFilters: FilterState = {
-        searchTerm: '',
-        year: '',
-        months: [],
-        status: 'ALL',
-        area: 'ALL',
-        equipment: 'ALL',
-        subgroup: 'ALL',
-        specialty: 'ALL',
-        analysisType: 'ALL',
-        failureMode: 'ALL',
-        failureCategory: 'ALL',
-        componentType: 'ALL',
-        rootCause6M: 'ALL'
+        searchTerm: '', year: '', months: [], status: 'ALL', area: 'ALL',
+        equipment: 'ALL', subgroup: 'ALL', specialty: 'ALL', analysisType: 'ALL',
+        failureMode: 'ALL', failureCategory: 'ALL', componentType: 'ALL', rootCause6M: 'ALL'
     };
 
     const { showFilters, setShowFilters, filters, setFilters, handleReset, isGlobal, toggleGlobal } = useFilterPersistence(
@@ -52,12 +45,12 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         true
     );
 
-    // --- Intelligent Cross-Filtering Hook ---
+    // Hook de filtragem inteligente (Cross-Filtering)
     const { filteredRCAs: filteredContent } = useFilteredData(filters);
 
-    // --- Delete Handlers ---
+    // --- Orquestradores de Exclusão ---
     const handleDelete = (e: React.MouseEvent, id: string) => {
-        e.stopPropagation(); // Prevent row click from triggering edit
+        e.stopPropagation(); // Impede que o clique na linha dispare a edição
         setRecordToDelete(id);
         setDeleteModalOpen(true);
     };
@@ -66,7 +59,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         if (!recordToDelete) return;
         try {
             await deleteRecord(recordToDelete);
-            console.log('✅ RCA excluída:', recordToDelete);
+            console.log('✅ Contexto: RCA excluída com sucesso');
         } catch (error) {
             console.error('❌ Erro ao excluir RCA:', error);
         }
@@ -74,7 +67,10 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         setRecordToDelete(null);
     };
 
-    // --- Performance Optimization: Taxonomy Maps for O(1) Lookup ---
+    /**
+     * OTIMIZAÇÃO DE PERFORMANCE: Cria mapas de busca O(1) para a taxonomia.
+     * Evita loops .find() repetitivos durante a renderização de grandes tabelas.
+     */
     const taxonomyMaps = useMemo(() => {
         const maps: Record<string, Map<string, string>> = {};
         if (taxonomy) {
@@ -94,6 +90,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
     };
 
     const dynamicOptions = useMemo(() => {
+        // Identifica IDs em uso para otimizar os filtros disponíveis na interface
         const usedAssetIds = new Set<string>();
         records.forEach(r => {
             if (r.area_id) usedAssetIds.add(r.area_id);
@@ -109,25 +106,21 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         };
     }, [records, assets, taxonomy]);
 
-    // Use the Hook!
+    // Hook de ordenação de dados
     const { sortedItems: filteredRecords, sortConfig, handleSort } = useSorting(filteredContent, { key: 'failure_date', direction: 'desc' });
 
-    // --- Pagination State ---
+    // --- Gestão de Paginação ---
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 100;
 
-    // Reset pagination when filters change
+    // Reseta para a primeira página sempre que os filtros mudarem
     React.useEffect(() => {
         setCurrentPage(1);
     }, [filters]);
 
-    // Animation Ref
-    // Animation Disabled (Performance Optimization)
-    // const listRef = useEnterAnimation([filteredRecords, currentPage]);
-
     return (
         <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col">
-            {/* Header */}
+            {/* Cabeçalho da Vista */}
             <div className="flex justify-between items-center mb-6 flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-500">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900">{t('analysesPage.title')}</h1>
@@ -141,6 +134,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                 </button>
             </div>
 
+            {/* Barra de Filtros */}
             <div className="animate-in fade-in slide-in-from-top-4 duration-500 delay-100">
                 <FilterBar
                     isOpen={showFilters}
@@ -150,13 +144,9 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                     onReset={() => handleReset(defaultFilters)}
                     totalResults={filteredRecords.length}
                     config={{
-                        showSearch: true,
-                        showDate: true,
-                        showStatus: true,
-                        showAssetHierarchy: true,
-                        showAnalysisType: true,
-                        showSpecialty: true,
-                        showComponentType: true
+                        showSearch: true, showDate: true, showStatus: true,
+                        showAssetHierarchy: true, showAnalysisType: true,
+                        showSpecialty: true, showComponentType: true
                     }}
                     options={{
                         statuses: dynamicOptions.statuses,
@@ -166,14 +156,14 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                         failureModes: taxonomy.failureModes,
                         failureCategories: taxonomy.failureCategories,
                         componentTypes: taxonomy.componentTypes,
-                        rootCause6Ms: taxonomy.rootCauseMs
+                        rootCauseMs: taxonomy.rootCauseMs
                     }}
                     isGlobal={isGlobal}
                     onGlobalToggle={toggleGlobal}
                 />
             </div>
 
-            {/* Data Table */}
+            {/* Tabela de Dados */}
             <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-700 delay-200">
                 <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
                     <table className="w-full text-left text-sm text-slate-600">
@@ -251,6 +241,8 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                             })}
                         </tbody>
                     </table>
+                    
+                    {/* Controles de Paginação */}
                     {filteredRecords.length > 0 && (
                         <div className="p-4 flex items-center justify-between border-t border-slate-100 bg-slate-50">
                             <div className="text-sm text-slate-500">
@@ -277,7 +269,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                 </div>
             </div>
 
-            {/* Delete Confirmation Modal */}
+            {/* Modal de Confirmação de Exclusão */}
             <ConfirmModal
                 isOpen={deleteModalOpen}
                 onCancel={() => setDeleteModalOpen(false)}

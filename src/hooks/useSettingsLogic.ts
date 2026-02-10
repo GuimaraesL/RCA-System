@@ -1,3 +1,8 @@
+/**
+ * Proposta: Hook para gerenciamento da lógica de Configurações e Taxonomia.
+ * Fluxo: Provê métodos para manipulação dinâmica das listas de referência do sistema (Tipos de Análise, Status, Especialidades, etc.), garantindo a persistência via contexto global e implementando lógica de prefixos únicos para evitar colisões de IDs.
+ */
+
 import { useRcaContext } from '../context/RcaContext';
 import { TaxonomyConfig, TaxonomyItem } from '../types';
 import { generateId } from '../services/utils';
@@ -5,21 +10,27 @@ import { generateId } from '../services/utils';
 export const useSettingsLogic = () => {
   const { taxonomy, updateTaxonomy } = useRcaContext();
 
+  /**
+   * Wrapper genérico para atualização de campos da taxonomia.
+   */
   const handleUpdate = async (field: keyof TaxonomyConfig, newItems: TaxonomyItem[]) => {
-    console.log(`⚙️ Settings: Updating field ${field}...`);
+    console.log(`⚙️ Configurações: Atualizando campo ${field}...`);
     const newTaxonomy = { ...taxonomy, [field]: newItems };
     try {
       await updateTaxonomy(newTaxonomy);
-      console.log(`✅ Settings: Field ${field} updated successfully.`);
+      console.log(`✅ Configurações: Campo ${field} atualizado com sucesso.`);
     } catch (error) {
-      console.error(`❌ Settings: Error updating field ${field}:`, error);
+      console.error(`❌ Configurações: Erro ao atualizar campo ${field}:`, error);
     }
   };
 
+  /**
+   * Adiciona um novo item a uma categoria da taxonomia.
+   * Utiliza prefixos técnicos específicos por categoria para garantir a rastreabilidade e evitar conflitos.
+   */
   const addItem = (field: keyof TaxonomyConfig, name: string) => {
     if (!name.trim()) return;
 
-    // Prefixos únicos por categoria para evitar colisões (Issue #49)
     const prefixes: Record<string, string> = {
       analysisTypes: 'TYP',
       analysisStatuses: 'STA',
@@ -53,23 +64,20 @@ export const useSettingsLogic = () => {
     handleUpdate(field, updated);
   };
 
+  /**
+   * Atualiza as configurações de obrigatoriedade de campos (Campos Mandatórios).
+   */
   const updateMandatoryConfig = async (newConfig: any) => {
-    // Type is checked by usage, but we could import type. 
-    // For now, assume it matches MandatoryFieldsConfig
     const newTaxonomy = { ...taxonomy, mandatoryFields: newConfig };
     try {
       await updateTaxonomy(newTaxonomy);
-      console.log(`✅ Settings: Mandatory Fields updated successfully.`);
+      console.log(`✅ Configurações: Regras de campos obrigatórios atualizadas.`);
     } catch (error) {
-      console.error(`❌ Settings: Error updating Mandatory Fields:`, error);
+      console.error(`❌ Configurações: Erro ao atualizar campos obrigatórios:`, error);
     }
   };
 
   return {
-    taxonomy,
-    addItem,
-    removeItem,
-    updateItem,
-    updateMandatoryConfig
+    taxonomy, addItem, removeItem, updateItem, updateMandatoryConfig
   };
 };

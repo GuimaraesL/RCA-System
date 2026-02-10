@@ -1,3 +1,8 @@
+/**
+ * Proposta: Controlador HTTP para gestão da Taxonomia e Configurações Globais.
+ * Fluxo: Disponibiliza endpoints para leitura e atualização do objeto central de taxonomia, delegando a persistência ao TaxonomyService.
+ */
+
 import { Request, Response } from 'express';
 import { TaxonomyService } from '../../domain/services/TaxonomyService';
 import { SqlTaxonomyRepository } from '../../infrastructure/repositories/SqlTaxonomyRepository';
@@ -21,7 +26,7 @@ export class TaxonomyController {
     public update = (req: Request, res: Response): void => {
         try {
             this.taxonomyService.updateTaxonomy(req.body);
-            res.json({ message: 'Taxonomy updated successfully' });
+            res.json({ message: 'Taxonomia atualizada com sucesso' });
         } catch (error: any) {
             res.status(500).json({ error: error.message });
         }

@@ -1,49 +1,54 @@
+/**
+ * Proposta: Definições de tipos e interfaces do domínio RCA.
+ * Fluxo: Centraliza os contratos de dados utilizados em toda a arquitetura V2 do backend.
+ */
+
 export type RcaStatus = 'Em Andamento' | 'Aguardando Verificação' | 'Concluída' | 'Atrasada' | 'Cancelada';
 
 export interface Rca {
     id: string;
     version?: string;
 
-    // Metadata
+    // Metadados de Auditoria
     created_at?: string;
     updated_at?: string;
     file_path?: string;
 
-    // Analysis Status
-    analysis_date?: string; // Analysis creation date
-    analysis_duration_minutes?: number; // Calculated/Estimated
+    // Status e Cabeçalho da Análise
+    analysis_date?: string; // Data de criação da análise
+    analysis_duration_minutes?: number; // Duração estimada/calculada
     analysis_type?: string;
-    status?: string; // RcaStatus
+    status?: string; // ID da Taxonomia
 
-    // People
-    participants?: string[]; // JSON array
+    // Pessoas e Responsabilidades
+    participants?: string[]; // Array de nomes
     facilitator?: string;
 
-    // Timing
+    // Cronograma e Prazos
     start_date?: string;
-    completion_date?: string; // When it was effectively completed
+    completion_date?: string; // Data em que foi efetivamente concluída
     requires_operation_support?: boolean;
 
-    // Event Info
+    // Dados do Evento de Falha
     failure_date?: string;
     failure_time?: string;
     downtime_minutes?: number;
     financial_impact?: number;
     os_number?: string;
 
-    // Location
+    // Localização Técnica (Ativos)
     area_id?: string;
     equipment_id?: string;
     subgroup_id?: string;
     component_type?: string;
     asset_name_display?: string;
 
-    // Classification
+    // Classificação Técnica
     specialty_id?: string;
     failure_mode_id?: string;
     failure_category_id?: string;
 
-    // 5W1H Description
+    // Descrição 5W1H/5W2H
     who?: string;
     what?: string;
     when?: string;
@@ -52,17 +57,17 @@ export interface Rca {
     potential_impacts?: string;
     quality_impacts?: string;
 
-    // Investigation
+    // Investigação e Causas
     five_whys?: any[];
     five_whys_chains?: any[];
-    ishikawa?: any; // Fishbone object
+    ishikawa?: any; // Objeto Fishbone
     root_causes?: any[];
 
-    // Checklists
+    // Checklists e Metodologias
     precision_maintenance?: any[];
     human_reliability?: any;
 
-    // Actions
+    // Planos e Lições
     containment_actions?: any[];
     lessons_learned?: any[];
     general_moc_number?: string;

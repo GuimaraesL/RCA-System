@@ -1,3 +1,8 @@
+/**
+ * Proposta: Editor hierárquico para a metodologia dos 5 Porquês (Análise de Causa Raiz).
+ * Fluxo: Permite a criação de cadeias de investigação ramificadas, onde cada porquê pode gerar novas causas contribuintes, reconstruindo a árvore lógica da falha de forma visual e interativa.
+ */
+
 import React, { useState } from 'react';
 import { FiveWhyNode, FiveWhyChain } from '../../../types';
 import { Input } from '../../ui/Input';
@@ -20,9 +25,11 @@ const NodeEditor: React.FC<{
 }> = ({ node, depth, onUpdate, onDelete, canDelete }) => {
     const { t } = useLanguage();
 
-    const isActive = (node.whys || []).length < 5; // Can add more whys?
+    const isActive = (node.whys || []).length < 5; 
 
-    // Update a specific why level
+    /**
+     * Atualiza o texto de um nível específico de 'Porquê' dentro do nó atual.
+     */
     const updateWhy = (level: number, text: string) => {
         const newWhys = [...(node.whys || [])];
         const whyIndex = newWhys.findIndex(w => w.level === level);
@@ -30,16 +37,17 @@ const NodeEditor: React.FC<{
         if (whyIndex >= 0) {
             newWhys[whyIndex].answer = text;
         } else {
-            // Fill gaps if necessary (simple implementation assumes sequential)
+            // Preenchimento de lacunas sequenciais caso necessário
             newWhys.push({ level, answer: text });
         }
         onUpdate({ ...node, whys: newWhys });
     };
 
-    // Delete a specific why level
+    /**
+     * Remove um nível de porquê e re-indexa os níveis subsequentes para manter a continuidade (1, 2, 3...).
+     */
     const deleteWhy = (levelToDelete: number) => {
         const filtered = (node.whys || []).filter(w => w.level !== levelToDelete);
-        // Re-index levels to ensure continuity (1, 2, 3...)
         const reIndexed = filtered.map((w, index) => ({
             ...w,
             level: index + 1
@@ -47,7 +55,6 @@ const NodeEditor: React.FC<{
         onUpdate({ ...node, whys: reIndexed });
     };
 
-    // Add next why level
     const addWhy = () => {
         const nextLevel = (node.whys || []).length + 1;
         if (nextLevel > 5) return;
@@ -58,7 +65,9 @@ const NodeEditor: React.FC<{
         });
     };
 
-    // Add Branched Child (New Cause Path)
+    /**
+     * Cria uma nova ramificação (causa contribuinte) a partir do nó atual.
+     */
     const addChild = () => {
         const newNode: FiveWhyNode = {
             id: generateId('node'),
@@ -70,7 +79,6 @@ const NodeEditor: React.FC<{
         onUpdate({ ...node, children: [...(node.children || []), newNode] });
     };
 
-    // Update child nodes locally
     const updateChild = (childIdx: number, newChild: FiveWhyNode) => {
         const newChildren = [...(node.children || [])];
         newChildren[childIdx] = newChild;
@@ -84,9 +92,10 @@ const NodeEditor: React.FC<{
 
     return (
         <div className={`relative pl-6 ${depth > 0 ? 'border-l-2 border-slate-200 ml-4' : ''}`}>
+            {/* Indicador visual da ramificação */}
             <div className="absolute -left-[9px] top-6 w-4 h-4 rounded-full bg-slate-200 border-2 border-white"></div>
 
-            {/* Context/Cause of this branch (if depth > 0) */}
+            {/* Título da Ramificação (Contexto da Causa) */}
             {depth > 0 && node.cause_effect !== undefined && (
                 <div className="mb-2 flex items-center gap-2">
                     <CornerDownRight size={16} className="text-slate-400" />
@@ -105,7 +114,7 @@ const NodeEditor: React.FC<{
                 </div>
             )}
 
-            {/* List of Whys for this Node */}
+            {/* Listagem dos Níveis de Porquê do Nó Atual */}
             <div className="space-y-3 bg-white p-4 rounded-lg border border-slate-200 shadow-sm mb-4">
                 {(node.whys || []).map((why, idx) => (
                     <div key={idx} className="flex gap-3 items-start group">
@@ -133,11 +142,6 @@ const NodeEditor: React.FC<{
                                     className="h-9"
                                     aria-label={why.level === 1 ? t('wizard.step4.fiveWhys.whyDidProblemOccur') : t('wizard.step4.fiveWhys.whyLabel').replace('{0}', (node.whys?.[idx - 1]?.answer?.substring(0, 20) || ''))}
                                 />
-                                {/* Only show delete if it's not the only one, or allow deleting all? 
-                                    Usually we want at least 1, but user asked to delete. 
-                                    Let's allow deleting any, but if list becomes empty, maybe auto-add lvl 1 empty?
-                                    Actually, allowing empty list is fine, user can Add Why later. 
-                                    But let's stick to simple: Delete button visibility. */}
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -166,7 +170,7 @@ const NodeEditor: React.FC<{
                 </div>
             </div>
 
-            {/* Recursion for Children */}
+            {/* Recursividade para renderização de ramificações (filhos) */}
             {(node.children || []).map((child, idx) => (
                 <NodeEditor
                     key={child.id}
@@ -234,7 +238,7 @@ export const FiveWhysEditor: React.FC<FiveWhysEditorProps> = ({ chains, onChange
                         node={chain.root_node}
                         depth={0}
                         onUpdate={u => updateChain(idx, { ...chain, root_node: u })}
-                        onDelete={() => { }} // Cannot delete root node of a chain
+                        onDelete={() => { }} 
                         canDelete={false}
                     />
                 </div>

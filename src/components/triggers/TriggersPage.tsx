@@ -1,6 +1,10 @@
+/**
+ * Proposta: Vista principal de gestão de Gatilhos (Triggers) de parada.
+ * Fluxo: Gerencia a listagem de eventos, criação de novos gatilhos, conversão para RCA e orquestração de modais de edição e vinculação.
+ */
 
 import React from 'react';
-import { useTriggersLogic } from '../../hooks/useTriggersLogic'; // Adjust path
+import { useTriggersLogic } from '../../hooks/useTriggersLogic'; 
 import { TriggersList } from './TriggersList';
 import { TriggerModal } from './TriggerModal';
 import { FilterBar } from '../FilterBar';
@@ -8,7 +12,7 @@ import { TriggerRecord } from '../../types';
 import { Plus } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { RcaSelector } from '../RcaSelector';
-import { ConfirmModal } from '../ConfirmModal'; // Ensure this exists or use a generic one
+import { ConfirmModal } from '../ConfirmModal'; 
 
 interface TriggersPageProps {
     onCreateRca: (trigger: TriggerRecord) => void;
@@ -33,7 +37,8 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
         sortConfig, handleSort
     } = useTriggersLogic();
 
-    // Handlers exposed to UI
+    // --- Orquestradores de Interface ---
+
     const handleNew = () => {
         const defaultStatus = taxonomy.triggerStatuses?.[0]?.id || '';
         setEditingTrigger({
@@ -69,9 +74,9 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
         if (!triggerToDelete) return;
         try {
             await deleteTrigger(triggerToDelete);
-            console.log('✅ Trigger excluído:', triggerToDelete);
+            console.log('✅ Contexto: Gatilho excluído com sucesso');
         } catch (error) {
-            console.error('❌ Erro ao excluir trigger:', error);
+            console.error('❌ Erro ao excluir gatilho:', error);
         }
         setDeleteModalOpen(false);
         setTriggerToDelete(null);
@@ -105,12 +110,12 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
         onCreateRca(trigger);
     };
 
-    // Defensive check
+    // Verificação de segurança para garantir carga de dados base
     if (!taxonomy || !assets) return <div className="p-8 text-center text-slate-500 animate-pulse">{t('common.loading')}</div>;
 
     return (
         <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col relative">
-            {/* Header */}
+            {/* Cabeçalho */}
             <div className="flex justify-between items-center mb-6 flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-500">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900">{t('triggersPage.title')}</h1>
@@ -121,7 +126,7 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                 </button>
             </div>
 
-            {/* Filter */}
+            {/* Seção de Filtros */}
             <div className="animate-in fade-in slide-in-from-top-4 duration-500 delay-100">
                 <FilterBar
                     isOpen={showFilters}
@@ -136,7 +141,7 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                         area: 'ALL',
                         equipment: 'ALL',
                         subgroup: 'ALL',
-                        specialty: 'ALL', // Not used in triggers but required by type
+                        specialty: 'ALL', 
                         analysisType: 'ALL',
                         failureMode: 'ALL',
                         failureCategory: 'ALL',
@@ -184,7 +189,7 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                 setCurrentPage={setCurrentPage}
             />
 
-            {/* Modal */}
+            {/* Modais de Edição e Vinculação */}
             {isModalOpen && editingTrigger && (
                 <TriggerModal
                     editingTrigger={editingTrigger}
@@ -196,14 +201,13 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                 />
             )}
 
-            {/* Modal de Link RCA */}
             {
                 linkModalOpen && triggerToLink && (
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                         <div className="w-full max-w-2xl">
                             <RcaSelector
                                 records={records}
-                                assets={assets} // Pass assets if needed by RcaSelector
+                                assets={assets} 
                                 onSelect={(rcaId) => {
                                     handleLinkRca(triggerToLink, rcaId);
                                     closeLinkModal();
@@ -215,7 +219,6 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                 )
             }
 
-            {/* Modal de Confirmação de Exclusão */}
             <ConfirmModal
                 isOpen={deleteModalOpen}
                 onCancel={() => setDeleteModalOpen(false)}

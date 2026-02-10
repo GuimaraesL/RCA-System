@@ -1,3 +1,7 @@
+/**
+ * Proposta: Passo 1 do Wizard - Informações Gerais e Localização Técnica.
+ * Fluxo: Gerencia a seleção de ativos na árvore, metadados da análise (facilitador, participantes) e dados cronológicos do evento.
+ */
 
 import React from 'react';
 import { Input } from '../ui/Input';
@@ -20,8 +24,6 @@ interface Step1Props {
 
 export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, taxonomy, onAssetSelect, onRefreshAssets, errors, isFieldRequired }) => {
     const { t } = useLanguage();
-
-    // Helper for mandatory fields removed - using prop instead
 
     const getAssetName = (id: string, nodes: AssetNode[]): string => {
         for (const node of nodes) {
@@ -50,7 +52,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Left: Asset Tree */}
+                    {/* Coluna Esquerda: Seletor de Ativos (Hierarquia) */}
                     <div>
                         <span id="asset-selector-label" className="block text-xs font-medium text-slate-500 mb-1">{t('wizard.step1.assetSelectorLabel')} {isFieldRequired('subgroup_id') && <span className="text-red-500">*</span>}</span>
                         <div id="asset-selector-container" aria-labelledby="asset-selector-label" className={`mb-2 rounded-lg border-2 transition-all ${
@@ -73,7 +75,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         </div>
                     </div>
 
-                    {/* Right: Details */}
+                    {/* Coluna Direita: Detalhes do Evento */}
                     <div className="space-y-4">
                         <Select
                             id="component_type"
@@ -121,6 +123,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                 </div>
             </div>
 
+            {/* Seção de Metadados da Análise */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">{t('wizard.step1.analysisMetadata')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">

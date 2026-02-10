@@ -1,3 +1,8 @@
+/**
+ * Proposta: Orquestrador de migrações e evolução do schema da base de dados.
+ * Fluxo: Garante a existência das tabelas base e executa scripts de atualização de versão, tratando de forma resiliente a normalização de dados legados.
+ */
+
 import { DatabaseConnection } from './DatabaseConnection';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
@@ -10,57 +15,57 @@ export class MigrationRunner {
     }
 
     public async run(): Promise<void> {
-        console.log('[V2] 🔄 Checking Migrations...');
+        console.log('[V2] 🔄 Verificando migrações e integridade do schema...');
 
         await this.ensureBaseSchema();
         await this.runVersionedMigrations();
 
-        console.log('[V2] ✅ Migrations Check Complete');
+        console.log('[V2] ✅ Verificação de migrações concluída');
     }
 
+    /**
+     * Garante que a estrutura fundamental das tabelas (conforme schema.sql) esteja aplicada.
+     */
     private async ensureBaseSchema(): Promise<void> {
-        // Resolve path to V2 schema.sql
         const schemaPath = join(__dirname, 'schema.sql');
 
         if (existsSync(schemaPath)) {
             const schema = readFileSync(schemaPath, 'utf-8');
             this.db.exec(schema);
-            // console.log('[V2] Base schema checked/applied.');
         } else {
-            console.error(`[V2] ❌ Schema file not found at: ${schemaPath}`);
-            throw new Error('Schema file missing');
+            console.error(`[V2] ❌ Arquivo de schema não encontrado em: ${schemaPath}`);
+            throw new Error('Arquivo de schema base ausente');
         }
     }
 
+    /**
+     * Executa migrações incrementais tratadas com blocos Try/Catch para manter compatibilidade
+     * com estados parciais da base de dados sem a necessidade de uma tabela de controle complexa.
+     */
     private async runVersionedMigrations(): Promise<void> {
-        // Replicate logic from server/src/db/database.ts
-        // In a real scenario, we would use a _migrations table, 
-        // but for compatibility we mimic the "Try/Catch/Ignore" pattern of V1 for now
-        // to avoid locking the DB with a new table that V1 doesn't know about yet.
-
         const migrations = [
             {
-                name: 'v1.1: Add file_path to triggers',
+                name: 'v1.1: Adicionar file_path em triggers',
                 up: "ALTER TABLE triggers ADD COLUMN file_path TEXT"
             },
             {
-                name: 'v1.2: Add file_path to rcas',
+                name: 'v1.2: Adicionar file_path em rcas',
                 up: "ALTER TABLE rcas ADD COLUMN file_path TEXT"
             },
             {
-                name: 'v1.3: Add five_whys_chains to rcas',
+                name: 'v1.3: Adicionar five_whys_chains em rcas',
                 up: "ALTER TABLE rcas ADD COLUMN five_whys_chains TEXT"
             },
             {
-                name: 'v1.4: Add created_at to actions',
+                name: 'v1.4: Adicionar created_at em actions',
                 up: "ALTER TABLE actions ADD COLUMN created_at TEXT"
             },
             {
-                name: 'v1.5: Add updated_at to actions',
+                name: 'v1.5: Adicionar updated_at em actions',
                 up: "ALTER TABLE actions ADD COLUMN updated_at TEXT"
             },
             {
-                name: 'v2.0: Normalize Status Strings to IDs',
+                name: 'v2.0: Normalizar strings de status para IDs técnicos',
                 up: `
                     UPDATE rcas SET status = 'STATUS-03' WHERE status IN ('Concluída', 'Concluido', 'Concluida');
                     UPDATE rcas SET status = 'STATUS-01' WHERE status IN ('Em Andamento', 'Em andamento');
@@ -72,11 +77,10 @@ export class MigrationRunner {
         for (const migration of migrations) {
             try {
                 this.db.execute(migration.up);
-                // console.log(`[V2] ✅ Applied: ${migration.name}`);
             } catch (e: any) {
-                // Ignore if duplicate column (already applied)
+                // Silencia erros de colunas duplicadas (migração já aplicada anteriormente)
                 if (!e.message.includes("duplicate column")) {
-                    // console.log(`[V2] ℹ️ Skipped: ${migration.name} (${e.message})`);
+                    // Outros erros devem ser reportados se necessário para depuração
                 }
             }
         }

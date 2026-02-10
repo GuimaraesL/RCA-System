@@ -1,3 +1,7 @@
+/**
+ * Proposta: Passo 2 do Wizard - Descrição do Problema (5W2H).
+ * Fluxo: Captura o contexto detalhado do evento, focando no que ocorreu, quem identificou, onde e quais os impactos imediatos de qualidade e segurança.
+ */
 
 import React from 'react';
 import { Input } from '../ui/Input';
@@ -8,15 +12,13 @@ import { useLanguage } from '../../context/LanguageDefinition';
 interface Step2Props {
     data: RcaRecord;
     onChange: (field: string, value: any) => void;
-    taxonomy: TaxonomyConfig; // Added
+    taxonomy: TaxonomyConfig;
     errors?: Record<string, boolean>;
     isFieldRequired: (field: string) => boolean;
 }
 
 export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, errors, isFieldRequired }) => {
     const { t } = useLanguage();
-
-    // Helper for mandatory fields removed - using prop instead
 
     return (
         <div className="space-y-6 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">

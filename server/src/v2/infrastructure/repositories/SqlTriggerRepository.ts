@@ -1,3 +1,8 @@
+/**
+ * Proposta: Repositório SQL para persistência e consulta de Gatilhos (Triggers) de parada.
+ * Fluxo: Gerencia o ciclo de vida dos gatilhos no SQLite, permitindo a criação individual ou em massa (importação) e orquestrando o vínculo com análises RCA.
+ */
+
 import { DatabaseConnection } from '../database/DatabaseConnection';
 import { Trigger } from '../../domain/types/RcaTypes';
 
@@ -77,6 +82,10 @@ export class SqlTriggerRepository {
         this.db.execute('DELETE FROM triggers WHERE id = ?', [id]);
     }
 
+    /**
+     * Persiste múltiplos gatilhos em uma única transação para otimização de performance.
+     * Utiliza INSERT OR REPLACE para garantir a idempotência em processos de sincronização.
+     */
     public bulkCreate(triggers: Trigger[]): void {
         this.db.transaction(() => {
             const sql = `

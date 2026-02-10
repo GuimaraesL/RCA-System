@@ -1,39 +1,34 @@
 /**
- * Proposta: Componente de seleção (Dropdown) padrão com suporte a estados de erro e acessibilidade.
+ * Proposta: Componente de seleção (Select) padronizado.
+ * Fluxo: Renderiza um dropdown customizado com suporte a rótulos, indicação de obrigatoriedade e tratamento visual de erro.
  */
 
-import React, { SelectHTMLAttributes } from 'react';
-import { useLanguage } from '../../context/LanguageDefinition';
+import React from 'react';
 
-interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'id'> {
-    id: string; // Obrigatório para garantir a acessibilidade via label/id
+interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
     label?: string;
-    options: { value: string | number; label: string }[];
+    options: { value: string; label: string }[];
     error?: boolean;
 }
 
-export const Select: React.FC<SelectProps> = ({ id, label, options, error, className, value, ...props }) => {
-    const { t } = useLanguage();
-    
-    // Normalização: Converte valores nulos/indefinidos em string vazia para evitar alertas de componente não-controlado
-    const safeValue = value ?? '';
-
+export const Select: React.FC<SelectProps> = ({ label, options, error, required, className = '', ...props }) => {
     return (
         <div className="w-full">
             {label && (
-                <label htmlFor={id} className="block text-xs font-medium text-slate-500 mb-1">
-                    {label} {props.required && <span className="text-red-500">*</span>}
+                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-tight">
+                    {label} {required && <span className="text-red-500" aria-hidden="true">*</span>}
                 </label>
             )}
             <select
-                id={id}
-                name={id}
-                value={safeValue}
-                className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 outline-none transition-all ${error
-                    ? 'border-red-500 ring-2 ring-red-50 focus:border-red-600 focus:ring-red-100'
-                    : 'border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
-                    } ${className || ''}`}
                 {...props}
+                className={`
+                    w-full px-3 py-2 bg-white border rounded-lg text-sm transition-all outline-none cursor-pointer
+                    ${error
+                        ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-100'
+                        : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'}
+                    ${props.disabled ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'text-slate-900'}
+                    ${className}
+                `}
             >
                 {options.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -41,7 +36,6 @@ export const Select: React.FC<SelectProps> = ({ id, label, options, error, class
                     </option>
                 ))}
             </select>
-            {error && <span className="text-[10px] text-red-500 font-medium mt-0.5 block animate-in fade-in slide-in-from-top-1">{t('common.requiredField')}</span>}
         </div>
     );
 };

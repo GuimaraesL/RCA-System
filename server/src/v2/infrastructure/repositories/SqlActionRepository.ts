@@ -1,3 +1,8 @@
+/**
+ * Proposta: Repositório SQL para persistência e consulta de Planos de Ação (CAPA).
+ * Fluxo: Gerencia o CRUD de ações no SQLite e provê métodos para operações em massa durante migrações ou limpezas de sistema.
+ */
+
 import { DatabaseConnection } from '../database/DatabaseConnection';
 import { Action } from '../../domain/types/RcaTypes';
 
@@ -8,6 +13,9 @@ export class SqlActionRepository {
         this.db = DatabaseConnection.getInstance();
     }
 
+    /**
+     * Recupera todas as ações vinculadas a uma análise específica.
+     */
     public findByRcaId(rcaId: string): Action[] {
         return this.db.query('SELECT * FROM actions WHERE rca_id = ?', [rcaId]);
     }
@@ -48,6 +56,10 @@ export class SqlActionRepository {
         return this.db.query('SELECT * FROM actions ORDER BY created_at DESC');
     }
 
+    /**
+     * Persiste múltiplas ações em uma única transação.
+     * Utiliza INSERT OR REPLACE para garantir a idempotência em processos de restauração.
+     */
     public bulkCreate(actions: Action[]): void {
         this.db.transaction(() => {
             for (const action of actions) {

@@ -1,48 +1,28 @@
+/**
+ * Proposta: Componente de contador numérico animado.
+ * Fluxo: Utiliza a função animateCounter para realizar a transição visual de um valor numérico do zero até o alvo, com suporte a prefixos customizados (ex: R$).
+ */
 
 import React, { useEffect, useRef } from 'react';
-import anime from 'animejs';
+import { animateCounter } from '../../services/animations';
 
 interface AnimatedCounterProps {
     value: number;
-    duration?: number;
     prefix?: string;
-    suffix?: string;
-    className?: string;
 }
 
-export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
-    value,
-    duration = 1500,
-    prefix = '',
-    suffix = '',
-    className = ''
-}) => {
-    const nodeRef = useRef<HTMLSpanElement>(null);
-    const prevValueRef = useRef(0);
+export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ value, prefix = '' }) => {
+    const counterRef = useRef<HTMLSpanElement>(null);
 
     useEffect(() => {
-        const node = nodeRef.current;
-        if (!node) return;
+        if (counterRef.current) {
+            animateCounter(counterRef.current, value);
+        }
+    }, [value]);
 
-        // Animate from previous value to new value
-        anime({
-            targets: { val: prevValueRef.current },
-            val: value,
-            duration: duration,
-            easing: 'easeOutExpo',
-            round: 1,
-            update: function (anim) {
-                if (node) {
-                    const val = Math.round((anim as any).animations[0].currentValue);
-                    node.innerHTML = prefix + val.toLocaleString() + suffix;
-                }
-            },
-            complete: function () {
-                prevValueRef.current = value;
-            }
-        });
-
-    }, [value, duration, prefix, suffix]);
-
-    return <span ref={nodeRef} className={className}>{prefix}{value}{suffix}</span>;
+    return (
+        <span className="tabular-nums">
+            {prefix}<span ref={counterRef}>0</span>
+        </span>
+    );
 };

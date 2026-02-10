@@ -1,3 +1,7 @@
+/**
+ * Proposta: Modal para criação e edição de Planos de Ação (CAPA).
+ * Fluxo: Gerencia o formulário de ações corretivas, permitindo a vinculação com análises existentes, definição de prazos, responsáveis e status de aprovação (Box).
+ */
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ActionRecord } from '../types';
@@ -42,7 +46,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                     moc_number: ''
                 });
             }
-            // Trigger Animation
+            // Gatilho da animação de entrada
             if (containerRef.current) {
                 animateModalEnter(containerRef.current);
             }
@@ -53,10 +57,11 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!form.rca_id) return alert(t('actionModal.linkedAnalysis') + ' is required');
-        if (!form.action.trim()) return alert(t('actionModal.actionDescription') + ' is required');
-        if (!form.responsible.trim()) return alert(t('actionModal.responsible') + ' is required');
-        if (!form.date) return alert(t('actionModal.dueDate') + ' is required');
+        // Validações básicas de formulário
+        if (!form.rca_id) return alert(t('actionModal.linkedAnalysis') + ' é obrigatório');
+        if (!form.action.trim()) return alert(t('actionModal.actionDescription') + ' é obrigatório');
+        if (!form.responsible.trim()) return alert(t('actionModal.responsible') + ' é obrigatório');
+        if (!form.date) return alert(t('actionModal.dueDate') + ' é obrigatório');
 
         onSave(form);
     };

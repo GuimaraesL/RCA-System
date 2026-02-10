@@ -1,9 +1,13 @@
+/**
+ * Proposta: Utilitários para tradução e resolução de nomes de status e categorias.
+ * Fluxo: Implementa a lógica de precedência entre nomes personalizados (armazenados no banco) e chaves de tradução dinâmicas (i18n).
+ */
+
 import { STATUS_IDS, ROOT_CAUSE_M_IDS, TRIGGER_STATUS_IDS } from '../constants/SystemConstants';
 
 /**
- * Traduz o nome de um status baseado no seu ID e no objeto de tradução (i18n).
- * Se o fallbackName (vindo da taxonomia/DB) for diferente da tradução padrão, 
- * assume-se que o usuário personalizou o nome e este é priorizado.
+ * Traduz o nome de um status de análise baseado no seu ID e no dicionário ativo.
+ * Caso o nome registrado na taxonomia seja personalizado, este terá precedência sobre a tradução padrão.
  */
 export const translateStatus = (id: string, fallbackName: string, t: (key: string) => string): string => {
     const idMap: Record<string, string> = {
@@ -31,7 +35,7 @@ export const translateStatus = (id: string, fallbackName: string, t: (key: strin
 };
 
 /**
- * Traduz o nome de um status de gatilho baseado no seu ID.
+ * Traduz o nome de um status de gatilho baseado no seu ID técnico.
  */
 export const translateTriggerStatus = (id: string, fallbackName: string, t: (key: string) => string): string => {
     const idMap: Record<string, string> = {
@@ -56,7 +60,7 @@ export const translateTriggerStatus = (id: string, fallbackName: string, t: (key
 };
 
 /**
- * Traduz o nome de um fator 6M baseado no seu ID.
+ * Traduz o nome de um fator 6M baseado no seu ID técnico da espinha de peixe.
  */
 export const translate6M = (id: string, fallbackName: string, t: (key: string) => string): string => {
     const idMap: Record<string, string> = {

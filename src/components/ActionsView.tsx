@@ -1,3 +1,7 @@
+/**
+ * Proposta: Vista principal de listagem e gestão de Planos de Ação (CAPA).
+ * Fluxo: Renderiza uma tabela de ações corretivas com suporte a filtros cruzados, ordenação e vinculação direta com as análises de origem.
+ */
 
 import React, { useMemo, useState, useRef } from 'react';
 import { useRcaContext } from '../context/RcaContext';
@@ -9,9 +13,8 @@ import { ConfirmModal } from './ConfirmModal';
 import { ActionModal } from './ActionModal';
 import { useSorting } from '../hooks/useSorting';
 import { SortHeader } from './ui/SortHeader';
-import { useLanguage } from '../context/LanguageDefinition'; // i18n
+import { useLanguage } from '../context/LanguageDefinition'; 
 import { useFilteredData } from '../hooks/useFilteredData';
-// useEnterAnimation disabled for performance (Issue #11)
 
 interface ActionsViewProps {
   onOpenRca?: (id: string) => void;
@@ -20,7 +23,9 @@ interface ActionsViewProps {
 export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
   const { t, formatDate } = useLanguage();
 
-  // Helper for Status Badges
+  /**
+   * Helper para renderização de badges de status baseado na lógica de 'Box' do sistema.
+   */
   const getStatusBadge = (status: string) => {
     switch (status) {
       case '1': return <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-bold">{t('actionModal.statusOptions.approved')}</span>;
@@ -34,20 +39,11 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
   const { actions, rcaList, isModalOpen, setIsModalOpen, editingAction, openNew, openEdit, handleSave, handleDelete, deleteModalOpen, confirmDelete, cancelDelete } = useActionsLogic();
   const { assets, taxonomy } = useRcaContext();
 
+  // --- Gestão de Estado dos Filtros ---
   const defaultFilters: FilterState = {
-    searchTerm: '',
-    year: '',
-    months: [],
-    status: 'ALL',
-    area: 'ALL',
-    equipment: 'ALL',
-    subgroup: 'ALL',
-    specialty: 'ALL',
-    analysisType: 'ALL', // Hidden
-    failureMode: 'ALL', // Technical
-    failureCategory: 'ALL', // Technical
-    componentType: 'ALL', // Technical
-    rootCause6M: 'ALL' // Technical
+    searchTerm: '', year: '', months: [], status: 'ALL', area: 'ALL',
+    equipment: 'ALL', subgroup: 'ALL', specialty: 'ALL',
+    analysisType: 'ALL', failureMode: 'ALL', failureCategory: 'ALL', componentType: 'ALL', rootCause6M: 'ALL'
   };
 
   const { filters, setFilters, showFilters, setShowFilters, handleReset, isGlobal, toggleGlobal } = useFilterPersistence(
@@ -56,7 +52,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
     true
   );
 
-  // --- Intelligent Cross-Filtering Hook ---
+  // Hook de filtragem cruzada inteligente
   const { filteredActions: filteredContent } = useFilteredData(filters);
 
   const dynamicOptions = useMemo(() => {
@@ -67,10 +63,10 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
     };
   }, [assets, taxonomy]);
 
-  // --- Sorting Hook ---
+  // Hook de ordenação
   const { sortedItems: filteredActions, sortConfig, handleSort } = useSorting(filteredContent, { key: 'date', direction: 'desc' });
 
-  // --- Pagination State ---
+  // --- Gestão de Paginação ---
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 100;
 
@@ -78,11 +74,9 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
     setCurrentPage(1);
   }, [filters, sortConfig]);
 
-  // Animation disabled for performance with large datasets (Issue #11)
-
   return (
     <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col">
-      {/* Header */}
+      {/* Cabeçalho da Vista */}
       <div className="flex justify-between items-center mb-6 flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-500">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">{t('sidebar.actions')}</h1>
@@ -102,29 +96,25 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
           onReset={() => handleReset(defaultFilters)}
           totalResults={filteredActions.length}
           config={{
-            showSearch: true,
-            showDate: true,
-            showStatus: true,
-            showAssetHierarchy: true,
-            showSpecialty: true,
-            showAnalysisType: false,
-            showComponentType: true
+            showSearch: true, showDate: true, showStatus: true,
+            showAssetHierarchy: true, showSpecialty: true,
+            showAnalysisType: false, showComponentType: true
           }}
           options={{
-            statuses: dynamicOptions.statuses.map(s => ({ id: s, name: `Box ${s}` })), // Format for FilterBar
+            statuses: dynamicOptions.statuses.map(s => ({ id: s, name: `Box ${s}` })), 
             assets: dynamicOptions.assets,
             specialties: dynamicOptions.specialties,
             failureModes: taxonomy.failureModes,
             failureCategories: taxonomy.failureCategories,
             componentTypes: taxonomy.componentTypes,
-            rootCause6Ms: taxonomy.rootCauseMs
+            rootCauseMs: taxonomy.rootCauseMs
           }}
           isGlobal={isGlobal}
           onGlobalToggle={toggleGlobal}
         />
       </div>
 
-      {/* Data Grid */}
+      {/* Grade de Dados */}
       <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-700 delay-200">
         <div className="overflow-auto flex-1 custom-scrollbar">
           <table className="w-full text-left text-sm text-slate-600">
@@ -173,6 +163,8 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
               )}
             </tbody>
           </table>
+          
+          {/* Paginação */}
           {filteredActions.length > 0 && (
             <div className="p-4 flex items-center justify-between border-t border-slate-100 bg-slate-50">
               <div className="text-sm text-slate-500">
@@ -199,7 +191,6 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
         </div>
       </div>
 
-      {/* Shared Action Modal */}
       <ActionModal
         isOpen={isModalOpen}
         initialData={editingAction}
@@ -208,7 +199,6 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
         onSave={handleSave}
       />
 
-      {/* Modal de Confirmação de Exclusão */}
       <ConfirmModal
         isOpen={deleteModalOpen}
         title={t('modals.deleteTitle')}

@@ -1,3 +1,7 @@
+/**
+ * Proposta: Definição de rotas HTTP para a entidade Action (Planos de Ação).
+ */
+
 import { Router } from 'express';
 import { ActionController } from '../controllers/ActionController';
 

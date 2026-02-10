@@ -1,3 +1,8 @@
+/**
+ * Proposta: Controlador HTTP para gestão da árvore de Ativos Técnicos.
+ * Fluxo: Disponibiliza endpoints para consulta da hierarquia (Tree) e listagem plana (Flat), além de operações CRUD delegadas ao AssetService.
+ */
+
 import { Request, Response } from 'express';
 import { AssetService } from '../../domain/services/AssetService';
 import { SqlAssetRepository } from '../../infrastructure/repositories/SqlAssetRepository';
@@ -32,7 +37,7 @@ export class AssetController {
             if (asset) {
                 res.json(asset);
             } else {
-                res.status(404).json({ error: 'Asset not found' });
+                res.status(404).json({ error: 'Ativo não encontrado' });
             }
         } catch (error: any) {
             res.status(500).json({ error: error.message });
@@ -51,7 +56,7 @@ export class AssetController {
     public update = (req: Request, res: Response): void => {
         try {
             this.assetService.updateAsset(req.params.id, req.body);
-            res.json({ message: 'Asset updated successfully' });
+            res.json({ message: 'Ativo atualizado com sucesso' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
         }
@@ -60,7 +65,7 @@ export class AssetController {
     public delete = (req: Request, res: Response): void => {
         try {
             this.assetService.deleteAsset(req.params.id);
-            res.json({ message: 'Asset deleted successfully' });
+            res.json({ message: 'Ativo excluído com sucesso' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
         }
@@ -69,7 +74,7 @@ export class AssetController {
     public bulkImport = (req: Request, res: Response): void => {
         try {
             this.assetService.bulkImport(req.body);
-            res.json({ message: 'Assets imported successfully' });
+            res.json({ message: 'Ativos importados com sucesso' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
         }
@@ -79,11 +84,11 @@ export class AssetController {
         try {
             const { ids } = req.body;
             if (!ids || !Array.isArray(ids)) {
-                res.status(400).json({ error: 'Body must contain "ids" array' });
+                res.status(400).json({ error: 'O corpo da requisição deve conter um array de "ids"' });
                 return;
             }
             this.assetService.bulkDelete(ids);
-            res.json({ message: `Deleted ${ids.length} assets successfully` });
+            res.json({ message: `${ids.length} ativos excluídos com sucesso` });
         } catch (error: any) {
             res.status(500).json({ error: error.message });
         }

@@ -1,3 +1,7 @@
+/**
+ * Proposta: Utilitários globais de infraestrutura e manipulação de dados do frontend.
+ * Fluxo: Provê geradores de IDs únicos, saneamento de strings contra XSS, estruturas padrão de checklists e algoritmos de filtragem de árvore de ativos.
+ */
 
 import { AssetNode, PrecisionChecklistItem, HumanReliabilityAnalysis, HraQuestion, HraConclusion } from "../types";
 
@@ -7,10 +11,11 @@ export const generateId = (prefix: string = 'GEN'): string => {
     return `${prefix}-${timestamp}-${random}`;
 };
 
-// SECURITY: Sanitize function to strip potential HTML tags from imports
+/**
+ * SEGURANÇA: Remove tags HTML de strings para prevenir vetores de Stored XSS em dados importados.
+ */
 export const sanitizeString = (str: any): string => {
     if (typeof str !== 'string') return '';
-    // Basic stripping of HTML tags to prevent Stored XSS vectors in raw data
     return str.replace(/<[^>]*>?/gm, '');
 };
 
@@ -53,8 +58,6 @@ const STANDARD_HRA_CONCLUSIONS: HraConclusion[] = [
     { id: "measures", label: "hraQuestionnaire.categories.measures", selected: false, description: "" }
 ];
 
-
-
 export const getStandardHraStruct = (): HumanReliabilityAnalysis => ({
     questions: JSON.parse(JSON.stringify(STANDARD_HRA_QUESTIONS)),
     conclusions: JSON.parse(JSON.stringify(STANDARD_HRA_CONCLUSIONS)),
@@ -62,24 +65,21 @@ export const getStandardHraStruct = (): HumanReliabilityAnalysis => ({
 });
 
 /**
- * Traverses the asset tree and keeps ONLY the branches that have IDs in the provided set.
- * Returns a pruned tree.
+ * Filtra a árvore de ativos mantendo apenas os ramos que possuem IDs utilizados em registros.
+ * Implementa uma poda recursiva (pruning) para manter a integridade visual da hierarquia.
  */
 export const filterAssetsByUsage = (allAssets: AssetNode[], usedIds: Set<string>): AssetNode[] => {
     const prune = (nodes: AssetNode[]): AssetNode[] => {
         return nodes.reduce<AssetNode[]>((acc, node) => {
-            // Check if this node is used
             const isUsed = usedIds.has(node.id);
-
-            // Recurse into children
             const prunedChildren = node.children ? prune(node.children) : [];
             const hasUsedChildren = prunedChildren.length > 0;
 
-            // Keep node if it's used OR has used children
+            // Mantém o nó se ele for usado diretamente ou possuir descendentes utilizados
             if (isUsed || hasUsedChildren) {
                 acc.push({
                     ...node,
-                    children: prunedChildren // Replace children with pruned version
+                    children: prunedChildren
                 });
             }
             return acc;

@@ -1,3 +1,8 @@
+/**
+ * Proposta: Singleton de conexão e gerenciamento da base de dados SQLite (sql.js).
+ * Fluxo: Resolve o caminho do arquivo físico, inicializa o motor WebAssembly e implementa uma estratégia de persistência debounced para otimizar a escrita em disco.
+ */
+
 import initSqlJs, { Database, QueryExecResult } from 'sql.js';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
@@ -8,13 +13,13 @@ export class DatabaseConnection {
     private dbPath: string;
 
     private constructor() {
-        // Resolve path: server/data/rca.db (or rca_test.db if in test mode)
+        // Resolução do caminho: server/data/rca.db (ou rca_test.db em modo de teste)
         const isTest = process.env.NODE_ENV === 'test' || process.env.CI === 'true';
         const dbFileName = isTest ? 'rca_test.db' : 'rca.db';
         
         const DATA_DIR = join(__dirname, '..', '..', '..', '..', 'data');
         this.dbPath = this.resolveDbPath(DATA_DIR, dbFileName);
-        console.log(`[V2] 💾 Database Path Resolved (${isTest ? 'TEST' : 'PROD'}): ${this.dbPath}`);
+        console.log(`[V2] 💾 Base de dados resolvida (${isTest ? 'TESTE' : 'PRODUÇÃO'}): ${this.dbPath}`);
     }
 
     public static getInstance(): DatabaseConnection {
@@ -24,13 +29,14 @@ export class DatabaseConnection {
         return DatabaseConnection.instance;
     }
 
+    /**
+     * Tenta localizar o diretório de dados em diferentes contextos de execução (CWD vs __dirname).
+     */
     private resolveDbPath(dataDir: string, fileName: string): string {
-        // 1. Try standard relative path
         let path = join(dataDir, fileName);
 
-        // 2. Fallback logic similar to original implementation
         if (!existsSync(dirname(path))) {
-            console.warn(`[V2] ⚠️ Data dir not found at ${dirname(path)}, trying CWD...`);
+            console.warn(`[V2] ⚠️ Diretório de dados não encontrado em ${dirname(path)}, tentando contexto de trabalho (CWD)...`);
             const cwd = process.cwd();
             if (cwd.endsWith('server')) {
                 path = join(cwd, 'data', fileName);
@@ -41,10 +47,13 @@ export class DatabaseConnection {
         return path;
     }
 
+    /**
+     * Inicializa o motor sql.js e carrega o arquivo físico se existir.
+     */
     public async initialize(): Promise<void> {
         if (this.db) return;
 
-        // Ensure directory exists
+        // Garante a existência do diretório de dados
         const dir = dirname(this.dbPath);
         if (!existsSync(dir)) {
             mkdirSync(dir, { recursive: true });
@@ -55,33 +64,31 @@ export class DatabaseConnection {
         if (existsSync(this.dbPath)) {
             const buffer = readFileSync(this.dbPath);
             this.db = new SQL.Database(buffer);
-            // console.log(`[V2] 📂 Database loaded: ${this.dbPath}`);
         } else {
             this.db = new SQL.Database();
-            // console.log(`[V2] 📂 New database created: ${this.dbPath}`);
-            // Note: Schema initialization should be handled by MigrationRunner
+            // Nota: A inicialização do schema é orquestrada pelo MigrationRunner
         }
 
-        // Enable foreign key constraints (SQLite requires explicit activation)
+        // Ativa suporte a chaves estrangeiras (exige ativação explícita no SQLite)
         this.db.run('PRAGMA foreign_keys = ON');
     }
 
     public getRawDatabase(): Database {
         if (!this.db) {
-            throw new Error('Database not initialized. Call initialize() first.');
+            throw new Error('Base de dados não inicializada. Chame initialize() primeiro.');
         }
         return this.db;
     }
 
-
-
     private saveTimeout: NodeJS.Timeout | null = null;
-    private readonly SAVE_DELAY_MS = 1000; // 1 second debounce
+    private readonly SAVE_DELAY_MS = 1000; // Delay de 1 segundo para debounce de escrita
 
+    /**
+     * Agenda a persistência da base de dados no disco (Debounce).
+     */
     public save(): void {
         if (!this.db) return;
 
-        // Clear existing timeout to reset the timer
         if (this.saveTimeout) {
             clearTimeout(this.saveTimeout);
         }
@@ -92,8 +99,8 @@ export class DatabaseConnection {
     }
 
     /**
-     * Forces immediate write to disk.
-     * Should be called on process exit or critical checkpoints.
+     * Força a escrita imediata no disco.
+     * Deve ser chamado no encerramento do processo ou em checkpoints críticos.
      */
     public flush(): void {
         if (!this.db) return;
@@ -101,15 +108,13 @@ export class DatabaseConnection {
             const data = this.db.export();
             const buffer = Buffer.from(data);
             writeFileSync(this.dbPath, buffer);
-            // console.log(`[V2] 💾 Database saved (Flushed): ${this.dbPath}`); 
             this.saveTimeout = null;
         } catch (err) {
-            console.error(`[V2] ❌ Failed to save database:`, err);
-            // Don't throw here to avoid crashing async flow, but log critical error
+            console.error(`[V2] ❌ Falha ao persistir base de dados:`, err);
         }
     }
 
-    // --- Helper Methods ---
+    // --- Métodos Auxiliares de Consulta ---
 
     public query(sql: string, params: any[] = []): any[] {
         const db = this.getRawDatabase();
@@ -133,15 +138,15 @@ export class DatabaseConnection {
     public execute(sql: string, params: any[] = []): void {
         const db = this.getRawDatabase();
         db.run(sql, params);
-        // Only save if it's a modification AND we are not in a transaction
+        // Persiste automaticamente apenas se não estivermos no meio de uma transação agrupada
         if (!this.inTransaction && !sql.trim().toUpperCase().startsWith('SELECT')) {
             this.save();
         }
     }
 
     /**
-     * Executes multiple statements without parameter binding.
-     * Ideal for schema scripts.
+     * Executa múltiplas instruções sem vinculação de parâmetros.
+     * Ideal para scripts de schema e migrações.
      */
     public exec(sql: string): void {
         const db = this.getRawDatabase();
@@ -155,13 +160,14 @@ export class DatabaseConnection {
         return this.getRawDatabase().prepare(sql);
     }
 
+    /**
+     * Orquestra uma transação ACID.
+     * Garante o encerramento correto do estado 'inTransaction' mesmo em caso de erro.
+     */
     public transaction(callback: () => void): void {
         const db = this.getRawDatabase();
         if (this.inTransaction) {
-            // Check for nested transaction attempt (not supported by this simple flag, but sql.js supports savepoints)
-            // For now, just execute callback directly - we trust the outer transaction to commit/rollback
-            // or we could throw "Nested transactions not supported by this simple wrapper"
-            console.warn('[V2] ⚠️ Nested transaction detected (flattening).');
+            console.warn('[V2] ⚠️ Transação aninhada detectada (achatamento aplicado).');
             callback();
             return;
         }
@@ -171,16 +177,16 @@ export class DatabaseConnection {
             db.exec('BEGIN TRANSACTION');
             callback();
             db.exec('COMMIT');
-            this.inTransaction = false; // Reset before save
+            this.inTransaction = false; 
             this.save();
         } catch (error) {
-            this.inTransaction = false; // Reset before rollback/throw
+            this.inTransaction = false; 
             try {
                 db.exec('ROLLBACK');
             } catch (rbError) {
-                console.error('[V2] ❌ Rollback failed (transaction likely already closed):', rbError);
+                console.error('[V2] ❌ Falha no Rollback (transação provavelmente já encerrada):', rbError);
             }
-            throw error; // Re-throw the ORIGINAL error so we know what happened
+            throw error; 
         }
     }
 }

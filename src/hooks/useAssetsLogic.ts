@@ -1,3 +1,7 @@
+/**
+ * Proposta: Hook para gerenciamento da lógica da árvore de Ativos Técnicos.
+ * Fluxo: Implementa algoritmos recursivos para adição, edição e exclusão de nós na hierarquia (Área > Equipamento > Subgrupo), garantindo a integridade dos vínculos pai-filho e orquestrando o estado da interface de gestão.
+ */
 
 import { useState } from 'react';
 import { AssetNode } from '../types';
@@ -10,19 +14,25 @@ export const useAssetsLogic = () => {
   const [parentNode, setParentNode] = useState<AssetNode | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // State para modal de confirmação de exclusão
+  // Estado para modal de confirmação de exclusão
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [nodeToDelete, setNodeToDelete] = useState<AssetNode | null>(null);
 
-  // Form State
+  // Estado do formulário de edição/criação
   const [nodeName, setNodeName] = useState('');
   const [nodeType, setNodeType] = useState<'AREA' | 'EQUIPMENT' | 'SUBGROUP'>('AREA');
 
+  /**
+   * Inicia o fluxo de exclusão de um nó.
+   */
   const handleDelete = (nodeToDeleteArg: AssetNode) => {
     setNodeToDelete(nodeToDeleteArg);
     setDeleteModalOpen(true);
   };
 
+  /**
+   * Executa a exclusão recursiva na árvore de ativos e persiste a alteração.
+   */
   const confirmDelete = () => {
     if (!nodeToDelete) return;
 
@@ -45,6 +55,9 @@ export const useAssetsLogic = () => {
     setNodeToDelete(null);
   };
 
+  /**
+   * Atualiza os dados de um nó existente através de busca recursiva.
+   */
   const handleUpdate = () => {
     if (!selectedNode) return;
 
@@ -65,9 +78,13 @@ export const useAssetsLogic = () => {
     setSelectedNode({ ...selectedNode, name: nodeName });
   };
 
+  /**
+   * Adiciona um novo nó filho ou um nó raiz (AREA).
+   * Implementa a lógica de prefixos de ID baseados no tipo do ativo.
+   */
   const handleAddChild = () => {
     if (!selectedNode && nodeType !== 'AREA') {
-      alert("Root nodes must be of type AREA");
+      alert("Nós raiz devem ser do tipo ÁREA");
       return;
     }
 
@@ -76,7 +93,7 @@ export const useAssetsLogic = () => {
 
     const newNode: AssetNode = {
       id: newId,
-      name: nodeName || 'New Asset',
+      name: nodeName || 'Novo Ativo',
       type: nodeType,
       children: [],
       parentId: selectedNode ? selectedNode.id : undefined
@@ -103,6 +120,9 @@ export const useAssetsLogic = () => {
     setIsEditing(false);
   };
 
+  /**
+   * Prepara a interface para edição de um nó.
+   */
   const startEdit = (node: AssetNode) => {
     setSelectedNode(node);
     setNodeName(node.name);
@@ -110,6 +130,9 @@ export const useAssetsLogic = () => {
     setIsEditing(true);
   };
 
+  /**
+   * Prepara a interface para adição de um novo nó, sugerindo automaticamente o tipo correto baseado no pai.
+   */
   const startAdd = (parent: AssetNode | null) => {
     setSelectedNode(parent);
     setParentNode(parent);
@@ -123,21 +146,9 @@ export const useAssetsLogic = () => {
   };
 
   return {
-    assets,
-    selectedNode, setSelectedNode,
-    parentNode, setParentNode,
-    isEditing, setIsEditing,
-    nodeName, setNodeName,
-    nodeType, setNodeType,
-    handleDelete,
-    handleUpdate,
-    handleAddChild,
-    startEdit,
-    startAdd,
-    // Estado para modal de confirmação
-    deleteModalOpen,
-    nodeToDelete,
-    confirmDelete,
-    cancelDelete
+    assets, selectedNode, setSelectedNode, parentNode, setParentNode,
+    isEditing, setIsEditing, nodeName, setNodeName, nodeType, setNodeType,
+    handleDelete, handleUpdate, handleAddChild, startEdit, startAdd,
+    deleteModalOpen, nodeToDelete, confirmDelete, cancelDelete
   };
 };

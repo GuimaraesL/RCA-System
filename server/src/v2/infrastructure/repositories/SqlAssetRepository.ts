@@ -1,3 +1,8 @@
+/**
+ * Proposta: Repositório SQL para gestão de Ativos Técnicos.
+ * Fluxo: Gerencia o CRUD de ativos no SQLite e orquestra a reconstrução da árvore hierárquica (Área > Equipamento > Subgrupo) a partir de linhas planas do banco.
+ */
+
 import { DatabaseConnection } from '../database/DatabaseConnection';
 import { Asset } from '../../domain/types/RcaTypes';
 
@@ -49,12 +54,15 @@ export class SqlAssetRepository {
         });
     }
 
-    // --- Private Helper: Build Tree from Flat Rows ---
+    /**
+     * Auxiliar privado para reconstruir a estrutura de árvore a partir das linhas planas do banco de dados.
+     * Utiliza um Mapa (Map) para garantir performance O(N) na reconstrução.
+     */
     private buildTree(rows: any[]): Asset[] {
         const nodeMap = new Map<string, Asset>();
         const roots: Asset[] = [];
 
-        // 1. Create all nodes
+        // 1. Instancia todos os nós no mapa para referência rápida
         rows.forEach(row => {
             nodeMap.set(row.id, {
                 id: row.id,
@@ -65,7 +73,7 @@ export class SqlAssetRepository {
             });
         });
 
-        // 2. Build hierarchy
+        // 2. Monta a hierarquia vinculando filhos aos seus respectivos pais
         nodeMap.forEach(node => {
             if (node.parent_id && nodeMap.has(node.parent_id)) {
                 const parent = nodeMap.get(node.parent_id);

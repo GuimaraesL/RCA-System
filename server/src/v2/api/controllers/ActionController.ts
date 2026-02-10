@@ -1,3 +1,8 @@
+/**
+ * Proposta: Controlador HTTP para gestão de Planos de Ação (CAPA).
+ * Fluxo: Recebe requisições REST e delega a lógica de persistência e recálculo de status para o ActionService.
+ */
+
 import { Request, Response } from 'express';
 import { ActionService } from '../../domain/services/ActionService';
 import { SqlActionRepository } from '../../infrastructure/repositories/SqlActionRepository';
@@ -21,7 +26,7 @@ export class ActionController {
                 const actions = this.actionService.getByRcaId(rcaId);
                 res.json(actions);
             } else {
-                // Not ideal, but parity with V1
+                // Caso não haja rca_id, retorna todas as ações para paridade com a versão legada
                 const actionRepo = new SqlActionRepository();
                 res.json(actionRepo.findAll());
             }
@@ -33,7 +38,7 @@ export class ActionController {
     public create = (req: Request, res: Response): void => {
         try {
             this.actionService.createAction(req.body);
-            res.status(201).json({ message: 'Action created successfully' });
+            res.status(201).json({ message: 'Ação criada com sucesso' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
         }
@@ -42,7 +47,7 @@ export class ActionController {
     public update = (req: Request, res: Response): void => {
         try {
             this.actionService.updateAction(req.params.id, req.body);
-            res.json({ message: 'Action updated successfully' });
+            res.json({ message: 'Ação atualizada com sucesso' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
         }
@@ -51,7 +56,7 @@ export class ActionController {
     public delete = (req: Request, res: Response): void => {
         try {
             this.actionService.deleteAction(req.params.id);
-            res.json({ message: 'Action deleted successfully' });
+            res.json({ message: 'Ação excluída com sucesso' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
         }
@@ -60,7 +65,7 @@ export class ActionController {
     public bulkImport = (req: Request, res: Response): void => {
         try {
             this.actionService.bulkImport(req.body);
-            res.json({ message: 'Actions imported successfully' });
+            res.json({ message: 'Ações importadas com sucesso' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
         }
@@ -72,7 +77,7 @@ export class ActionController {
             if (action) {
                 res.json(action);
             } else {
-                res.status(404).json({ error: 'Action not found' });
+                res.status(404).json({ error: 'Ação não encontrada' });
             }
         } catch (error: any) {
             res.status(500).json({ error: error.message });
@@ -83,11 +88,11 @@ export class ActionController {
         try {
             const { ids } = req.body;
             if (!ids || !Array.isArray(ids)) {
-                res.status(400).json({ error: 'Body must contain "ids" array' });
+                res.status(400).json({ error: 'O corpo da requisição deve conter um array de "ids"' });
                 return;
             }
             this.actionService.bulkDelete(ids);
-            res.json({ message: `Deleted ${ids.length} actions successfully` });
+            res.json({ message: `${ids.length} ações excluídas com sucesso` });
         } catch (error: any) {
             res.status(500).json({ error: error.message });
         }

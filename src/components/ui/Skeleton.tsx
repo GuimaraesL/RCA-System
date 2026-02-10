@@ -1,20 +1,19 @@
+/**
+ * Proposta: Componente de carregamento (Skeleton) para feedback visual de espera.
+ * Fluxo: Renderiza blocos com animação de pulso para simular a estrutura do conteúdo durante a carga de dados.
+ */
 
 import React from 'react';
 
 interface SkeletonProps {
     className?: string;
-    variant?: 'circle' | 'rect' | 'text';
 }
 
-export const Skeleton: React.FC<SkeletonProps> = ({ className, variant = 'rect' }) => {
-    const baseClasses = "bg-slate-200 animate-pulse";
-    const variantClasses = {
-        circle: "rounded-full",
-        rect: "rounded-lg",
-        text: "rounded h-4 w-full"
-    };
-
+export const Skeleton: React.FC<SkeletonProps> = ({ className = '' }) => {
     return (
-        <div className={`${baseClasses} ${variantClasses[variant]} ${className}`} />
+        <div 
+            className={`animate-pulse bg-slate-200 rounded-md ${className}`} 
+            aria-hidden="true" 
+        />
     );
 };

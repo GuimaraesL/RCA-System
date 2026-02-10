@@ -1,3 +1,8 @@
+/**
+ * Proposta: Schema de tipagem para o dicionário de internacionalização (i18n).
+ * Fluxo: Define a estrutura obrigatória que todos os arquivos de localidade (pt.ts, en.ts) devem implementar, garantindo a integridade das traduções em toda a interface.
+ */
+
 export interface TranslationSchema {
     common: {
         save: string;
@@ -530,7 +535,7 @@ export interface TranslationSchema {
             edit: string;
             delete: string;
         };
-        buttons: { // new was handled by newTrigger in main page, but table has "New"
+        buttons: { 
             new: string;
         };
         alerts: {
@@ -539,13 +544,11 @@ export interface TranslationSchema {
         };
     };
     wizard: {
-        // Common
         select: string;
         selectType: string;
         required: string;
         add: string;
         remove: string;
-        // Step names for navigation
         stepNames: {
             step1: { title: string; subtitle: string; };
             step2: { title: string; subtitle: string; };
@@ -555,7 +558,6 @@ export interface TranslationSchema {
             step6: { title: string; subtitle: string; };
             step7: { title: string; subtitle: string; };
         };
-        // Step 0/1 - General
         step1: {
             title: string;
             refreshAssets: string;
@@ -578,7 +580,6 @@ export interface TranslationSchema {
             completionDate: string;
             requiresOperation: string;
         };
-        // Step 2 - Problem
         step2: {
             title: string;
             subtitle: string;
@@ -597,7 +598,6 @@ export interface TranslationSchema {
             qualityImpacts: string;
             qualityImpactsPlaceholder: string;
         };
-        // Step 3 - Technical
         step3: {
             title: string;
             subtitle: string;
@@ -610,7 +610,6 @@ export interface TranslationSchema {
             estimatedImpact: string;
             minutesOfDowntime: string;
         };
-        // Step 4 - Investigation
         step4: {
             title: string;
             subtitle: string;
@@ -652,7 +651,6 @@ export interface TranslationSchema {
                 whyCause: string;
             };
         };
-        // Step 5 - Actions
         step5: {
             header: string;
             headerDesc: string;
@@ -668,7 +666,6 @@ export interface TranslationSchema {
             correctiveEmpty: string;
             noActions: string;
         };
-        // Step 6 - Checklist
         step6: {
             title: string;
             subtitle: string;
@@ -680,7 +677,6 @@ export interface TranslationSchema {
             comment: string;
             addComment: string;
         };
-        // Step 7 - Additional
         step7: {
             title: string;
             subtitle: string;
@@ -700,7 +696,6 @@ export interface TranslationSchema {
             linkUrl: string;
             linkUrlPlaceholder: string;
         };
-        // Step HRA - Human Reliability Analysis
         stepHRA: {
             [key: string]: string | { title: string; subtitle: string; } | undefined;
             title: string;

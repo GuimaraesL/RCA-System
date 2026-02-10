@@ -1,3 +1,7 @@
+/**
+ * Proposta: Definições globais de tipos e interfaces do frontend.
+ * Fluxo: Centraliza os contratos de dados para RCAs, Ativos, Gatilhos, Ações e Taxonomia, incluindo ViewModels otimizados para a interface e estruturas de migração.
+ */
 
 export type AnalysisType = "Mini RCA" | "RCA Completo" | "A3 Melhoria";
 
@@ -19,7 +23,7 @@ export interface AssetNode {
 export interface TaxonomyItem {
   id: string;
   name: string;
-  specialty_ids?: string[]; // IDs of specialties this item belongs to
+  specialty_ids?: string[]; // IDs das especialidades vinculadas a este item
 }
 
 export interface TaxonomyConfig {
@@ -30,7 +34,7 @@ export interface TaxonomyConfig {
   failureCategories: TaxonomyItem[];
   componentTypes: TaxonomyItem[];
   rootCauseMs: TaxonomyItem[];
-  triggerStatuses: TaxonomyItem[]; // Added field
+  triggerStatuses: TaxonomyItem[]; 
   mandatoryFields?: MandatoryFieldsConfig;
 }
 
@@ -44,17 +48,20 @@ export interface MandatoryFieldsConfig {
   };
 }
 
-// 6. Investigação types
+// --- Tipos de Investigação ---
+
 export interface FiveWhy {
   id: string;
   why_question: string;
   answer: string;
 }
 
-// New Hierarchical 5 Whys
+/**
+ * Estrutura Hierárquica dos 5 Porquês (Modo Avançado).
+ */
 export interface FiveWhyNode {
   id: string;
-  level: number;  // 0=Causa, 1-5=Whys
+  level: number;  // 0=Causa, 1-5=Porquês
   row?: number;
   cause_effect?: string;
   whys: { level: number; answer: string }[];
@@ -76,18 +83,20 @@ export interface IshikawaDiagram {
   environment: string[];
 }
 
-// 7. Manutenção de Precisão types
+// --- Tipos de Manutenção de Precisão ---
+
 export type PrecisionStatus = "EXECUTED" | "NOT_EXECUTED" | "NOT_APPLICABLE" | "";
 
 export interface PrecisionChecklistItem {
-  id: string; // Semantic ID (slug) or UUID
-  activity: string; // Current text definition
-  question_snapshot?: string; // Historical text at time of record
+  id: string; // ID Semântico ou UUID
+  activity: string; // Definição de texto atual (i18n)
+  question_snapshot?: string; // Texto histórico no momento do registro
   status: PrecisionStatus;
   comment?: string;
 }
 
-// 8. Planos e Lições types
+// --- Tipos de Planos e Lições ---
+
 export interface ContainmentAction {
   id: string;
   action: string;
@@ -96,7 +105,9 @@ export interface ContainmentAction {
   status: string;
 }
 
-// Box Logic Status
+/**
+ * Status baseado na lógica de 'Box' (Matriz de Prioridade/Aprovação).
+ */
 export type ActionStatus = '1' | '2' | '3' | '4';
 
 export interface ActionRecord {
@@ -109,7 +120,9 @@ export interface ActionRecord {
   moc_number?: string;
 }
 
-// 9. ViewModels
+/**
+ * ViewModel enriquecido para visualização de ações na interface.
+ */
 export interface ActionViewModel extends ActionRecord {
   rcaTitle: string;
   assetName: string;
@@ -118,16 +131,17 @@ export interface ActionViewModel extends ActionRecord {
   subgroupId: string;
   categoryId: string;
   specialtyId: string;
-  // Pre-computed fields for optimized filtering (Issue #11)
-  searchContext: string; // Pre-lowercased search text
-  yearStr: string;       // e.g. "2024"
-  monthStr: string;      // e.g. "01", "02"
+  // Campos pré-computados para otimização de busca e filtragem
+  searchContext: string; // Texto de busca normalizado
+  yearStr: string;       // ex: "2024"
+  monthStr: string;      // ex: "01"
 }
 
-// 10. Trigger Analysis Types
+// --- Tipos de Gatilhos (Triggers) ---
+
 export interface TriggerRecord {
   id: string;
-  // Asset Hierarchy Links
+  // Vínculos com a hierarquia de ativos
   area_id: string;
   equipment_id: string;
   subgroup_id: string;
@@ -140,20 +154,21 @@ export interface TriggerRecord {
   stop_reason: string;
   comments: string;
 
-  analysis_type_id: string; // Link to Taxonomy
-  status: string; // Dynamic ID from Taxonomy
+  analysis_type_id: string; // Vínculo com Taxonomia
+  status: string; // ID dinâmico da Taxonomia
   responsible: string;
 
-  rca_id?: string; // Link to an existing or new RCA
-  file_path?: string; // Network path to analysis file
+  rca_id?: string; // Vínculo com uma análise RCA existente
+  file_path?: string; // Caminho de rede para arquivo de análise
 }
 
-// Human Reliability Analysis Types
+// --- Tipos de Confiabilidade Humana (HRA) ---
+
 export interface HraQuestion {
   id: string;
   category: string;
   question: string;
-  question_snapshot?: string; // Historical text
+  question_snapshot?: string; 
   answer: 'YES' | 'NO' | '';
   comment: string;
 }
@@ -187,6 +202,9 @@ export interface AdditionalInfo {
   historicalInfo?: string;
 }
 
+/**
+ * Interface mestre de um registro de Análise de Causa Raiz (RCA).
+ */
 export interface RcaRecord {
   id: string;
 
@@ -196,10 +214,9 @@ export interface RcaRecord {
   analysis_duration_minutes: number;
   analysis_type: string;
   status: string;
-  participants: string[]; // Normalized to Array
+  participants: string[]; 
   facilitator: string;
 
-  // Added fields from Excel Template
   start_date?: string;
   completion_date?: string;
   requires_operation_support?: boolean;
@@ -223,40 +240,42 @@ export interface RcaRecord {
   failure_mode_id: string;
   failure_category_id: string;
 
-  // 5. Descrição do Problema
+  // 5. Descrição do Problema (5W2H)
   who: string;
   what: string;
   when: string;
   where_description: string;
   problem_description: string;
   potential_impacts: string;
-  quality_impacts?: string; // Added field
+  quality_impacts?: string; 
 
-  // 6. Investigação
+  // 6. Investigação e Causa Raiz
   five_whys: FiveWhy[];
-  five_whys_chains?: FiveWhyChain[]; // New Hierarchical Structure
+  five_whys_chains?: FiveWhyChain[]; 
   ishikawa: IshikawaDiagram;
-
   root_causes: RootCauseItem[];
 
-  // 7. Manutenção de Precisão
+  // 7. Manutenção de Precisão (Checklist)
   precision_maintenance: PrecisionChecklistItem[];
 
-  // 8. Human Reliability Analysis
+  // 8. Confiabilidade Humana (HRA)
   human_reliability?: HumanReliabilityAnalysis;
 
   // 9. Planos e Lições
   containment_actions: ContainmentAction[];
   lessons_learned: string[];
-  general_moc_number?: string; // Added field
+  general_moc_number?: string; 
 
-  // 10. Additional Info
+  // 10. Informações Adicionais
   additionalInfo?: AdditionalInfo;
 
-  // 11. Metadata
-  file_path?: string; // Network path to analysis file
+  // 11. Metadados de Arquivo
+  file_path?: string; 
 }
 
+/**
+ * Estrutura integral de dados para Backup e Restauração.
+ */
 export interface MigrationData {
   metadata: {
     exportDate: string;

@@ -1,5 +1,7 @@
-// Modal de Confirmação Customizado
-// Substitui window.confirm() que é bloqueado em alguns ambientes corporativos
+/**
+ * Proposta: Modal de confirmação genérico e estilizado.
+ * Fluxo: Substitui o uso de window.confirm() (que é bloqueado em ambientes corporativos restritos), provendo uma interface acessível, animada e com suporte a diferentes variantes de severidade (Perigo, Alerta, Info).
+ */
 
 import React, { useEffect, useRef } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
@@ -68,7 +70,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                 ref={containerRef}
                 className={`bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden ${(window as any).isPlaywright ? 'opacity-100' : 'opacity-0'}`}
             >
-                {/* Header */}
+                {/* Cabeçalho */}
                 <div className={`px-6 py-4 ${colors.bg} flex items-center gap-3`}>
                     <AlertTriangle className={`${colors.icon}`} size={24} />
                     <h3 className="font-bold text-lg text-slate-800">{finalTitle}</h3>
@@ -80,12 +82,12 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                     </button>
                 </div>
 
-                {/* Body */}
+                {/* Corpo da Mensagem */}
                 <div className="p-6">
                     <p className="text-slate-600">{message}</p>
                 </div>
 
-                {/* Footer */}
+                {/* Ações de Rodapé */}
                 <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
                     <button
                         onClick={onCancel}

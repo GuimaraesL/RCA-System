@@ -1,3 +1,8 @@
+/**
+ * Proposta: Hook genérico para ordenação de listas de objetos.
+ * Fluxo: Gerencia a chave ativa e a direção da ordenação, provendo uma lista memorizada e ordenada baseada em comparações resilientes a tipos (strings, números, datas e valores nulos).
+ */
+
 import { useState, useMemo } from 'react';
 
 export type SortDirection = 'asc' | 'desc';
@@ -10,6 +15,10 @@ export interface SortConfig<T> {
 export function useSorting<T>(items: T[], initialConfig: SortConfig<T> = { key: '', direction: 'asc' }) {
     const [sortConfig, setSortConfig] = useState<SortConfig<T>>(initialConfig);
 
+    /**
+     * Alterna a ordenação de uma coluna. 
+     * Se a coluna já estiver ativa, inverte a direção; caso contrário, define-a como ascendente.
+     */
     const handleSort = (key: keyof T | string) => {
         setSortConfig(current => ({
             key,
@@ -17,6 +26,10 @@ export function useSorting<T>(items: T[], initialConfig: SortConfig<T> = { key: 
         }));
     };
 
+    /**
+     * Retorna a lista ordenada.
+     * Implementa tratamento de caixa alta/baixa para strings e priorização de valores nulos/indefinidos no final da lista.
+     */
     const sortedItems = useMemo(() => {
         if (!items) return [];
         const sortableItems = [...items];
@@ -25,21 +38,14 @@ export function useSorting<T>(items: T[], initialConfig: SortConfig<T> = { key: 
         return sortableItems.sort((a, b) => {
             const { key, direction } = sortConfig;
 
-            // Nested property access (e.g. 'root_causes.length' or 'taxonomy.name')
-            // For now, we assume direct access or simple string keys. 
-            // If key is a string like "nested.prop", we might need lodash.get or split.
-            // Let's keep it simple: access as is, assuming flat or handled by caller mapper?
-            // Actually, for complex tables we often sort by computed values.
-            // But usually we pass "Record" objects.
-
             let valA: any = (a as any)[key];
             let valB: any = (b as any)[key];
 
-            // Special Handling (Case Insensitive for Strings)
+            // Normalização para comparação insensível a caixa
             if (typeof valA === 'string') valA = valA.toLowerCase();
             if (typeof valB === 'string') valB = valB.toLowerCase();
 
-            // Handle Null/Undefined/Zero
+            // Tratamento de igualdade e valores nulos (Null/Undefined)
             if (valA === valB) return 0;
             if (valA === undefined || valA === null) return 1;
             if (valB === undefined || valB === null) return -1;

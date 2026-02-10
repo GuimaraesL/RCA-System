@@ -289,10 +289,10 @@ export const Dashboard: React.FC = () => {
                     { label: t('dashboard.kpi.totalCost'), value: totalCost, icon: <TrendingUp size={14} />, color: 'text-emerald-600', prefix: language === 'pt' ? 'R$ ' : '$', tooltip: t('dashboard.tooltips.totalCost') },
                     { label: t('dashboard.kpi.totalRcas'), value: filteredRecords.length, icon: <PieIcon size={14} />, color: 'text-slate-500', tooltip: t('dashboard.tooltips.totalRcas') }
                 ].map((kpi, i) => (
-                    <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden group hover:border-blue-300 transition-colors" title={kpi.tooltip}>
+                    <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden group hover:border-blue-300 transition-colors">
                         <div className={`text-xs ${kpi.color} font-bold uppercase tracking-wider mb-2 flex items-center justify-between`}>
                             <div className="flex items-center gap-1">{kpi.icon} {kpi.label}</div>
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity" title={kpi.tooltip}>
                                 <Info size={14} className="text-slate-300 cursor-help" />
                             </div>
                         </div>

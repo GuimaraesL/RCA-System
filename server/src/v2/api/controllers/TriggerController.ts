@@ -1,3 +1,8 @@
+/**
+ * Proposta: Controlador HTTP para gestão de Gatilhos (Triggers) de parada.
+ * Fluxo: Disponibiliza endpoints CRUD para manipulação de gatilhos, delegando a lógica de negócio e persistência ao TriggerService.
+ */
+
 import { Request, Response } from 'express';
 import { TriggerService } from '../../domain/services/TriggerService';
 import { SqlTriggerRepository } from '../../infrastructure/repositories/SqlTriggerRepository';
@@ -24,7 +29,7 @@ export class TriggerController {
             if (trigger) {
                 res.json(trigger);
             } else {
-                res.status(404).json({ error: 'Trigger not found' });
+                res.status(404).json({ error: 'Gatilho não encontrado' });
             }
         } catch (error: any) {
             res.status(500).json({ error: error.message });
@@ -43,7 +48,7 @@ export class TriggerController {
     public update = (req: Request, res: Response): void => {
         try {
             this.triggerService.updateTrigger(req.params.id, req.body);
-            res.json({ message: 'Trigger updated successfully' });
+            res.json({ message: 'Gatilho atualizado com sucesso' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
         }
@@ -52,7 +57,7 @@ export class TriggerController {
     public delete = (req: Request, res: Response): void => {
         try {
             this.triggerService.deleteTrigger(req.params.id);
-            res.json({ message: 'Trigger deleted successfully' });
+            res.json({ message: 'Gatilho excluído com sucesso' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
         }
@@ -61,7 +66,7 @@ export class TriggerController {
     public bulkImport = (req: Request, res: Response): void => {
         try {
             this.triggerService.bulkImport(req.body);
-            res.json({ message: 'Triggers imported successfully' });
+            res.json({ message: 'Gatilhos importados com sucesso' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
         }
@@ -70,7 +75,7 @@ export class TriggerController {
     public bulkDelete = (req: Request, res: Response): void => {
         try {
             this.triggerService.bulkDelete(req.body.ids);
-            res.json({ message: 'Triggers deleted successfully' });
+            res.json({ message: 'Gatilhos excluídos com sucesso' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
         }

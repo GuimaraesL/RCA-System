@@ -1,3 +1,8 @@
+/**
+ * Proposta: Repositório SQL para gestão da Taxonomia e Configurações Globais.
+ * Fluxo: Armazena e recupera o objeto de configuração (JSON) do banco de dados, garantindo que o sistema sempre possua uma estrutura de dados válida através de mesclagem com valores padrão (Fallback).
+ */
+
 import { DatabaseConnection } from '../database/DatabaseConnection';
 import { TaxonomyConfig } from '../../domain/types/RcaTypes';
 
@@ -8,38 +13,45 @@ export class SqlTaxonomyRepository {
         this.db = DatabaseConnection.getInstance();
     }
 
+    /**
+     * Recupera a configuração atual da taxonomia.
+     * Realiza uma mesclagem automática com os valores padrão para garantir que novos campos do sistema estejam presentes mesmo em bases antigas.
+     */
     public getTaxonomy(): TaxonomyConfig {
         const rows = this.db.query('SELECT config FROM taxonomy LIMIT 1');
-        // console.log(`[V2] SqlTaxonomyRepository.getTaxonomy: Found ${rows.length} rows`);
 
         if (rows.length > 0 && rows[0].config) {
             try {
                 const parsed = JSON.parse(rows[0].config);
-                // Merge with default to guarantee structure
                 const config: TaxonomyConfig = {
                     ...this.getDefaultTaxonomy(),
                     ...parsed
                 };
-                // console.log(`[V2] Taxonomy parsed successfully. Analysis Statuses: ${config.analysisStatuses?.length}`);
                 return config;
             } catch (e) {
-                console.error('[V2] Failed to parse taxonomy config', e);
+                console.error('[V2] Falha ao processar configuração da taxonomia:', e);
             }
         }
 
-        // Fallback default (Comprehensive to prevent Frontend crash)
         return this.getDefaultTaxonomy();
     }
 
+    /**
+     * Atualiza a configuração da taxonomia.
+     * Implementa uma estratégia de substituição total da linha única de configuração para simplicidade no SQLite.
+     */
     public updateTaxonomy(config: Partial<TaxonomyConfig>): void {
         const current = this.getTaxonomy();
         const updated = { ...current, ...config };
 
-        // In sql.js/sqlite, simpler to replace the single row
         this.db.execute('DELETE FROM taxonomy');
         this.db.execute('INSERT INTO taxonomy (config) VALUES (?)', [JSON.stringify(updated)]);
     }
 
+    /**
+     * Define o estado inicial e de segurança (Fallback) da taxonomia.
+     * Crucial para evitar quebras na interface caso o banco esteja vazio ou corrompido.
+     */
     private getDefaultTaxonomy(): TaxonomyConfig {
         return {
             analysisTypes: [],

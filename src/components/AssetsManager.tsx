@@ -1,3 +1,7 @@
+/**
+ * Proposta: Módulo de Gestão da Árvore de Ativos Técnicos.
+ * Fluxo: Integra uma barra lateral redimensionável contendo a hierarquia completa com um painel de edição detalhado, permitindo a manutenção da estrutura organizacional (Área > Equipamento > Subgrupo) através de operações CRUD e algoritmos recursivos.
+ */
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AssetNode } from '../types';
@@ -5,30 +9,18 @@ import { Folder, Database, Layers, Plus, Trash2, Edit2, ChevronRight, ChevronDow
 import { useAssetsLogic } from '../hooks/useAssetsLogic';
 import { ConfirmModal } from './ConfirmModal';
 import { AssetTreeNode } from './AssetTreeNode';
-
-import { useLanguage } from '../context/LanguageDefinition'; // i18n
+import { useLanguage } from '../context/LanguageDefinition'; 
 
 export const AssetsManager: React.FC = () => {
   const { t } = useLanguage();
   const {
-    assets,
-    selectedNode, setSelectedNode,
-    parentNode, setParentNode,
-    isEditing, setIsEditing,
-    nodeName, setNodeName,
-    nodeType, setNodeType,
-    handleDelete,
-    handleUpdate,
-    handleAddChild,
-    startEdit,
-    startAdd,
-    deleteModalOpen,
-    nodeToDelete,
-    confirmDelete,
-    cancelDelete
+    assets, selectedNode, setSelectedNode, parentNode, setParentNode,
+    isEditing, setIsEditing, nodeName, setNodeName, nodeType, setNodeType,
+    handleDelete, handleUpdate, handleAddChild, startEdit, startAdd,
+    deleteModalOpen, confirmDelete, cancelDelete
   } = useAssetsLogic();
 
-  // --- Resizable Sidebar State ---
+  // --- Estado do Redimensionamento da Barra Lateral ---
   const MIN_WIDTH = 200;
   const MAX_WIDTH = 600;
   const DEFAULT_WIDTH = 350;
@@ -36,6 +28,9 @@ export const AssetsManager: React.FC = () => {
   const isResizing = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  /**
+   * Inicia o rastreamento do mouse para redimensionamento manual.
+   */
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -48,7 +43,7 @@ export const AssetsManager: React.FC = () => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing.current || !containerRef.current) return;
 
-      // Calcula largura relativa à posição do container
+      // Calcula a largura baseada na posição do mouse em relação ao container principal
       const containerRect = containerRef.current.getBoundingClientRect();
       const newWidth = e.clientX - containerRect.left;
 
@@ -74,11 +69,9 @@ export const AssetsManager: React.FC = () => {
     };
   }, []);
 
-  /* TreeNode component moved to AssetTreeNode.tsx */
-
   return (
     <div ref={containerRef} className="flex h-full p-8 gap-0 max-w-[1600px] mx-auto">
-      {/* Sidebar Tree - Resizable */}
+      {/* Barra Lateral da Árvore - Redimensionável */}
       <div
         className="bg-white rounded-l-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden"
         style={{ width: `${sidebarWidth}px`, minWidth: `${MIN_WIDTH}px`, maxWidth: `${MAX_WIDTH}px` }}
@@ -112,7 +105,7 @@ export const AssetsManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Resize Handle */}
+      {/* Alça de Redimensionamento (Resize Handle) */}
       <div
         onMouseDown={handleMouseDown}
         className="w-2 cursor-col-resize bg-slate-100 hover:bg-blue-200 flex items-center justify-center transition-colors border-y border-slate-200"
@@ -122,7 +115,7 @@ export const AssetsManager: React.FC = () => {
       </div>
 
 
-      {/* Editor Panel */}
+      {/* Painel de Edição Detalhada */}
       <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 p-8">
         {!isEditing && selectedNode ? (
           <div className="h-full flex flex-col">
@@ -234,7 +227,6 @@ export const AssetsManager: React.FC = () => {
         )}
       </div>
 
-      {/* Modal de Confirmação de Exclusão de Asset */}
       <ConfirmModal
         isOpen={deleteModalOpen}
         title={t('modals.deleteAssetTitle')}

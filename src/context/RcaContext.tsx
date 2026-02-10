@@ -1,5 +1,7 @@
-// Contexto Global do RCA System
-// VERSÃO CORRIGIDA - com tratamento de erros e logs de debug
+/**
+ * Proposta: Contexto global de estado e orquestração de dados do sistema.
+ * Fluxo: Centraliza o acesso a RCAs, Ativos, Ações e Gatilhos, gerenciando a alternância automática entre a API (Backend) e o LocalStorage (Modo Offline/Legado) conforme a disponibilidade do servidor.
+ */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { RcaRecord, AssetNode, ActionRecord, TriggerRecord, TaxonomyConfig } from '../types';
@@ -7,7 +9,6 @@ import * as api from '../services/apiService';
 import * as storage from '../services/storageService';
 
 interface RcaContextType {
-  // State
   records: RcaRecord[];
   assets: AssetNode[];
   actions: ActionRecord[];
@@ -16,28 +17,28 @@ interface RcaContextType {
   isLoading: boolean;
   useApi: boolean;
 
-  // Records Methods
+  // Métodos de Gestão de Registros
   addRecord: (record: RcaRecord) => Promise<void>;
   updateRecord: (record: RcaRecord) => Promise<void>;
   deleteRecord: (id: string) => Promise<void>;
 
-  // Assets Methods
+  // Métodos de Gestão de Ativos
   updateAssets: (assets: AssetNode[]) => Promise<void>;
 
-  // Actions Methods
+  // Métodos de Gestão de Ações
   addAction: (action: ActionRecord) => Promise<void>;
   updateAction: (action: ActionRecord) => Promise<void>;
   deleteAction: (id: string) => Promise<void>;
 
-  // Triggers Methods
+  // Métodos de Gestão de Gatilhos
   addTrigger: (trigger: TriggerRecord) => Promise<void>;
   updateTrigger: (trigger: TriggerRecord) => Promise<void>;
   deleteTrigger: (id: string) => Promise<void>;
 
-  // Taxonomy Methods
+  // Métodos de Gestão de Taxonomia
   updateTaxonomy: (taxonomy: TaxonomyConfig) => Promise<void>;
 
-  // Utility
+  // Utilitários
   refreshAll: () => Promise<void>;
   setUseApi: (value: boolean) => void;
 }
@@ -58,11 +59,13 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isLoading, setIsLoading] = useState(true);
   const [useApi, setUseApi] = useState<boolean | null>(null);
 
-  // Detectar se API está disponível
+  /**
+   * Detecta se a API está disponível para definir o modo de operação (Backend vs Local).
+   */
   useEffect(() => {
     const checkApi = async () => {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 3000); 
 
       try {
         const response = await fetch('http://localhost:3001/api/health', {
@@ -70,28 +73,28 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         });
         clearTimeout(timeoutId);
         if (response.ok) {
-          console.log('✅ API disponível - usando backend');
+          console.log('✅ API disponível - Operando em modo conectado');
           setUseApi(true);
         } else {
           setUseApi(false);
         }
       } catch (err: any) {
         clearTimeout(timeoutId);
-        console.log('⚠️ API não disponível ou timeout - usando localStorage', err.name === 'AbortError' ? '(Timeout)' : '');
+        console.log('⚠️ API indisponível - Utilizando LocalStorage (Modo Offline)', err.name === 'AbortError' ? '(Timeout)' : '');
         setUseApi(false);
       }
     };
     checkApi();
   }, []);
 
+  /**
+   * Recarrega todos os dados do sistema a partir da fonte ativa.
+   */
   const refreshAll = useCallback(async () => {
-    console.log('🔄 Refresh: Carregando dados... (useApi:', useApi, ')');
+    console.log('🔄 Sincronizando dados... (Modo API:', useApi, ')');
     setIsLoading(true);
     try {
-      if (useApi === null) {
-        console.log('⏳ Refresh: Aguardando detecção da API...');
-        return;
-      }
+      if (useApi === null) return;
 
       if (useApi) {
         const [recs, assts, acts, trigs, tax] = await Promise.all([
@@ -106,18 +109,18 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setActions(acts);
         setTriggers(trigs);
         setTaxonomy(tax);
-        console.log('✅ Refresh completo via API');
+        console.log('✅ Sincronização completa via API');
       } else {
         setRecords(storage.LEGACY_getRecords());
         setAssets(storage.LEGACY_getAssets());
         setActions(storage.LEGACY_getActions());
         setTriggers(storage.LEGACY_getTriggers());
         setTaxonomy(storage.LEGACY_getTaxonomy());
-        console.log('✅ Refresh completo via localStorage (LEGACY)');
+        console.log('✅ Sincronização completa via LocalStorage');
       }
     } catch (error) {
-      console.error('❌ Erro ao carregar dados:', error);
-      // Fallback para localStorage se API falhar
+      console.error('❌ Erro ao sincronizar dados:', error);
+      // Fallback de segurança para LocalStorage em caso de falha na carga da API
       setRecords(storage.LEGACY_getRecords());
       setAssets(storage.LEGACY_getAssets());
       setActions(storage.LEGACY_getActions());
@@ -131,9 +134,10 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     refreshAll();
   }, [refreshAll]);
 
-  // --- Records Wrappers ---
+  // --- Wrappers de Persistência para Análises ---
+
   const addRecord = async (record: RcaRecord): Promise<void> => {
-    console.log('📝 Context: Adicionando RCA...', record.id);
+    console.log('📝 Contexto: Adicionando RCA...', record.id);
     try {
       if (useApi) {
         await api.saveRecordToApi(record);
@@ -141,23 +145,14 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         storage.saveRecord(record);
       }
       await refreshAll();
-      console.log('✅ Context: RCA adicionada com sucesso');
     } catch (error) {
-      console.error('❌ Context: Erro ao adicionar RCA via API, tentando localStorage...', error);
-      // Fallback to localStorage if API fails
-      try {
-        storage.saveRecord(record);
-        setRecords(prev => [...prev, record]);
-        console.log('✅ Context: RCA adicionada com sucesso via localStorage (fallback)');
-      } catch (localError) {
-        console.error('❌ Context: Erro ao adicionar RCA:', localError);
-        throw localError;
-      }
+      console.error('❌ Erro ao adicionar RCA:', error);
+      throw error;
     }
   };
 
   const updateRecord = async (record: RcaRecord): Promise<void> => {
-    console.log('📝 Context: Atualizando RCA...', record.id);
+    console.log('📝 Contexto: Atualizando RCA...', record.id);
     try {
       if (useApi) {
         await api.saveRecordToApi(record);
@@ -165,23 +160,14 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         storage.saveRecord(record);
       }
       await refreshAll();
-      console.log('✅ Context: RCA atualizada com sucesso');
     } catch (error) {
-      console.error('❌ Context: Erro ao atualizar RCA via API, tentando localStorage...', error);
-      // Fallback to localStorage if API fails
-      try {
-        storage.saveRecord(record);
-        setRecords(prev => prev.map(r => r.id === record.id ? record : r));
-        console.log('✅ Context: RCA atualizada com sucesso via localStorage (fallback)');
-      } catch (localError) {
-        console.error('❌ Context: Erro ao atualizar RCA:', localError);
-        throw localError;
-      }
+      console.error('❌ Erro ao atualizar RCA:', error);
+      throw error;
     }
   };
 
   const deleteRecord = async (id: string): Promise<void> => {
-    console.log('🗑️ Context: Excluindo RCA...', id);
+    console.log('🗑️ Contexto: Excluindo RCA...', id);
     try {
       if (useApi) {
         await api.deleteRecordFromApi(id);
@@ -190,25 +176,16 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         storage.saveRecords(newRecords);
       }
       await refreshAll();
-      console.log('✅ Context: RCA excluída com sucesso');
     } catch (error) {
-      console.error('❌ Context: Erro ao excluir RCA via API, tentando localStorage...', error);
-      // Fallback to localStorage if API fails
-      try {
-        const newRecords = records.filter(r => r.id !== id);
-        storage.saveRecords(newRecords);
-        setRecords(newRecords);
-        console.log('✅ Context: RCA excluída com sucesso via localStorage (fallback)');
-      } catch (localError) {
-        console.error('❌ Context: Erro ao excluir RCA:', localError);
-        throw localError;
-      }
+      console.error('❌ Erro ao excluir RCA:', error);
+      throw error;
     }
   };
 
-  // --- Assets Wrappers ---
+  // --- Wrappers para Ativos ---
+
   const updateAssets = async (newAssets: AssetNode[]): Promise<void> => {
-    console.log('📝 Context: Atualizando assets...');
+    console.log('📝 Contexto: Atualizando árvore de ativos...');
     try {
       if (useApi) {
         await api.importAssetsToApi(newAssets);
@@ -217,14 +194,15 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       setAssets(newAssets);
     } catch (error) {
-      console.error('❌ Context: Erro ao atualizar assets:', error);
+      console.error('❌ Erro ao atualizar ativos:', error);
       throw error;
     }
   };
 
-  // --- Actions Wrappers ---
+  // --- Wrappers para Planos de Ação ---
+
   const addAction = async (action: ActionRecord): Promise<void> => {
-    console.log('📝 Context: Adicionando action...', action.id);
+    console.log('📝 Contexto: Adicionando ação...', action.id);
     try {
       if (useApi) {
         await api.saveActionToApi(action);
@@ -233,7 +211,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       await refreshAll();
     } catch (error) {
-      console.error('❌ Context: Erro ao adicionar action:', error);
+      console.error('❌ Erro ao adicionar ação:', error);
       throw error;
     }
   };
@@ -247,13 +225,13 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       await refreshAll();
     } catch (error) {
-      console.error('❌ Context: Erro ao atualizar action:', error);
+      console.error('❌ Erro ao atualizar ação:', error);
       throw error;
     }
   };
 
   const deleteActionInternal = async (id: string): Promise<void> => {
-    console.log('🗑️ Context: Excluindo action...', id);
+    console.log('🗑️ Contexto: Excluindo ação...', id);
     try {
       if (useApi) {
         await api.deleteActionFromApi(id);
@@ -262,14 +240,15 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       await refreshAll();
     } catch (error) {
-      console.error('❌ Context: Erro ao excluir action:', error);
+      console.error('❌ Erro ao excluir ação:', error);
       throw error;
     }
   };
 
-  // --- Triggers Wrappers ---
+  // --- Wrappers para Gatilhos ---
+
   const addTrigger = async (trigger: TriggerRecord): Promise<void> => {
-    console.log('📝 Context: Adicionando trigger...', trigger.id);
+    console.log('📝 Contexto: Adicionando gatilho...', trigger.id);
     try {
       if (useApi) {
         await api.saveTriggerToApi(trigger);
@@ -278,13 +257,13 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       await refreshAll();
     } catch (error) {
-      console.error('❌ Context: Erro ao adicionar trigger:', error);
+      console.error('❌ Erro ao adicionar gatilho:', error);
       throw error;
     }
   };
 
   const updateTrigger = async (trigger: TriggerRecord): Promise<void> => {
-    console.log('📝 Context: Atualizando trigger...', trigger.id);
+    console.log('📝 Contexto: Atualizando gatilho...', trigger.id);
     try {
       if (useApi) {
         await api.saveTriggerToApi(trigger);
@@ -293,13 +272,13 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       await refreshAll();
     } catch (error) {
-      console.error('❌ Context: Erro ao atualizar trigger:', error);
+      console.error('❌ Erro ao atualizar gatilho:', error);
       throw error;
     }
   };
 
   const deleteTriggerInternal = async (id: string): Promise<void> => {
-    console.log('🗑️ Context: Excluindo trigger...', id);
+    console.log('🗑️ Contexto: Excluindo gatilho...', id);
     try {
       if (useApi) {
         await api.deleteTriggerFromApi(id);
@@ -308,14 +287,15 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       await refreshAll();
     } catch (error) {
-      console.error('❌ Context: Erro ao excluir trigger:', error);
+      console.error('❌ Erro ao excluir gatilho:', error);
       throw error;
     }
   };
 
-  // --- Taxonomy Wrappers ---
+  // --- Wrappers para Taxonomia ---
+
   const updateTaxonomyInternal = async (newTaxonomy: TaxonomyConfig): Promise<void> => {
-    console.log('📝 Context: Atualizando taxonomy...');
+    console.log('📝 Contexto: Atualizando configurações de taxonomia...');
     try {
       if (useApi) {
         await api.saveTaxonomyToApi(newTaxonomy);
@@ -324,42 +304,19 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       setTaxonomy(newTaxonomy);
     } catch (error) {
-      console.error('❌ Context: Erro ao atualizar taxonomy:', error);
+      console.error('❌ Erro ao atualizar taxonomia:', error);
       throw error;
     }
   };
 
   const contextValue = React.useMemo(() => ({
-    records,
-    assets,
-    actions,
-    triggers,
-    taxonomy,
-    isLoading,
-    useApi,
-    addRecord,
-    updateRecord,
-    deleteRecord,
-    updateAssets,
-    addAction,
-    updateAction,
-    deleteAction: deleteActionInternal,
-    addTrigger,
-    updateTrigger,
-    deleteTrigger: deleteTriggerInternal,
-    updateTaxonomy: updateTaxonomyInternal,
-    refreshAll,
-    setUseApi
-  }), [
     records, assets, actions, triggers, taxonomy, isLoading, useApi,
-    refreshAll // Other functions are stable (API wrappers) or should be if they were useCallback'ed. 
-    // Ideally all wrapper functions above should be useCallback or defined outside if stateless, 
-    // but preventing the object recreation is step 1. 
-    // To be perfectly strict, we should useCallback the wrappers too, but simply memoizing the object 
-    // prevents render-loop if state didn't change but Parent re-rendered.
-    // However, since wrappers depend on nothing or useApi (which is in dep array), 
-    // they might be recreated. Let's fix that too effectively.
-  ]);
+    addRecord, updateRecord, deleteRecord, updateAssets,
+    addAction, updateAction, deleteAction: deleteActionInternal,
+    addTrigger, updateTrigger, deleteTrigger: deleteTriggerInternal,
+    updateTaxonomy: updateTaxonomyInternal,
+    refreshAll, setUseApi
+  }), [records, assets, actions, triggers, taxonomy, isLoading, useApi, refreshAll]);
 
   return (
     <RcaContext.Provider value={contextValue}>
@@ -371,7 +328,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 export const useRcaContext = () => {
   const context = useContext(RcaContext);
   if (context === undefined) {
-    throw new Error('useRcaContext must be used within a RcaProvider');
+    throw new Error('useRcaContext deve ser utilizado dentro de um RcaProvider');
   }
   return context;
 };

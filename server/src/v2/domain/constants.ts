@@ -1,3 +1,7 @@
+/**
+ * Proposta: Definição de constantes globais e Enums do domínio.
+ */
+
 export enum STATUS_IDS {
     IN_PROGRESS = 'STATUS-01',
     WAITING_VERIFICATION = 'STATUS-02',

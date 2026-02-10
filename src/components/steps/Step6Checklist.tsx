@@ -1,3 +1,7 @@
+/**
+ * Proposta: Passo 6 do Wizard - Manutenção de Precisão (Checklist).
+ * Fluxo: Renderiza uma lista de verificação técnica para garantir que os padrões de manutenção foram seguidos, com cálculo de progresso em tempo real e suporte a comentários individuais por item.
+ */
 
 import React from 'react';
 import { RcaRecord } from '../../types';
@@ -22,19 +26,19 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
         onChange('precision_maintenance', newList);
     };
 
-    // Calculate Progress
+    // Cálculo do progresso da verificação técnica
     const total = data.precision_maintenance?.length || 0;
     const completed = data.precision_maintenance?.filter(i => i.status !== '').length || 0;
     const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-    // Sorting
+    // Lógica de ordenação da tabela
     const { sortedItems: precisionMaintenance, sortConfig, handleSort } = useSorting(data.precision_maintenance || [], { key: 'id', direction: 'asc' });
 
     if (!data.precision_maintenance) return null;
 
     return (
         <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            {/* Header */}
+            {/* Cabeçalho e Barra de Progresso */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <div className="bg-indigo-50 p-3 rounded-full text-indigo-600">
@@ -46,7 +50,6 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
                     </div>
                 </div>
 
-                {/* Progress Bar */}
                 <div className="w-1/3">
                     <div className="flex justify-between text-xs mb-1 font-medium">
                         <span className="text-slate-500">{t('wizard.step6.completionStatus')}</span>
@@ -61,6 +64,7 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
                 </div>
             </div>
 
+            {/* Tabela de Atividades */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                 <table className="w-full text-sm text-left">
                     <thead>

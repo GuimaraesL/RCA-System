@@ -1,3 +1,8 @@
+/**
+ * Proposta: Contexto de internacionalização (i18n) e localização.
+ * Fluxo: Gerencia o idioma ativo, provê a função de tradução (t) com suporte a dot-notation e normalização de chaves, e formata datas conforme a localidade.
+ */
+
 import React, { useState, ReactNode } from 'react';
 import { TranslationSchema } from '../i18n/types';
 import { pt } from '../i18n/locales/pt';
@@ -7,7 +12,7 @@ import { Language, LanguageContext } from './LanguageDefinition';
 const dictionaries: Record<Language, TranslationSchema> = { pt, en };
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    // Load from localStorage or default to browser language or 'pt'
+    // Inicializa a partir do localStorage ou define 'pt' como padrão de segurança
     const [language, setLanguageState] = useState<Language>(() => {
         const saved = localStorage.getItem('rca-language');
         if (saved && (saved === 'pt' || saved === 'en')) return saved as Language;
@@ -21,18 +26,20 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     const locale = dictionaries[language];
 
-    // Recursive key lookup for dot notation e.g. "dashboard.title"
+    /**
+     * Função de tradução principal.
+     * Implementa busca recursiva por chaves (ex: "dashboard.title") e normalização agressiva
+     * para garantir a compatibilidade com strings legadas ou com ruído de espaços.
+     */
     const t = (key: string): string => {
         if (!key) return '';
 
-        // Normalização agressiva para lidar com lixo do banco de dados (espaços duplos, invisíveis, etc)
         const normalize = (s: string) => s.trim().replace(/\s+/g, ' ').replace(/\u2026/g, '...');
         const cleanKey = normalize(key);
 
-        // 1. Tenta correspondência exata em locais conhecidos (Checklist/HRA) com normalização
+        // 1. Busca em mapeamentos estáticos conhecidos (Checklist e HRA) com normalização
         const checklistMapping = locale.checklists?.precision as Record<string, string>;
         if (checklistMapping) {
-            // Procura normalizando as chaves do dicionário também
             const found = Object.keys(checklistMapping).find(k => normalize(k) === cleanKey);
             if (found) return checklistMapping[found];
         }
@@ -55,11 +62,11 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
             return typeof current === 'string' ? current : undefined;
         };
 
-        // 2. Tenta busca por caminho (dot notation)
+        // 2. Busca recursiva via dot-notation
         let translation = lookup(key, locale);
         if (translation) return translation;
 
-        // 3. Fallback para strings legadas no nível raiz
+        // 3. Fallback para chaves diretas no nível raiz do dicionário
         if (!key.includes('.')) {
             const rootFound = Object.keys(locale).find(k => normalize(k) === cleanKey);
             if (rootFound) return (locale as any)[rootFound];
@@ -68,13 +75,15 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
         return key;
     };
 
+    /**
+     * Formata datas utilizando a API nativa Intl conforme o idioma selecionado.
+     */
     const formatDate = (date: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions): string => {
         if (!date) return '-';
         try {
             const d = typeof date === 'string' ? new Date(date) : date;
             if (isNaN(d.getTime())) return '-';
 
-            // 'pt-BR' or 'en-US'
             const intlLocale = language === 'pt' ? 'pt-BR' : 'en-US';
 
             const defaultOptions: Intl.DateTimeFormatOptions = {

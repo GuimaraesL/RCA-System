@@ -296,8 +296,9 @@ export const exportToCsv = (type: CsvEntityType, context: CsvContextData): strin
             const joinList = (val: any) => Array.isArray(val) ? val.map(v => typeof v === 'object' ? JSON.stringify(v) : v).join('|') : String(val || '');
             
             // Serialização técnica para transporte via CSV (preserva integridade do motor de status)
-            const rootCauses = Array.isArray(r.root_causes) ? r.root_causes.map(rc => `${rc.root_cause_m_id}:${rc.cause}`).join('|') : '';
-            const fiveWhys = Array.isArray(r.five_whys) ? r.five_whys.map(w => `${w.why_question}:${w.answer}`).join('|') : '';
+            // Usa '|| ""' para evitar 'undefined' na string resultante
+            const rootCauses = Array.isArray(r.root_causes) ? r.root_causes.map(rc => `${rc.root_cause_m_id || ''}:${rc.cause || ''}`).join('|') : '';
+            const fiveWhys = Array.isArray(r.five_whys) ? r.five_whys.map(w => `${w.why_question || ''}:${w.answer || ''}`).join('|') : '';
             const ishikawa = r.ishikawa ? Object.entries(r.ishikawa).flatMap(([cat, items]) => (Array.isArray(items) ? items : []).map(item => `${cat}:${item}`)).join('|') : '';
 
             return {
@@ -329,8 +330,9 @@ export const exportToCsv = (type: CsvEntityType, context: CsvContextData): strin
 
 // --- PROCESSADORES DE IMPORTAÇÃO (IMPORTERS) ---
 
-export const importFromCsv = (type: CsvEntityType, csvContent: string, context: CsvContextData, options?: { mode: 'APPEND' | 'UPDATE', inheritHierarchy?: boolean }): CsvImportResult => {
+export const importFromCsv = (type: CsvEntityType, csvContent: string, context: CsvContextData, options: { mode: 'APPEND' | 'UPDATE', inheritHierarchy?: boolean } = { mode: 'APPEND', inheritHierarchy: true }): CsvImportResult => {
     try {
+        const inherit = options.inheritHierarchy !== false; // Default para true se não for explicitamente false
         const lines = csvContent.split('\n').filter(l => l.trim().length > 0);
         if (lines.length === 0) return { success: false, message: "Arquivo CSV vazio ou ilegível." };
 
@@ -368,7 +370,7 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 }
             });
 
-            return { success: true, message: `Parsed ${nodes.length} ativos.`, data: rootNodes, dataType: 'ASSETS' };
+            return { success: true, message: `${nodes.length} ativos processados com sucesso.`, data: rootNodes, dataType: 'ASSETS' };
         }
 
         if (type === 'TRIGGERS') {
@@ -399,7 +401,8 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 const sanitizeValue = (val: any): string => {
                     if (!val) return '';
                     let s = String(val).trim();
-                    if (s === '"' || s === "'" || s === '""' || s === "''") return '';
+                    // Trata aspas e o caractere de traço (comum em exports de Excel) como vazio
+                    if (s === '"' || s === "'" || s === '""' || s === "''" || s === "-") return '';
                     return s;
                 };
 
@@ -452,6 +455,14 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                     }
                 }
 
+                // Herança de Hierarquia: Se o usuário optou por herdar e temos uma RCA vinculada,
+                // preenchemos os IDs de ativos faltantes ou inválidos com os dados da RCA.
+                if (inherit && linkedRca) {
+                    if (!areaId && linkedRca.area_id) areaId = linkedRca.area_id;
+                    if (!equipId && linkedRca.equipment_id) equipId = linkedRca.equipment_id;
+                    if (!subId && linkedRca.subgroup_id) subId = linkedRca.subgroup_id;
+                }
+
                 if (!areaId) {
                     errors.push(`Linha ${i + 1}: Área não identificada.`);
                     return;
@@ -479,7 +490,7 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 newTriggers.push(trigger);
             });
 
-            return { success: true, message: `Importados ${newTriggers.length} novos gatilhos.`, data: [...existingTriggers, ...newTriggers], dataType: 'TRIGGERS' };
+            return { success: true, message: `${newTriggers.length} gatilhos importados com sucesso.`, data: [...existingTriggers, ...newTriggers], dataType: 'TRIGGERS' };
         }
 
         if (type === 'ACTIONS') {
@@ -495,7 +506,7 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
 
             const actionMap = new Map(existingActions.map(a => [a.id, a]));
             actions.forEach(a => actionMap.set(a.id, a));
-            return { success: true, message: `Parsed ${actions.length} ações.`, data: Array.from(actionMap.values()), dataType: 'ACTIONS' };
+            return { success: true, message: `${actions.length} ações processadas.`, data: Array.from(actionMap.values()), dataType: 'ACTIONS' };
         }
 
         if (type === 'RECORDS_SUMMARY') {
@@ -579,7 +590,7 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 return rec;
             });
 
-            return { success: true, message: `Parsed ${importedRecords.length} análises (${updatedCount} atualizações).`, data: importedRecords, dataType: 'RECORDS_SUMMARY' };
+            return { success: true, message: `${importedRecords.length} análises processadas (${updatedCount} atualizações).`, data: importedRecords, dataType: 'RECORDS_SUMMARY' };
         }
 
         const taxonomyKey = TAXONOMY_MAP[type];
@@ -597,7 +608,7 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
                 // @ts-ignore
                 currentTaxonomy[taxonomyKey] = newItems;
             }
-            return { success: true, message: `Parsed ${newItems.length} itens para ${taxonomyKey}.`, data: currentTaxonomy, dataType: type };
+            return { success: true, message: `${newItems.length} itens da taxonomia ${taxonomyKey} atualizados.`, data: currentTaxonomy, dataType: type };
         }
 
         return { success: false, message: "Tipo de entidade desconhecido." };

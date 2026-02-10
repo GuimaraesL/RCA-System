@@ -1,3 +1,8 @@
+/**
+ * Proposta: Repositório SQL para persistência e consulta de registros de RCA.
+ * Fluxo: Gerencia a tradução entre objetos JavaScript complexos (contendo arrays/objetos JSON) e colunas de texto do SQLite, além de prover visões otimizadas para performance.
+ */
+
 import { DatabaseConnection } from '../database/DatabaseConnection';
 import { Rca } from '../../domain/types/RcaTypes';
 
@@ -8,15 +13,20 @@ export class SqlRcaRepository {
         this.db = DatabaseConnection.getInstance();
     }
 
+    /**
+     * Retorna a carga total de todos os registros.
+     * Uso: Backups, Exportações Integrais.
+     */
     public findAll(): Rca[] {
-        // Legacy: Find All (Full Data) - Usage: Export, etc.
         const rows = this.db.query('SELECT * FROM rcas ORDER BY created_at DESC');
         return rows.map(this.mapRowToRca);
     }
 
+    /**
+     * Retorna uma visão resumida dos registros (exclui blobs pesados de investigação).
+     * Uso: Listagem principal e Dashboard para economia de recursos e performance.
+     */
     public findAllSummary(): Rca[] {
-        // Optimized: Exclude heavy JSON blobs (Ishikawa, 5 Whys, etc.)
-        // Keep root_causes for Dashboard 6M chart
         const sql = `
             SELECT 
                 id, version, analysis_date, analysis_duration_minutes, analysis_type, status,
@@ -25,7 +35,7 @@ export class SqlRcaRepository {
                 area_id, equipment_id, subgroup_id, component_type, asset_name_display,
                 specialty_id, failure_mode_id, failure_category_id,
                 who, what, "when", where_description, problem_description, 
-                root_causes, -- Needed for Dashboard
+                root_causes, 
                 created_at, updated_at
             FROM rcas 
             ORDER BY created_at DESC
@@ -37,11 +47,11 @@ export class SqlRcaRepository {
     public findAllPaginated(page: number, limit: number): { data: Rca[], total: number } {
         const offset = (page - 1) * limit;
 
-        // 1. Get Total Count
+        // 1. Recupera contagem total para orquestração da paginação
         const countResult = this.db.query('SELECT COUNT(*) as total FROM rcas');
         const total = countResult[0]?.total || 0;
 
-        // 2. Get Data Slice
+        // 2. Recupera fatia de dados (Lazy Load)
         const rows = this.db.query('SELECT * FROM rcas ORDER BY created_at DESC LIMIT ? OFFSET ?', [limit, offset]);
 
         return {
@@ -89,11 +99,9 @@ export class SqlRcaRepository {
                 updated_at = datetime('now')
             WHERE id = ?
         `;
-        // mapRcaToParams returns [id, version, ...]. 
-        // We need [version, ..., file_path] for the SET clause, then [id] for WHERE.
         const allParams = this.mapRcaToParams(rca);
-        const updateParams = allParams.slice(1); // Remove id from first position
-        updateParams.push(rca.id); // Add ID at the end for WHERE clause
+        const updateParams = allParams.slice(1); // Remove o ID da primeira posição (esperado pelo INSERT)
+        updateParams.push(rca.id); // Adiciona o ID no final para a cláusula WHERE do UPDATE
         this.db.execute(sql, updateParams);
     }
 
@@ -101,12 +109,12 @@ export class SqlRcaRepository {
         this.db.execute('DELETE FROM rcas WHERE id = ?', [id]);
     }
 
+    /**
+     * Executa inserções em massa utilizando uma transação para garantir atomicidade e performance.
+     */
     public bulkCreate(rcas: Rca[]): void {
         this.db.transaction(() => {
             for (const rca of rcas) {
-                // Determine if we should insert or replace? 
-                // Original logic in server/src/routes/rcas.ts uses INSERT OR REPLACE
-                // We should probably follow that to be safe for bulk operations
                 this.upsert(rca);
             }
         });
@@ -122,13 +130,13 @@ export class SqlRcaRepository {
         });
     }
 
-
-    // --- Public 'save' alias for upsert (Used by scripts/repair_db.ts) ---
     public save(rca: Rca): void {
         this.upsert(rca);
     }
 
-    // --- Private Helper to mimic INSERT OR REPLACE ---
+    /**
+     * Implementa lógica de "Inserir ou Substituir" para garantir integridade em importações.
+     */
     private upsert(rca: Rca): void {
         const sql = `
             INSERT OR REPLACE INTO rcas (
@@ -147,18 +155,21 @@ export class SqlRcaRepository {
         this.db.execute(sql, params);
     }
 
-    // --- Data Mappers ---
+    // --- Mapeadores de Dados ---
 
     private n(val: any): any {
         return val === undefined ? null : val;
     }
 
+    /**
+     * Desserializa strings JSON do banco para objetos tipados, tratando falhas de parsing de forma resiliente.
+     */
     private safeParse(json: string | null, fallback: any): any {
         if (!json) return fallback;
         try {
             return JSON.parse(json);
         } catch (e) {
-            console.warn(`[V2] Failed to parse JSON: ${json.substring(0, 50)}... Returning fallback.`);
+            console.warn(`[V2] Falha ao processar JSON: ${json.substring(0, 50)}... Retornando fallback.`);
             return fallback;
         }
     }
@@ -180,6 +191,9 @@ export class SqlRcaRepository {
         };
     }
 
+    /**
+     * Serializa o objeto RCA para o formato de parâmetros esperado pelo motor SQL.
+     */
     private mapRcaToParams(rca: Rca): any[] {
         return [
             this.n(rca.id),

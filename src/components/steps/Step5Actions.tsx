@@ -1,3 +1,7 @@
+/**
+ * Proposta: Passo 5 do Wizard - Plano de Ações (CAPA).
+ * Fluxo: Gerencia ações imediatas de contenção (internas ao registro) e orquestra a vinculação de planos de ação corretiva globais através de uma tabela interativa com suporte a ordenação e status de 'Box'.
+ */
 
 import React, { useRef } from 'react';
 import { RcaRecord, ActionRecord } from '../../types';
@@ -5,7 +9,7 @@ import { ClipboardList, Plus, Target, CheckCircle2, AlertTriangle, Edit2, Trash2
 import { useSorting } from '../../hooks/useSorting';
 import { SortHeader } from '../ui/SortHeader';
 import { useLanguage } from '../../context/LanguageDefinition';
-import { useEnterAnimation } from '../../hooks/useEnterAnimation'; // Animation Hook
+import { useEnterAnimation } from '../../hooks/useEnterAnimation'; 
 
 interface Step5Props {
     data: RcaRecord;
@@ -21,12 +25,12 @@ interface Step5Props {
 export const Step5Actions: React.FC<Step5Props> = ({
     data, onChange, linkedActions, onAddActionPlan, onEditActionPlan, onDeleteActionPlan, isFieldRequired, errors
 }) => {
-    const { t } = useLanguage();
+    const { t, formatDate } = useLanguage();
 
-    // --- Sorting Logic ---
+    // --- Lógica de Ordenação de Ações ---
     const { sortedItems: sortedActions, sortConfig, handleSort } = useSorting(linkedActions, { key: 'status', direction: 'asc' });
 
-    // Internal Containment Actions
+    // Gestão de Ações Internas de Contenção
     const updateInternalAction = (index: number, field: string, val: string) => {
         if (!data.containment_actions) return;
         const list = [...data.containment_actions];
@@ -36,9 +40,6 @@ export const Step5Actions: React.FC<Step5Props> = ({
 
     const addInternalAction = () => {
         const list = data.containment_actions || [];
-        // Generate a temp ID or use placeholder if needed. ContainmentAction requires ID.
-        // Assuming generateId is not imported, using simplified approach or importing it?
-        // Step5Actions doesn't have generateId. Use timestamp or random.
         const newId = 'ACT-C-' + Date.now();
         onChange('containment_actions', [...list, { id: newId, action: '', responsible: '', date: '', status: 'PENDING' }]);
     };
@@ -49,12 +50,12 @@ export const Step5Actions: React.FC<Step5Props> = ({
         onChange('containment_actions', list);
     };
 
-    // Animation for Table Rows
+    // Orquestração de animação para as linhas da tabela
     const listRef = useEnterAnimation([sortedActions]);
 
     return (
         <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            {/* Header */}
+            {/* Cabeçalho de Orientação */}
             <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-lg flex gap-3 text-indigo-700 text-sm">
                 <Target size={20} className="mt-0.5" />
                 <div>
@@ -63,7 +64,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                 </div>
             </div>
 
-            {/* Internal Actions (Containment) */}
+            {/* Ações Internas (Contenção Imediata) */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
@@ -120,7 +121,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                 </div>
             </div>
 
-            {/* Corrective Actions (External - Linked) */}
+            {/* Ações Corretivas (Vinculadas Globalmente) */}
             <div className={`bg-white p-6 rounded-lg shadow-sm border relative ${errors?.actions ? 'border-red-500 ring-2 ring-red-50' : 'border-slate-200'}`}>
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
@@ -142,7 +143,6 @@ export const Step5Actions: React.FC<Step5Props> = ({
                     </div>
                 </div>
 
-                {/* LINKED TABLE */}
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-slate-600">
                         <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-semibold">
@@ -171,7 +171,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                                     <td className="px-4 py-2 font-bold text-center border-r border-slate-100 bg-slate-50/50 w-16">{t('common.box')} {act.status}</td>
                                     <td className="px-4 py-2">{act.action}</td>
                                     <td className="px-4 py-2">{act.responsible}</td>
-                                    <td className="px-4 py-2 font-mono text-xs">{act.date}</td>
+                                    <td className="px-4 py-2 font-mono text-xs">{formatDate(act.date)}</td>
                                     <td className="px-4 py-2 text-right">
                                         <div className="flex justify-end gap-2">
                                             <button

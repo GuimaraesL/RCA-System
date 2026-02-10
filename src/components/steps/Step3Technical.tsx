@@ -1,3 +1,7 @@
+/**
+ * Proposta: Passo 3 do Wizard - Classificação Técnica e Impactos Quantitativos.
+ * Fluxo: Gerencia a classificação da falha (Especialidade > Modo de Falha > Categoria) e captura dados numéricos de impacto (Downtime e Financeiro).
+ */
 
 import React from 'react';
 import { Input } from '../ui/Input';
@@ -16,21 +20,24 @@ interface Step3Props {
 export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy, errors, isFieldRequired }) => {
     const { t } = useLanguage();
 
-    // Helper for mandatory fields removed - using prop instead
-
-    // Dependent Dropdown Logic (Specialty -> Failure Mode)
+    /**
+     * Lógica de Dropdown Dependente (Especialidade -> Modo de Falha).
+     * Filtra a lista de modos de falha baseando-se na especialidade selecionada.
+     */
     const filteredFailureModes = taxonomy.failureModes.filter(fm => {
         if (!data.specialty_id) return true;
         if (!fm.specialty_ids || fm.specialty_ids.length === 0) return true;
         return fm.specialty_ids.includes(data.specialty_id);
     });
 
-    // Auto-reset Failure Mode if it becomes invalid after Specialty change
+    /**
+     * Reseta automaticamente o Modo de Falha caso ele se torne inválido após uma troca de Especialidade.
+     */
     React.useEffect(() => {
         if (data.failure_mode_id && data.specialty_id) {
             const isValid = filteredFailureModes.some(fm => fm.id === data.failure_mode_id);
             if (!isValid) {
-                console.log('🔄 Auto-resetting Failure Mode due to Specialty mismatch');
+                console.log('🔄 Sincronização: Resetando Modo de Falha devido a incompatibilidade com a Especialidade');
                 onChange('failure_mode_id', '');
             }
         }
@@ -79,7 +86,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                     </div>
                 </div>
 
-                {/* Quantitative Data Section */}
+                {/* Seção de Dados Quantitativos */}
                 <div>
                     <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">
                         {t('wizard.step3.quantitativeData')}

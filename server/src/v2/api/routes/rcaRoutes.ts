@@ -1,3 +1,7 @@
+/**
+ * Proposta: Definição de rotas HTTP para a entidade RCA (Análises).
+ */
+
 import { Router } from 'express';
 import { RcaController } from '../controllers/RcaController';
 
@@ -10,7 +14,7 @@ router.post('/', controller.create);
 router.put('/:id', controller.update);
 router.delete('/:id', controller.delete);
 
-// Bulk operations
+// Operações em lote (Bulk)
 router.post('/bulk', controller.bulkImport);
 router.post('/bulk-delete', controller.bulkDelete);
 

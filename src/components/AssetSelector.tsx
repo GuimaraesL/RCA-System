@@ -1,3 +1,7 @@
+/**
+ * Proposta: Seletor hierárquico de Ativos Técnicos.
+ * Fluxo: Renderiza uma árvore navegável (Tree View) com suporte a expansão/colapso, filtragem por tipos selecionáveis e ordenação alfabética recursiva, garantindo que o usuário localize o ativo correto para o vínculo da análise.
+ */
 
 import React, { useState, useMemo } from 'react';
 import { AssetNode } from '../types';
@@ -11,6 +15,9 @@ interface AssetSelectorProps {
   selectableTypes?: string[];
 }
 
+/**
+ * Componente interno recursivo para renderização de cada nó da árvore de ativos.
+ */
 const AssetTreeNode: React.FC<{ 
   node: AssetNode; 
   onSelect: (n: AssetNode) => void; 
@@ -34,7 +41,7 @@ const AssetTreeNode: React.FC<{
     if (isSelectable) {
       onSelect(node);
     } else {
-      // If not selectable but has children, toggle expand
+      // Se não for selecionável mas possuir filhos, alterna a expansão do ramo
       if (hasChildren) setIsOpen(!isOpen);
     }
   };
@@ -56,6 +63,7 @@ const AssetTreeNode: React.FC<{
           {isOpen ? <ChevronDown size={14} className="text-slate-500" /> : <ChevronRight size={14} className="text-slate-500" />}
         </div>
         
+        {/* Ícones específicos por tipo de nível hierárquico */}
         {node.type === 'AREA' && <Folder size={16} className={`mr-2 ${isSelectable ? 'text-slate-500' : 'text-slate-300'}`} />}
         {node.type === 'EQUIPMENT' && <Database size={16} className={`mr-2 ${isSelectable ? 'text-blue-500' : 'text-slate-300'}`} />}
         {node.type === 'SUBGROUP' && <Layers size={16} className={`mr-2 ${isSelectable ? 'text-indigo-500' : 'text-slate-300'}`} />}
@@ -63,6 +71,7 @@ const AssetTreeNode: React.FC<{
         <span className={`text-sm font-medium ${isSelectable ? '' : 'italic'}`}>{node.name}</span>
       </div>
       
+      {/* Renderização recursiva de descendentes */}
       {isOpen && hasChildren && node.children?.map(child => (
         <AssetTreeNode 
           key={child.id} 
@@ -78,10 +87,12 @@ const AssetTreeNode: React.FC<{
 };
 
 export const AssetSelector: React.FC<AssetSelectorProps> = ({ assets, onSelect, selectedAssetId, selectableTypes }) => {
-  
   const { t } = useLanguage();
   
-  // Recursive function to sort nodes alphabetically by name
+  /**
+   * Função recursiva para ordenar os nós alfabeticamente pelo nome.
+   * Implementa suporte a números (numeric: true) para garantir que 'Maq 2' venha antes de 'Maq 10'.
+   */
   const sortNodes = (nodes: AssetNode[]): AssetNode[] => {
     return [...nodes]
       .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }))
@@ -91,7 +102,9 @@ export const AssetSelector: React.FC<AssetSelectorProps> = ({ assets, onSelect, 
       }));
   };
 
-  // Memoize the sorted tree to prevent unnecessary re-sorting on every render
+  /**
+   * Memoriza a árvore ordenada para evitar re-processamento em re-renders da interface.
+   */
   const sortedAssets = useMemo(() => {
     if (!assets) return [];
     return sortNodes(assets);

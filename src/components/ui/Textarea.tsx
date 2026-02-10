@@ -1,36 +1,34 @@
+/**
+ * Proposta: Componente de entrada de texto longo (Textarea) padronizado.
+ * Fluxo: Renderiza um campo multi-linha com suporte a rótulos, indicação de obrigatoriedade e feedback visual de erro.
+ */
 
-import React, { TextareaHTMLAttributes } from 'react';
-import { useLanguage } from '../../context/LanguageDefinition';
+import React from 'react';
 
-interface TextareaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'id'> {
-    id: string; // Required for accessibility
+interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
     label?: string;
     error?: boolean;
 }
 
-export const Textarea: React.FC<TextareaProps> = ({ id, label, error, className, value, ...props }) => {
-    const { t } = useLanguage();
-    // Fix: Convert null/undefined value to empty string to avoid React warning
-    const safeValue = value ?? '';
-
+export const Textarea: React.FC<TextareaProps> = ({ label, error, required, className = '', ...props }) => {
     return (
         <div className="w-full">
             {label && (
-                <label htmlFor={id} className="block text-xs font-medium text-slate-500 mb-1">
-                    {label} {props.required && <span className="text-red-500">*</span>}
+                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-tight">
+                    {label} {required && <span className="text-red-500" aria-hidden="true">*</span>}
                 </label>
             )}
             <textarea
-                id={id}
-                name={id}
-                value={safeValue}
-                className={`w-full border rounded-lg p-2.5 text-sm bg-white text-slate-900 placeholder:text-slate-400 outline-none transition-shadow resize-y ${error
-                    ? 'border-red-500 focus:ring-2 focus:ring-red-200 bg-red-50/10'
-                    : 'border-slate-300 focus:ring-2 focus:ring-blue-500'
-                    } ${className || ''}`}
                 {...props}
+                className={`
+                    w-full px-3 py-2 bg-white border rounded-lg text-sm transition-all outline-none resize-none
+                    ${error
+                        ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-100'
+                        : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'}
+                    ${props.disabled ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'text-slate-900'}
+                    ${className}
+                `}
             />
-            {error && <span className="text-[10px] text-red-500 font-medium mt-0.5 block">{t('common.requiredField')}</span>}
         </div>
     );
 };

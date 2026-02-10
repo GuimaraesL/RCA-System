@@ -1,20 +1,27 @@
+/**
+ * Proposta: Schemas de validação de dados utilizando a biblioteca Zod.
+ * Fluxo: Define as regras de integridade e os tipos esperados para cada entidade (RCA, Gatilho, Ação, Ativo), garantindo a segurança dos dados recebidos via API.
+ */
+
 import { z } from 'zod';
 
-// Helper for JSON fields which might come as strings or objects
-// In POST/PUT, frontend usually sends JSON objects/arrays. We validate them as such or loose types.
+/**
+ * Auxiliar para campos que podem conter estruturas JSON complexas (Objetos ou Arrays).
+ */
 const jsonStruct = z.union([z.record(z.string(), z.any()), z.array(z.any()), z.null()]).optional();
 
-// Schema for RCA
-// We enforce data types but keep many fields optional as RCAs are often "works in progress"
+/**
+ * Schema para Análises RCA.
+ * Define tipos rigorosos para campos numéricos e flexibilidade para campos de texto, permitindo o salvamento de rascunhos.
+ */
 export const rcaSchema = z.object({
-    id: z.string().optional(), // Relaxed to string for safety
+    id: z.string().optional(),
     version: z.union([z.string(), z.number()]).optional(),
-    analysis_date: z.string().nullish(), // ISO Date string
+    analysis_date: z.string().nullish(), 
     analysis_duration_minutes: z.coerce.number().optional().default(0),
     analysis_type: z.string().nullish(),
     status: z.string().optional(),
 
-    // Participants: usually array of strings or objects
     participants: jsonStruct,
     facilitator: z.string().nullish(),
 
@@ -22,26 +29,26 @@ export const rcaSchema = z.object({
     completion_date: z.string().nullish(),
     requires_operation_support: z.coerce.boolean().optional().default(false),
 
-    // Failure Data
+    // Dados do Evento de Falha
     failure_date: z.string().nullish(),
     failure_time: z.string().nullish(),
     downtime_minutes: z.coerce.number().optional().default(0),
     financial_impact: z.coerce.number().optional().default(0),
     os_number: z.string().nullish(),
 
-    // Assets
+    // Localização Técnica (Ativos)
     area_id: z.string().nullish(),
     equipment_id: z.string().nullish(),
     subgroup_id: z.string().nullish(),
     component_type: z.string().nullish(),
     asset_name_display: z.string().nullish(),
 
-    // Classification
+    // Classificação Técnica
     specialty_id: z.string().nullish(),
     failure_mode_id: z.string().nullish(),
     failure_category_id: z.string().nullish(),
 
-    // 5W2H - Core Descriptive Fields
+    // Descrição 5W2H
     who: z.string().nullish(),
     what: z.string().nullish(),
     when: z.string().nullish(),
@@ -51,7 +58,7 @@ export const rcaSchema = z.object({
     potential_impacts: z.string().nullish(),
     quality_impacts: z.string().nullish(),
 
-    // Root Cause Analysis Structures
+    // Estruturas Complexas de Investigação
     five_whys: jsonStruct,
     five_whys_chains: jsonStruct,
     ishikawa: jsonStruct,
@@ -63,31 +70,30 @@ export const rcaSchema = z.object({
 
     general_moc_number: z.string().nullish(),
     additional_info: jsonStruct,
-    additionalInfo: jsonStruct, // Match JSON payload
+    additionalInfo: jsonStruct, 
     file_path: z.string().nullish()
 });
 
-// Schema for Trigger
-// Triggers are events, so they MUST have a time and a reason.
-// User requirement: All fields mandatory except comments.
+/**
+ * Schema para Gatilhos (Triggers).
+ * Define campos obrigatórios para garantir a rastreabilidade de eventos de parada.
+ */
 export const triggerSchema = z.object({
-    id: z.string().optional(), // Relaxed UUID for migration
+    id: z.string().optional(), 
     area_id: z.string().min(1, "Área é obrigatória"),
     equipment_id: z.string().nullish(),
-    subgroup_id: z.string().nullish(), // Relaxed to optional/nullish
+    subgroup_id: z.string().nullish(), 
 
-    // Mandatory for valid event logging
     start_date: z.string().min(1, { message: "Data de início é obrigatória" }),
-
     end_date: z.string().min(1, "Data de fim é obrigatória"),
     duration_minutes: z.coerce.number().optional().default(0),
 
-    stop_type: z.string().optional(), // Relaxed constraints if data is messy
-    stop_reason: z.string().optional(), // Relaxed constraints
+    stop_type: z.string().optional(),
+    stop_reason: z.string().optional(),
 
     comments: z.string().nullish(),
-    analysis_type_id: z.string().nullish(), // Relaxed if strictly necessary, but ideally should be mapped
-    status: z.string().nullish(), // Relaxed
+    analysis_type_id: z.string().nullish(), 
+    status: z.string().nullish(),
     responsible: z.string().nullish(),
     rca_id: z.string().nullish(),
     file_path: z.string().nullish()
@@ -96,10 +102,12 @@ export const triggerSchema = z.object({
 export type RcaInput = z.infer<typeof rcaSchema>;
 export type TriggerInput = z.infer<typeof triggerSchema>;
 
-// Schema for Action
+/**
+ * Schema para Planos de Ação (CAPA).
+ */
 export const actionSchema = z.object({
-    id: z.string().optional(), // Relaxed UUID
-    rca_id: z.string().optional(), // Relaxed UUID
+    id: z.string().optional(),
+    rca_id: z.string().optional(),
     action: z.string().min(1, "Ação não pode ser vazia"),
     responsible: z.string().nullish(),
     date: z.string().nullish(),
@@ -107,10 +115,12 @@ export const actionSchema = z.object({
     moc_number: z.string().nullish()
 });
 
-// Schema for Asset
+/**
+ * Schema para Ativos Técnicos.
+ */
 export const assetSchema = z.object({
-    id: z.string().optional(), // Relaxed UUID to support "ACABAMENTO", "SL_1"
+    id: z.string().optional(),
     name: z.string().min(1, "Nome do ativo é obrigatório"),
     type: z.string().min(1, "Tipo do ativo é obrigatório"),
-    parent_id: z.string().nullish() // Relaxed UUID
+    parent_id: z.string().nullish()
 });

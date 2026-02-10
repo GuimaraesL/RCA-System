@@ -1,3 +1,7 @@
+/**
+ * Proposta: Passo 7 do Wizard - Informações Adicionais e Lições Aprendidas.
+ * Fluxo: Captura notas de reunião, comentários gerais, histórico do ativo e consolida as lições aprendidas para prevenção de reincidências.
+ */
 
 import React, { useState } from 'react';
 import { Textarea } from '../ui/Textarea';
@@ -15,7 +19,7 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
     const { t } = useLanguage();
     const [newLink, setNewLink] = useState({ title: '', url: '' });
 
-    // Ensure additionalInfo exists (if migrating old record)
+    // Garante a existência do objeto additionalInfo para compatibilidade com registros legados
     const info = data.additionalInfo || { meetingNotes: '', comments: '', historicalInfo: '' };
 
     const updateInfo = (field: keyof typeof info, value: string) => {
@@ -57,7 +61,7 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
                     />
                 </div>
 
-                {/* New Links Section - Added based on user instruction */}
+                {/* Seção de Links Relacionados (Evidências Externas) */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">{t('wizard.step7.links')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -78,9 +82,7 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
                             onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
                         />
                     </div>
-                    {/* Add button for links would go here */}
                 </div>
-                {/* End New Links Section */}
 
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <Textarea
@@ -105,7 +107,7 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
                 </div>
             </div>
 
-            {/* Lessons Learned */}
+            {/* Gestão de Lições Aprendidas */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                 <div className="flex justify-between items-center mb-4 border-b pb-2">
                     <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">{t('wizard.step7.lessonsLearned')}</h3>

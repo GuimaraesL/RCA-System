@@ -1,3 +1,7 @@
+/**
+ * Proposta: Componente de listagem tabular para Gatilhos (Triggers) de parada.
+ * Fluxo: Renderiza uma tabela interativa com indicadores de Farol (SLA), status dinâmicos e ferramentas de conversão/vinculação com análises RCA.
+ */
 
 import React from 'react';
 import { TriggerRecord, AssetNode, TaxonomyConfig, RcaRecord } from '../../types';
@@ -13,10 +17,10 @@ interface TriggersListProps {
     itemsPerPage: number;
     assets: AssetNode[];
     taxonomy: TaxonomyConfig;
-    records: RcaRecord[]; // Used for linking display
+    records: RcaRecord[]; 
     onEdit: (t: TriggerRecord) => void;
     onDelete: (id: string) => void;
-    onLinkRca: (t: TriggerRecord) => void; // Open Link Modal
+    onLinkRca: (t: TriggerRecord) => void; 
     onCreateRca: (t: TriggerRecord) => void;
     onOpenRca: (rcaId: string) => void;
     sortConfig: { key: string; direction: 'asc' | 'desc' } | null;
@@ -71,7 +75,8 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                 </td>
                             </tr>
                         )}
-                        {/* Pagination Logic */}
+                        
+                        {/* Lógica de Paginação e Renderização de Linhas */}
                         {filteredTriggers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(trigger => {
                             const farol = getFarol(trigger.start_date, trigger.status, taxonomy);
                             const assetName = getAssetName(trigger.subgroup_id || trigger.equipment_id || trigger.area_id, assets);
@@ -141,6 +146,8 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                         })}
                     </tbody>
                 </table>
+                
+                {/* Rodapé de Paginação */}
                 {filteredTriggers.length > 0 && (
                     <div className="p-4 flex items-center justify-between border-t border-slate-100 bg-slate-50">
                         <div className="text-sm text-slate-500">

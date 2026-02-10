@@ -1,3 +1,7 @@
+/**
+ * Proposta: Definição de rotas HTTP para a entidade Asset (Ativos).
+ */
+
 import { Router } from 'express';
 import { AssetController } from '../controllers/AssetController';
 

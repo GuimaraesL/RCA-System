@@ -1,3 +1,7 @@
+/**
+ * Proposta: Passo 4 do Wizard - Ferramentas de Investigação (5 Porquês e Ishikawa).
+ * Fluxo: Gerencia a análise técnica através do Diagrama de Espinha de Peixe, orquestra o editor de 5 Porquês (Linear/Avançado) e consolida a definição das Causas Raiz vinculadas aos fatores 6M.
+ */
 
 import React, { useState } from 'react';
 import { Input } from '../ui/Input';
@@ -68,7 +72,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
     const filledWhysCount = (data.five_whys || []).filter(w => w.answer.trim()).length;
     const canDefineRootCause = filledWhysCount >= 3;
 
-    // --- 5 Whys Advanced Mode Logic ---
+    // --- Lógica de Alternância do Modo dos 5 Porquês ---
     const hasChains = data.five_whys_chains && data.five_whys_chains?.length > 0;
     const [useAdvancedMode, setUseAdvancedMode] = useState(hasChains);
 
@@ -91,7 +95,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                 <p className="text-gray-600">{t('wizard.step4.subtitle')}</p>
             </div>
 
-            {/* 5 Whys Block */}
+            {/* Bloco dos 5 Porquês */}
             <div className={`p-6 rounded-xl border shadow-sm transition-all ${errors?.five_whys ? 'border-red-500 ring-2 ring-red-50' : ''} ${useAdvancedMode ? 'bg-slate-50 border-slate-200' : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200'}`}>
                 <div className="flex justify-between items-center mb-6">
                     <div>
@@ -196,11 +200,10 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                 )}
             </div>
 
-            {/* Ishikawa (Fishbone) */}
+            {/* Diagrama de Ishikawa (Espinha de Peixe) */}
             <div className={`bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border shadow-sm ${errors?.ishikawa ? 'border-red-500 ring-2 ring-red-50' : 'border-green-200'}`}>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                     <h3 className="text-xl font-semibold text-gray-900">{t('wizard.step4.ishikawaTitle')} {isFieldRequired('ishikawa') && <span className="text-red-500">*</span>}</h3>
-
                 </div>
 
                 <div className="mb-8 bg-white p-4 rounded-lg border border-green-200 shadow-sm flex flex-col md:flex-row gap-3 items-end">
@@ -260,7 +263,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                 </div>
             </div>
 
-            {/* Root Cause Definition */}
+            {/* Definição de Causas Raiz */}
             <div className={`p-6 rounded-xl border-2 shadow-sm transition-all ${errors?.root_causes ? 'border-red-500 ring-2 ring-red-50' : 'border-yellow-300'} ${canDefineRootCause ? 'bg-gradient-to-br from-yellow-50 to-amber-50' : 'bg-gray-100 border-gray-300'}`}>
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-semibold text-gray-900">{t('wizard.step4.rootCausesTitle')} {isFieldRequired('root_causes') && <span className="text-red-500">*</span>}</h3>

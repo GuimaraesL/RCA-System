@@ -1,41 +1,39 @@
-// Servidor Express - RCA System API
-// Ponto de entrada principal do backend
+/**
+ * Proposta: Ponto de entrada principal do Servidor Express para o RCA System API.
+ * Fluxo: Inicializa middlewares, monta as rotas da arquitetura V2 e orquestra a conexão assíncrona com o banco de dados (sql.js).
+ */
 
 import express from 'express';
 import cors from 'cors';
-import { DatabaseConnection } from './v2/infrastructure/database/DatabaseConnection';
-
-// V1 Routes removed - migrated to V2 architecture
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
+// Configuração de Middlewares
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Rotas da API
+// Montagem das Rotas da API
 import v2Router from './v2/routes';
-app.use('/api', v2Router); // ALL V2 ROUTES (RCAs, Triggers, Actions, etc.)
+app.use('/api', v2Router); // Centraliza todos os endpoints (RCAs, Gatilhos, Ações, etc.) na arquitetura V2
 
-// V2 Route Mounting (Legacy/Dual stack reference removed as it's now main)
-// import v2Routes from './v2/routes';
-// app.use('/api/v2/rcas', v2Routes);
-
-// Rota de health check
+// Endpoint de verificação de saúde do sistema
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Inicializar banco e servidor (async para sql.js)
+/**
+ * Inicialização orquestrada do banco de dados e do servidor HTTP.
+ * Necessário ser assíncrono para aguardar a carga do WebAssembly do sql.js.
+ */
 const startServer = async () => {
     try {
-        // Initialize V2 Database Connection
+        // Inicialização da Conexão com o Banco de Dados
         const { DatabaseConnection } = await import('./v2/infrastructure/database/DatabaseConnection');
         await DatabaseConnection.getInstance().initialize();
-        console.log('✅ V2 Database Connection initialized');
+        console.log('✅ Conexão com o banco de dados inicializada');
 
-        // Run Migrations (Create Tables if not exist)
+        // Execução de Migrações (Criação de tabelas e atualizações de schema)
         const { MigrationRunner } = await import('./v2/infrastructure/database/MigrationRunner');
         await new MigrationRunner().run();
 
@@ -50,21 +48,24 @@ const startServer = async () => {
             console.log(`   CRUD /api/assets`);
         });
     } catch (error) {
-        console.error('❌ Erro ao iniciar servidor:', error);
+        console.error('❌ Erro crítico ao iniciar servidor:', error);
         process.exit(1);
     }
 };
 
-// Graceful Shutdown Hook for Debounced Save
+/**
+ * Hook de desligamento suave (Graceful Shutdown).
+ * Garante que dados em memória (debounce de escrita) sejam persistidos no disco antes de encerrar o processo.
+ */
 const handleShutdown = () => {
-    console.log('\n[Server] 🛑 Shutting down...');
+    console.log('\n[Servidor] 🛑 Encerrando processo...');
     try {
         const { DatabaseConnection } = require('./v2/infrastructure/database/DatabaseConnection');
         DatabaseConnection.getInstance().flush();
-        console.log('[Server] ✅ Database flushed successfully.');
+        console.log('[Servidor] ✅ Base de dados persistida com sucesso.');
         process.exit(0);
     } catch (err) {
-        console.error('[Server] ❌ Error flushing database:', err);
+        console.error('[Servidor] ❌ Erro ao persistir base de dados no encerramento:', err);
         process.exit(1);
     }
 };

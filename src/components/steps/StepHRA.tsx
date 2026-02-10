@@ -1,3 +1,7 @@
+/**
+ * Proposta: Passo opcional do Wizard - Análise de Confiabilidade Humana (HRA).
+ * Fluxo: Renderiza um questionário técnico focado em fatores humanos, permitindo a identificação de falhas sistêmicas de treinamento, procedimentos ou rotina, consolidando com uma validação final do coordenador.
+ */
 
 import React from 'react';
 import { RcaRecord } from '../../types';
@@ -31,13 +35,14 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
         onChange('human_reliability', { ...data.human_reliability, conclusions: newConclusions });
     };
 
-    // Sorting
+    // Lógica de ordenação das questões do questionário
     const { sortedItems: questions, sortConfig, handleSort } = useSorting(data.human_reliability?.questions || [], { key: 'id', direction: 'asc' });
 
     if (!data.human_reliability) return null;
 
     return (
         <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {/* Cabeçalho de Contexto HRA */}
             <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-lg flex gap-3 text-indigo-700 text-sm">
                 <UserCheck size={20} className="mt-0.5" />
                 <div>
@@ -46,6 +51,7 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                 </div>
             </div>
 
+            {/* Questionário Detalhado */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">{t('wizard.stepHRA.questionnaire')}</h3>
                 <table className="w-full text-sm text-left">
@@ -86,6 +92,7 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                 </table>
             </div>
 
+            {/* Conclusão da Análise de Fatores Humanos */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">{t('wizard.stepHRA.conclusion')}</h3>
 
@@ -121,6 +128,7 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                 </div>
             </div>
 
+            {/* Validação Institucional */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">{t('wizard.stepHRA.validation')}</h3>
                 <div className="flex items-start gap-4">

@@ -1,3 +1,7 @@
+/**
+ * Proposta: Vista de Configurações e Gestão da Taxonomia Global.
+ * Fluxo: Permite a personalização de listas de referência (Status, Especialidades, etc.) e a definição dinâmica de regras de validação (Campos Obrigatórios) através de uma interface de abas e modais de confirmação.
+ */
 
 import React, { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, X, Settings as SettingsIcon, Lock } from 'lucide-react';
@@ -7,8 +11,9 @@ import { ConfirmModal } from './ConfirmModal';
 import { useLanguage } from '../context/LanguageDefinition';
 import { MandatoryFieldSelector } from './MandatoryFieldSelector';
 
-
-// Sub-component defined outside to prevent re-creation on every render
+/**
+ * Sub-componente interno para gestão individual de listas de taxonomia.
+ */
 const ListManager: React.FC<{
   title: string;
   field: keyof TaxonomyConfig;
@@ -21,7 +26,7 @@ const ListManager: React.FC<{
   const [newItemName, setNewItemName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
-  const [deleteData, setDeleteData] = useState<{ id: string, name: string } | null>(null); // Local delete state
+  const [deleteData, setDeleteData] = useState<{ id: string, name: string } | null>(null); 
 
   const safeItems = Array.isArray(items) ? items : [];
 
@@ -133,7 +138,7 @@ export const SettingsView: React.FC = () => {
     return <div className="p-8 text-center text-slate-500 animate-pulse">{t('common.loading')}</div>;
   }
 
-  // Define Fields Options
+  // Definição das opções de campos para regras de obrigatoriedade
   const rcaFields = [
     { value: 'what', label: t('fields.what') },
     { value: 'analysis_type', label: t('fields.analysisType') },
@@ -178,7 +183,6 @@ export const SettingsView: React.FC = () => {
       rca: { create: [], conclude: [] }
     };
 
-    // Deep clone sub-objects to guarantee React re-renders correctly
     const newConfig = {
       trigger: { ...currentConfig.trigger },
       rca: { ...currentConfig.rca }
@@ -191,7 +195,6 @@ export const SettingsView: React.FC = () => {
     updateMandatoryConfig(newConfig);
   }
 
-  // Ensure config exists
   const config = taxonomy.mandatoryFields || {
     trigger: { save: [] },
     rca: { create: [], conclude: [] }
@@ -209,7 +212,7 @@ export const SettingsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Modern Tabs */}
+      {/* Tabs de Navegação */}
       <div className="flex bg-slate-100/80 p-1.5 rounded-xl w-fit mb-8 shadow-inner self-start">
         <button
           onClick={() => setActiveTab('taxonomy')}

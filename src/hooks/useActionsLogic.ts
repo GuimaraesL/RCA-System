@@ -1,12 +1,16 @@
+/**
+ * Proposta: Hook para gerenciamento da lógica de Planos de Ação (CAPA).
+ * Fluxo: Transforma dados brutos do banco em ViewModels enriquecidos (resolvendo IDs de RCA e Ativos em nomes legíveis), provê suporte a buscas normalizadas e gerencia o estado dos modais de edição e exclusão.
+ */
 
 import { useState, useEffect } from 'react';
 import { ActionRecord, AssetNode, ActionViewModel } from '../types';
 import { generateId } from '../services/utils';
 import { useRcaContext } from '../context/RcaContext';
 
-// ViewModel includes resolved RCA name and context IDs for filtering
-
-// Helper to find asset name recursively by ID
+/**
+ * Busca recursivamente o nome de um ativo na árvore de ativos a partir de seu ID.
+ */
 const findAssetNameById = (nodes: AssetNode[], id: string): string | undefined => {
   for (const node of nodes) {
     if (node.id === id) return node.name;
@@ -25,23 +29,25 @@ export const useActionsLogic = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAction, setEditingAction] = useState<ActionRecord | null>(null);
 
-  // State para modal de confirmação de exclusão
+  // Estado para o modal de confirmação de exclusão
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [actionToDelete, setActionToDelete] = useState<string | null>(null);
 
-  // Load data and resolve relationships (ID -> Name)
+  /**
+   * Efeito de orquestração: Resolve relacionamentos (ID -> Nome) e pré-calcula contextos de busca e data.
+   */
   useEffect(() => {
-    // Map RCA ID to Title for dropdown
+    // Mapeia IDs de RCA para títulos para uso em seletores (dropdowns)
     setRcaList(records.map(r => ({
       id: r.id,
-      title: r.what || r.id // Fallback se 'what' estiver vazio
+      title: r.what || r.id 
     })));
 
-    // Create ViewModel
+    // Criação do ViewModel (Dados enriquecidos para a interface)
     const resolvedActions: ActionViewModel[] = rawActions.map(a => {
       const rca = records.find(r => r.id === a.rca_id);
 
-      let assetName = 'Unknown Asset';
+      let assetName = '-';
       let areaId = '';
       let equipmentId = '';
       let subgroupId = '';
@@ -58,22 +64,22 @@ export const useActionsLogic = () => {
         if (rca.asset_name_display) {
           assetName = rca.asset_name_display;
         } else {
-          // Fallback: try to resolve via ID from assets tree
+          // Fallback: tenta resolução via ID na árvore de ativos
           const targetId = rca.subgroup_id || rca.equipment_id || rca.area_id;
           if (targetId) {
             const resolved = findAssetNameById(assets, targetId);
             assetName = resolved || targetId;
           }
         }
-      } else {
-        assetName = '-';
       }
 
-      // Pre-compute search context and date parts for optimized filtering
-      const rcaTitle = rca ? (rca.what || 'Unknown Analysis') : 'Unknown Analysis';
+      // Pré-computa contexto de busca e partes da data para filtragem otimizada O(1)
+      const rcaTitle = rca ? (rca.what || 'Análise Desconhecida') : 'Análise Desconhecida';
       const aDate = new Date(a.date);
       const yearStr = isNaN(aDate.getTime()) ? '' : aDate.getFullYear().toString();
       const monthStr = isNaN(aDate.getTime()) ? '' : (aDate.getMonth() + 1).toString().padStart(2, '0');
+      
+      // Normalização de texto para busca insensível a acentos e caixa alta
       const searchContext = `${a.action || ''} ${a.responsible || ''} ${rcaTitle}`
         .toLowerCase()
         .normalize("NFD")
@@ -134,25 +140,15 @@ export const useActionsLogic = () => {
   };
 
   const openEdit = (action: ActionViewModel) => {
-    // Strip ViewModel props to get back to Record
+    // Remove propriedades de ViewModel para retornar ao formato de registro base (Record)
     const { rcaTitle, assetName, areaId, equipmentId, subgroupId, categoryId, specialtyId, ...record } = action;
     setEditingAction(record);
     setIsModalOpen(true);
   };
 
   return {
-    actions,
-    rcaList,
-    isModalOpen,
-    setIsModalOpen,
-    editingAction,
-    openNew,
-    openEdit,
-    handleSave,
-    handleDelete,
-    // Estado para modal de confirmação
-    deleteModalOpen,
-    confirmDelete,
-    cancelDelete
+    actions, rcaList, isModalOpen, setIsModalOpen, editingAction,
+    openNew, openEdit, handleSave, handleDelete,
+    deleteModalOpen, confirmDelete, cancelDelete
   };
 };

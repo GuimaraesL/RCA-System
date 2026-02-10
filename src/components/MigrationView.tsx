@@ -522,7 +522,7 @@ export const MigrationView: React.FC = () => {
                                 type="file"
                                 id="csv_file_import"
                                 name="csv_file_import"
-                                aria-label={t('migration.importCsv')}
+                                aria-label="Selecionar arquivo CSV para importação"
                                 ref={csvInputRef}
                                 onChange={handleCsvImport}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"

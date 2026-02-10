@@ -1,3 +1,7 @@
+/**
+ * Proposta: Hook para orquestração da lógica de Gatilhos (Triggers) de parada.
+ * Fluxo: Centraliza a gestão de estado para listagem, modais de vinculação com RCA, filtros persistentes e orquestração de operações CRUD através do contexto global.
+ */
 
 import { useState, useMemo } from 'react';
 import { useRcaContext } from '../context/RcaContext';
@@ -11,7 +15,7 @@ import { useFilteredData } from './useFilteredData';
 export const useTriggersLogic = () => {
     const { triggers, assets, taxonomy, records, addTrigger, updateTrigger, deleteTrigger } = useRcaContext();
 
-    // --- State ---
+    // --- Gestão de Estado de Modais ---
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTrigger, setEditingTrigger] = useState<TriggerRecord | null>(null);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -19,25 +23,15 @@ export const useTriggersLogic = () => {
     const [linkModalOpen, setLinkModalOpen] = useState(false);
     const [triggerToLink, setTriggerToLink] = useState<TriggerRecord | null>(null);
 
-    // Pagination
+    // Gestão de Paginação
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 100;
 
-    // --- Persistent Filter State ---
+    // --- Configuração de Filtros Persistentes ---
     const defaultFilters: FilterState = {
-        searchTerm: '',
-        year: '',
-        months: [],
-        status: 'ALL',
-        area: 'ALL',
-        equipment: 'ALL',
-        subgroup: 'ALL',
-        specialty: 'ALL',
-        analysisType: 'ALL',
-        failureMode: 'ALL',
-        failureCategory: 'ALL',
-        componentType: 'ALL',
-        rootCause6M: 'ALL'
+        searchTerm: '', year: '', months: [], status: 'ALL', area: 'ALL',
+        equipment: 'ALL', subgroup: 'ALL', specialty: 'ALL', analysisType: 'ALL',
+        failureMode: 'ALL', failureCategory: 'ALL', componentType: 'ALL', rootCause6M: 'ALL'
     };
 
     const { showFilters, setShowFilters, filters, setFilters, handleReset, isGlobal, toggleGlobal } = useFilterPersistence(
@@ -46,9 +40,12 @@ export const useTriggersLogic = () => {
         true
     );
 
-    // --- Intelligent Cross-Filtering Hook ---
+    // Hook de filtragem inteligente (Cross-Filtering)
     const { filteredTriggers: filteredContent } = useFilteredData(filters);
 
+    /**
+     * Define as opções dinâmicas para os seletores de filtros, baseando-se na taxonomia e nos ativos em uso.
+     */
     const dynamicOptions = useMemo(() => {
         return {
             assets: filterAssetsByUsage(assets, new Set()),
@@ -57,7 +54,7 @@ export const useTriggersLogic = () => {
         };
     }, [assets, taxonomy]);
 
-    // --- Sorting ---
+    // Lógica de ordenação de dados
     const { sortedItems: filteredTriggers, sortConfig, handleSort } = useSorting(filteredContent, { key: 'start_date', direction: 'desc' });
 
     return {

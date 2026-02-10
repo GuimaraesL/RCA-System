@@ -1,5 +1,9 @@
-// [ALLOWED-USAGE] This file interacts with localStorage solely for UI preference persistence (filters, view modes).
-// It does NOT handle business data (Records, Assets, etc.).
+/**
+ * Proposta: Hook para persistência de preferências de filtragem e estado da interface.
+ * Fluxo: Gerencia a visibilidade dos painéis de filtro e os critérios de busca, permitindo a alternância entre filtros específicos por página e filtros globais sincronizados, persistindo as escolhas no LocalStorage do navegador.
+ * Nota: Este arquivo interage com o LocalStorage exclusivamente para persistência de preferências de UI, não manipulando dados de negócio.
+ */
+
 import { useState, useEffect } from 'react';
 import { FilterState } from '../components/FilterBar';
 import { useGlobalFilters } from '../context/FilterContext';
@@ -7,7 +11,7 @@ import { useGlobalFilters } from '../context/FilterContext';
 export const useFilterPersistence = (pageKey: string, defaultFilters: FilterState, defaultOpen: boolean = true) => {
     const { isGlobal, globalFilters, setGlobalFilters, toggleGlobal: toggleGlobalContext } = useGlobalFilters();
 
-    // 1. Persistence for visibility (Expanded/Collapsed) - Always Page Specific
+    // 1. Persistência de Visibilidade (Expandido/Colapsado) - Sempre específico por página
     const [showFilters, setShowFilters] = useState(() => {
         try {
             const saved = localStorage.getItem(`${pageKey}_show`);
@@ -15,7 +19,7 @@ export const useFilterPersistence = (pageKey: string, defaultFilters: FilterStat
         } catch { return defaultOpen; }
     });
 
-    // 2. Local Filter Values State (Used only when isGlobal is FALSE)
+    // 2. Estado de Filtros Locais (Utilizado apenas quando isGlobal é FALSO)
     const [localFilters, setLocalFilters] = useState<FilterState>(() => {
         try {
             const saved = localStorage.getItem(`${pageKey}_criteria`);
@@ -23,10 +27,13 @@ export const useFilterPersistence = (pageKey: string, defaultFilters: FilterStat
         } catch { return defaultFilters; }
     });
 
-    // --- Derived Values ---
-    // The "live" filters depend on the current mode
+    // --- Valores Derivados ---
+    // Os filtros "ativos" dependem do modo atual (Global vs Local)
     const filters = isGlobal ? globalFilters : localFilters;
 
+    /**
+     * Atualiza os filtros e persiste no local correto (Contexto Global ou LocalStorage).
+     */
     const setFilters = (newFilters: FilterState | ((prev: FilterState) => FilterState)) => {
         const value = typeof newFilters === 'function' ? newFilters(filters) : newFilters;
         
@@ -38,17 +45,19 @@ export const useFilterPersistence = (pageKey: string, defaultFilters: FilterStat
         }
     };
 
-    // --- Effects ---
+    // --- Efeitos de Persistência ---
 
-    // Persist Visibility
+    // Persiste a visibilidade do painel
     useEffect(() => {
         localStorage.setItem(`${pageKey}_show`, JSON.stringify(showFilters));
     }, [showFilters, pageKey]);
 
-    // Handle Global Toggle with data carry-over
+    /**
+     * Gerencia a alternância para o modo Global, transportando os filtros locais atuais se necessário.
+     */
     const toggleGlobal = () => {
         if (!isGlobal) {
-            // Turning Global ON: Carry current local filters to global
+            // Ao ativar o modo Global: Transporta os filtros locais atuais para o contexto global
             setGlobalFilters(localFilters);
         }
         toggleGlobalContext();
@@ -59,12 +68,7 @@ export const useFilterPersistence = (pageKey: string, defaultFilters: FilterStat
     };
 
     return {
-        showFilters,
-        setShowFilters,
-        filters,
-        setFilters,
-        handleReset,
-        isGlobal,
-        toggleGlobal
+        showFilters, setShowFilters, filters, setFilters,
+        handleReset, isGlobal, toggleGlobal
     };
 };
