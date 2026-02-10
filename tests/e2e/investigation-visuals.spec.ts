@@ -12,10 +12,12 @@ import { test, expect } from '@playwright/test';
 test.describe('Editor RCA - Visualização de Investigação (Passo 4)', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
+        // Navega para a lista de análises antes de criar uma nova
+        await page.click('text=Análises');
         // Abre o Editor de RCA (Nova Análise)
         await page.click('text=Nova Análise');
         // Navega para o Passo 4
-        // Clica em Próximo 3 vezes para chegar no Passo 4
+        // Clica em Próxima 3 vezes para chegar no Passo 4
         await page.click('button:has-text("Próxima")'); // Passo 1 -> 2
         await page.click('button:has-text("Próxima")'); // Passo 2 -> 3
         await page.click('button:has-text("Próxima")'); // Passo 3 -> 4
@@ -23,13 +25,13 @@ test.describe('Editor RCA - Visualização de Investigação (Passo 4)', () => {
 
     test('Diagrama de Ishikawa deve renderizar como cards', async ({ page }) => {
         // Verifica título do Passo 4
-        await expect(page.locator('h2')).toContainText('Investigação');
+        await expect(page.locator('h2:has-text("Investigação")')).toBeVisible();
 
-        // Verifica Categorias (Método, Máquina, etc.)
+        // Verifica Categorias (Método, Máquina, etc.) nos cabeçalhos dos cards (h4)
         const categories = ['Método', 'Máquina', 'Mão de Obra', 'Material', 'Medida', 'Meio Ambiente'];
 
         for (const cat of categories) {
-            await expect(page.locator(`text=${cat}`)).toBeVisible();
+            await expect(page.locator(`h4:has-text("${cat}")`)).toBeVisible();
         }
 
         // Adiciona um item em "Método"
@@ -46,7 +48,7 @@ test.describe('Editor RCA - Visualização de Investigação (Passo 4)', () => {
 
     test('Interação com os 5 Porquês', async ({ page }) => {
         // Verifica estado inicial
-        await expect(page.locator('text=5 Porquês')).toBeVisible();
+        await expect(page.locator('h3:has-text("5 Porquês")')).toBeVisible();
 
         // Adiciona um Porquê
         await page.click('button:has-text("Adicionar Porquê")');

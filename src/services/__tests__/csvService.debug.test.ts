@@ -84,7 +84,7 @@ describe('CSV Import Debugging', () => {
 
     it('deve importar gatilhos do template mesmo com área vazia se vinculável a uma RCA', () => {
         const csvContent = `AREA;Equip.;Subconjunto;Data/Hora Início;Data/Hora Fim;Duração (min);Tipo Parada;Razão Parada;Comentários;Tipo AF;Status;Responsável;ID AF;Path
-REF;;;09/01/2024 00:35;09/01/2024 03:35;180;MECANICA;A 1 - FADIGA;comment;MINI RCA;Concluído;Jonas;rca1;C:\\Users\\leona\\Downloads\\DADOS_ANALISE_FALHA\\REF\\2024\\LINHA_B\\10-OUTUBRO\\20241030_MEC_MINIRCA_TRINCA DEVIDO ABERTURA DE VALVULA.xlsm`;
+;;;09/01/2024 00:35;09/01/2024 03:35;180;MECANICA;A 1 - FADIGA;comment;MINI RCA;Concluído;Jonas;rca1;C:\\Users\\leona\\Downloads\\DADOS_ANALISE_FALHA\\REF\\2024\\LINHA_B\\10-OUTUBRO\\20241030_MEC_MINIRCA_TRINCA DEVIDO ABERTURA DE VALVULA.xlsm`;
 
         const result = importFromCsv('TRIGGERS', csvContent, context, { mode: 'APPEND', inheritHierarchy: true });
 

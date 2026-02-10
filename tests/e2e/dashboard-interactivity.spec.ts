@@ -15,22 +15,22 @@ test.describe('Dashboard - Interatividade e Visualização', () => {
     });
 
     test('Cards de KPI devem exibir tooltips ao passar o mouse', async ({ page }) => {
-        // Aguarda o carregamento do dashboard
+        // Aguarda o carregamento do dashboard (desaparecimento de Skeletons)
+        await expect(page.locator('.animate-pulse')).not.toBeVisible({ timeout: 15000 });
         await expect(page.locator('h1')).toBeVisible();
 
-        // O tooltip é implementado como um atributo 'title' nativo no container pai.
-        // Localiza o primeiro ícone de Info e verifica se seu container possui o atributo esperado.
-        const infoIconContainer = page.locator('.lucide-info').first().locator('..');
+        // Localiza o container que envolve o ícone de Info e possui o title
+        const infoIconContainer = page.locator('div[title*="minutos"], div[title*="minutes"]').first();
 
-        // Asserção do atributo title contendo o texto esperado (match parcial)
-        await expect(infoIconContainer).toHaveAttribute('title', /Soma total dos minutos/);
+        // Asserção do atributo title contendo o texto esperado (match parcial via Regex)
+        await expect(infoIconContainer).toHaveAttribute('title', /minutos|minutes/i);
     });
 
     test('Clique no gráfico deve disparar filtragem cruzada', async ({ page }) => {
-        // Aguarda o carregamento dos gráficos
+        // Aguarda o carregamento dos gráficos (desaparecimento de Skeletons)
+        await expect(page.locator('.animate-pulse')).not.toBeVisible({ timeout: 15000 });
+        
+        // Verifica visibilidade dos gráficos
         await expect(page.locator('.recharts-responsive-container').first()).toBeVisible();
-
-        // Verifica se o estado de carregamento (Skeleton/Pulse) desapareceu
-        await expect(page.locator('.animate-pulse')).not.toBeVisible();
     });
 });

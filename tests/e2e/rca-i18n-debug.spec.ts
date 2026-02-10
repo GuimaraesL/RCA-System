@@ -14,8 +14,16 @@ test('Debug I18N Translation Function', async ({ page }) => {
     await page.getByRole('button', { name: 'New Analysis' }).click();
     
     // Wait for tree and select
-    await page.getByText('AREA_01').or(page.locator('.lucide-folder')).first().click();
-    await page.getByText('SUBGROUP_01').click();
+    // Clica na Área (Planta A)
+    await page.getByText(/Planta A - Manufatura|Plant A - Manufacturing/i).click();
+    // Aguarda e clica no Equipamento que apareceu
+    const equipment = page.getByText(/Sistema de Óleo de Laminação|Rolling Oil System/i);
+    await equipment.waitFor({ state: 'visible' });
+    await equipment.click();
+    // Aguarda e clica no Subgrupo
+    const subgroup = page.getByText(/Equipamentos Auxiliares|Auxiliary Equipment/i);
+    await subgroup.waitFor({ state: 'visible' });
+    await subgroup.click();
     
     // Go to step 6
     await page.locator('div:has-text("6")').last().click();

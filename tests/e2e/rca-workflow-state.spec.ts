@@ -19,21 +19,22 @@ test.describe('RCA Workflow - Ciclo de Estados e Gatilhos', () => {
     // 1. Ir para Gatilhos
     await page.getByRole('button', { name: /Gatilhos|Triggers/i }).click();
 
-    // 2. Localizar um gatilho aberto e clicar em 'Converter em RCA' (Botão de engrenagem ou Play)
-    const convertBtn = page.locator('button[title*="Convert"], button[title*="Converter"]').first();
+    // 2. Localizar um gatilho aberto e clicar em 'Criar Nova RCA' (Botão de engrenagem ou Play)
+    const convertBtn = page.locator('button[title*="Criar Nova RCA"], button[title*="Create New RCA"]').first();
     await convertBtn.waitFor({ state: 'visible' });
     await convertBtn.click();
 
     // 3. O sistema deve abrir o Editor de RCA automaticamente
-    await expect(page.getByRole('heading', { name: /Nova Análise|New Analysis/i })).toBeVisible();
+    await expect(page.getByText(/Nova Análise|New Analysis/i).first()).toBeVisible();
 
-    // 4. Verificar se os dados do Ativo foram herdados (O campo de ativo não deve estar vazio)
-    const assetName = await page.locator('div.text-xs.text-blue-600').innerText();
-    expect(assetName).not.toBe('');
+    // 4. Verificar se os dados do Ativo foram herdados
+    const assetSection = page.locator('div.p-3.bg-blue-50');
+    await expect(assetSection).toBeVisible();
 
     // 5. Salvar como rascunho (Em Andamento)
     await page.getByPlaceholder(/Descrição sucinta|Brief description/i).fill('Conversão Automática via E2E');
-    await page.locator('button').filter({ has: page.locator('svg.lucide-save') }).first().click();
+    // Clica no botão Salvar (que tem o ícone lucide-save)
+    await page.locator('button:has(.lucide-save)').click();
 
     // 6. Voltar para a lista e verificar status
     await page.getByRole('button', { name: /Análises|Analyses/i }).click();

@@ -14,12 +14,15 @@ export class RcaEditorPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.editorHeader = page.getByRole('heading', { name: /Nova Análise|New Analysis/i });
-    this.saveBtn = page.locator('button').filter({ has: page.locator('svg.lucide-save') });
-    this.concludeBtn = page.locator('button').filter({ has: page.locator('svg.lucide-check') });
+    this.editorHeader = page.getByText(/Nova Análise|New Analysis/i);
+    this.saveBtn = page.locator('button:has(.lucide-save)');
+    this.concludeBtn = page.locator('button:has(.lucide-check)');
   }
 
   async open() {
+    // Aguarda o sistema carregar completamente
+    await expect(this.page.locator('.animate-pulse')).not.toBeVisible({ timeout: 15000 });
+
     await this.page.getByRole('button', { name: /Análises|Analyses/i }).click();
     
     // Aguarda carregar a view de análises
@@ -29,7 +32,7 @@ export class RcaEditorPage {
     
     // Aguarda carregar o editor
     await expect(this.page.getByTestId('app-suspense-loading')).not.toBeVisible();
-    await expect(this.editorHeader).toBeVisible();
+    await expect(this.editorHeader.first()).toBeVisible();
   }
 
   async goToTab(tabName: string | RegExp) {

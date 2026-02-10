@@ -94,7 +94,7 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
 
         // 3. Verifica Regressão
         expect(update.rca.status).toBe('STATUS-01'); // Volta para Em Andamento
-        expect(update.statusReason).toContain('Missing: root_causes');
+        expect(update.statusReason).toContain('Campos ausentes: root_causes');
     });
 
     it('deve permanecer em Aguardando Verificação se houver ações pendentes', () => {
@@ -135,7 +135,7 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
 
         // 5. Verifica que o Status NÃO é Concluída, mas sim Aguardando
         expect(result.rca.status).toBe('STATUS-02');
-        expect(result.statusReason).toBe('Pending verification of mandatory actions');
+        expect(result.statusReason).toBe('Aguardando verificação de eficácia das ações obrigatórias');
     });
 
     it('deve transicionar para Concluída apenas quando a Ação se tornar Efetiva', () => {
@@ -183,7 +183,7 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
 
         // 4. Verifica CONCLUÍDA
         expect(result.rca.status).toBe('STATUS-03');
-        expect(result.statusReason).toBe('Complete, actions effective');
+        expect(result.statusReason).toBe('Completo, ações efetivas');
     });
 });
 

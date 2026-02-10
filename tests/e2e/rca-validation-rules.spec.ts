@@ -13,6 +13,9 @@ test.describe('RCA Editor - Regras de Validação e Erros', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
+    // Aguarda o sistema carregar completamente
+    await expect(page.locator('[data-testid="app-suspense-loading"]')).not.toBeVisible({ timeout: 15000 });
+    
     await page.getByRole('button', { name: /Análises|Analyses/i }).click();
     await page.getByRole('button', { name: /Nova Análise|New Analysis/i }).click();
   });

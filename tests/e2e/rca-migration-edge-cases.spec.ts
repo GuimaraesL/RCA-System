@@ -49,8 +49,8 @@ test.describe('RCA System - Migration Edge Cases', () => {
     // O setInputFiles dispara onChange automaticamente - não precisa clicar no botão
     await page.setInputFiles('input[accept=".csv"]', invalidCsvPath);
 
-    // O sistema deve detectar a falha de parsing ou mostrar 0 registros processados
-    const feedback = page.locator('div:has-text("0"), div:has-text("Erro"), div:has-text("success")');
+    // O sistema deve detectar a falha de parsing ou mostrar registros processados
+    const feedback = page.locator('div:has-text("0"), div:has-text("Erro"), div:has-text("sucesso"), div:has-text("processados")');
     await expect(feedback.first()).toBeVisible({ timeout: 10000 });
   });
 

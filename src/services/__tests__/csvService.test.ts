@@ -142,7 +142,7 @@ describe('csvService', () => {
 
             const csv = exportToCsv('RECORDS_SUMMARY', { records });
             expect(csv).toContain('User 1|User 2');
-            expect(csv).toContain('Cause 1|Cause 2');
+            expect(csv).toContain(':Cause 1|:Cause 2');
         });
     });
 

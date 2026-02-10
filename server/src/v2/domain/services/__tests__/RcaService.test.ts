@@ -78,7 +78,7 @@ describe('RcaService', () => {
             const result = service.calculateRcaStatus(rca, [], taxonomy);
 
             expect(result.newStatus).toBe('STATUS-01');
-            expect(result.reason).toContain('Missing');
+            expect(result.reason).toContain('Campos ausentes');
         });
 
         it('deve mudar para Concluída se estiver completo e sem ações', () => {
