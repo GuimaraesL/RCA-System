@@ -9,22 +9,40 @@ export const RcaFactory = {
   create(overrides = {}) {
     return {
       id: `RCA-${Math.random().toString(36).substr(2, 9)}`,
-      what: 'Falha de teste gerada por Factory',
+      version: '17.2',
+      analysis_date: new Date().toISOString().split('T')[0],
+      analysis_duration_minutes: 0,
+      analysis_type: 'TYPE-01',
       status: 'STATUS-01',
+      participants: ['Tester Automation'],
+      facilitator: 'Tester Automation',
+      start_date: new Date().toISOString().split('T')[0],
+      completion_date: '',
+      requires_operation_support: false,
       failure_date: new Date().toISOString().split('T')[0],
       failure_time: '10:00',
+      downtime_minutes: 60,
+      financial_impact: 1000,
       os_number: 'OS-12345',
       area_id: 'AREA-01',
       equipment_id: 'EQUIP-01',
       subgroup_id: 'SUB-01',
-      facilitator: 'Tester Automation',
-      participants: ['Tester Automation'],
+      component_type: 'COMP-01',
+      specialty_id: 'SPEC-01',
+      failure_mode_id: 'MODE-01',
+      failure_category_id: 'CAT-01',
+      who: 'Operador',
+      what: 'Falha de teste gerada por Factory',
+      when: 'Turno A',
+      where_description: 'Linha de Produção',
+      problem_description: 'Descrição detalhada da falha',
+      potential_impacts: 'Impacto na produção',
+      five_whys: [],
+      ishikawa: { machine: [], method: [], material: [], manpower: [], measurement: [], environment: [] },
       root_causes: [],
-      analysis_type: 'TYPE-01',
-      downtime_minutes: 60,
-      financial_impact: 1000,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      precision_maintenance: [],
+      containment_actions: [],
+      lessons_learned: [],
       ...overrides
     };
   }
@@ -36,11 +54,17 @@ export const TriggerFactory = {
       id: `TRG-${Math.random().toString(36).substr(2, 9)}`,
       area_id: 'AREA-01',
       equipment_id: 'EQUIP-01',
+      subgroup_id: 'SUB-01',
       start_date: new Date().toISOString().substring(0, 16),
+      end_date: new Date().toISOString().substring(0, 16),
+      duration_minutes: 60,
       stop_type: 'Mecânica',
       stop_reason: 'Desgaste Natural',
-      responsible: 'QA Engine',
+      comments: 'Comentário de teste',
+      analysis_type_id: 'TYPE-01',
       status: 'T-STATUS-01',
+      responsible: 'QA Engine',
+      rca_id: null,
       ...overrides
     };
   }
@@ -83,9 +107,15 @@ export const TaxonomyFactory = {
         { id: 'SPEC-01', name: 'Mecânica' },
         { id: 'SPEC-02', name: 'Elétrica' }
       ],
-      failureModes: [],
-      failureCategories: [],
-      componentTypes: [],
+      failureModes: [
+        { id: 'MODE-01', name: 'Desgaste' }
+      ],
+      failureCategories: [
+        { id: 'CAT-01', name: 'Crítica' }
+      ],
+      componentTypes: [
+        { id: 'COMP-01', name: 'Rolamento' }
+      ],
       rootCauseMs: [
         { id: 'M1', name: 'Máquina' },
         { id: 'M2', name: 'Método' }

@@ -1,68 +1,89 @@
-﻿/**
+/**
  * Teste: rca-validation-rules.spec.ts
  * 
  * Proposta: Validar as regras de preenchimento obrigatório e o feedback visual de erros do editor.
- * Ações: Tentativa de salvamento incompleto, identificação de campos com bordas vermelhas e validação de mensagens.
+ * Ações: Tentativa de salvamento incompleto, identificação de campos com bordas vermelhas e validação de mensagens com API Mockada.
  * Execução: Playwright E2E.
- * Fluxo: Inicia RCA -> Tenta salvar sem dados -> Verifica indicação de erro no 'O que ocorreu' e 'Ativo' -> Preenche dados -> Tenta avançar -> Valida conclusão.
+ * Fluxo: Inicia RCA -> Tenta salvar sem dados -> Verifica indicação de erro no 'O que ocorreu' e 'Ativo' -> Preenche dados -> Valida conclusão.
  */
 
 import { test, expect } from '@playwright/test';
+import { TaxonomyFactory, SystemFactory } from '../factories/rcaFactory';
 
 test.describe('RCA Editor - Regras de Validação e Erros', () => {
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    // Aguarda o sistema carregar completamente
+    // INTERCEPTAÇÃO TOTAL DA API (API SHADOWING)
+    await page.route('**/api/**', async route => {
+      const url = route.request().url();
+      if (url.includes('/api/health')) return route.fulfill({ status: 200, body: JSON.stringify(SystemFactory.health()) });
+      if (url.includes('/api/taxonomy')) {
+        const taxonomy = TaxonomyFactory.createDefault();
+        // Configura campos obrigatórios específicos para o teste
+        taxonomy.mandatoryFields.rca.create = ['what', 'subgroup_id', 'analysis_type', 'failure_date'];
+        return route.fulfill({ status: 200, body: JSON.stringify(taxonomy) });
+      }
+      if (url.includes('/api/assets')) {
+        return route.fulfill({ 
+          status: 200, 
+          body: JSON.stringify([{ id: 'AREA-01', name: 'Área Teste', type: 'AREA', children: [
+            { id: 'EQ-01', name: 'Equipamento Teste', type: 'EQUIPMENT', children: [
+                { id: 'SUB-01', name: 'Subgrupo Teste', type: 'SUBGROUP', children: [] }
+            ]}
+          ]}]) 
+        });
+      }
+      if (url.includes('/api/rcas')) return route.fulfill({ status: 200, body: JSON.stringify([]) });
+      return route.fulfill({ status: 200, body: JSON.stringify({}) });
+    });
+
+    await page.goto('http://localhost:3000/');
     await expect(page.locator('[data-testid="app-suspense-loading"]')).not.toBeVisible({ timeout: 15000 });
     
     await page.getByRole('button', { name: /Análises|Analyses/i }).click();
     await page.getByRole('button', { name: /Nova Análise|New Analysis/i }).click();
+    await expect(page.getByText(/Nova Análise|New Analysis/i).first()).toBeVisible();
   });
 
   test('Deve exibir erros de validação ao tentar salvar campos obrigatórios vazios', async ({ page }) => {
-    // Tenta clicar no botão de salvar/concluir (Step 7 ou botão de check)
-    await page.getByText(/Dados Adicionais|Additional Info/i).click();
-    
-    const saveBtn = page.locator('button').filter({ has: page.locator('svg.lucide-check') }).first();
+    // 1. Tenta salvar rascunho sem preencher nada
+    const saveBtn = page.locator('button:has(.lucide-save)');
     await saveBtn.click();
 
-    // Voltar para a primeira aba para ver os erros de campos básicos
-    await page.getByText(/Dados Gerais|General Data/i).click();
+    // 2. Verificar se a seção de Ativos (Passo 1) está com erro
+    const assetContainer = page.locator('#asset-selector-container');
+    await expect(assetContainer).toHaveClass(/border-red-500/);
 
-    // Verificar se o campo 'O que ocorreu' está com borda de erro
-    const whatInput = page.locator('div:has(> label:has-text("O que ocorreu")) textarea, div:has(> label:has-text("What happened")) textarea');
+    // 3. Ir para o Passo 2 (Problema) e verificar o campo 'what'
+    await page.getByText(/Problema|Problem/i).click();
+    const whatInput = page.locator('#what');
     await expect(whatInput).toHaveClass(/border-red-500/);
-
-    // Verificar se a seção de Ativos está com erro
-    const assetSection = page.locator('div:has(> label:has-text("Subconjunto")) div.border, div:has(> label:has-text("Subgroup")) div.border');
-    await expect(assetSection.first()).toHaveClass(/border-red-500/);
   });
 
   test('Deve permitir salvar após preencher campos obrigatórios dinâmicos', async ({ page }) => {
-    // 1. Preencher 'O que ocorreu'
-    await page.getByPlaceholder(/Descrição sucinta|Brief description/i).fill('Falha de teste controlada');
+    // 1. Preencher Ativo (Passo 1)
+    await page.getByText(/Gerais|General/i).click();
+    // Navega na árvore e seleciona o subgrupo
+    await page.getByText('Área Teste').click();
+    await page.getByText('Equipamento Teste').click();
+    await page.getByText('Subgrupo Teste').click();
 
     // 2. Preencher Data da Falha
-    await page.locator('input[type="date"]').first().fill('2026-02-01');
+    await page.locator('#failure_date').fill('2026-02-01');
 
-    // 3. Selecionar Ativo (Simular seleção via clique)
-    const assetItem = page.locator('div.rounded-md.cursor-pointer').first();
-    if (await assetItem.isVisible()) {
-        await assetItem.click();
-    }
+    // 3. Preencher Tipo de Análise
+    await page.locator('#analysis_type').selectOption({ index: 1 });
 
-    // 4. Selecionar Tipo de Análise (Select)
-    await page.locator('select').first().selectOption({ index: 1 });
+    // 4. Preencher 'O que ocorreu' (Passo 2)
+    await page.getByText(/Problema|Problem/i).click();
+    await page.locator('#what').fill('Falha de teste controlada via E2E');
 
-    // 5. Tentar salvar novamente
-    await page.getByText(/Dados Adicionais|Additional Info/i).click();
-    const saveBtn = page.locator('button').filter({ has: page.locator('svg.lucide-check') }).first();
+    // 5. Salvar
+    const saveBtn = page.locator('button:has(.lucide-save)');
     await saveBtn.click();
 
-    // O modal deve fechar ou mostrar sucesso (dependendo da lógica de conclusão que exige causa raiz)
-    // Nota: Se a taxonomia exigir Causa Raiz para concluir, o sistema deve bloquear aqui.
+    // Se salvou, os erros de validação devem desaparecer
+    await expect(page.locator('.border-red-500')).not.toBeVisible();
   });
 
 });
-

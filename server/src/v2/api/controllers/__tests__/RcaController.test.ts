@@ -127,7 +127,7 @@ describe('RcaController Integration', () => {
         await controller.create(mockReq as unknown as any, mockRes as unknown as any);
 
         expect(statusMock).toHaveBeenCalledWith(400);
-        expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ error: 'Invalid Data' }));
+        expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ error: expect.stringMatching(/Dados inválidos/i) }));
     });
 
     it('deve retornar 201 para dados de criação válidos', async () => {
@@ -161,7 +161,7 @@ describe('RcaController Integration', () => {
         it('deve retornar 200 para atualização válida', async () => {
             mockReq = { params: { id: 'R1' }, body: { what: 'Updated' } };
             await controller.update(mockReq as any, mockRes as any);
-            expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('updated') }));
+            expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringMatching(/atualizada/i) }));
         });
 
         it('deve retornar 400 para dados de atualização inválidos', async () => {
@@ -175,7 +175,7 @@ describe('RcaController Integration', () => {
         it('deve retornar 200 após exclusão bem-sucedida', async () => {
             mockReq = { params: { id: 'R1' } };
             await controller.delete(mockReq as any, mockRes as any);
-            expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('deleted') }));
+            expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringMatching(/excluída/i) }));
         });
     });
 
@@ -200,7 +200,7 @@ describe('RcaController Integration', () => {
         it('deve retornar 200 para importação em massa válida', async () => {
             mockReq = { body: [{ id: 'R1', what: 'Bulk 1' }] };
             await controller.bulkImport(mockReq as any, mockRes as any);
-            expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Imported') }));
+            expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringMatching(/Importação/i) }));
         });
 
         it('deve retornar 400 para importação em massa inválida (não é um array)', async () => {
@@ -212,7 +212,7 @@ describe('RcaController Integration', () => {
         it('deve retornar 200 para exclusão em massa válida', async () => {
             mockReq = { body: { ids: ['R1', 'R2'] } };
             await controller.bulkDelete(mockReq as any, mockRes as any);
-            expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('Deleted') }));
+            expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringMatching(/excluídas/i) }));
         });
 
         it('deve retornar 400 para exclusão em massa inválida (IDs ausentes)', async () => {

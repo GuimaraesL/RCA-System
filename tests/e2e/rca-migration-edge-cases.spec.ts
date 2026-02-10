@@ -10,8 +10,21 @@
 import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { TaxonomyFactory } from '../factories/rcaFactory';
 
 test.describe('RCA System - Migration Edge Cases', () => {
+
+  test.beforeEach(async ({ page }) => {
+    // API SHADOWING
+    await page.route('**/api/**', async route => {
+      const url = route.request().url();
+      if (url.includes('/api/health')) return route.fulfill({ status: 200, body: JSON.stringify({ status: 'ok' }) });
+      if (url.includes('/api/taxonomy')) {
+        return route.fulfill({ status: 200, body: JSON.stringify(TaxonomyFactory.createDefault()) });
+      }
+      return route.fulfill({ status: 200, body: JSON.stringify([]) });
+    });
+  });
 
   const tempDir = path.resolve('tests/data/temp');
 

@@ -46,12 +46,11 @@ describe('useRcaLogic - Tiered Validation', () => {
         const { result } = renderHook(() => useRcaLogic(null, onSave), { wrapper });
 
         // Tenta salvar com 'what' vazio
-        let saved = false;
         await act(async () => {
-            saved = await result.current.handleSave();
+            await result.current.handleSave();
         });
 
-        expect(saved).toBe(false);
+        expect(onSave).not.toHaveBeenCalled();
         expect(result.current.validationErrors.what).toBe(true);
     });
 
@@ -65,12 +64,11 @@ describe('useRcaLogic - Tiered Validation', () => {
         });
 
         // 'root_causes' é obrigatório para conclusão, mas estamos no Passo 1
-        let saved = false;
         await act(async () => {
-            saved = await result.current.handleSave();
+            await result.current.handleSave();
         });
 
-        expect(saved).toBe(true);
+        expect(onSave).toHaveBeenCalled();
         expect(result.current.validationErrors.root_causes).toBeUndefined();
     });
 
@@ -78,19 +76,22 @@ describe('useRcaLogic - Tiered Validation', () => {
         const onSave = vi.fn();
         const { result } = renderHook(() => useRcaLogic(null, onSave), { wrapper });
 
-        // Preenche criação e vai para o Passo 4
+        // Preenche criação, define status como Concluída e vai para o Passo 4
         act(() => {
-            result.current.setFormData(prev => ({ ...prev, what: 'Test Title' }));
+            result.current.setFormData(prev => ({ 
+                ...prev, 
+                what: 'Test Title',
+                status: 'STATUS-03' 
+            }));
             result.current.setStep(4);
         });
 
         // Agora root_causes deve ser validado
-        let saved = false;
         await act(async () => {
-            saved = await result.current.handleSave();
+            await result.current.handleSave();
         });
 
-        expect(saved).toBe(false);
+        expect(onSave).not.toHaveBeenCalled();
         expect(result.current.validationErrors.root_causes).toBe(true);
     });
 });

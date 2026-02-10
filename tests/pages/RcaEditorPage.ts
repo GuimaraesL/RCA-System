@@ -41,16 +41,19 @@ export class RcaEditorPage {
 
   // --- Ferramentas de Investigação ---
   async fillIshikawa(categoryIndex: number, text: string) {
-    await this.page.locator('select').nth(0).selectOption({ index: categoryIndex });
-    await this.page.getByPlaceholder('...').first().fill(text);
-    await this.page.getByRole('button', { name: /Adicionar|Add/i }).first().click();
+    await this.page.locator('#ishikawa_category').selectOption({ index: categoryIndex });
+    await this.page.locator('#ishikawa_new_item').fill(text);
+    await this.page.getByRole('button', { name: /Adicionar|Add/i }).filter({ has: this.page.locator('svg.lucide-plus') }).first().click({ force: true });
   }
 
   async addFiveWhys(why: string, because: string) {
     await this.page.getByRole('button', { name: /Adicionar Porquê|Add Why/i }).click();
-    const rows = this.page.locator('div.group.flex.items-start');
-    await rows.last().locator('input').first().fill(why);
-    await rows.last().locator('input').last().fill(because);
+    // Localiza o último par de inputs adicionados (que tem o ID contendo five_whys)
+    const whyInput = this.page.locator('input[id*="question"]').last();
+    const answerInput = this.page.locator('input[id*="answer"]').last();
+    
+    await whyInput.fill(why);
+    await answerInput.fill(because);
   }
 
   async fillHRAQuestion(index: number, answer: 'YES' | 'NO', comment: string) {

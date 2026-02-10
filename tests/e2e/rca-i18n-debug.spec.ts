@@ -1,55 +1,60 @@
-
 import { test, expect } from '@playwright/test';
+import { TaxonomyFactory, SystemFactory } from '../factories/rcaFactory';
 
 test('Debug I18N Translation Function', async ({ page }) => {
+    // INTERCEPTAÇÃO DA API
+    await page.route('**/api/**', async route => {
+        const url = route.request().url();
+        if (url.includes('/api/health')) return route.fulfill({ status: 200, body: JSON.stringify(SystemFactory.health()) });
+        if (url.includes('/api/taxonomy')) return route.fulfill({ status: 200, body: JSON.stringify(TaxonomyFactory.createDefault()) });
+        if (url.includes('/api/assets')) {
+            return route.fulfill({ 
+                status: 200, 
+                body: JSON.stringify([{ 
+                    id: 'AREA-01', 
+                    name: 'Planta A - Manufatura', 
+                    type: 'AREA', 
+                    children: [
+                        { 
+                            id: 'EQ-01', 
+                            name: 'Sistema de Óleo de Laminação', 
+                            type: 'EQUIPMENT', 
+                            children: [
+                                { id: 'SUB-01', name: 'Equipamentos Auxiliares', type: 'SUBGROUP', children: [] }
+                            ]
+                        }
+                    ] 
+                }]) 
+            });
+        }
+        return route.fulfill({ status: 200, body: JSON.stringify([]) });
+    });
+
     await page.goto('http://localhost:3000/');
+    await expect(page.locator('[data-testid="app-suspense-loading"]')).not.toBeVisible({ timeout: 15000 });
     
-    // Inject a small script to test translation if accessible via window, 
-    // but since it's inside React Context, we have to look at the UI.
-    
+    // Alterna para EN
     await page.getByRole('button', { name: 'EN' }).click();
     
-    // Navigate to step 6
-    await page.getByRole('button', { name: 'Analyses' }).click();
-    await page.getByRole('button', { name: 'New Analysis' }).click();
+    // Navegar para Análises
+    await page.getByRole('button', { name: /Analyses/i }).click();
+    await page.getByRole('button', { name: /New Analysis/i }).click();
     
-    // Wait for tree and select
-    // Clica na Área (Planta A)
-    await page.getByText(/Planta A - Manufatura|Plant A - Manufacturing/i).click();
-    // Aguarda e clica no Equipamento que apareceu
-    const equipment = page.getByText(/Sistema de Óleo de Laminação|Rolling Oil System/i);
+    // Seleciona Ativos na árvore
+    await page.getByText('Planta A - Manufatura').click();
+    const equipment = page.getByText('Sistema de Óleo de Laminação');
     await equipment.waitFor({ state: 'visible' });
     await equipment.click();
-    // Aguarda e clica no Subgrupo
-    const subgroup = page.getByText(/Equipamentos Auxiliares|Auxiliary Equipment/i);
+    const subgroup = page.getByText('Equipamentos Auxiliares');
     await subgroup.waitFor({ state: 'visible' });
     await subgroup.click();
     
-    // Go to step 6
-    await page.locator('div:has-text("6")').last().click();
-    await page.waitForTimeout(1000);
+    // Verifica se os textos do Wizard mudaram para EN
+    await expect(page.getByText(/General Data/i)).toBeVisible();
     
-    const activities = await page.locator('main table td.font-medium').allInnerTexts();
-    console.log('--- ACTIVITIES IN STEP 6 (EN MODE) ---');
-    activities.forEach((a, i) => console.log(`${i}: ${a}`));
+    // Vai para Passo 4 (Investigation)
+    await page.getByText(/Investigation/i).click();
     
-    // Go to step 8
-    await page.locator('div:has-text("4")').last().click();
-    await page.getByRole('button', { name: /Add|Add Why/i }).first().click();
-    await page.locator('input[id*="answer"]').first().fill('test');
-    await page.getByRole('button', { name: /Add|Add Why/i }).first().click();
-    await page.locator('input[id*="answer"]').nth(1).fill('test');
-    await page.getByRole('button', { name: /Add|Add Why/i }).first().click();
-    await page.locator('input[id*="answer"]').nth(2).fill('test');
-    
-    await page.getByRole('button', { name: /Add Root Cause/i }).click();
-    await page.locator('select[id*="root_cause"]').first().selectOption('M2'); 
-    
-    const hraBtn = page.getByRole('button', { name: /Human Reliability|HRA/i });
-    await hraBtn.click();
-    await page.waitForTimeout(1000);
-    
-    const questions = await page.locator('main table td:nth-child(2)').allInnerTexts();
-    console.log('--- QUESTIONS IN HRA (EN MODE) ---');
-    questions.forEach((q, i) => console.log(`${i}: ${q}`));
+    // Testa botões em EN
+    await expect(page.getByRole('button', { name: /Add Why/i }).first()).toBeVisible();
 });

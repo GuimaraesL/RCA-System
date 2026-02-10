@@ -31,7 +31,7 @@ describe('csvService Round-trip Validation', () => {
         triggerStatuses: []
     };
 
-    const originalRecord: RcaRecord = {
+    const originalRecord: any = {
         id: 'RCA-TEST-001',
         what: 'Falha Técnica Complexa',
         problem_description: 'Descrição com ; ponto e vírgula e "aspas"',
@@ -58,14 +58,13 @@ describe('csvService Round-trip Validation', () => {
             { id: '3', why_question: 'Por que aqueceu?', answer: 'Falta de lubrificação' }
         ],
         ishikawa: { machine: ['Rolamento velho'], method: [], material: [], manpower: [], measurement: [], environment: [] },
-        potential_impacts: ['Atraso', 'Custo'],
+        potential_impacts: 'Atraso, Custo',
         lessons_learned: ['Revisar plano'],
         version: '17.0',
-        participants_display: '',
         five_whys_chains: [],
         precision_maintenance: [],
         containment_actions: [],
-        additional_info: { notes: 'Some notes' }
+        additionalInfo: { historicalInfo: 'Some notes' }
     };
 
     it('deve exportar e importar uma RCA mantendo a integridade dos campos de status', () => {

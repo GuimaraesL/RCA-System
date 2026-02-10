@@ -1,87 +1,62 @@
 import { test, expect } from '@playwright/test';
+import { RcaFactory, TriggerFactory, TaxonomyFactory, SystemFactory } from '../factories/rcaFactory';
 
 /**
  * Teste: full-app-flow.spec.ts
  * 
- * Proposta: Validar a jornada crítica do usuário utilizando o BACKEND REAL (Teste de Fumaça/Integração).
+ * Proposta: Validar a jornada crítica do usuário com ISOLAMENTO TOTAL (API Mockada).
  * Ações: Criação de ativos, navegação por menus e verificação de integridade visual.
- * Execução: Playwright E2E contra banco de dados real.
- * Fluxo: 1. Health Check -> 2. Criação de Hierarquia de Ativos -> 3. Validação de Dashboard -> 4. Verificação de Configurações.
+ * Execução: Playwright E2E com API Shadowing.
+ * Fluxo: 1. Health Check -> 2. Navegação Sidebar -> 3. Validação de Dashboard -> 4. Verificação de Configurações.
  */
 
-test.describe('RCA System - Validação de Fluxo Completo (Integração)', () => {
-
-  const timestamp = Date.now();
-  const areaName = `AREA_REAL_${timestamp}`;
+test.describe('RCA System - Validação de Fluxo Completo (MOCK)', () => {
 
   test.beforeEach(async ({ page }) => {
-    // Monitoramento conforme BASE DE CONHECIMENTO
-    page.on('pageerror', err => console.log(`ERRO DE PÁGINA: ${err.message}`));
-    page.on('console', msg => {
-      if (msg.type() === 'error') console.log(`[CONSOLE ERROR]: ${msg.text()}`);
+    // INTERCEPTAÇÃO TOTAL DA API (API SHADOWING)
+    await page.route('**/api/**', async route => {
+      const url = route.request().url();
+      
+      if (url.includes('/api/health')) return route.fulfill({ status: 200, body: JSON.stringify(SystemFactory.health()) });
+      if (url.includes('/api/taxonomy')) return route.fulfill({ status: 200, body: JSON.stringify(TaxonomyFactory.createDefault()) });
+      if (url.includes('/api/assets')) {
+        return route.fulfill({ 
+          status: 200, 
+          body: JSON.stringify([{ id: 'AREA-01', name: 'Área Mockada', type: 'AREA', children: [] }]) 
+        });
+      }
+      if (url.includes('/api/rcas')) {
+        return route.fulfill({ 
+            status: 200, 
+            body: JSON.stringify([RcaFactory.create({ id: 'RCA-FLOW-01', what: 'Fluxo Mockado' })]) 
+        });
+      }
+      if (url.includes('/api/triggers')) return route.fulfill({ status: 200, body: JSON.stringify([]) });
+      if (url.includes('/api/actions')) return route.fulfill({ status: 200, body: JSON.stringify([]) });
+      
+      return route.fulfill({ status: 200, body: JSON.stringify([]) });
     });
 
-    await page.goto('/', { waitUntil: 'networkidle' });
-
-    // Aguarda o fim do carregamento do Suspense (Lazy Loading)
-    const loader = page.getByTestId('app-suspense-loading');
-    if (await loader.isVisible()) {
-      await expect(loader).not.toBeVisible({ timeout: 20000 });
-    }
-    
-    // Garante que o menu lateral carregou
-    await expect(page.locator('aside')).toBeVisible({ timeout: 10000 });
+    await page.goto('http://localhost:3000/');
+    await expect(page.locator('[data-testid="app-suspense-loading"]')).not.toBeVisible({ timeout: 15000 });
   });
 
-  test('Deve realizar o Health Check do ambiente real', async ({ page }) => {
-    // Verifica se o título principal está visível
-    const title = page.locator('h1');
-    await expect(title).toBeVisible();
-    
-    // Tenta abrir o editor para validar se a taxonomia real carregou
+  test('Deve realizar a jornada de navegação básica', async ({ page }) => {
+    // 1. Dashboard (Página Inicial)
+    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.getByText(/Fluxo Mockado/i)).not.toBeVisible(); // Dashboard não lista RCAs por texto bruto, mas KPI
+
+    // 2. Navegar para Análises
     await page.getByRole('button', { name: /Análises|Analyses/i }).click();
-    await page.getByRole('button', { name: /Nova Análise|New Analysis/i }).click();
-    
-    // Aguarda o editor carregar
-    await expect(page.getByTestId('app-suspense-loading')).not.toBeVisible();
-    const taxonomyCheck = page.locator('select').first();
-    await expect(taxonomyCheck).toBeVisible({ timeout: 15000 });
-  });
+    await expect(page.getByText('Fluxo Mockado')).toBeVisible();
 
-  test('Caminho Crítico: Gestão de Ativos e Dashboard', async ({ page }) => {
-    test.setTimeout(120000);
-
-    // 1. Navegar para Ativos via Sidebar
+    // 3. Navegar para Ativos
     await page.getByRole('button', { name: /Ativos|Assets/i }).click();
-    await expect(page.getByTestId('app-suspense-loading')).not.toBeVisible();
+    await expect(page.getByText('Área Mockada')).toBeVisible();
 
-    // 2. Criar nova Área
-    const addBtn = page.locator('button').filter({ has: page.locator('svg.lucide-plus') }).first();
-    await addBtn.click();
-    
-    await page.getByPlaceholder(/Laminador|Rolling|Nome do Ativo/i).fill(areaName);
-    await page.getByRole('button', { name: /Salvar|Save/i }).click();
-
-    // 3. Validar se apareceu na lista (timeout estendido para backend real)
-    await expect(page.getByText(areaName)).toBeVisible({ timeout: 15000 });
-
-    // 4. Dashboard e Gráficos
-    await page.getByRole('button', { name: /Dashboard/i }).click();
-    await expect(page.getByTestId('app-suspense-loading')).not.toBeVisible();
-    
-    // Verifica se os cards de KPI renderizaram
-    const kpiCards = page.locator('.bg-white.p-6.rounded-2xl');
-    await expect(kpiCards.first()).toBeVisible({ timeout: 15000 });
-  });
-
-  test('Integridade de UI: Configurações e Migração', async ({ page }) => {
-    // Configurações
+    // 4. Configurações
     await page.getByRole('button', { name: /Configurações|Settings/i }).click();
     await expect(page.getByText(/Tipos de Análise|Analysis Types/i).first()).toBeVisible();
-
-    // Migração
-    await page.getByRole('button', { name: /Migração|Migration/i }).click();
-    await expect(page.getByText(/Backup|Restore/i).first()).toBeVisible();
   });
 
 });

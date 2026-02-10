@@ -101,8 +101,8 @@ describe('triggerHelpers', () => {
             expect(getStatusColor('T-STATUS-01', mockTaxonomy)).toContain('bg-blue-50');
         });
 
-        it('deve retornar roxo para WAITING_VERIFICATION e legacy STATUS-02', () => {
-            expect(getStatusColor('STATUS-02', mockTaxonomy)).toContain('bg-purple-100');
+        it('deve retornar indigo para WAITING_VERIFICATION e legacy STATUS-02', () => {
+            expect(getStatusColor('STATUS-02', mockTaxonomy)).toContain('bg-indigo-100');
         });
 
         it('deve retornar verde para CONCLUDED', () => {
