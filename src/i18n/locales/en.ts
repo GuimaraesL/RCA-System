@@ -119,9 +119,23 @@ export const en: TranslationSchema = {
         inProgress: "In Progress",
         completed: "Completed",
         pending: "Pending",
-        waiting: "Waiting",
+        waiting: "Waiting Verification",
         canceled: "Canceled",
         delayed: "Delayed"
+    },
+    triggerStatus: {
+        new: "New",
+        inAnalysis: "In Analysis",
+        converted: "Converted to RCA",
+        archived: "Archived"
+    },
+    rootCauseMs: {
+        manpower: "Manpower",
+        method: "Method",
+        material: "Material",
+        machine: "Machine",
+        environment: "Environment",
+        measurement: "Measurement"
     },
     analysesPage: {
         title: "Failure Analyses",

@@ -3,6 +3,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Search, Filter, RefreshCw, ChevronUp, ChevronDown, Calendar, X, MapPin, Tag, Globe, Lock } from 'lucide-react';
 import { AssetNode } from '../types';
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
+import { translateStatus, translate6M } from '../utils/statusUtils';
 
 export interface FilterState {
     searchTerm: string;
@@ -174,7 +175,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         filters.area !== 'ALL' ? { label: `${t('filters.area')}: ${findAssetNameRecursive(filters.area, assets)}`, onRemove: () => handleChange('area', 'ALL') } : null,
         filters.equipment !== 'ALL' ? { label: `${t('filters.equipment')}: ${findAssetNameRecursive(filters.equipment, assets)}`, onRemove: () => handleChange('equipment', 'ALL') } : null,
         filters.subgroup !== 'ALL' ? { label: `${t('filters.subgroup')}: ${findAssetNameRecursive(filters.subgroup, assets)}`, onRemove: () => handleChange('subgroup', 'ALL') } : null,
-        filters.status !== 'ALL' ? { label: `${t('filters.status')}: ${getOptionName(filters.status, statuses)}`, onRemove: () => handleChange('status', 'ALL') } : null,
+        filters.status !== 'ALL' ? { label: `${t('filters.status')}: ${translateStatus(filters.status, getOptionName(filters.status, statuses), t)}`, onRemove: () => handleChange('status', 'ALL') } : null,
         filters.specialty !== 'ALL' ? { label: `${t('filters.specialty')}: ${getOptionName(filters.specialty, specialties)}`, onRemove: () => handleChange('specialty', 'ALL') } : null,
         filters.analysisType !== 'ALL' ? { label: `${t('filters.analysisType')}: ${getOptionName(filters.analysisType, analysisTypes)}`, onRemove: () => handleChange('analysisType', 'ALL') } : null,
         filters.searchTerm ? { label: `${t('common.search')}: "${filters.searchTerm}"`, onRemove: () => handleChange('searchTerm', '') } : null,
@@ -183,7 +184,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         filters.componentType !== 'ALL' && filters.componentType ? { label: `${t('fields.componentType') || 'Comp'}: ${getOptionName(filters.componentType, componentTypes)}`, onRemove: () => handleChange('componentType', 'ALL') } : null,
         filters.failureMode !== 'ALL' && filters.failureMode ? { label: `${t('fields.failureMode') || 'Modo'}: ${getOptionName(filters.failureMode, failureModes)}`, onRemove: () => handleChange('failureMode', 'ALL') } : null,
         filters.failureCategory !== 'ALL' && filters.failureCategory ? { label: `${t('fields.failureCategory') || 'Cat'}: ${getOptionName(filters.failureCategory, failureCategories)}`, onRemove: () => handleChange('failureCategory', 'ALL') } : null,
-        filters.rootCause6M !== 'ALL' && filters.rootCause6M ? { label: `6M: ${getOptionName(filters.rootCause6M, rootCause6Ms)}`, onRemove: () => handleChange('rootCause6M', 'ALL') } : null,
+        filters.rootCause6M !== 'ALL' && filters.rootCause6M ? { label: `6M: ${translate6M(filters.rootCause6M, getOptionName(filters.rootCause6M, rootCause6Ms), t)}`, onRemove: () => handleChange('rootCause6M', 'ALL') } : null,
 
     ].filter(Boolean);
 
@@ -420,7 +421,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                                 onChange={e => handleChange('status', e.target.value)}
                                             >
                                                 <option value="ALL">{t('filters.options.allStatus')}</option>
-                                                {statuses.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                                {statuses.map(s => <option key={s.id} value={s.id}>{translateStatus(s.id, s.name, t)}</option>)}
                                             </select>
                                         </div>
                                     )}

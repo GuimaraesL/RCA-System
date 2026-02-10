@@ -16,24 +16,14 @@ async function run() {
     // effectively mimicking a "Factory Reset".
 
     const defaultTaxonomy = {
-        analysisTypes: [
-            { id: 'TYPE-01', name: 'Falha de Equipamento' },
-            { id: 'TYPE-02', name: 'Falha de Processo' },
-            { id: 'TYPE-03', name: 'Segurança' },
-            { id: 'TYPE-04', name: 'Meio Ambiente' }
-        ],
+        analysisTypes: [],
         analysisStatuses: [
             { id: 'STATUS-01', name: 'Em Andamento' },
-            { id: 'STATUS-WAITING', name: 'Aguardando Verificação' },
+            { id: 'STATUS-02', name: 'Aguardando Verificação' },
             { id: 'STATUS-03', name: 'Concluída' },
             { id: 'STATUS-04', name: 'Cancelada' }
         ],
-        specialties: [
-            { id: 'SPEC-01', name: 'Mecânica' },
-            { id: 'SPEC-02', name: 'Elétrica' },
-            { id: 'SPEC-03', name: 'Operação' },
-            { id: 'SPEC-04', name: 'Automação' }
-        ],
+        specialties: [],
         failureModes: [],
         failureCategories: [],
         componentTypes: [],

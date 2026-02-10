@@ -1,6 +1,6 @@
 
 import { AssetNode, TaxonomyConfig } from '../types';
-import { STATUS_IDS } from '../constants/SystemConstants';
+import { STATUS_IDS, TRIGGER_STATUS_IDS } from '../constants/SystemConstants';
 
 // Refactored to Iterative BFS to prevent Maximum Call Stack Size Exceeded (Stack Overflow)
 export const getAssetName = (id: string, nodes: AssetNode[]): string => {
@@ -61,6 +61,7 @@ export const findAssetPath = (nodes: AssetNode[], targetId: string): AssetNode[]
 // Helper to get status badge color based on ID
 export const getStatusColor = (statusId: string, taxonomy: TaxonomyConfig) => {
     switch (statusId) {
+        // RCA Statuses
         case STATUS_IDS.IN_PROGRESS:
             return 'bg-blue-100 text-blue-700';
         case 'STATUS-02': // Legacy handling
@@ -73,10 +74,21 @@ export const getStatusColor = (statusId: string, taxonomy: TaxonomyConfig) => {
         case STATUS_IDS.CANCELLED:
         case 'REMOVED': // Legacy/String fallback if needed?
             return 'bg-slate-200 text-slate-500 line-through';
+
+        // Trigger Statuses
+        case TRIGGER_STATUS_IDS.NEW:
+            return 'bg-blue-50 text-blue-600 border border-blue-100';
+        case TRIGGER_STATUS_IDS.IN_ANALYSIS:
+            return 'bg-amber-50 text-amber-600 border border-amber-100';
+        case TRIGGER_STATUS_IDS.CONVERTED:
+            return 'bg-emerald-50 text-emerald-600 border border-emerald-100';
+        case TRIGGER_STATUS_IDS.ARCHIVED:
+            return 'bg-slate-100 text-slate-500 border border-slate-200';
+
         default:
             // Fallback for names if ID match fails (transitional)
             const name = getTaxonomyName(taxonomy.triggerStatuses || [], statusId);
-            if (name === 'Concluída') return 'bg-green-100 text-green-700';
+            if (name === 'Concluída' || name === 'Convertido em RCA') return 'bg-emerald-50 text-emerald-600 border border-emerald-100';
             return 'bg-gray-50 text-gray-600';
     }
 };
@@ -87,12 +99,16 @@ export const getFarol = (startDate: string, statusId: string, taxonomy: Taxonomy
 
     try {
         // NEW LOGIC: Use ID directly
-        if (statusId === STATUS_IDS.CONCLUDED) {
+        if (statusId === STATUS_IDS.CONCLUDED || statusId === TRIGGER_STATUS_IDS.CONVERTED) {
             return { days: 'CHECK', color: 'bg-green-100 text-green-700 border border-green-200' };
         }
 
         // Stop counting if Concluded or Removed/Cancelled
-        const isClosed = statusId === STATUS_IDS.CONCLUDED || statusId === STATUS_IDS.CANCELLED || statusId === 'REMOVED' || statusId === 'IGNORADA';
+        const isClosed = statusId === STATUS_IDS.CONCLUDED || 
+                         statusId === STATUS_IDS.CANCELLED || 
+                         statusId === TRIGGER_STATUS_IDS.CONVERTED || 
+                         statusId === TRIGGER_STATUS_IDS.ARCHIVED || 
+                         statusId === 'REMOVED' || statusId === 'IGNORADA';
 
         // Styling based on time open
         const start = new Date(startDate);

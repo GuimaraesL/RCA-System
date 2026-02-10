@@ -80,9 +80,9 @@ describe('triggerHelpers', () => {
     describe('getStatusColor', () => {
         const mockTaxonomy: TaxonomyConfig = {
             triggerStatuses: [
-                { id: 'STATUS-01', name: 'Não iniciada' },
-                { id: 'STATUS-02', name: 'Em andamento' },
-                { id: 'STATUS-03', name: 'Concluída' }
+                { id: 'T-STATUS-01', name: 'Não iniciada' },
+                { id: 'T-STATUS-02', name: 'Em andamento' },
+                { id: 'T-STATUS-03', name: 'Concluída' }
             ],
             analysisTypes: [],
             analysisStatuses: [],
@@ -98,16 +98,15 @@ describe('triggerHelpers', () => {
         };
 
         it('deve retornar azul para IN_PROGRESS', () => {
-            expect(getStatusColor('STATUS-01', mockTaxonomy)).toContain('bg-blue-100');
+            expect(getStatusColor('T-STATUS-01', mockTaxonomy)).toContain('bg-blue-50');
         });
 
         it('deve retornar roxo para WAITING_VERIFICATION e legacy STATUS-02', () => {
             expect(getStatusColor('STATUS-02', mockTaxonomy)).toContain('bg-purple-100');
-            expect(getStatusColor('STATUS-WAITING', mockTaxonomy)).toContain('bg-purple-100');
         });
 
         it('deve retornar verde para CONCLUDED', () => {
-            expect(getStatusColor('STATUS-03', mockTaxonomy)).toContain('bg-green-100');
+            expect(getStatusColor('T-STATUS-03', mockTaxonomy)).toContain('bg-emerald-50');
         });
 
         it('deve retornar cinza para status desconhecido', () => {

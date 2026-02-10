@@ -75,7 +75,7 @@ export const TaxonomyFactory = {
       ],
       analysisStatuses: [
         { id: 'STATUS-01', name: 'Em Andamento' },
-        { id: 'STATUS-WAITING', name: 'Aguardando Verificação' },
+        { id: 'STATUS-02', name: 'Aguardando Verificação' },
         { id: 'STATUS-03', name: 'Concluída' },
         { id: 'STATUS-04', name: 'Cancelada' }
       ],

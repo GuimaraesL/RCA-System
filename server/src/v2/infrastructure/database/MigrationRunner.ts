@@ -64,7 +64,7 @@ export class MigrationRunner {
                 up: `
                     UPDATE rcas SET status = 'STATUS-03' WHERE status IN ('Concluída', 'Concluido', 'Concluida');
                     UPDATE rcas SET status = 'STATUS-01' WHERE status IN ('Em Andamento', 'Em andamento');
-                    UPDATE rcas SET status = 'STATUS-02' WHERE status IN ('Aguardando Verificação', 'Ag. Verif');
+                    UPDATE rcas SET status = 'STATUS-02' WHERE status IN ('Aguardando Verificação', 'Ag. Verif', 'STATUS-WAITING');
                 `
             }
         ];

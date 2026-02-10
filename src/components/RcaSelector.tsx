@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { Search, FileText, CheckCircle, Clock, AlertCircle, Calendar, Filter } from 'lucide-react';
 import { RcaRecord, AssetNode } from '../types';
 import { useLanguage } from '../context/LanguageDefinition';
+import { translateStatus } from '../utils/statusUtils';
 
 interface RcaSelectorProps {
     records: RcaRecord[];
@@ -214,7 +215,7 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, onSel
                             <div className="flex justify-between items-start mb-1">
                                 <div className="flex items-center gap-2">
                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${getStatusColor(rca.status)} uppercase`}>
-                                        {rca.status || t('common.na')}
+                                        {translateStatus(rca.status, rca.status, t)}
                                     </span>
                                     <span className="font-mono text-xs font-medium text-slate-500">{rca.id}</span>
                                     {rca.os_number && <span className="font-mono text-xs text-slate-400 bg-slate-100 px-1 rounded">OS: {rca.os_number}</span>}

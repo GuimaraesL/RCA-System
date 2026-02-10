@@ -121,6 +121,20 @@ export interface TranslationSchema {
         canceled: string;
         delayed: string;
     };
+    triggerStatus: {
+        new: string;
+        inAnalysis: string;
+        converted: string;
+        archived: string;
+    };
+    rootCauseMs: {
+        manpower: string;
+        method: string;
+        material: string;
+        machine: string;
+        environment: string;
+        measurement: string;
+    };
     analysesPage: {
         title: string;
         subtitle: string;

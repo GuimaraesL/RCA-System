@@ -31,72 +31,30 @@ const INITIAL_ASSETS: AssetNode[] = [
 const taxItem = (id: string, name: string): TaxonomyItem => ({ id, name });
 
 const INITIAL_TAXONOMY: TaxonomyConfig = {
-  analysisTypes: [
-    taxItem('TYPE-01', "Mini RCA"),
-    taxItem('TYPE-02', "RCA Completo"),
-    taxItem('TYPE-03', "A3 Melhoria")
-  ],
+  analysisTypes: [],
   analysisStatuses: [
-    taxItem('STATUS-01', "Em Aberto"),
-    taxItem('STATUS-02', "Em Andamento"),
-    taxItem('STATUS-03', "Aguardando Aprovação"),
-    taxItem('STATUS-04', "Cancelada"),
-    taxItem('STATUS-DONE', "Concluída")
+    taxItem('STATUS-01', "Em Andamento"),
+    taxItem('STATUS-02', "Aguardando Verificação"),
+    taxItem('STATUS-03', "Concluída"),
+    taxItem('STATUS-04', "Cancelada")
   ],
-  specialties: [
-    taxItem('SPEC-01', "Mecânica"),
-    taxItem('SPEC-02', "Elétrica"),
-    taxItem('SPEC-03', "Instrumentação"),
-    taxItem('SPEC-04', "Operação"),
-    taxItem('SPEC-05', "Hidráulica"),
-    taxItem('SPEC-06', "Automação")
-  ],
-  failureModes: [
-    taxItem('FM-01', "Desacoplado"),
-    taxItem('FM-02', "Curto-circuito"),
-    taxItem('FM-03', "Desgaste Prematuro"),
-    taxItem('FM-04', "Fadiga"),
-    taxItem('FM-05', "Sobreaquecimento"),
-    taxItem('FM-06', "Vibração Excessiva"),
-    taxItem('FM-07', "Vazamento"),
-    taxItem('FM-08', "Travamento"),
-    taxItem('FM-09', "Ruído Anormal"),
-    taxItem('FM-10', "Indicação Falsa")
-  ],
-  failureCategories: [
-    taxItem('FC-01', "Erro de Montagem"),
-    taxItem('FC-02', "Fim de Vida Útil"),
-    taxItem('FC-03', "Falha Operacional"),
-    taxItem('FC-04', "Defeito de Fabricação"),
-    taxItem('FC-05', "Falta de Lubrificação"),
-    taxItem('FC-06', "Sobrecarga")
-  ],
-  componentTypes: [
-    taxItem('COMP-01', "Rolamento"),
-    taxItem('COMP-02', "Motor"),
-    taxItem('COMP-03', "Bomba"),
-    taxItem('COMP-04', "Válvula"),
-    taxItem('COMP-05', "Sensor"),
-    taxItem('COMP-06', "Cilindro"),
-    taxItem('COMP-07', "Correia"),
-    taxItem('COMP-08', "Redutor"),
-    taxItem('COMP-09', "Acoplamento"),
-    taxItem('COMP-10', "Drive")
-  ],
+  specialties: [],
+  failureModes: [],
+  failureCategories: [],
+  componentTypes: [],
   rootCauseMs: [
-    taxItem('M-01', "Meio Ambiente"),
-    taxItem('M-02', "Máquina"),
-    taxItem('M-03', "Mão de Obra"),
-    taxItem('M-04', "Sistema de Medição"),
-    taxItem('M-05', "Método"),
-    taxItem('M-06', "Material")
+    taxItem('M1', "Mão de Obra"),
+    taxItem('M2', "Método"),
+    taxItem('M3', "Material"),
+    taxItem('M4', "Máquina"),
+    taxItem('M5', "Meio Ambiente"),
+    taxItem('M6', "Medida")
   ],
   triggerStatuses: [
-    taxItem('TRG-ST-01', "Não iniciada"),
-    taxItem('TRG-ST-02', "Em andamento"),
-    taxItem('TRG-ST-03', "Concluída"),
-    taxItem('TRG-ST-04', "Atrasada"),
-    taxItem('TRG-ST-05', "Removido")
+    taxItem('T-STATUS-01', "Novo"),
+    taxItem('T-STATUS-02', "Em Análise"),
+    taxItem('T-STATUS-03', "Convertido em RCA"),
+    taxItem('T-STATUS-04', "Arquivado")
   ]
 };
 
@@ -109,7 +67,7 @@ const INITIAL_RECORDS: RcaRecord[] = [
     analysis_date: '2025-08-25',
     analysis_duration_minutes: 45,
     analysis_type: 'TYPE-01',
-    status: 'STATUS-DONE',
+    status: 'STATUS-03',
     participants: ['Ademir', 'Lucas', 'Paulo', 'Lourival'],
     facilitator: 'Felipe Moraes',
 

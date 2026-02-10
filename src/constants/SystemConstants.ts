@@ -1,9 +1,16 @@
 export enum STATUS_IDS {
     IN_PROGRESS = 'STATUS-01',
-    WAITING_VERIFICATION = 'STATUS-WAITING',
+    WAITING_VERIFICATION = 'STATUS-02',
     CONCLUDED = 'STATUS-03',
     DELAYED = 'STATUS-04',
     CANCELLED = 'STATUS-05'
+}
+
+export enum TRIGGER_STATUS_IDS {
+    NEW = 'T-STATUS-01',
+    IN_ANALYSIS = 'T-STATUS-02',
+    CONVERTED = 'T-STATUS-03',
+    ARCHIVED = 'T-STATUS-04'
 }
 
 export const STATUS_COLORS: Record<string, string> = {

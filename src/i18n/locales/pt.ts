@@ -119,9 +119,23 @@ export const pt: TranslationSchema = {
         inProgress: "Em Andamento",
         completed: "Concluída",
         pending: "Pendente",
-        waiting: "Aguardando",
+        waiting: "Aguardando Verificação",
         canceled: "Cancelada",
         delayed: "Atrasada"
+    },
+    triggerStatus: {
+        new: "Novo",
+        inAnalysis: "Em Análise",
+        converted: "Convertido em RCA",
+        archived: "Arquivado"
+    },
+    rootCauseMs: {
+        manpower: "Mão de Obra",
+        method: "Método",
+        material: "Material",
+        machine: "Máquina",
+        environment: "Meio Ambiente",
+        measurement: "Medida"
     },
     analysesPage: {
         title: "Análise de Falhas",

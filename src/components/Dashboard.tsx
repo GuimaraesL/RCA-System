@@ -7,7 +7,7 @@ import { Clock, TrendingUp, AlertCircle, CheckCircle, PieChart as PieIcon, Activ
 import { FilterBar, FilterState } from './FilterBar';
 import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { useRcaContext } from '../context/RcaContext';
-import { translateStatus } from '../utils/statusUtils';
+import { translateStatus, translate6M } from '../utils/statusUtils';
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
 import { useFilteredData } from '../hooks/useFilteredData';
 import { filterAssetsByUsage } from '../services/utils';
@@ -217,9 +217,9 @@ export const Dashboard: React.FC = () => {
             comp: toChart(counts.comp, id => resolveTaxonomyName('componentTypes', id)),
             mode: toChart(counts.mode, id => resolveTaxonomyName('failureModes', id)),
             cat: toChart(counts.cat, id => resolveTaxonomyName('failureCategories', id)),
-            root: toChart(counts.root, id => resolveTaxonomyName('rootCauseMs', id))
+            root: toChart(counts.root, id => translate6M(id, resolveTaxonomyName('rootCauseMs', id), t))
         };
-    }, [filteredRecords, taxonomy, assetMap]); // Dependências otimizadas
+    }, [filteredRecords, taxonomy, assetMap, t]); // Dependências otimizadas
 
     const { status: dataStatus, type: dataType, equip: dataEquip, sub: dataSub, comp: dataComp, mode: dataMode, cat: dataCat, root: dataRootCause } = chartData;
 

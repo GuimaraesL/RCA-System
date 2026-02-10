@@ -7,6 +7,7 @@ import { Button } from '../ui/Button';
 import { Plus, Trash2, Wand2, Loader2, AlertTriangle, UserCheck, GitBranch } from 'lucide-react';
 import { RcaRecord, TaxonomyConfig, IshikawaDiagram } from '../../types';
 import { generateId } from '../../services/utils';
+import { translate6M } from '../../utils/statusUtils';
 import { FiveWhysEditor } from './fivewhys/FiveWhysEditor';
 import { useLanguage } from '../../context/LanguageDefinition';
 
@@ -288,7 +289,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                                 <Select
                                     id={`root_cause_${idx}_m_id`}
                                     label={t('wizard.step4.sixMFactor')}
-                                    options={[{ value: '', label: t('wizard.select') }, ...(taxonomy?.rootCauseMs || []).map(m => ({ value: m.id, label: m.name }))]}
+                                    options={[{ value: '', label: t('wizard.select') }, ...(taxonomy?.rootCauseMs || []).map(m => ({ value: m.id, label: translate6M(m.id, m.name, t) }))]}
                                     value={rc.root_cause_m_id}
                                     onChange={e => updateRootCause(idx, 'root_cause_m_id', e.target.value)}
                                 />

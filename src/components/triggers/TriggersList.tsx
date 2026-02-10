@@ -4,6 +4,7 @@ import { TriggerRecord, AssetNode, TaxonomyConfig, RcaRecord } from '../../types
 import { Plus, Edit2, Trash2, Link, FileText, Check } from 'lucide-react';
 import { SortHeader } from '../ui/SortHeader';
 import { getAssetName, getTaxonomyName, getFarol, getStatusColor } from '../../utils/triggerHelpers';
+import { translateTriggerStatus } from '../../utils/statusUtils';
 import { useLanguage } from '../../context/LanguageDefinition';
 
 interface TriggersListProps {
@@ -76,7 +77,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                             const assetName = getAssetName(trigger.subgroup_id || trigger.equipment_id || trigger.area_id, assets);
                             const analysisTypeName = getTaxonomyName(taxonomy.analysisTypes || [], trigger.analysis_type_id);
                             const linkedRca = records?.find(r => r.id === trigger.rca_id);
-                            const statusName = getTaxonomyName(taxonomy.triggerStatuses || [], trigger.status);
+                            const statusName = translateTriggerStatus(trigger.status, getTaxonomyName(taxonomy.triggerStatuses || [], trigger.status), t);
 
                             return (
                                 <tr 

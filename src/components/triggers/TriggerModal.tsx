@@ -4,6 +4,7 @@ import { TriggerRecord, AssetNode, TaxonomyConfig } from '../../types';
 import { AssetSelector } from '../AssetSelector'; // Adjust path if needed
 import { animateModalEnter } from '../../services/animations';
 import { calculateDuration, getAssetName, findAssetPath } from '../../utils/triggerHelpers';
+import { translateTriggerStatus } from '../../utils/statusUtils';
 import { generateId } from '../../services/utils';
 import { useLanguage } from '../../context/LanguageDefinition';
 
@@ -240,7 +241,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                         >
                             <option value="">{t('triggerModal.selectPlaceholder')}</option>
                             {(taxonomy.triggerStatuses || []).map(s => (
-                                <option key={s.id} value={s.id}>{s.name}</option>
+                                <option key={s.id} value={s.id}>{translateTriggerStatus(s.id, s.name, t)}</option>
                             ))}
                         </select>
                     </div>
