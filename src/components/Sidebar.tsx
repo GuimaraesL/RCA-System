@@ -66,7 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
                 w-64 flex-shrink-0
             `}>
                 {/* Header */}
-                <div className={`p-6 border-b border-slate-800 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+                <div className={`p-6 border-b border-slate-800 flex ${isCollapsed ? 'flex-col items-center gap-4' : 'items-center justify-between'}`}>
                     <div className="flex items-center gap-2 text-white font-bold text-lg overflow-hidden">
                         <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center shadow-lg shadow-blue-900/50 flex-shrink-0">
                             <AlertTriangle size={18} className="text-white" />
@@ -75,11 +75,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
                     </div>
                     
                     {/* Desktop Collapse Button (Hidden on Mobile) */}
-                    {!isCollapsed && (
-                        <button onClick={toggleCollapse} className="hidden lg:block text-slate-500 hover:text-white">
-                            <ChevronLeft size={20} />
-                        </button>
-                    )}
+                    <button onClick={toggleCollapse} className="hidden lg:block text-slate-500 hover:text-white transition-transform active:scale-90">
+                        {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                    </button>
                 </div>
 
                 {/* Nav */}
@@ -100,9 +98,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
                 <div className={`p-6 border-t border-slate-800 text-xs text-slate-500 ${isCollapsed ? 'text-center' : ''}`}>
                     {isCollapsed ? (
                         <div className="flex flex-col gap-4 items-center">
-                            <button onClick={toggleCollapse} className="hidden lg:block text-slate-500 hover:text-white">
-                                <ChevronRight size={20} />
-                            </button>
                             <LanguageSelector compact />
                         </div>
                     ) : (
