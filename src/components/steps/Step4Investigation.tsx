@@ -18,9 +18,11 @@ interface Step4Props {
     isAnalyzing: boolean;
     taxonomy: TaxonomyConfig;
     showHra?: boolean;
+    isFieldRequired: (field: string) => boolean;
+    errors?: Record<string, boolean>;
 }
 
-const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onAnalyzeAI, isAnalyzing, taxonomy, showHra }) => {
+const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onAnalyzeAI, isAnalyzing, taxonomy, showHra, isFieldRequired, errors }) => {
     const { t } = useLanguage();
     const [newIshikawaItem, setNewIshikawaItem] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<keyof IshikawaDiagram>('method');
@@ -90,11 +92,11 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
             </div>
 
             {/* 5 Whys Block */}
-            <div className={`p-6 rounded-xl border shadow-sm transition-all ${useAdvancedMode ? 'bg-slate-50 border-slate-200' : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200'}`}>
+            <div className={`p-6 rounded-xl border shadow-sm transition-all ${errors?.five_whys ? 'border-red-500 ring-2 ring-red-50' : ''} ${useAdvancedMode ? 'bg-slate-50 border-slate-200' : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200'}`}>
                 <div className="flex justify-between items-center mb-6">
                     <div>
                         <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                            {t('wizard.step4.fiveWhysTitle')}
+                            {t('wizard.step4.fiveWhysTitle')} {isFieldRequired('five_whys') && <span className="text-red-500">*</span>}
                             {useAdvancedMode && <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full border border-blue-200">{t('wizard.step4.advancedMode')}</span>}
                         </h3>
                         <p className="text-sm text-gray-600">
@@ -193,9 +195,9 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
             </div>
 
             {/* Ishikawa (Fishbone) */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 shadow-sm">
+            <div className={`bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border shadow-sm ${errors?.ishikawa ? 'border-red-500 ring-2 ring-red-50' : 'border-green-200'}`}>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                    <h3 className="text-xl font-semibold text-gray-900">{t('wizard.step4.ishikawaTitle')}</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">{t('wizard.step4.ishikawaTitle')} {isFieldRequired('ishikawa') && <span className="text-red-500">*</span>}</h3>
 
                 </div>
 
@@ -257,9 +259,9 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
             </div>
 
             {/* Root Cause Definition */}
-            <div className={`p-6 rounded-xl border-2 shadow-sm transition-all ${canDefineRootCause ? 'bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-300' : 'bg-gray-100 border-gray-300'}`}>
+            <div className={`p-6 rounded-xl border-2 shadow-sm transition-all ${errors?.root_causes ? 'border-red-500 ring-2 ring-red-50' : 'border-yellow-300'} ${canDefineRootCause ? 'bg-gradient-to-br from-yellow-50 to-amber-50' : 'bg-gray-100 border-gray-300'}`}>
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-semibold text-gray-900">{t('wizard.step4.rootCausesTitle')}</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">{t('wizard.step4.rootCausesTitle')} {isFieldRequired('root_causes') && <span className="text-red-500">*</span>}</h3>
                     {canDefineRootCause && (
                         <button onClick={addRootCause} className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors border border-yellow-300 text-sm">
                             <Plus size={16} /> {t('wizard.step4.addRootCause')}

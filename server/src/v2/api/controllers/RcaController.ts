@@ -71,7 +71,7 @@ export class RcaController {
             const taxonomy = this.taxonomyRepo.getTaxonomy();
             const result = this.rcaService.createRca(parse.data as any, taxonomy);
 
-            // console.log(`[V2] ✅ RCA Created: ${result.rca.id}`);
+            // console.log(`[V2]  RCA Created: ${result.rca.id}`);
             res.status(201).json({
                 // id is included in ...result.rca
                 message: 'RCA created successfully',

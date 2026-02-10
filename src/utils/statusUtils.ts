@@ -17,20 +17,14 @@ export const translateStatus = (id: string, fallbackName: string, t: (key: strin
     };
 
     const translationKey = idMap[id];
-    if (translationKey) {
-        const translated = t(translationKey);
-        
-        // Se temos uma tradução válida e o nome no banco é igual à tradução 
-        // (ou é um dos nomes padrão conhecidos), usamos a tradução (que troca com o idioma).
-        // Se o usuário editou no config, o fallbackName será diferente do traduzido, 
-        // então respeitamos a vontade do usuário e usamos o fallbackName.
-        const standardNames = ["Em Andamento", "Aguardando Verificação", "Concluída", "Cancelada", "Atrasada", "In Progress", "Waiting Verification", "Completed", "Canceled", "Delayed", "Aguardando"];
-        
-        if (translated && translated !== translationKey) {
-            if (!fallbackName || standardNames.includes(fallbackName)) {
-                return translated;
-            }
-        }
+    const standardNames = [
+        "Em Andamento", "Aguardando Verificação", "Concluída", "Cancelada", "Atrasada", "Pendente",
+        "In Progress", "Waiting Verification", "Completed", "Canceled", "Delayed", "Aguardando", "Em Aberto",
+        "Aguardando Aprovação"
+    ];
+
+    if (translationKey && (!fallbackName || standardNames.includes(fallbackName))) {
+        return t(translationKey);
     }
 
     return fallbackName || id;
@@ -47,16 +41,15 @@ export const translateTriggerStatus = (id: string, fallbackName: string, t: (key
         [TRIGGER_STATUS_IDS.ARCHIVED]: 'triggerStatus.archived'
     };
 
+    const standardNames = [
+        "Novo", "Em Análise", "Convertido em RCA", "Arquivado", 
+        "New", "In Analysis", "Converted to RCA", "Archived",
+        "Não iniciada", "Em andamento", "Concluída", "Atrasada", "Removido"
+    ];
+
     const translationKey = idMap[id];
-    if (translationKey) {
-        const translated = t(translationKey);
-        const standardNames = ["Novo", "Em Análise", "Convertido em RCA", "Arquivado", "New", "In Analysis", "Converted to RCA", "Archived"];
-        
-        if (translated && translated !== translationKey) {
-            if (!fallbackName || standardNames.includes(fallbackName)) {
-                return translated;
-            }
-        }
+    if (translationKey && (!fallbackName || standardNames.includes(fallbackName))) {
+        return t(translationKey);
     }
 
     return fallbackName || id;
@@ -81,19 +74,15 @@ export const translate6M = (id: string, fallbackName: string, t: (key: string) =
         'M-06': 'rootCauseMs.material'
     };
 
-    const translationKey = idMap[id];
-    if (translationKey) {
-        const translated = t(translationKey);
-        const standardNames = [
-            "Mão de Obra", "Método", "Material", "Máquina", "Meio Ambiente", "Medida",
-            "Manpower", "Method", "Machine", "Environment", "Measurement"
-        ];
+    const standardNames = [
+        "Mão de Obra", "Método", "Material", "Máquina", "Meio Ambiente", "Medida",
+        "Manpower", "Method", "Machine", "Environment", "Measurement",
+        "Sistema de Medição"
+    ];
 
-        if (translated && translated !== translationKey) {
-            if (!fallbackName || standardNames.includes(fallbackName)) {
-                return translated;
-            }
-        }
+    const translationKey = idMap[id];
+    if (translationKey && (!fallbackName || standardNames.includes(fallbackName))) {
+        return t(translationKey);
     }
 
     return fallbackName || id;

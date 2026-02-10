@@ -14,10 +14,12 @@ interface Step5Props {
     onAddActionPlan: (type: 'CORRECTIVE') => void;
     onEditActionPlan: (action: ActionRecord) => void;
     onDeleteActionPlan: (id: string) => void;
+    isFieldRequired: (field: string) => boolean;
+    errors?: Record<string, boolean>;
 }
 
 export const Step5Actions: React.FC<Step5Props> = ({
-    data, onChange, linkedActions, onAddActionPlan, onEditActionPlan, onDeleteActionPlan
+    data, onChange, linkedActions, onAddActionPlan, onEditActionPlan, onDeleteActionPlan, isFieldRequired, errors
 }) => {
     const { t } = useLanguage();
 
@@ -119,10 +121,10 @@ export const Step5Actions: React.FC<Step5Props> = ({
             </div>
 
             {/* Corrective Actions (External - Linked) */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 relative">
+            <div className={`bg-white p-6 rounded-lg shadow-sm border relative ${errors?.actions ? 'border-red-500 ring-2 ring-red-50' : 'border-slate-200'}`}>
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                        <CheckCircle2 size={16} className="text-green-600" /> {t('wizard.step5.correctiveTitle')}
+                        <CheckCircle2 size={16} className="text-green-600" /> {t('wizard.step5.correctiveTitle')} {isFieldRequired('actions') && <span className="text-red-500">*</span>}
                     </h3>
                     <div className="flex gap-2">
                         <div className="flex items-center gap-4 mr-4 text-[10px] font-mono text-slate-400 border-r pr-4 border-slate-200">

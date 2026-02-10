@@ -145,8 +145,7 @@ export class RcaService {
     }
 
     private validateMandatoryFields(rca: any, taxonomy: TaxonomyConfig): { valid: boolean, missing: string[] } {
-        const DEFAULT_CONCLUDE = ['analysis_type', 'what', 'problem_description', 'subgroup_id', 'who', 'when', 'where_description', 'specialty_id', 'failure_mode_id', 'failure_category_id', 'component_type', 'participants', 'root_causes', 'downtime_minutes'];
-        const mandatoryList = taxonomy.mandatoryFields?.rca?.conclude || DEFAULT_CONCLUDE;
+        const mandatoryList = taxonomy.mandatoryFields?.rca?.conclude || [];
 
         const missing: string[] = [];
         for (const field of mandatoryList) {

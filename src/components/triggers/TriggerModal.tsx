@@ -44,34 +44,14 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
     }, [validationErrors]);
 
     const isRequired = (field: string) => {
-        const configLabels = taxonomy.mandatoryFields?.trigger?.save || [
-            'start_date',
-            'end_date',
-            'area_id',
-            'equipment_id',
-            'stop_reason',
-            'stop_type',
-            'responsible',
-            'analysis_type_id',
-            'status' // Added status to default mandatory fields
-        ];
+        const configLabels = taxonomy.mandatoryFields?.trigger?.save || [];
         return configLabels.includes(field);
     };
 
     // Validation wrapper
     const onSaveClick = () => {
-        // Validação de Campos Obrigatórios (Client-Side)
-        const configLabels = taxonomy.mandatoryFields?.trigger?.save || [
-            'start_date',
-            'end_date',
-            'area_id',
-            'equipment_id',
-            'stop_reason',
-            'stop_type',
-            'responsible',
-            'analysis_type_id',
-            'status'
-        ];
+        // Validação de Campos Obrigatórios (Client-Side) - Only Source of Truth
+        const configLabels = taxonomy.mandatoryFields?.trigger?.save || [];
 
         const errors: string[] = [];
         for (const field of configLabels) {

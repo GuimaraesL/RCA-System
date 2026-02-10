@@ -10,14 +10,13 @@ interface Step3Props {
     onChange: (field: string, value: any) => void;
     taxonomy: TaxonomyConfig;
     errors?: Record<string, boolean>;
+    isFieldRequired: (field: string) => boolean;
 }
 
-export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy, errors }) => {
+export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy, errors, isFieldRequired }) => {
     const { t } = useLanguage();
 
-    // Helper for mandatory fields
-    const requiredFields = taxonomy?.mandatoryFields?.rca?.create || [];
-    const isRequired = (field: string) => requiredFields.includes(field);
+    // Helper for mandatory fields removed - using prop instead
 
     // Dependent Dropdown Logic (Specialty -> Failure Mode)
     const filteredFailureModes = taxonomy.failureModes.filter(fm => {
@@ -48,7 +47,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                         id="specialty"
                         name="specialty"
                         label={t('wizard.step3.specialty')}
-                        required={isRequired('specialty_id')}
+                        required={isFieldRequired('specialty_id')}
                         options={[{ value: '', label: t('wizard.select') }, ...taxonomy.specialties.map(t => ({ value: t.id, label: t.name }))]}
                         value={data.specialty_id}
                         onChange={(e) => onChange('specialty_id', e.target.value)}
@@ -59,7 +58,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                         id="failure_mode"
                         name="failure_mode"
                         label={t('wizard.step3.failureMode')}
-                        required={isRequired('failure_mode_id')}
+                        required={isFieldRequired('failure_mode_id')}
                         options={[{ value: '', label: t('wizard.select') }, ...filteredFailureModes.map(t => ({ value: t.id, label: t.name }))]}
                         value={data.failure_mode_id}
                         onChange={(e) => onChange('failure_mode_id', e.target.value)}
@@ -71,7 +70,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                             id="failure_category"
                             name="failure_category"
                             label={t('wizard.step3.failureCategory')}
-                            required={isRequired('failure_category_id')}
+                            required={isFieldRequired('failure_category_id')}
                             options={[{ value: '', label: t('wizard.select') }, ...taxonomy.failureCategories.map(t => ({ value: t.id, label: t.name }))]}
                             value={data.failure_category_id}
                             onChange={(e) => onChange('failure_category_id', e.target.value)}
@@ -91,18 +90,22 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                             name="downtime_minutes"
                             type="number"
                             label={t('wizard.step3.downtimeMinutes')}
+                            required={isFieldRequired('downtime_minutes')}
                             value={data.downtime_minutes || 0}
                             onChange={(e) => onChange('downtime_minutes', parseFloat(e.target.value))}
                             placeholder="0"
+                            error={errors?.downtime_minutes}
                         />
                         <Input
                             id="financial_impact"
                             name="financial_impact"
                             type="number"
                             label={t('wizard.step3.financialImpact')}
+                            required={isFieldRequired('financial_impact')}
                             value={data.financial_impact || 0}
                             onChange={(e) => onChange('financial_impact', parseFloat(e.target.value))}
                             placeholder="0.00"
+                            error={errors?.financial_impact}
                         />
                     </div>
                 </div>

@@ -235,6 +235,13 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         console.warn('AI analysis feature has been disabled');
     };
 
+    // Helper to check if a field is required (either for Create or Conclude)
+    const isFieldRequired = (fieldName: string) => {
+        const createFields = taxonomy.mandatoryFields?.rca?.create || [];
+        const concludeFields = taxonomy.mandatoryFields?.rca?.conclude || [];
+        return createFields.includes(fieldName) || concludeFields.includes(fieldName);
+    };
+
     // Validation State
     const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
 
@@ -243,21 +250,38 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
     const validateForm = (): boolean => {
         const errors: Record<string, boolean> = {};
 
-        // CAMPOS MÍNIMOS PARA SALVAR (Rascunho)
-        // Dynamic from Settings
-        const minimumFieldsData = taxonomy.mandatoryFields?.rca.create || [
-            'subgroup_id',   // Necessário para localização
-            'failure_date',  // Necessário para timeline
-            'analysis_type', // Necessário para categorização básica
-            'what'           // Título/Identificador
-        ];
-
-        minimumFieldsData.forEach(field => {
+        // Helper to check if a field value is effectively empty
+        const isFieldEmpty = (field: string): boolean => {
             const val = (formData as any)[field];
-            if (!val || (typeof val === 'string' && val.trim() === '')) {
-                errors[field] = true;
+            if (['participants', 'root_causes', 'five_whys'].includes(field)) {
+                return !Array.isArray(val) || val.length === 0 || (field === 'participants' && val.length === 1 && val[0] === '');
             }
+            if (field === 'ishikawa') {
+                return !val || Object.values(val).every((arr: any) => Array.isArray(arr) && arr.length === 0);
+            }
+            if (['downtime_minutes', 'financial_impact'].includes(field)) {
+                return val === undefined || val === null;
+            }
+            return !val || (typeof val === 'string' && val.trim() === '');
+        };
+
+        // Dynamic from Settings - Only Source of Truth
+        const createFields = taxonomy.mandatoryFields?.rca?.create || [];
+        const concludeFields = taxonomy.mandatoryFields?.rca?.conclude || [];
+
+        // 1. Always validate 'create' fields (Minimum for existence)
+        createFields.forEach(field => {
+            if (isFieldEmpty(field)) errors[field] = true;
         });
+
+        // 2. Validate 'conclude' fields only if user is advanced in the wizard (Step 4+) 
+        // or if the record is already Concluded.
+        const isConcludePhase = step >= 4 || formData.status === 'STATUS-03';
+        if (isConcludePhase) {
+            concludeFields.forEach(field => {
+                if (isFieldEmpty(field)) errors[field] = true;
+            });
+        }
 
         setValidationErrors(errors);
         return Object.keys(errors).length === 0;
@@ -301,6 +325,7 @@ export const useRcaLogic = (existingRecord: RcaRecord | null, onSaveCallback: ()
         handleAssetSelect,
         handleAnalyzeAI,
         handleSave,
+        isFieldRequired,
         validationErrors // Exposed
     };
 };

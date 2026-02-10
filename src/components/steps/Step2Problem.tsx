@@ -10,14 +10,13 @@ interface Step2Props {
     onChange: (field: string, value: any) => void;
     taxonomy: TaxonomyConfig; // Added
     errors?: Record<string, boolean>;
+    isFieldRequired: (field: string) => boolean;
 }
 
-export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, errors }) => {
+export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, errors, isFieldRequired }) => {
     const { t } = useLanguage();
 
-    // Helper for mandatory fields
-    const requiredFields = taxonomy?.mandatoryFields?.rca?.create || [];
-    const isRequired = (field: string) => requiredFields.includes(field);
+    // Helper for mandatory fields removed - using prop instead
 
     return (
         <div className="space-y-6 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -30,7 +29,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                         id="who"
                         name="who"
                         label={t('wizard.step2.who')}
-                        required={isRequired('who')}
+                        required={isFieldRequired('who')}
                         placeholder={t('wizard.step2.whoPlaceholder')}
                         value={data.who}
                         onChange={(e) => onChange('who', e.target.value)}
@@ -41,7 +40,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                         id="when"
                         name="when"
                         label={t('wizard.step2.when')}
-                        required={isRequired('when')}
+                        required={isFieldRequired('when')}
                         placeholder={t('wizard.step2.whenPlaceholder')}
                         value={data.when}
                         onChange={(e) => onChange('when', e.target.value)}
@@ -53,7 +52,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                             id="where_description"
                             name="where_description"
                             label={t('wizard.step2.where')}
-                            required={isRequired('where_description')}
+                            required={isFieldRequired('where_description')}
                             placeholder={t('wizard.step2.wherePlaceholder')}
                             value={data.where_description}
                             onChange={(e) => onChange('where_description', e.target.value)}
@@ -67,7 +66,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                         id="what"
                         name="what"
                         label={t('wizard.step2.what')}
-                        required={isRequired('what')}
+                        required={isFieldRequired('what')}
                         placeholder={t('wizard.step2.whatPlaceholder')}
                         value={data.what}
                         onChange={(e) => onChange('what', e.target.value)}
@@ -78,18 +77,33 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                         id="potential_impacts"
                         name="potential_impacts"
                         label={t('wizard.step2.potentialImpacts') || "Impactos Potenciais"}
+                        required={isFieldRequired('potential_impacts')}
                         placeholder={t('wizard.step2.potentialImpactsPlaceholder') || "Descreva os impactos..."}
                         value={data.potential_impacts}
                         onChange={(e) => onChange('potential_impacts', e.target.value)}
+                        error={errors?.potential_impacts}
+                    />
+
+                    <Textarea
+                        id="problem_description"
+                        label={t('wizard.step2.problemDescription')}
+                        required={isFieldRequired('problem_description')}
+                        placeholder={t('wizard.step2.problemDescriptionPlaceholder')}
+                        rows={4}
+                        value={data.problem_description || ''}
+                        onChange={(e) => onChange('problem_description', e.target.value)}
+                        error={errors?.problem_description}
                     />
 
                     <Textarea
                         id="quality_impacts"
                         label={t('wizard.step2.qualityImpacts')}
+                        required={isFieldRequired('quality_impacts')}
                         placeholder={t('wizard.step2.qualityImpactsPlaceholder')}
                         rows={4}
                         value={data.quality_impacts || ''}
                         onChange={(e) => onChange('quality_impacts', e.target.value)}
+                        error={errors?.quality_impacts}
                     />
                 </div>
             </div>
