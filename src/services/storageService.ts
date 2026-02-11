@@ -3,14 +3,28 @@
  * Fluxo: Atua como fonte de dados em modo offline (ou legada), gerenciando o ciclo de vida de RCAs, Ativos, Ações e Gatilhos, além de prover lógica de migração e normalização de dados importados.
  */
 
-import { AssetNode, RcaRecord, ActionRecord, TriggerRecord, MigrationData, PrecisionChecklistItem, TaxonomyConfig, TaxonomyItem, HumanReliabilityAnalysis, HraQuestion, HraConclusion } from "../types";
+import { AssetNode, RcaRecord, ActionRecord, TriggerRecord, MigrationData, TaxonomyConfig, TaxonomyItem } from "../types";
 import { generateId, sanitizeString, getStandardHraStruct, getStandardPrecisionItems } from "./utils";
 
-const STORAGE_KEY_ASSETS = 'rca_assets';
-const STORAGE_KEY_RECORDS = 'rca_records';
-const STORAGE_KEY_ACTIONS = 'rca_actions';
-const STORAGE_KEY_TAXONOMY = 'rca_taxonomy';
-const STORAGE_KEY_TRIGGERS = 'rca_triggers';
+// --- CONSTANTES E CHAVES ---
+
+const STORAGE_PREFIX = 'rca_app_v1_';
+
+const KEYS = {
+  ASSETS: `${STORAGE_PREFIX}assets`,
+  RECORDS: `${STORAGE_PREFIX}records`,
+  ACTIONS: `${STORAGE_PREFIX}actions`,
+  TAXONOMY: `${STORAGE_PREFIX}taxonomy`,
+  TRIGGERS: `${STORAGE_PREFIX}triggers`
+};
+
+const LEGACY_KEYS = {
+  ASSETS: 'rca_assets',
+  RECORDS: 'rca_records',
+  ACTIONS: 'rca_actions',
+  TAXONOMY: 'rca_taxonomy',
+  TRIGGERS: 'rca_triggers'
+};
 
 // --- DADOS INICIAIS (FALLBACK) ---
 
@@ -131,45 +145,121 @@ const INITIAL_ACTIONS: ActionRecord[] = [
   }
 ];
 
+// --- HELPER FUNCTIONS (SAFE STORAGE) ---
+
+/**
+ * Tenta recuperar um item do localStorage, lidando com erros de parse e migração de chaves legadas.
+ */
+export const safeGetItem = <T>(key: string, legacyKey?: string, defaultValue?: T): T | null => {
+  try {
+    // 1. Tenta buscar pela chave nova/padronizada
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+
+    // 2. Se não achar e houver chave legada, tenta migrar
+    if (legacyKey) {
+      const legacyStored = localStorage.getItem(legacyKey);
+      if (legacyStored) {
+        try {
+          const parsed = JSON.parse(legacyStored);
+          // Migra para a nova chave
+          localStorage.setItem(key, JSON.stringify(parsed));
+          localStorage.removeItem(legacyKey);
+          return parsed;
+        } catch (e) {
+          console.warn(`[Storage] Erro ao migrar chave legada ${legacyKey}:`, e);
+          return defaultValue ?? null;
+        }
+      }
+    }
+
+    return defaultValue ?? null;
+  } catch (error) {
+    console.error(`[Storage] Erro ao ler chave ${key}:`, error);
+    return defaultValue ?? null;
+  }
+};
+
+/**
+ * Salva um item no localStorage com tratamento de erro para QuotaExceeded.
+ */
+export const safeSetItem = (key: string, value: any): boolean => {
+  try {
+    const serialized = JSON.stringify(value);
+    localStorage.setItem(key, serialized);
+    // Dispara evento manual para sincronia (se necessário na mesma janela, mas 'storage' event é apenas para outras janelas)
+    return true;
+  } catch (error: any) {
+    if (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+      console.error('[Storage] Cota de armazenamento excedida!', error);
+      alert('Limite de armazenamento local atingido. Limpe dados antigos ou exporte backups.');
+    } else {
+      console.error(`[Storage] Erro ao salvar chave ${key}:`, error);
+    }
+    return false;
+  }
+};
+
+/**
+ * Estima o espaço utilizado no LocalStorage.
+ */
+export const getStorageUsage = (): { usageKB: number, remainingKB: number } => {
+  let total = 0;
+  for (const x in localStorage) {
+    // eslint-disable-next-line no-prototype-builtins
+    if (localStorage.hasOwnProperty(x)) {
+      total += ((localStorage[x].length + x.length) * 2);
+    }
+  }
+  const usageKB = (total / 1024);
+  // Limite típico de 5MB = ~5120KB
+  return {
+    usageKB: Number(usageKB.toFixed(2)),
+    remainingKB: Number((5120 - usageKB).toFixed(2))
+  };
+};
+
 // --- GESTÃO DE ATIVOS (ASSETS) ---
 
 export const LEGACY_getAssets = (): AssetNode[] => {
-  const stored = localStorage.getItem(STORAGE_KEY_ASSETS);
-  if (!stored) {
-    localStorage.setItem(STORAGE_KEY_ASSETS, JSON.stringify(INITIAL_ASSETS));
+  const data = safeGetItem<AssetNode[]>(KEYS.ASSETS, LEGACY_KEYS.ASSETS);
+  if (!data) {
+    safeSetItem(KEYS.ASSETS, INITIAL_ASSETS);
     return INITIAL_ASSETS;
   }
-  return JSON.parse(stored);
+  return data;
 };
 
 export const saveAssets = (assets: AssetNode[]): void => {
-  localStorage.setItem(STORAGE_KEY_ASSETS, JSON.stringify(assets));
+  safeSetItem(KEYS.ASSETS, assets);
 };
 
 // --- TAXONOMIA E CONFIGURAÇÕES ---
 
 export const LEGACY_getTaxonomy = (): TaxonomyConfig => {
-  const stored = localStorage.getItem(STORAGE_KEY_TAXONOMY);
-  if (!stored) {
-    localStorage.setItem(STORAGE_KEY_TAXONOMY, JSON.stringify(INITIAL_TAXONOMY));
+  const data = safeGetItem<TaxonomyConfig>(KEYS.TAXONOMY, LEGACY_KEYS.TAXONOMY);
+  if (!data) {
+    safeSetItem(KEYS.TAXONOMY, INITIAL_TAXONOMY);
     return INITIAL_TAXONOMY;
   }
-  return JSON.parse(stored);
+  return data;
 };
 
 export const saveTaxonomy = (taxonomy: TaxonomyConfig): void => {
-  localStorage.setItem(STORAGE_KEY_TAXONOMY, JSON.stringify(taxonomy));
+  safeSetItem(KEYS.TAXONOMY, taxonomy);
 };
 
 // --- ANÁLISES (RCAs) ---
 
 export const LEGACY_getRecords = (): RcaRecord[] => {
-  const stored = localStorage.getItem(STORAGE_KEY_RECORDS);
-  if (!stored) {
-    localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(INITIAL_RECORDS));
+  const data = safeGetItem<RcaRecord[]>(KEYS.RECORDS, LEGACY_KEYS.RECORDS);
+  if (!data) {
+    safeSetItem(KEYS.RECORDS, INITIAL_RECORDS);
     return INITIAL_RECORDS;
   }
-  return JSON.parse(stored);
+  return data;
 };
 
 export const saveRecord = (record: RcaRecord): void => {
@@ -180,22 +270,22 @@ export const saveRecord = (record: RcaRecord): void => {
   } else {
     records.push(record);
   }
-  localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+  safeSetItem(KEYS.RECORDS, records);
 };
 
 export const saveRecords = (records: RcaRecord[]): void => {
-  localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+  safeSetItem(KEYS.RECORDS, records);
 };
 
 // --- PLANOS DE AÇÃO (CAPA) ---
 
 export const LEGACY_getActions = (): ActionRecord[] => {
-  const stored = localStorage.getItem(STORAGE_KEY_ACTIONS);
-  if (!stored) {
-    localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(INITIAL_ACTIONS));
+  const data = safeGetItem<ActionRecord[]>(KEYS.ACTIONS, LEGACY_KEYS.ACTIONS);
+  if (!data) {
+    safeSetItem(KEYS.ACTIONS, INITIAL_ACTIONS);
     return INITIAL_ACTIONS;
   }
-  return JSON.parse(stored);
+  return data;
 };
 
 export const getActionsByRca = (rcaId: string): ActionRecord[] => {
@@ -211,28 +301,23 @@ export const saveAction = (action: ActionRecord): void => {
   } else {
     actions.push(action);
   }
-  localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(actions));
+  safeSetItem(KEYS.ACTIONS, actions);
 };
 
 export const saveActions = (actions: ActionRecord[]): void => {
-  localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(actions));
+  safeSetItem(KEYS.ACTIONS, actions);
 };
 
 export const deleteAction = (actionId: string): void => {
   const actions = LEGACY_getActions();
   const newActions = actions.filter(a => a.id !== actionId);
-  localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(newActions));
+  safeSetItem(KEYS.ACTIONS, newActions);
 };
 
 // --- GATILHOS (TRIGGERS) ---
 
 export const LEGACY_getTriggers = (): TriggerRecord[] => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY_TRIGGERS);
-    return stored ? JSON.parse(stored) : [];
-  } catch (e) {
-    return [];
-  }
+  return safeGetItem<TriggerRecord[]>(KEYS.TRIGGERS, LEGACY_KEYS.TRIGGERS, []) || [];
 };
 
 export const saveTrigger = (trigger: TriggerRecord): void => {
@@ -243,17 +328,17 @@ export const saveTrigger = (trigger: TriggerRecord): void => {
   } else {
     triggers.push(trigger);
   }
-  localStorage.setItem(STORAGE_KEY_TRIGGERS, JSON.stringify(triggers));
+  safeSetItem(KEYS.TRIGGERS, triggers);
 };
 
 export const saveTriggers = (triggers: TriggerRecord[]): void => {
-  localStorage.setItem(STORAGE_KEY_TRIGGERS, JSON.stringify(triggers));
+  safeSetItem(KEYS.TRIGGERS, triggers);
 };
 
 export const deleteTrigger = (id: string): void => {
   const triggers = LEGACY_getTriggers();
   const newTriggers = triggers.filter(t => t.id !== id);
-  localStorage.setItem(STORAGE_KEY_TRIGGERS, JSON.stringify(newTriggers));
+  safeSetItem(KEYS.TRIGGERS, newTriggers);
 };
 
 // --- IMPORTAÇÃO E EXPORTAÇÃO ---
@@ -347,11 +432,11 @@ export const importData = (jsonContent: string): { success: boolean, message: st
       return rec;
     });
 
-    // Persistência Integral no LocalStorage
-    localStorage.setItem(STORAGE_KEY_ASSETS, JSON.stringify(assets));
-    localStorage.setItem(STORAGE_KEY_TAXONOMY, JSON.stringify(taxonomy));
-    localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(recordsToSave));
-    localStorage.setItem(STORAGE_KEY_TRIGGERS, JSON.stringify(triggers));
+    // Persistência Integral no LocalStorage (Via Helpers)
+    safeSetItem(KEYS.ASSETS, assets);
+    safeSetItem(KEYS.TAXONOMY, taxonomy);
+    safeSetItem(KEYS.RECORDS, recordsToSave);
+    safeSetItem(KEYS.TRIGGERS, triggers);
 
     if (actions.length > 0) {
       const sanitizedActions = actions.map((a: any) => ({
@@ -359,7 +444,7 @@ export const importData = (jsonContent: string): { success: boolean, message: st
         action: sanitizeString(a.action),
         responsible: sanitizeString(a.responsible)
       }));
-      localStorage.setItem(STORAGE_KEY_ACTIONS, JSON.stringify(sanitizedActions));
+      safeSetItem(KEYS.ACTIONS, sanitizedActions);
     }
 
     return { success: true, message: `Importação concluída com sucesso. ${rawRecords.length} registros processados.` };

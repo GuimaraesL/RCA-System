@@ -134,6 +134,25 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     refreshAll();
   }, [refreshAll]);
 
+  /**
+   * Listener para sincronização entre abas (Storage Event).
+   * Garante que alterações no LocalStorage em outras abas reflitam imediatamente no estado atual.
+   */
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      // Verifica se a mudança ocorreu em chaves relevantes para o sistema (prefixo padronizado ou legadas)
+      const isRelevantKey = event.key && (event.key.startsWith('rca_app_v1_') || event.key.startsWith('rca_'));
+      
+      if (isRelevantKey) {
+        console.log('🔄 Storage alterado externamente (outra aba). Sincronizando...', event.key);
+        refreshAll();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [refreshAll]);
+
   // --- Wrappers de Persistência para Análises ---
 
   const addRecord = async (record: RcaRecord): Promise<void> => {

@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Siren, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
 import { useLanguage } from '../context/LanguageDefinition';
 import { LanguageSelector } from './LanguageSelector';
+import { safeGetItem, safeSetItem } from '../services/storageService';
 
 interface SidebarProps {
     view: 'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'TRIGGERS' | 'ASSETS' | 'SETTINGS' | 'MIGRATION';
@@ -22,14 +23,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
 
     // Persistência da preferência de colapso no navegador
     useEffect(() => {
-        const stored = localStorage.getItem('rca_sidebar_collapsed');
-        if (stored) setIsCollapsed(JSON.parse(stored));
+        const stored = safeGetItem<boolean>('rca_app_v1_pref_sidebar_collapsed', 'rca_sidebar_collapsed', false);
+        if (stored !== null) setIsCollapsed(stored);
     }, []);
 
     const toggleCollapse = () => {
         const newState = !isCollapsed;
         setIsCollapsed(newState);
-        localStorage.setItem('rca_sidebar_collapsed', JSON.stringify(newState));
+        safeSetItem('rca_app_v1_pref_sidebar_collapsed', newState);
     };
 
     const toggleMobile = () => setIsMobileOpen(!isMobileOpen);
