@@ -7,24 +7,28 @@
 import { useState, useEffect } from 'react';
 import { FilterState } from '../components/FilterBar';
 import { useGlobalFilters } from '../context/FilterContext';
+import { safeGetItem, safeSetItem } from '../services/storageService';
 
 export const useFilterPersistence = (pageKey: string, defaultFilters: FilterState, defaultOpen: boolean = true) => {
     const { isGlobal, globalFilters, setGlobalFilters, toggleGlobal: toggleGlobalContext } = useGlobalFilters();
 
+    // Prefixos padronizados para preferências de UI
+    const KEY_SHOW = `rca_app_v1_pref_${pageKey}_show`;
+    const KEY_CRITERIA = `rca_app_v1_pref_${pageKey}_criteria`;
+    
+    // Chaves legadas para migração transparente
+    const LEGACY_KEY_SHOW = `${pageKey}_show`;
+    const LEGACY_KEY_CRITERIA = `${pageKey}_criteria`;
+
     // 1. Persistência de Visibilidade (Expandido/Colapsado) - Sempre específico por página
     const [showFilters, setShowFilters] = useState(() => {
-        try {
-            const saved = localStorage.getItem(`${pageKey}_show`);
-            return saved !== null ? JSON.parse(saved) : defaultOpen;
-        } catch { return defaultOpen; }
+        return safeGetItem<boolean>(KEY_SHOW, LEGACY_KEY_SHOW, defaultOpen) ?? defaultOpen;
     });
 
     // 2. Estado de Filtros Locais (Utilizado apenas quando isGlobal é FALSO)
     const [localFilters, setLocalFilters] = useState<FilterState>(() => {
-        try {
-            const saved = localStorage.getItem(`${pageKey}_criteria`);
-            return saved ? { ...defaultFilters, ...JSON.parse(saved) } : defaultFilters;
-        } catch { return defaultFilters; }
+        const saved = safeGetItem<FilterState>(KEY_CRITERIA, LEGACY_KEY_CRITERIA, defaultFilters);
+        return saved ? { ...defaultFilters, ...saved } : defaultFilters;
     });
 
     // --- Valores Derivados ---
@@ -41,7 +45,7 @@ export const useFilterPersistence = (pageKey: string, defaultFilters: FilterStat
             setGlobalFilters(value);
         } else {
             setLocalFilters(value);
-            localStorage.setItem(`${pageKey}_criteria`, JSON.stringify(value));
+            safeSetItem(KEY_CRITERIA, value);
         }
     };
 
@@ -49,8 +53,8 @@ export const useFilterPersistence = (pageKey: string, defaultFilters: FilterStat
 
     // Persiste a visibilidade do painel
     useEffect(() => {
-        localStorage.setItem(`${pageKey}_show`, JSON.stringify(showFilters));
-    }, [showFilters, pageKey]);
+        safeSetItem(KEY_SHOW, showFilters);
+    }, [showFilters, KEY_SHOW]);
 
     /**
      * Gerencia a alternância para o modo Global, transportando os filtros locais atuais se necessário.

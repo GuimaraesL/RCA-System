@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { FilterState } from '../components/FilterBar';
+import { safeGetItem, safeSetItem } from '../services/storageService';
 
 interface FilterContextType {
     isGlobal: boolean;
@@ -10,8 +11,11 @@ interface FilterContextType {
     toggleGlobal: () => void;
 }
 
-const GLOBAL_MODE_KEY = 'rca_filter_is_global';
-const GLOBAL_FILTERS_KEY = 'rca_global_filters';
+const GLOBAL_MODE_KEY = 'rca_app_v1_pref_filter_is_global';
+const LEGACY_GLOBAL_MODE_KEY = 'rca_filter_is_global';
+
+const GLOBAL_FILTERS_KEY = 'rca_app_v1_pref_global_filters';
+const LEGACY_GLOBAL_FILTERS_KEY = 'rca_global_filters';
 
 const defaultFilters: FilterState = {
     searchTerm: '',
@@ -33,22 +37,23 @@ const FilterContext = createContext<FilterContextType | undefined>(undefined);
 
 export const FilterProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [isGlobal, setIsGlobalState] = useState(() => {
-        return localStorage.getItem(GLOBAL_MODE_KEY) === 'true';
+        // safeGetItem returns typed value or null. For boolean, we expect boolean.
+        return safeGetItem<boolean>(GLOBAL_MODE_KEY, LEGACY_GLOBAL_MODE_KEY, false) === true;
     });
 
     const [globalFilters, setGlobalFiltersState] = useState<FilterState>(() => {
-        const saved = localStorage.getItem(GLOBAL_FILTERS_KEY);
-        return saved ? { ...defaultFilters, ...JSON.parse(saved) } : defaultFilters;
+        const saved = safeGetItem<FilterState>(GLOBAL_FILTERS_KEY, LEGACY_GLOBAL_FILTERS_KEY, defaultFilters);
+        return saved ? { ...defaultFilters, ...saved } : defaultFilters;
     });
 
     const setIsGlobal = (val: boolean) => {
         setIsGlobalState(val);
-        localStorage.setItem(GLOBAL_MODE_KEY, String(val));
+        safeSetItem(GLOBAL_MODE_KEY, val);
     };
 
     const setGlobalFilters = (filters: FilterState) => {
         setGlobalFiltersState(filters);
-        localStorage.setItem(GLOBAL_FILTERS_KEY, JSON.stringify(filters));
+        safeSetItem(GLOBAL_FILTERS_KEY, filters);
     };
 
     const toggleGlobal = () => {

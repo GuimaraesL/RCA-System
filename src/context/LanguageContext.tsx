@@ -8,20 +8,39 @@ import { TranslationSchema } from '../i18n/types';
 import { pt } from '../i18n/locales/pt';
 import { en } from '../i18n/locales/en';
 import { Language, LanguageContext } from './LanguageDefinition';
+import { safeGetItem, safeSetItem } from '../services/storageService';
 
 const dictionaries: Record<Language, TranslationSchema> = { pt, en };
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     // Inicializa a partir do localStorage ou define 'pt' como padrão de segurança
     const [language, setLanguageState] = useState<Language>(() => {
-        const saved = localStorage.getItem('rca-language');
-        if (saved && (saved === 'pt' || saved === 'en')) return saved as Language;
+        const NEW_KEY = 'rca_app_v1_pref_language';
+        const LEGACY_KEY = 'rca-language';
+
+        // 1. Tenta buscar pela nova chave (que já é salva como JSON string)
+        const savedNew = safeGetItem<string>(NEW_KEY);
+        if (savedNew && (savedNew === 'pt' || savedNew === 'en')) return savedNew as Language;
+
+        // 2. Tenta buscar pela chave antiga (Texto puro, não JSON)
+        try {
+            const savedLegacy = localStorage.getItem(LEGACY_KEY);
+            if (savedLegacy && (savedLegacy === 'pt' || savedLegacy === 'en')) {
+                // Migra para o novo padrão
+                safeSetItem(NEW_KEY, savedLegacy);
+                localStorage.removeItem(LEGACY_KEY);
+                return savedLegacy as Language;
+            }
+        } catch (e) {
+            console.warn('Erro ao ler preferência de idioma legada', e);
+        }
+
         return 'pt';
     });
 
     const setLanguage = (lang: Language) => {
         setLanguageState(lang);
-        localStorage.setItem('rca-language', lang);
+        safeSetItem('rca_app_v1_pref_language', lang);
     };
 
     const locale = dictionaries[language];
