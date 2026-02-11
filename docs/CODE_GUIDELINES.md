@@ -36,6 +36,10 @@ O projeto segue uma separação rigorosa entre as camadas para garantir testabil
 - **Constantes/Enums:** `UPPER_SNAKE_CASE`.
 - **Interfaces/Types:** `PascalCase`.
 
+### 2.3. Identificadores (IDs)
+- **Geração:** Utilize sempre estratégias robustas para geração de IDs (ex: `crypto.randomUUID` ou fallback de alta entropia) para prevenir colisões e keys duplicadas em listas.
+- **Formulários:** Utilize `React.useId()` para garantir acessibilidade segura (associação `label` + `input`) sem conflitos de ID no DOM.
+
 ---
 
 ## 3. Comentários e Documentação
@@ -70,7 +74,7 @@ Arquivos de serviço ou teste devem conter um pequeno bloco informativo no topo:
 
 - **Framework:** Tailwind CSS v4.
 - **Cores:** Siga a paleta de tons Slate/Blue do projeto (Zero Roxo/Indigo).
-- **Acessibilidade:** Todo input deve ter um `label` associado ou `aria-label`.
+- **Acessibilidade:** Todo input deve ter um `label` associado via `htmlFor` e `id` (preferencialmente gerado via `useId`).
 - **Reatividade:** Garanta que componentes pesados utilizem `React.memo` ou `useMemo` para evitar re-renderizações desnecessárias (especialmente com i18n).
 
 ---
