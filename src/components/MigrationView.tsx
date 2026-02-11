@@ -3,7 +3,7 @@
  * Fluxo: Orquestra a importação e exportação de dados com uma interface de alta fidelidade, separando claramente as ferramentas de backup integral (JSON) das ferramentas de edição em massa (CSV).
  */
 
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useId } from 'react';
 import { 
   Upload, Download, FileSpreadsheet, Database, 
   RefreshCw, CheckCircle, AlertTriangle, FileJson, 
@@ -20,6 +20,7 @@ import { useLanguage } from '../context/LanguageDefinition';
 
 export const MigrationView: React.FC = () => {
     const { t } = useLanguage();
+    const idPrefix = useId();
     const [msg, setMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [activeTab, setActiveTab] = useState<'JSON' | 'CSV'>('JSON');
     const [csvType, setCsvType] = useState<CsvEntityType>('ASSETS');
@@ -201,20 +202,20 @@ export const MigrationView: React.FC = () => {
     const toggleTaxonomy = (key: string) => setTaxonomySelection(prev => ({ ...prev, [key]: !prev[key] }));
 
     return (
-        <div className="h-full flex flex-col bg-page-gradient overflow-hidden">
+        <div className="h-full flex flex-col bg-slate-50/50 overflow-hidden">
             {/* Header com Seletor de Abas Redesenhado */}
-            <div className="px-8 py-6 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200/60 bg-white/50 backdrop-blur-md sticky top-0 z-10">
-                <div className="flex items-center gap-4">
-                    <div className="p-2.5 bg-indigo-600 shadow-lg shadow-indigo-600/20 rounded-xl text-white">
-                        <Database size={22} />
+            <div className="px-10 py-8 flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-slate-200/60 bg-white sticky top-0 z-10">
+                <div className="flex items-center gap-5">
+                    <div className="p-3 bg-blue-600 shadow-xl shadow-blue-600/20 rounded-2xl text-white">
+                        <Database size={26} />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold text-slate-800 font-display tracking-tight leading-tight">{t('migration.title')}</h1>
-                        <p className="text-xs text-slate-500 font-medium">{t('migration.description')}</p>
+                        <h1 className="text-2xl font-black text-slate-900 font-display tracking-tight leading-tight uppercase italic">{t('migration.title')}</h1>
+                        <p className="text-sm text-slate-400 font-bold mt-1 uppercase tracking-tight">{t('migration.description')}</p>
                     </div>
                 </div>
 
-                <div className="inline-flex p-1.5 bg-slate-200/50 rounded-2xl border border-slate-200/60 backdrop-blur-sm self-start md:self-auto">
+                <div className="inline-flex p-1.5 bg-slate-100 rounded-2xl border border-slate-200/60 self-start md:self-auto shadow-inner">
                     {[
                         { id: 'JSON', label: t('migration.backup'), icon: FileJson },
                         { id: 'CSV', label: t('migration.csvTools'), icon: FileSpreadsheet }
@@ -222,105 +223,107 @@ export const MigrationView: React.FC = () => {
                         <button
                             key={tab.id}
                             onClick={() => { setActiveTab(tab.id as any); setMsg(null); }}
-                            className={`flex items-center gap-2.5 px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
+                            className={`flex items-center gap-3 px-8 py-2.5 rounded-xl text-sm font-black transition-all duration-300 ${
                                 activeTab === tab.id 
-                                    ? 'bg-white text-indigo-600 shadow-md ring-1 ring-black/5' 
+                                    ? 'bg-white text-blue-600 shadow-lg ring-1 ring-black/5' 
                                     : 'text-slate-500 hover:text-slate-800 hover:bg-white/40'
                             }`}
                         >
-                            <tab.icon size={16} className={activeTab === tab.id ? 'text-indigo-600' : 'text-slate-400'} />
-                            {tab.label}
+                            <tab.icon size={18} className={activeTab === tab.id ? 'text-blue-600' : 'text-slate-400'} />
+                            <span className="uppercase tracking-widest text-[11px]">{tab.label}</span>
                         </button>
                     ))}
                 </div>
             </div>
 
             <main className="flex-1 overflow-y-auto custom-scrollbar">
-                <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in pb-32">
+                <div className="p-10 lg:p-16 max-w-[1600px] mx-auto animate-in fade-in pb-32 duration-700">
                     
                     {/* Mensagens de Feedback */}
                     {msg && (
-                        <div className={`mb-8 p-4 rounded-2xl border flex items-center gap-3 animate-in slide-in-from-top-2 ${msg.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-sm' : 'bg-red-50 text-red-700 border-red-100 shadow-sm'}`}>
-                            {msg.type === 'success' ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
-                            <span className="text-sm font-bold">{msg.text}</span>
-                            <button onClick={() => setMsg(null)} className="ml-auto p-1 hover:bg-black/5 rounded-lg"><X size={16} /></button>
+                        <div className={`mb-10 p-6 rounded-3xl border-2 flex items-center gap-4 animate-in slide-in-from-top-4 duration-500 ${msg.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-xl shadow-emerald-500/5' : 'bg-rose-50 text-rose-700 border-rose-100 shadow-xl shadow-rose-500/5'}`}>
+                            <div className={`p-2 rounded-xl bg-white shadow-sm ${msg.type === 'success' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                {msg.type === 'success' ? <CheckCircle size={24} /> : <AlertTriangle size={24} />}
+                            </div>
+                            <span className="text-base font-black tracking-tight">{msg.text}</span>
+                            <button onClick={() => setMsg(null)} className="ml-auto p-2 hover:bg-black/5 rounded-full transition-colors"><X size={20} /></button>
                         </div>
                     )}
 
                     {activeTab === 'JSON' ? (
-                        <div className="space-y-10">
+                        <div className="space-y-12">
                             {!previewData && (
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                    <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-soft text-center group hover:border-indigo-200 transition-all relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><Upload size={120} /></div>
-                                        <div className="w-20 h-20 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-indigo-600 group-hover:scale-110 group-hover:rotate-3 transition-all"><FileJson size={40} /></div>
-                                        <h3 className="text-2xl font-bold mb-2 text-slate-800 tracking-tight">{t('migration.restore')}</h3>
-                                        <p className="text-sm text-slate-500 mb-8 max-w-xs mx-auto leading-relaxed">{t('migration.json.dragDrop')}</p>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                                    <div className="bg-white p-12 rounded-[3rem] border border-slate-200/60 shadow-sm text-center group hover:border-blue-300 hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-500 relative overflow-hidden">
+                                        <div className="absolute -top-10 -right-10 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform"><Upload size={240} /></div>
+                                        <div className="w-24 h-24 bg-blue-50 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-blue-600 group-hover:scale-110 transition-all duration-500 shadow-inner"><FileJson size={48} /></div>
+                                        <h3 className="text-3xl font-black mb-3 text-slate-900 tracking-tight font-display">{t('migration.restore')}</h3>
+                                        <p className="text-sm text-slate-400 font-bold mb-10 max-w-xs mx-auto leading-relaxed uppercase tracking-widest">{t('migration.json.dragDrop')}</p>
                                         <div className="relative inline-block">
                                             <input type="file" ref={jsonInputRef} onChange={handleJsonFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".json" />
-                                            <button className="bg-indigo-600 text-white font-bold py-3.5 px-10 rounded-xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all pointer-events-none active:scale-95">{t('migration.json.selectButton')}</button>
+                                            <button className="bg-blue-600 text-white font-black py-4 px-12 rounded-2xl shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all pointer-events-none active:scale-95 uppercase tracking-widest text-xs">{t('migration.json.selectButton')}</button>
                                         </div>
                                     </div>
-                                    <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-soft text-center group hover:border-cyan-200 transition-all relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><Download size={120} /></div>
-                                        <div className="w-20 h-20 bg-cyan-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-cyan-600 group-hover:scale-110 group-hover:-rotate-3 transition-all"><Database size={40} /></div>
-                                        <h3 className="text-2xl font-bold mb-2 text-slate-800 tracking-tight">{t('migration.json.createBackup')}</h3>
-                                        <p className="text-sm text-slate-500 mb-8 max-w-xs mx-auto leading-relaxed">Crie um arquivo completo contendo Ativos, RCAs, Ações e Taxonomia para segurança.</p>
-                                        <button onClick={handleJsonDownload} className="bg-cyan-600 text-white font-bold py-3.5 px-10 rounded-xl shadow-lg shadow-cyan-600/20 hover:bg-cyan-700 transition-all active:scale-95">{t('migration.json.downloadButton')}</button>
+                                    <div className="bg-white p-12 rounded-[3rem] border border-slate-200/60 shadow-sm text-center group hover:border-cyan-300 hover:shadow-2xl hover:shadow-cyan-500/5 transition-all duration-500 relative overflow-hidden">
+                                        <div className="absolute -top-10 -right-10 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform"><Download size={240} /></div>
+                                        <div className="w-24 h-24 bg-cyan-50 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-cyan-600 group-hover:scale-110 transition-all duration-500 shadow-inner"><Database size={48} /></div>
+                                        <h3 className="text-3xl font-black mb-3 text-slate-900 tracking-tight font-display">{t('migration.json.createBackup')}</h3>
+                                        <p className="text-sm text-slate-400 font-bold mb-10 max-w-xs mx-auto leading-relaxed uppercase tracking-widest">Gere um arquivo integral contendo Ativos, RCAs, Ações e Taxonomia.</p>
+                                        <button onClick={handleJsonDownload} className="bg-cyan-600 text-white font-black py-4 px-12 rounded-2xl shadow-xl shadow-cyan-600/20 hover:bg-cyan-700 transition-all active:scale-95 uppercase tracking-widest text-xs">{t('migration.json.downloadButton')}</button>
                                     </div>
                                 </div>
                             )}
 
                             {previewData && (
-                                <div className="animate-in fade-in slide-in-from-bottom-6 duration-500">
-                                    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden">
-                                        <div className="bg-slate-50/50 p-8 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                                            <div className="flex items-center gap-5">
-                                                <div className="p-4 bg-white rounded-2xl shadow-sm text-indigo-600"><ClipboardList size={32} /></div>
+                                <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                                    <div className="bg-white rounded-[3rem] border border-slate-200/60 shadow-2xl overflow-hidden">
+                                        <div className="bg-slate-50/50 p-10 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                                            <div className="flex items-center gap-6">
+                                                <div className="p-5 bg-white rounded-3xl shadow-lg text-blue-600 border border-slate-100"><ClipboardList size={40} /></div>
                                                 <div>
-                                                    <h3 className="text-xl font-bold text-slate-800">{t('migration.importConfig')}</h3>
-                                                    <p className="text-sm text-slate-500 font-medium">Schema: <span className="text-indigo-600 font-bold">{previewData.metadata?.systemVersion || '17.0'}</span> • {new Date(previewData.metadata?.exportDate).toLocaleDateString()}</p>
+                                                    <h3 className="text-2xl font-black text-slate-900 tracking-tight font-display uppercase italic">{t('migration.importConfig')}</h3>
+                                                    <p className="text-xs text-slate-400 font-black uppercase tracking-[0.2em] mt-1">Schema: <span className="text-blue-600">{previewData.metadata?.systemVersion || '17.0'}</span> • Gerado em {new Date(previewData.metadata?.exportDate).toLocaleDateString()}</p>
                                                 </div>
                                             </div>
-                                            <button onClick={() => { setPreviewData(null); if (jsonInputRef.current) jsonInputRef.current.value = ''; }} className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors flex items-center gap-2"><X size={16} /> {t('migration.json.changeFile')}</button>
+                                            <button onClick={() => { setPreviewData(null); if (jsonInputRef.current) jsonInputRef.current.value = ''; }} className="px-6 py-3 bg-rose-50 text-rose-600 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-rose-100 transition-all flex items-center gap-2 border border-rose-100 shadow-sm"><X size={18} strokeWidth={3} /> {t('migration.json.changeFile')}</button>
                                         </div>
-                                        <div className="p-10 space-y-12">
-                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                                        <div className="p-12 space-y-16">
+                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
                                                 {[
-                                                    { label: 'Análises RCA', count: previewData.records?.length || 0, icon: Activity, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                                                    { label: 'Análises RCA', count: previewData.records?.length || 0, icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50' },
                                                     { label: 'Planos de Ação', count: previewData.actions?.length || 0, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
                                                     { label: 'Eventos Gatilho', count: previewData.triggers?.length || 0, icon: Activity, color: 'text-amber-600', bg: 'bg-amber-50' },
                                                     { label: 'Nós de Ativos', count: previewData.assets?.length || 0, icon: Layers, color: 'text-cyan-600', bg: 'bg-cyan-50' },
                                                 ].map((item, i) => (
-                                                    <div key={i} className="p-6 rounded-2xl bg-slate-50/50 border border-slate-100 flex flex-col gap-1 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
-                                                        <div className={`w-10 h-10 ${item.bg} ${item.color} rounded-xl flex items-center justify-center mb-2`}><item.icon size={20} /></div>
-                                                        <span className="text-2xl font-black text-slate-800">{item.count}</span>
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.label}</span>
+                                                    <div key={i} className="p-8 rounded-[2rem] bg-slate-50/30 border border-slate-100 flex flex-col gap-2 transition-all hover:bg-white hover:shadow-xl hover:shadow-blue-500/5 hover:border-slate-200 group">
+                                                        <div className={`w-12 h-12 ${item.bg} ${item.color} rounded-2xl flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform`}><item.icon size={24} strokeWidth={2.5} /></div>
+                                                        <span className="text-4xl font-black text-slate-900 tracking-tighter">{item.count}</span>
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{item.label}</span>
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                                                <div className="lg:col-span-5 space-y-6">
-                                                    <div className="flex items-center gap-2 mb-4"><Settings size={18} className="text-slate-400" /><h4 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">{t('migration.json.modeTitle')}</h4></div>
-                                                    <div className="flex flex-col gap-4">
+                                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+                                                <div className="lg:col-span-5 space-y-8">
+                                                    <div className="flex items-center gap-3 mb-6"><Settings size={20} className="text-slate-400" /><h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">{t('migration.json.modeTitle')}</h4></div>
+                                                    <div className="flex flex-col gap-5">
                                                         {[
                                                             { id: 'APPEND', label: t('migration.modes.append'), desc: t('migration.json.modeDescriptions.append'), color: 'blue' },
-                                                            { id: 'UPDATE', label: t('migration.modes.update'), desc: t('migration.json.modeDescriptions.update'), color: 'indigo' },
-                                                            { id: 'REPLACE', label: t('migration.modes.replace'), desc: t('migration.json.modeDescriptions.replace'), color: 'red', warning: true },
+                                                            { id: 'UPDATE', label: t('migration.modes.update'), desc: t('migration.json.modeDescriptions.update'), color: 'cyan' },
+                                                            { id: 'REPLACE', label: t('migration.modes.replace'), desc: t('migration.json.modeDescriptions.replace'), color: 'rose', warning: true },
                                                         ].map((mode) => (
-                                                            <button key={mode.id} onClick={() => setImportMode(mode.id as any)} className={`p-5 rounded-2xl border-2 text-left transition-all duration-300 group ${importMode === mode.id ? `bg-${mode.color}-50 border-${mode.color}-500 shadow-md ring-4 ring-${mode.color}-500/10` : 'bg-white border-slate-100 hover:border-slate-200'}`}>
-                                                                <div className="flex items-center justify-between mb-1">
-                                                                    <span className={`font-bold text-sm ${importMode === mode.id ? `text-${mode.color}-700` : 'text-slate-700'}`}>{mode.label}</span>
-                                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${importMode === mode.id ? `bg-${mode.color}-600 border-${mode.color}-600` : 'border-slate-200'}`}>{importMode === mode.id && <Check size={12} className="text-white" strokeWidth={4} />}</div>
+                                                            <button key={mode.id} onClick={() => setImportMode(mode.id as any)} className={`p-6 rounded-[2rem] border-2 text-left transition-all duration-500 group ${importMode === mode.id ? `bg-white border-${mode.color === 'rose' ? 'rose' : mode.color}-500 shadow-xl shadow-${mode.color === 'rose' ? 'rose' : mode.color}-500/10 ring-4 ring-${mode.color === 'rose' ? 'rose' : mode.color}-500/5` : 'bg-transparent border-slate-100 hover:border-slate-200'}`}>
+                                                                <div className="flex items-center justify-between mb-2">
+                                                                    <span className={`font-black text-sm uppercase tracking-widest ${importMode === mode.id ? `text-${mode.color === 'rose' ? 'rose' : mode.color}-700` : 'text-slate-500'}`}>{mode.label}</span>
+                                                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${importMode === mode.id ? `bg-${mode.color === 'rose' ? 'rose' : mode.color}-600 border-${mode.color === 'rose' ? 'rose' : mode.color}-600 shadow-lg shadow-${mode.color === 'rose' ? 'rose' : mode.color}-500/20` : 'border-slate-200'}`}>{importMode === mode.id && <Check size={14} className="text-white" strokeWidth={4} />}</div>
                                                                 </div>
-                                                                <p className={`text-[11px] leading-relaxed ${importMode === mode.id ? `text-${mode.color}-600/80` : 'text-slate-400'}`}>{mode.warning && '⚠️ '}{mode.desc}</p>
+                                                                <p className={`text-[11px] font-bold leading-relaxed ${importMode === mode.id ? `text-${mode.color === 'rose' ? 'rose' : mode.color}-600/80` : 'text-slate-400'}`}>{mode.warning && '⚠️ '}{mode.desc}</p>
                                                             </button>
                                                         ))}
                                                     </div>
                                                 </div>
-                                                <div className="lg:col-span-7 space-y-6">
-                                                    <div className="flex items-center justify-between mb-4"><div className="flex items-center gap-2"><ShieldCheck size={18} className="text-slate-400" /><h4 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">{t('migration.json.taxonomyTitle')}</h4></div><div className="flex gap-4"><button onClick={() => setTaxonomySelection(prev => Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: true }), {}))} className="text-[10px] font-bold text-indigo-600 hover:underline uppercase tracking-wider">{t('migration.json.selectAll')}</button><button onClick={() => setTaxonomySelection(prev => Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: false }), {}))} className="text-[10px] font-bold text-slate-400 hover:underline uppercase tracking-wider">{t('migration.json.deselectAll')}</button></div></div>
-                                                    <div className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100"><div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <div className="lg:col-span-7 space-y-8">
+                                                    <div className="flex items-center justify-between mb-6"><div className="flex items-center gap-3"><ShieldCheck size={20} className="text-slate-400" /><h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">{t('migration.json.taxonomyTitle')}</h4></div><div className="flex gap-6"><button onClick={() => setTaxonomySelection(prev => Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: true }), {}))} className="text-[10px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest">{t('migration.json.selectAll')}</button><button onClick={() => setTaxonomySelection(prev => Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: false }), {}))} className="text-[10px] font-black text-slate-400 hover:text-slate-500 uppercase tracking-widest">{t('migration.json.deselectAll')}</button></div></div>
+                                                    <div className="bg-slate-50/50 rounded-[2.5rem] p-8 border border-slate-100"><div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         {[
                                                             { key: 'analysisTypes', label: t('settings.analysisTypes'), icon: Activity },
                                                             { key: 'analysisStatuses', label: t('settings.analysisStatuses'), icon: CheckCircle },
@@ -331,19 +334,19 @@ export const MigrationView: React.FC = () => {
                                                             { key: 'rootCauseMs', label: t('settings.rootCauseMs'), icon: TableProperties },
                                                             { key: 'triggerStatuses', label: t('settings.triggerStatuses'), icon: RefreshCw }
                                                         ].map(item => (
-                                                            <label key={item.key} className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${taxonomySelection[item.key] ? 'bg-white border-indigo-200 shadow-sm text-indigo-700' : 'bg-transparent border-transparent text-slate-500 hover:bg-white/50'}`}>
-                                                                <input type="checkbox" checked={!!taxonomySelection[item.key]} onChange={() => toggleTaxonomy(item.key)} className="w-4 h-4 text-indigo-600 rounded-lg border-slate-300 focus:ring-4 focus:ring-indigo-500/10" />
-                                                                <item.icon size={14} className={taxonomySelection[item.key] ? 'text-indigo-500' : 'text-slate-300'} />
-                                                                <span className="text-xs font-bold truncate">{item.label}</span>
+                                                            <label key={item.key} htmlFor={`${idPrefix}-tax-${item.key}`} className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all cursor-pointer ${taxonomySelection[item.key] ? 'bg-white border-blue-500 shadow-lg shadow-blue-500/5 text-blue-700' : 'bg-transparent border-transparent text-slate-500 hover:bg-white/50'}`}>
+                                                                <input id={`${idPrefix}-tax-${item.key}`} type="checkbox" checked={!!taxonomySelection[item.key]} onChange={() => toggleTaxonomy(item.key)} className="w-5 h-5 text-blue-600 rounded-lg border-slate-200 focus:ring-4 focus:ring-blue-500/10 cursor-pointer" />
+                                                                <item.icon size={18} strokeWidth={2.5} className={taxonomySelection[item.key] ? 'text-blue-500' : 'text-slate-300'} />
+                                                                <span className="text-xs font-black uppercase tracking-tight truncate">{item.label}</span>
                                                             </label>
                                                         ))}
                                                     </div></div>
-                                                    <div className="p-5 bg-indigo-50/50 rounded-2xl border border-indigo-100/50 flex gap-3"><Info size={18} className="text-indigo-500 flex-shrink-0" /><p className="text-[11px] text-indigo-700/70 leading-relaxed">Ao importar taxonomias, os IDs existentes no sistema serão preservados se houver conflito, priorizando a integridade da base local.</p></div>
+                                                    <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100 flex gap-4"><Info size={20} className="text-blue-500 flex-shrink-0 mt-0.5" /><p className="text-[11px] text-blue-700 font-bold leading-relaxed">Nota: Conflitos de ID serão resolvidos preservando a integridade da base local existente.</p></div>
                                                 </div>
                                             </div>
-                                            <div className="flex justify-end pt-8 border-t border-slate-100 gap-4">
-                                                <button onClick={() => setPreviewData(null)} className="px-8 py-3.5 text-slate-500 font-bold text-sm rounded-xl hover:bg-slate-50 transition-colors">{t('migration.cancel')}</button>
-                                                <button onClick={executeImport} className="px-12 py-3.5 bg-emerald-600 text-white font-black text-sm rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 active:scale-95"><RefreshCw size={18} />{t('migration.json.initializeButton')}</button>
+                                            <div className="flex justify-end pt-10 border-t border-slate-100 gap-6">
+                                                <button onClick={() => setPreviewData(null)} className="px-10 py-4 text-slate-400 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-200">{t('migration.cancel')}</button>
+                                                <button onClick={executeImport} className="px-16 py-4 bg-emerald-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-emerald-700 shadow-xl shadow-emerald-600/20 transition-all flex items-center gap-3 active:scale-95"><RefreshCw size={20} strokeWidth={3} />{t('migration.json.initializeButton')}</button>
                                             </div>
                                         </div>
                                     </div>
@@ -351,91 +354,91 @@ export const MigrationView: React.FC = () => {
                             )}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
                             {/* Coluna de Configuração CSV */}
-                            <div className="lg:col-span-7 space-y-8">
-                                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-soft h-full">
-                                    <div className="flex items-center gap-4 mb-8">
-                                        <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl shadow-sm">
-                                            <FileSpreadsheet size={24} />
+                            <div className="lg:col-span-7 space-y-10">
+                                <div className="bg-white p-10 lg:p-12 rounded-[3rem] border border-slate-200/60 shadow-sm h-full">
+                                    <div className="flex items-center gap-5 mb-10 border-b border-slate-100 pb-6">
+                                        <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl shadow-sm border border-emerald-100">
+                                            <FileSpreadsheet size={28} />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-slate-800 tracking-tight">{t('migration.csvTools')}</h3>
-                                            <p className="text-xs text-slate-500 font-medium">Configurações de Entidade e Lógica</p>
+                                            <h3 className="text-2xl font-black text-slate-900 tracking-tight font-display uppercase italic">{t('migration.csvTools')}</h3>
+                                            <p className="text-xs text-slate-400 font-black uppercase tracking-widest mt-1">Configurações de Entidade e Lógica</p>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-8">
+                                    <div className="space-y-10">
                                         {/* Seleção de Entidade com Cards Visuais */}
                                         <div>
-                                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4 px-1">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 px-2">
                                                 {t('migration.targetEntity')}
                                             </label>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[32rem] overflow-y-auto pr-4 custom-scrollbar">
                                                 {entityOptions.map(opt => (
                                                     <button
                                                         key={opt.value}
                                                         onClick={() => { setCsvType(opt.value); setMsg(null); }}
-                                                        className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left group ${
+                                                        className={`flex items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-300 text-left group ${
                                                             csvType === opt.value 
-                                                                ? 'bg-indigo-50 border-indigo-500 shadow-sm ring-4 ring-indigo-500/5' 
-                                                                : 'bg-slate-50/50 border-transparent hover:border-slate-200'
+                                                                ? 'bg-white border-blue-600 shadow-xl shadow-blue-500/5 ring-4 ring-blue-500/5' 
+                                                                : 'bg-slate-50/30 border-transparent hover:border-slate-200 hover:bg-white'
                                                         }`}
                                                     >
-                                                        <div className={`p-2 rounded-xl transition-colors ${csvType === opt.value ? 'bg-white text-indigo-600' : 'bg-white text-slate-400 group-hover:text-slate-600'}`}>
-                                                            <opt.icon size={18} />
+                                                        <div className={`p-3 rounded-xl transition-all duration-300 ${csvType === opt.value ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-slate-400 group-hover:text-blue-500 shadow-sm'}`}>
+                                                            <opt.icon size={20} strokeWidth={2.5} />
                                                         </div>
-                                                        <span className={`text-xs font-bold ${csvType === opt.value ? 'text-indigo-700' : 'text-slate-600'}`}>{opt.label}</span>
-                                                        {csvType === opt.value && <Check size={14} className="ml-auto text-indigo-600" strokeWidth={3} />}
+                                                        <span className={`text-xs font-black uppercase tracking-tight ${csvType === opt.value ? 'text-slate-900' : 'text-slate-500'}`}>{opt.label}</span>
+                                                        {csvType === opt.value && <div className="ml-auto w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.5)]" />}
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
 
                                         {/* Modo de Importação CSV Redesenhado */}
-                                        <div className="p-6 rounded-3xl bg-slate-50/50 border border-slate-100 space-y-6">
-                                            <div className="flex items-center gap-2 text-slate-800">
-                                                <Settings size={16} className="text-slate-400" />
-                                                <h4 className="text-xs font-bold uppercase tracking-wider">{t('migration.csv.importOptions')}</h4>
+                                        <div className="p-8 rounded-[2.5rem] bg-slate-50/50 border border-slate-100 space-y-8">
+                                            <div className="flex items-center gap-3 text-slate-800">
+                                                <Settings size={18} className="text-slate-400" />
+                                                <h4 className="text-[10px] font-black uppercase tracking-widest">{t('migration.csv.importOptions')}</h4>
                                             </div>
 
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 {[
-                                                    { id: 'APPEND', label: t('migration.csv.appendLabel'), desc: t('migration.csv.appendHint'), icon: FileUp },
-                                                    { id: 'UPDATE', label: t('migration.csv.updateLabel'), desc: t('migration.csv.updateHint'), icon: RefreshCw },
+                                                    { id: 'APPEND', label: t('migration.csv.appendLabel'), desc: t('migration.csv.appendHint'), icon: FileUp, color: 'blue' },
+                                                    { id: 'UPDATE', label: t('migration.csv.updateLabel'), desc: t('migration.csv.updateHint'), icon: RefreshCw, color: 'cyan' },
                                                 ].map((mode) => (
                                                     <button
                                                         key={mode.id}
                                                         onClick={() => setImportMode(mode.id as any)}
-                                                        className={`p-4 rounded-2xl border-2 text-left transition-all ${
+                                                        className={`p-5 rounded-2xl border-2 text-left transition-all duration-500 ${
                                                             (importMode === mode.id || (mode.id === 'APPEND' && importMode === 'REPLACE'))
-                                                                ? 'bg-white border-indigo-500 shadow-md ring-4 ring-indigo-500/5' 
+                                                                ? `bg-white border-${mode.color}-500 shadow-xl ring-4 ring-${mode.color}-500/5` 
                                                                 : 'bg-transparent border-slate-100 hover:border-slate-200'
                                                         }`}
                                                     >
-                                                        <div className="flex items-center gap-3 mb-1">
-                                                            <mode.icon size={14} className={importMode === mode.id ? 'text-indigo-600' : 'text-slate-400'} />
-                                                            <span className={`text-xs font-bold ${importMode === mode.id ? 'text-indigo-700' : 'text-slate-700'}`}>{mode.label}</span>
+                                                        <div className="flex items-center gap-3 mb-2">
+                                                            <mode.icon size={16} strokeWidth={3} className={importMode === mode.id ? `text-${mode.color}-600` : 'text-slate-400'} />
+                                                            <span className={`text-xs font-black uppercase tracking-widest ${importMode === mode.id ? `text-${mode.color}-700` : 'text-slate-500'}`}>{mode.label}</span>
                                                         </div>
-                                                        <p className="text-[10px] text-slate-400 leading-relaxed">{mode.desc}</p>
+                                                        <p className="text-[10px] font-bold text-slate-400 leading-relaxed">{mode.desc}</p>
                                                     </button>
                                                 ))}
                                             </div>
 
                                             {csvType === 'TRIGGERS' && (
-                                                <label className="flex items-center gap-4 p-4 rounded-2xl bg-indigo-50 border border-indigo-100 cursor-pointer group transition-all hover:bg-indigo-100/50">
+                                                <label htmlFor={`${idPrefix}-csv-inherit`} className="flex items-center gap-5 p-5 rounded-[2rem] bg-blue-50 border border-blue-100 cursor-pointer group transition-all hover:bg-blue-100/50 shadow-sm">
                                                     <div className="relative flex items-center">
                                                         <input
                                                             type="checkbox"
-                                                            id="csv_inherit_hierarchy"
+                                                            id={`${idPrefix}-csv-inherit`}
                                                             checked={inheritHierarchy}
                                                             onChange={e => setInheritHierarchy(e.target.checked)}
-                                                            className="w-5 h-5 rounded-lg border-slate-300 text-indigo-600 focus:ring-4 focus:ring-indigo-500/10"
+                                                            className="w-6 h-6 rounded-xl border-slate-300 text-blue-600 focus:ring-4 focus:ring-blue-500/10 cursor-pointer"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <span className="text-xs font-bold text-indigo-800">{t('migration.csv.inheritHierarchy')}</span>
-                                                        <p className="text-[10px] text-indigo-600/60 leading-relaxed">{t('migration.csv.inheritHint')}</p>
+                                                        <span className="text-xs font-black text-blue-900 uppercase tracking-tight">{t('migration.csv.inheritHierarchy')}</span>
+                                                        <p className="text-[10px] font-bold text-blue-600/60 leading-relaxed uppercase mt-0.5">{t('migration.csv.inheritHint')}</p>
                                                     </div>
                                                 </label>
                                             )}
@@ -445,40 +448,40 @@ export const MigrationView: React.FC = () => {
                             </div>
 
                             {/* Coluna de Ações de Arquivo CSV */}
-                            <div className="lg:col-span-5 space-y-6">
-                                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4 px-1">Ações de Arquivo</label>
+                            <div className="lg:col-span-5 space-y-8">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 px-2">Ações de Arquivo</label>
                                 
-                                <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-soft overflow-hidden">
-                                    <div className="p-8 space-y-4">
+                                <div className="bg-white rounded-[3rem] border border-slate-200/60 shadow-sm overflow-hidden group/actions">
+                                    <div className="p-10 space-y-6">
                                         <button
                                             onClick={handleDownloadTemplate}
-                                            className="w-full flex items-center gap-4 p-6 bg-slate-50/50 border border-slate-100 rounded-3xl hover:bg-white hover:shadow-lg hover:border-indigo-200 transition-all group text-left"
+                                            className="w-full flex items-center gap-5 p-6 bg-slate-50/50 border border-slate-100 rounded-[2rem] hover:bg-white hover:shadow-2xl hover:shadow-blue-500/5 hover:border-blue-200 transition-all group text-left"
                                         >
-                                            <div className="p-4 bg-white rounded-2xl shadow-sm text-slate-400 group-hover:text-indigo-600 group-hover:scale-110 transition-all">
-                                                <FileDown size={24} />
+                                            <div className="p-4 bg-white rounded-2xl shadow-sm text-slate-400 group-hover:text-blue-600 group-hover:scale-110 transition-all border border-slate-50">
+                                                <FileDown size={28} />
                                             </div>
                                             <div className="flex-1">
-                                                <span className="block font-bold text-slate-700 text-sm">{t('migration.downloadTemplate')}</span>
-                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Obter modelo estruturado</span>
+                                                <span className="block font-black text-slate-800 text-sm uppercase tracking-tight">{t('migration.downloadTemplate')}</span>
+                                                <span className="text-[10px] text-slate-400 uppercase font-black tracking-[0.15em] mt-1 block">Obter modelo estruturado</span>
                                             </div>
-                                            <ChevronRight size={18} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+                                            <ChevronRight size={20} className="text-slate-300 group-hover:translate-x-2 transition-transform" strokeWidth={3} />
                                         </button>
 
                                         <button
                                             onClick={handleCsvExport}
-                                            className="w-full flex items-center gap-4 p-6 bg-slate-50/50 border border-slate-100 rounded-3xl hover:bg-white hover:shadow-lg hover:border-emerald-200 transition-all group text-left"
+                                            className="w-full flex items-center gap-5 p-6 bg-slate-50/50 border border-slate-100 rounded-[2rem] hover:bg-white hover:shadow-2xl hover:shadow-emerald-500/5 hover:border-emerald-200 transition-all group text-left"
                                         >
-                                            <div className="p-4 bg-white rounded-2xl shadow-sm text-slate-400 group-hover:text-emerald-600 group-hover:scale-110 transition-all">
-                                                <Download size={24} />
+                                            <div className="p-4 bg-white rounded-2xl shadow-sm text-slate-400 group-hover:text-emerald-600 group-hover:scale-110 transition-all border border-slate-50">
+                                                <Download size={28} />
                                             </div>
                                             <div className="flex-1">
-                                                <span className="block font-bold text-slate-700 text-sm">{t('migration.exportData')}</span>
-                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tight">Baixar dados existentes</span>
+                                                <span className="block font-black text-slate-800 text-sm uppercase tracking-tight">{t('migration.exportData')}</span>
+                                                <span className="text-[10px] text-slate-400 uppercase font-black tracking-[0.15em] mt-1 block">Baixar dados existentes</span>
                                             </div>
-                                            <ChevronRight size={18} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+                                            <ChevronRight size={20} className="text-slate-300 group-hover:translate-x-2 transition-transform" strokeWidth={3} />
                                         </button>
 
-                                        <div className="relative group pt-4">
+                                        <div className="relative group pt-6">
                                             <input
                                                 type="file"
                                                 id="csv_file_import"
@@ -487,23 +490,23 @@ export const MigrationView: React.FC = () => {
                                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                                 accept=".csv"
                                             />
-                                            <div className="flex items-center gap-4 p-8 bg-indigo-600 rounded-[2rem] shadow-xl shadow-indigo-600/20 group-hover:bg-indigo-700 group-hover:scale-[1.02] transition-all text-left">
-                                                <div className="p-4 bg-white/10 rounded-2xl text-white">
-                                                    <FileUp size={28} />
+                                            <div className="flex items-center gap-6 p-10 bg-blue-600 rounded-[2.5rem] shadow-2xl shadow-blue-600/20 group-hover:bg-blue-700 group-hover:scale-[1.02] transition-all text-left">
+                                                <div className="p-5 bg-white/10 rounded-[1.5rem] text-white shadow-inner">
+                                                    <FileUp size={36} strokeWidth={2.5} />
                                                 </div>
                                                 <div className="flex-1">
-                                                    <span className="block font-black text-white text-base">{t('migration.importCsv')}</span>
-                                                    <span className="text-xs text-indigo-100 font-medium opacity-80 uppercase tracking-wider italic">Clique para selecionar arquivo</span>
+                                                    <span className="block font-black text-white text-xl tracking-tight uppercase italic">{t('migration.importCsv')}</span>
+                                                    <span className="text-[10px] text-blue-100 font-black uppercase tracking-widest opacity-70 mt-1 block tracking-[0.2em]">Clique para selecionar</span>
                                                 </div>
-                                                <ChevronRight size={20} className="text-indigo-200 group-hover:translate-x-1 transition-transform" />
+                                                <ChevronRight size={24} className="text-blue-200 group-hover:translate-x-2 transition-transform" strokeWidth={3} />
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="bg-slate-50/80 p-6 border-t border-slate-100 flex gap-3">
-                                        <Info size={16} className="text-slate-400 flex-shrink-0 mt-0.5" />
-                                        <p className="text-[10px] text-slate-500 leading-relaxed font-medium">
-                                            Certifique-se de que o separador do arquivo CSV é ponto e vírgula (;) ou vírgula (,) e a codificação é UTF-8 para evitar erros de caracteres especiais.
+                                    <div className="bg-slate-50 p-8 border-t border-slate-100 flex gap-4">
+                                        <div className="p-2 bg-white rounded-lg shadow-sm text-slate-400"><Info size={18} /></div>
+                                        <p className="text-[11px] text-slate-500 leading-relaxed font-bold uppercase tracking-tight">
+                                            Nota: Utilize codificação UTF-8 e separador ponto e vírgula (;) para máxima compatibilidade com Excel.
                                         </p>
                                     </div>
                                 </div>

@@ -20,9 +20,7 @@ export const useRcaLogic = (initialRecord: RcaRecord | null, onSaveSuccess: () =
      * Estado inicial do formulário com preenchimento automático de estruturas padrão.
      */
     const [formData, setFormData] = useState<RcaRecord>(() => {
-        if (initialRecord) return { ...initialRecord };
-
-        return {
+        const defaultRca: RcaRecord = {
             id: generateId('RCA'),
             version: '17.2',
             analysis_date: new Date().toISOString().split('T')[0],
@@ -61,7 +59,10 @@ export const useRcaLogic = (initialRecord: RcaRecord | null, onSaveSuccess: () =
             human_reliability: getStandardHraStruct(),
             containment_actions: [],
             lessons_learned: []
-        } as RcaRecord;
+        };
+
+        if (initialRecord) return { ...defaultRca, ...initialRecord };
+        return defaultRca;
     });
 
     /**

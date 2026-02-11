@@ -58,23 +58,23 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
     };
 
     const removeRootCause = (idx: number) => {
-        const newList = [...data.root_causes];
+        const newList = [...(data.root_causes || [])];
         newList.splice(idx, 1);
         onChange('root_causes', newList);
     };
 
     const updateRootCause = (idx: number, field: 'root_cause_m_id' | 'cause', value: string) => {
-        const newList = [...data.root_causes];
+        const newList = [...(data.root_causes || [])];
         newList[idx] = { ...newList[idx], [field]: value };
         onChange('root_causes', newList);
     };
 
-    const filledWhysCount = (data.five_whys || []).filter(w => w.answer.trim()).length;
+    const filledWhysCount = (data.five_whys || []).filter(w => w && w.answer?.trim()).length;
     const canDefineRootCause = filledWhysCount >= 3;
 
     // --- Lógica de Alternância do Modo dos 5 Porquês ---
     const hasChains = data.five_whys_chains && data.five_whys_chains?.length > 0;
-    const [useAdvancedMode, setUseAdvancedMode] = useState(hasChains);
+    const [useAdvancedMode, setUseAdvancedMode] = useState(!!hasChains);
 
     const addLegacyWhy = () => {
         const nextId = ((data.five_whys?.length || 0) + 1).toString();
@@ -83,7 +83,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
     };
 
     const removeLegacyWhy = (index: number) => {
-        const newWhys = [...data.five_whys];
+        const newWhys = [...(data.five_whys || [])];
         newWhys.splice(index, 1);
         onChange('five_whys', newWhys);
     };

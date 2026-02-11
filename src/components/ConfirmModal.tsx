@@ -65,39 +65,41 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     const colors = variantColors[variant];
 
     return (
-        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
             <div
                 ref={containerRef}
-                className={`bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden ${(window as any).isPlaywright ? 'opacity-100' : 'opacity-0'}`}
+                className={`bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 ${(window as any).isPlaywright ? 'opacity-100' : 'opacity-0'}`}
             >
                 {/* Cabeçalho */}
-                <div className={`px-6 py-4 ${colors.bg} flex items-center gap-3`}>
-                    <AlertTriangle className={`${colors.icon}`} size={24} />
-                    <h3 className="font-bold text-lg text-slate-800">{finalTitle}</h3>
+                <div className={`px-8 py-6 ${colors.bg} flex items-center gap-4 border-b border-slate-100`}>
+                    <div className={`p-2.5 rounded-xl bg-white shadow-sm ${colors.icon}`}>
+                        <AlertTriangle size={24} strokeWidth={2.5} />
+                    </div>
+                    <h3 className="font-black text-xl text-slate-900 font-display tracking-tight">{finalTitle}</h3>
                     <button
                         onClick={onCancel}
-                        className="ml-auto text-slate-400 hover:text-slate-600"
+                        className="ml-auto p-2 text-slate-400 hover:text-slate-600 hover:bg-white/50 rounded-full transition-all"
                     >
                         <X size={20} />
                     </button>
                 </div>
 
                 {/* Corpo da Mensagem */}
-                <div className="p-6">
-                    <p className="text-slate-600">{message}</p>
+                <div className="p-8">
+                    <p className="text-slate-600 font-medium leading-relaxed">{message}</p>
                 </div>
 
                 {/* Ações de Rodapé */}
-                <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
+                <div className="px-8 py-6 bg-slate-50 flex justify-end gap-4 border-t border-slate-100">
                     <button
                         onClick={onCancel}
-                        className="px-4 py-2 text-slate-600 hover:text-slate-800 font-medium rounded-lg hover:bg-slate-100 transition-colors"
+                        className="px-6 py-2.5 text-slate-500 font-bold rounded-xl hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-slate-200"
                     >
                         {finalCancelText}
                     </button>
                     <button
                         onClick={onConfirm}
-                        className={`px-4 py-2 text-white font-bold rounded-lg ${colors.button} transition-colors`}
+                        className={`px-8 py-2.5 text-white font-black rounded-xl shadow-lg transition-all active:scale-95 ${colors.button}`}
                     >
                         {finalConfirmText}
                     </button>

@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useId } from 'react';
 import { TriggerRecord, AssetNode, TaxonomyConfig } from '../../types';
 import { AssetSelector } from '../AssetSelector';
 import { Input } from '../ui/Input';
@@ -10,6 +10,7 @@ import { calculateDuration, getAssetName, findAssetPath } from '../../utils/trig
 import { translateTriggerStatus } from '../../utils/statusUtils';
 import { generateId } from '../../services/utils';
 import { useLanguage } from '../../context/LanguageDefinition';
+import { X } from 'lucide-react';
 
 interface TriggerModalProps {
     editingTrigger: TriggerRecord;
@@ -33,6 +34,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
     validationErrors = DEFAULT_ERRORS
 }) => {
     const { t } = useLanguage();
+    const idPrefix = useId();
     const modalRef = useRef<HTMLDivElement>(null);
     const [localErrors, setLocalErrors] = useState<Record<string, boolean>>({});
 
@@ -105,15 +107,18 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
     const hasAssetError = localErrors.area_id || localErrors.equipment_id || localErrors.subgroup_id;
 
     return (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div ref={modalRef} className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden opacity-0 flex flex-col max-h-[90vh]">
-                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center flex-shrink-0">
-                    <h3 className="font-bold text-lg text-slate-800">{t('triggerModal.title')}</h3>
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div ref={modalRef} className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden opacity-0 flex flex-col max-h-[90vh] border border-slate-200">
+                <div className="px-8 py-6 border-b border-slate-100 bg-white flex justify-between items-center flex-shrink-0">
+                    <h3 className="font-black text-xl text-slate-900 font-display tracking-tight uppercase italic">{t('triggerModal.title')}</h3>
+                    <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-50 rounded-full text-slate-400 transition-colors">
+                        <X size={20} />
+                    </button>
                 </div>
                 
-                <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1">
+                <div className="p-8 space-y-8 overflow-y-auto custom-scrollbar flex-1 bg-slate-50/30">
                     {/* Dates */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
                             id="trigger_start_date"
                             label={t('triggerModal.startDate')}
@@ -135,15 +140,17 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                     </div>
 
                     {/* Technical Location (Asset Tree) */}
-                    <div className="space-y-2">
-                        <label className="block text-xs font-medium text-slate-500">
+                    <div className="space-y-4">
+                        <span id={`${idPrefix}-asset-label`} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
                             {t('wizard.step1.assetSelectorLabel')}
-                            {(isRequired('area_id') || isRequired('equipment_id') || isRequired('subgroup_id')) && <span className="text-red-500 ml-1">*</span>}
-                        </label>
-                        <div className={`p-1 rounded-lg border-2 transition-all ${
+                            {(isRequired('area_id') || isRequired('equipment_id') || isRequired('subgroup_id')) && <span className="text-rose-500 ml-1">*</span>}
+                        </span>
+                        <div 
+                            aria-labelledby={`${idPrefix}-asset-label`}
+                            className={`p-1 rounded-[1.5rem] border-2 transition-all ${
                             hasAssetError
-                            ? 'border-red-500 ring-4 ring-red-100' 
-                            : 'border-transparent'
+                            ? 'border-rose-300 ring-4 ring-rose-50' 
+                            : 'border-slate-100 bg-white'
                         }`}>
                             <AssetSelector
                                 assets={assets}
@@ -151,16 +158,26 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                                 selectedAssetId={editingTrigger.subgroup_id || editingTrigger.equipment_id || editingTrigger.area_id}
                             />
                         </div>
-                        {hasAssetError && <span className="text-[10px] text-red-500 font-medium block animate-in fade-in">{t('common.requiredField')}</span>}
-                        <div className="p-3 bg-blue-50 rounded border border-blue-100 text-xs text-blue-800 space-y-1">
-                            <div><strong>{t('wizard.step1.area')}:</strong> {getAssetName(editingTrigger.area_id, assets) || '-'}</div>
-                            <div><strong>{t('wizard.step1.equipment')}:</strong> {getAssetName(editingTrigger.equipment_id, assets) || '-'}</div>
-                            <div><strong>{t('wizard.step1.subgroup')}:</strong> {getAssetName(editingTrigger.subgroup_id, assets) || '-'}</div>
+                        {hasAssetError && <span className="text-xs text-rose-500 font-bold block animate-in fade-in flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-rose-500"></span>{t('common.requiredField')}</span>}
+                        
+                        <div className="p-5 bg-white rounded-2xl border border-slate-200 text-sm text-slate-600 space-y-3 shadow-inner">
+                            <div className="flex justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
+                                <strong className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.area')}:</strong> 
+                                <span className="font-black text-slate-900">{getAssetName(editingTrigger.area_id, assets) || '-'}</span>
+                            </div>
+                            <div className="flex justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
+                                <strong className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.equipment')}:</strong> 
+                                <span className="font-black text-slate-900">{getAssetName(editingTrigger.equipment_id, assets) || '-'}</span>
+                            </div>
+                            <div className="flex justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
+                                <strong className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.subgroup')}:</strong> 
+                                <span className="font-black text-slate-900">{getAssetName(editingTrigger.subgroup_id, assets) || '-'}</span>
+                            </div>
                         </div>
                     </div>
 
                     {/* Details */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
                             id="trigger_stop_type"
                             label={t('triggerModal.stopType')}
@@ -179,7 +196,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Select
                             id="trigger_analysis_type"
                             label={t('triggerModal.analysisType')}
@@ -216,13 +233,23 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                         error={localErrors.comments}
                         value={editingTrigger.comments || ''}
                         onChange={e => setEditingTrigger({ ...editingTrigger, comments: e.target.value })}
-                        rows={3}
+                        rows={4}
                     />
                 </div>
 
-                <div className="p-4 border-t border-slate-200 bg-white flex justify-end gap-3 flex-shrink-0">
-                    <button onClick={() => setIsModalOpen(false)} className="px-6 py-2.5 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium transition-colors">{t('triggerModal.cancel')}</button>
-                    <button onClick={onSaveClick} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors active:scale-95">{t('triggerModal.save')}</button>
+                <div className="px-8 py-6 border-t border-slate-100 bg-white flex justify-end gap-4 flex-shrink-0">
+                    <button 
+                        onClick={() => setIsModalOpen(false)} 
+                        className="px-8 py-3 text-slate-500 font-black uppercase tracking-widest text-[11px] hover:bg-slate-50 rounded-2xl transition-all border border-transparent hover:border-slate-200"
+                    >
+                        {t('triggerModal.cancel')}
+                    </button>
+                    <button 
+                        onClick={onSaveClick} 
+                        className="px-10 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+                    >
+                        {t('triggerModal.save')}
+                    </button>
                 </div>
             </div>
         </div >

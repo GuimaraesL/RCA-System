@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { Search, Filter, RefreshCw, ChevronUp, ChevronDown, Calendar, X, MapPin, Tag, Globe, Lock } from 'lucide-react';
+import { Search, Filter, RefreshCw, ChevronUp, ChevronDown, Calendar, X, MapPin, Tag, Globe, Lock, Info } from 'lucide-react';
 import { AssetNode } from '../types';
 import { useLanguage } from '../context/LanguageDefinition'; // i18n
 import { translateStatus, translate6M } from '../utils/statusUtils';
@@ -87,6 +87,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     availableOptions
 }) => {
     const { t } = useLanguage();
+    const idPrefix = React.useId();
 
     // --- Debounced Search State (Fix: Issue #11 - Performance com 16k registros) ---
     const [localSearch, setLocalSearch] = useState(filters.searchTerm);
@@ -276,16 +277,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6 pb-6 border-b border-slate-100">
                         {showSearch && (
                             <div className="md:col-span-4">
-                                <label htmlFor="filter_search" className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase mb-2">
+                                <label htmlFor={`${idPrefix}-search`} className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 cursor-pointer">
                                     <Search size={14} /> {t('filters.searchLabel')}
                                 </label>
-                                <div className="relative">
+                                <div className="relative group">
                                     <input
                                         type="text"
-                                        id="filter_search"
+                                        id={`${idPrefix}-search`}
                                         name="filter_search"
                                         placeholder={t('filters.searchPlaceholder')}
-                                        className="w-full pl-3 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                        className="w-full pl-4 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder-slate-400 font-medium"
                                         value={localSearch}
                                         onChange={e => setLocalSearch(e.target.value)}
                                     />
@@ -293,25 +294,28 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                             </div>
                         )}
                         {showDate && (
-                            <div className="md:col-span-8 flex flex-col md:flex-row gap-4">
-                                <div className="w-full md:w-40">
-                                    <label htmlFor="filter_year" className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase mb-2">
+                            <div className="md:col-span-8 flex flex-col md:flex-row gap-6">
+                                <div className="w-full md:w-44">
+                                    <label htmlFor={`${idPrefix}-year`} className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 cursor-pointer">
                                         <Calendar size={14} /> {t('filters.year')}
                                     </label>
-                                    <select
-                                        id="filter_year"
-                                        name="filter_year"
-                                        value={filters.year}
-                                        onChange={e => handleChange('year', e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg p-2.5 font-semibold focus:ring-2 focus:ring-blue-500 outline-none"
-                                    >
-                                        <option value="">{t('filters.options.all')}</option>
-                                        {years.map(y => <option key={y} value={y}>{y}</option>)}
-                                    </select>
+                                    <div className="relative">
+                                        <select
+                                            id={`${idPrefix}-year`}
+                                            name="filter_year"
+                                            value={filters.year}
+                                            onChange={e => handleChange('year', e.target.value)}
+                                            className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl py-2.5 pl-4 pr-10 font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none appearance-none transition-all cursor-pointer hover:border-slate-300"
+                                        >
+                                            <option value="">{t('filters.options.all')}</option>
+                                            {years.map(y => <option key={y} value={y}>{y}</option>)}
+                                        </select>
+                                        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400" />
+                                    </div>
                                 </div>
                                 <div className="flex-1">
-                                    <span id="filter_month_label" className="block text-xs font-bold text-slate-500 uppercase mb-2">{t('filters.month')}</span>
-                                    <div className="flex flex-wrap gap-1" role="group" aria-labelledby="filter_month_label">
+                                    <span id={`${idPrefix}-month-label`} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('filters.month')}</span>
+                                    <div className="flex flex-wrap gap-1.5" role="group" aria-labelledby={`${idPrefix}-month-label`}>
                                         {monthsList.map(m => {
                                             const isActive = (filters.months || []).includes(m.id);
                                             const isAvailable = !availableOptions || availableOptions.months.has(m.id);
@@ -320,12 +324,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                                     key={m.id}
                                                     onClick={() => isAvailable && toggleMonth(m.id)}
                                                     disabled={!isAvailable}
-                                                    className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all border ${
+                                                    className={`px-3.5 py-2 rounded-lg text-xs font-black transition-all border ${
                                                         !isAvailable 
-                                                            ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed'
+                                                            ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed opacity-50'
                                                             : isActive
-                                                                ? 'bg-blue-600 text-white border-blue-600 shadow-md transform scale-105'
-                                                                : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-600'
+                                                                ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20 scale-105'
+                                                                : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/30'
                                                         }`}
                                                 >
                                                     {m.label}
@@ -334,7 +338,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                         })}
                                         <button
                                             onClick={() => handleChange('months', [])}
-                                            className="px-2 text-xs text-slate-400 hover:text-blue-500 underline ml-auto"
+                                            className="px-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-rose-500 transition-colors ml-auto"
                                         >
                                             {t('filters.clear')}
                                         </button>
@@ -344,55 +348,64 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         )}
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
                         {/* Section 2: Asset Hierarchy */}
                         {showAssetHierarchy && (
-                            <div className="space-y-4">
-                                <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                    <MapPin size={16} className="text-slate-400" /> {t('filters.sections.location')}
+                            <div className="space-y-6">
+                                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    <MapPin size={16} className="text-slate-300" /> {t('filters.sections.location')}
                                 </h4>
-                                <div className="bg-slate-50 p-4 rounded-lg space-y-3 border border-slate-100">
+                                <div className="bg-slate-50/50 p-6 rounded-xl space-y-5 border border-slate-100">
                                     <div>
-                                        <label htmlFor="filter_area" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.area')}</label>
-                                        <select
-                                            id="filter_area"
-                                            name="filter_area"
-                                            className="w-full border border-slate-200 rounded-lg p-2 text-sm bg-white hover:border-blue-300 transition-colors"
-                                            value={filters.area}
-                                            onChange={e => handleChange('area', e.target.value)}
-                                        >
-                                            <option value="ALL">{t('filters.options.allAreas')}</option>
-                                            {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                                        </select>
+                                        <label htmlFor={`${idPrefix}-area`} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('filters.area')}</label>
+                                        <div className="relative">
+                                            <select
+                                                id={`${idPrefix}-area`}
+                                                name="filter_area"
+                                                className="w-full border border-slate-200 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white hover:border-blue-300 transition-all focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none font-bold text-slate-700 cursor-pointer"
+                                                value={filters.area}
+                                                onChange={e => handleChange('area', e.target.value)}
+                                            >
+                                                <option value="ALL">{t('filters.options.allAreas')}</option>
+                                                {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                                            </select>
+                                            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400" />
+                                        </div>
                                     </div>
                                     <div>
-                                        <label htmlFor="filter_equipment" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.equipment')}</label>
-                                        <select
-                                            id="filter_equipment"
-                                            name="filter_equipment"
-                                            className="w-full border border-slate-200 rounded-lg p-2 text-sm bg-white disabled:opacity-50 hover:border-blue-300 transition-colors"
-                                            value={filters.equipment}
-                                            onChange={e => handleChange('equipment', e.target.value)}
-                                            disabled={filters.area === 'ALL'}
-                                        >
-                                            <option value="ALL">{t('filters.options.allEquipments')}</option>
-                                            {equipments.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                                        </select>
+                                        <label htmlFor={`${idPrefix}-equipment`} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('filters.equipment')}</label>
+                                        <div className="relative">
+                                            <select
+                                                id={`${idPrefix}-equipment`}
+                                                name="filter_equipment"
+                                                className="w-full border border-slate-200 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white disabled:opacity-50 disabled:bg-slate-100 hover:border-blue-300 transition-all focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none font-bold text-slate-700 cursor-pointer"
+                                                value={filters.equipment}
+                                                onChange={e => handleChange('equipment', e.target.value)}
+                                                disabled={filters.area === 'ALL'}
+                                            >
+                                                <option value="ALL">{t('filters.options.allEquipments')}</option>
+                                                {equipments.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                                            </select>
+                                            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400" />
+                                        </div>
                                     </div>
                                     <div>
-                                        <label htmlFor="filter_subgroup" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.subgroup')}</label>
-                                        <select
-                                            id="filter_subgroup"
-                                            name="filter_subgroup"
-                                            className="w-full border border-slate-200 rounded-lg p-2 text-sm bg-white disabled:opacity-50 hover:border-blue-300 transition-colors"
-                                            value={filters.subgroup}
-                                            onChange={e => handleChange('subgroup', e.target.value)}
-                                            disabled={filters.equipment === 'ALL'}
-                                        >
-                                            <option value="ALL">{t('filters.options.allSubgroups')}</option>
-                                            {subgroups.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                        </select>
+                                        <label htmlFor={`${idPrefix}-subgroup`} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('filters.subgroup')}</label>
+                                        <div className="relative">
+                                            <select
+                                                id={`${idPrefix}-subgroup`}
+                                                name="filter_subgroup"
+                                                className="w-full border border-slate-200 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white disabled:opacity-50 disabled:bg-slate-100 hover:border-blue-300 transition-all focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none font-bold text-slate-700 cursor-pointer"
+                                                value={filters.subgroup}
+                                                onChange={e => handleChange('subgroup', e.target.value)}
+                                                disabled={filters.equipment === 'ALL'}
+                                            >
+                                                <option value="ALL">{t('filters.options.allSubgroups')}</option>
+                                                {subgroups.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                            </select>
+                                            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -400,75 +413,90 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
                         {/* Section 3: Classification */}
                         {(showAnalysisType || showSpecialty || showStatus) && (
-                            <div className="space-y-4 lg:col-span-2">
-                                <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                    <Tag size={16} className="text-slate-400" /> {t('filters.sections.classification')}
+                            <div className="space-y-6 lg:col-span-2">
+                                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    <Tag size={16} className="text-slate-300" /> {t('filters.sections.classification')}
                                 </h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {showAnalysisType && (
                                         <div>
-                                            <label htmlFor="filter_analysis_type" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.analysisType')}</label>
-                                            <select
-                                                id="filter_analysis_type"
-                                                name="filter_analysis_type"
-                                                className="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white"
-                                                value={filters.analysisType}
-                                                onChange={e => handleChange('analysisType', e.target.value)}
-                                            >
-                                                <option value="ALL">{t('filters.options.allTypes')}</option>
-                                                {analysisTypes.filter(t => !availableOptions || availableOptions.analysisType.has(t.id)).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                                            </select>
+                                            <label htmlFor={`${idPrefix}-type`} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('filters.analysisType')}</label>
+                                            <div className="relative">
+                                                <select
+                                                    id={`${idPrefix}-type`}
+                                                    name="filter_analysis_type"
+                                                    className="w-full border border-slate-200 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white hover:border-blue-300 transition-all focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none font-bold text-slate-700 cursor-pointer"
+                                                    value={filters.analysisType}
+                                                    onChange={e => handleChange('analysisType', e.target.value)}
+                                                >
+                                                    <option value="ALL">{t('filters.options.allTypes')}</option>
+                                                    {analysisTypes.filter(t => !availableOptions || availableOptions.analysisType.has(t.id)).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                                </select>
+                                                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400" />
+                                            </div>
                                         </div>
                                     )}
                                     {showSpecialty && (
                                         <div>
-                                            <label htmlFor="filter_specialty" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.specialty')}</label>
-                                            <select
-                                                id="filter_specialty"
-                                                name="filter_specialty"
-                                                className="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white"
-                                                value={filters.specialty}
-                                                onChange={e => handleChange('specialty', e.target.value)}
-                                            >
-                                                <option value="ALL">{t('filters.options.allSpecialties')}</option>
-                                                {specialties.filter(s => !availableOptions || availableOptions.specialty.has(s.id)).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                            </select>
+                                            <label htmlFor={`${idPrefix}-specialty`} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('filters.specialty')}</label>
+                                            <div className="relative">
+                                                <select
+                                                    id={`${idPrefix}-specialty`}
+                                                    name="filter_specialty"
+                                                    className="w-full border border-slate-200 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white hover:border-blue-300 transition-all focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none font-bold text-slate-700 cursor-pointer"
+                                                    value={filters.specialty}
+                                                    onChange={e => handleChange('specialty', e.target.value)}
+                                                >
+                                                    <option value="ALL">{t('filters.options.allSpecialties')}</option>
+                                                    {specialties.filter(s => !availableOptions || availableOptions.specialty.has(s.id)).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                                </select>
+                                                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400" />
+                                            </div>
                                         </div>
                                     )}
                                     {showStatus && (
                                         <div>
-                                            <label htmlFor="filter_status" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.status')}</label>
-                                            <select
-                                                id="filter_status"
-                                                name="filter_status"
-                                                className="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white font-medium text-slate-700"
-                                                value={filters.status}
-                                                onChange={e => handleChange('status', e.target.value)}
-                                            >
-                                                <option value="ALL">{t('filters.options.allStatus')}</option>
-                                                {statuses.filter(s => !availableOptions || availableOptions.status.has(s.id)).map(s => <option key={s.id} value={s.id}>{translateStatus(s.id, s.name, t)}</option>)}
-                                            </select>
+                                            <label htmlFor={`${idPrefix}-status`} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('filters.status')}</label>
+                                            <div className="relative">
+                                                <select
+                                                    id={`${idPrefix}-status`}
+                                                    name="filter_status"
+                                                    className="w-full border border-slate-200 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white hover:border-blue-300 transition-all focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none font-bold text-slate-700 cursor-pointer"
+                                                    value={filters.status}
+                                                    onChange={e => handleChange('status', e.target.value)}
+                                                >
+                                                    <option value="ALL">{t('filters.options.allStatus')}</option>
+                                                    {statuses.filter(s => !availableOptions || availableOptions.status.has(s.id)).map(s => <option key={s.id} value={s.id}>{translateStatus(s.id, s.name, t)}</option>)}
+                                                </select>
+                                                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400" />
+                                            </div>
                                         </div>
                                     )}
                                     {showComponentType && (
                                         <div>
-                                            <label htmlFor="filter_component_type" className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t('filters.componentType') || t('fields.componentType')}</label>
-                                            <select
-                                                id="filter_component_type"
-                                                name="filter_component_type"
-                                                className="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white font-medium text-slate-700"
-                                                value={filters.componentType || 'ALL'}
-                                                onChange={e => handleChange('componentType', e.target.value)}
-                                            >
-                                                <option value="ALL">{t('filters.options.all')}</option>
-                                                {componentTypes.filter(c => !availableOptions || availableOptions.componentType.has(c.id)).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                            </select>
+                                            <label htmlFor={`${idPrefix}-component-type`} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('filters.componentType') || t('fields.componentType')}</label>
+                                            <div className="relative">
+                                                <select
+                                                    id={`${idPrefix}-component-type`}
+                                                    name="filter_component_type"
+                                                    className="w-full border border-slate-200 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white hover:border-blue-300 transition-all focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none font-bold text-slate-700 cursor-pointer"
+                                                    value={filters.componentType || 'ALL'}
+                                                    onChange={e => handleChange('componentType', e.target.value)}
+                                                >
+                                                    <option value="ALL">{t('filters.options.all')}</option>
+                                                    {componentTypes.filter(c => !availableOptions || availableOptions.componentType.has(c.id)).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                                </select>
+                                                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400" />
+                                            </div>
                                         </div>
                                     )}
                                 </div>
-                                <p className="text-xs text-slate-400 mt-2">
-                                    {t('filters.additionalFiltersHint')}
-                                </p>
+                                <div className="flex items-center gap-2 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                    <Info size={14} className="text-slate-400" />
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                                        {t('filters.additionalFiltersHint')}
+                                    </p>
+                                </div>
                             </div>
                         )}
                     </div>

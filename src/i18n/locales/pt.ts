@@ -75,7 +75,9 @@ export const pt: TranslationSchema = {
         actions: "Planos de Ação",
         assets: "Ativos",
         settings: "Configurações",
-        migration: "Migração"
+        migration: "Migração",
+        menu: "Navegação",
+        system: "Sistema"
     },
     dashboard: {
         title: "Painel de Controle",

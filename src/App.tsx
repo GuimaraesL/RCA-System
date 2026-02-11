@@ -3,6 +3,7 @@
  * Fluxo: Gerencia a navegação entre visões (Dashboard, Análises, etc.), controla a abertura do editor de RCA e provê os provedores de contexto globais (Idioma, Filtros, Dados).
  */
 
+import { STATUS_IDS } from './constants/SystemConstants';
 import React, { useState, Suspense, lazy } from 'react';
 import { Loader2 } from 'lucide-react';
 import { RcaRecord, TriggerRecord } from './types';
@@ -30,7 +31,7 @@ const AppContent: React.FC = () => {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState<RcaRecord | null>(null);
 
-    const { refreshAll, records, updateTrigger, taxonomy, assets } = useRcaContext();
+    const { refreshAll, records, updateTrigger, addRecord, taxonomy, assets } = useRcaContext();
 
     const handleCloseEditor = () => {
         setIsEditorOpen(false);
@@ -79,15 +80,19 @@ const AppContent: React.FC = () => {
      * Converte um Gatilho de parada em uma nova Análise RCA.
      * Realiza a herança automática de dados do evento e vinculação técnica.
      */
-    const handleCreateRcaFromTrigger = (trigger: TriggerRecord) => {
+    const handleCreateRcaFromTrigger = async (trigger: TriggerRecord) => {
         const primaryAssetId = trigger.subgroup_id || trigger.equipment_id || trigger.area_id;
         const assetName = primaryAssetId ? getAssetName(primaryAssetId, assets) : '';
 
-        const newRca: Partial<RcaRecord> = {
+        const newRca: RcaRecord = {
             id: generateId('RCA'),
+            version: '1.0',
+            status: STATUS_IDS.IN_PROGRESS,
             failure_date: trigger.start_date.split('T')[0],
             failure_time: trigger.start_date.split('T')[1]?.substring(0, 5) || '00:00',
-            downtime_minutes: trigger.duration_minutes,
+            downtime_minutes: trigger.duration_minutes || 0,
+            financial_impact: 0,
+            os_number: '',
             area_id: trigger.area_id,
             equipment_id: trigger.equipment_id,
             subgroup_id: trigger.subgroup_id,
@@ -96,17 +101,43 @@ const AppContent: React.FC = () => {
             what: `${t('common.failurePrefix')}: ${trigger.stop_reason}`,
             problem_description: `${trigger.stop_type} - ${trigger.stop_reason}. ${trigger.comments || ''}`,
             facilitator: trigger.responsible,
+            participants: [],
+            root_causes: [],
+            five_whys: [],
+            ishikawa: { machine: [], method: [], material: [], manpower: [], measurement: [], environment: [] },
+            precision_maintenance: [],
+            containment_actions: [],
+            lessons_learned: [],
             additionalInfo: {
                 historicalInfo: `Gerado a partir do Gatilho ID: ${trigger.id}`
-            }
+            },
+            analysis_date: new Date().toISOString().split('T')[0],
+            analysis_duration_minutes: 0,
+            specialty_id: '',
+            failure_mode_id: '',
+            failure_category_id: '',
+            who: trigger.responsible,
+            when: trigger.start_date,
+            where_description: assetName,
+            potential_impacts: ''
         };
 
-        setEditingRecord(newRca as RcaRecord);
-        setIsEditorOpen(true);
+        try {
+            // Persiste o rascunho da RCA antes de vincular ao gatilho (evita erro de FK)
+            await addRecord(newRca);
+            
+            setEditingRecord(newRca);
+            setIsEditorOpen(true);
 
-        // Atualiza o status do gatilho para indicar que o processo de análise iniciou
-        const inProgressStatusId = taxonomy.triggerStatuses?.find(s => s.name === 'Em análise' || s.name === 'Em Análise')?.id || trigger.status;
-        updateTrigger({ ...trigger, rca_id: newRca.id!, status: inProgressStatusId });
+            // Atualiza o status do gatilho para indicar que o processo de análise iniciou
+            const inProgressStatusId = taxonomy.triggerStatuses?.find(s => s.name === 'Em análise' || s.name === 'Em Análise')?.id || trigger.status;
+            await updateTrigger({ ...trigger, rca_id: newRca.id, status: inProgressStatusId });
+            
+            console.log('✅ RCA criada e vinculada ao gatilho com sucesso');
+        } catch (error) {
+            console.error('❌ Falha ao criar RCA a partir do gatilho:', error);
+            alert('Erro ao criar RCA. Verifique a conexão com o servidor.');
+        }
     };
 
     return (

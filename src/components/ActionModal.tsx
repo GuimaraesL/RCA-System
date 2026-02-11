@@ -3,10 +3,14 @@
  * Fluxo: Gerencia o formulário de ações corretivas, permitindo a vinculação com análises existentes, definição de prazos, responsáveis e status de aprovação (Box).
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useId } from 'react';
 import { ActionRecord } from '../types';
 import { useLanguage } from '../context/LanguageDefinition';
 import { animateModalEnter } from '../services/animations';
+import { Input } from './ui/Input';
+import { Select } from './ui/Select';
+import { Textarea } from './ui/Textarea';
+import { X, ShieldCheck } from 'lucide-react';
 
 interface ActionModalProps {
     isOpen: boolean;
@@ -19,6 +23,7 @@ interface ActionModalProps {
 
 export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, rcaList, fixedRca, onClose, onSave }) => {
     const { t } = useLanguage();
+    const idPrefix = useId();
     const [form, setForm] = useState<ActionRecord>({
         id: '',
         rca_id: '',
@@ -67,103 +72,108 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div ref={containerRef} className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden opacity-0">
-                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                    <h3 className="font-bold text-lg text-slate-800">{initialData ? t('actionModal.titleEdit') : t('actionModal.titleNew')}</h3>
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div ref={containerRef} className="bg-white rounded-[2rem] shadow-2xl w-full max-w-xl overflow-hidden opacity-0 border border-slate-200">
+                <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                            <ShieldCheck size={24} />
+                        </div>
+                        <h3 className="font-black text-xl text-slate-900 font-display tracking-tight">
+                            {initialData ? t('actionModal.titleEdit') : t('actionModal.titleNew')}
+                        </h3>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-50 rounded-full text-slate-400 transition-colors">
+                        <X size={20} />
+                    </button>
                 </div>
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                
+                <form onSubmit={handleSubmit} className="p-8 space-y-6">
                     <div>
-                        <label htmlFor="action_rca_id" className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.linkedAnalysis')} <span className="text-red-500" aria-hidden="true">*</span></label>
                         {fixedRca ? (
-                            <div id="action_rca_id" className="w-full border p-2 rounded text-sm bg-slate-100 text-slate-700 font-medium">
-                                {fixedRca.title}
+                            <div className="space-y-2">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('actionModal.linkedAnalysis')}</label>
+                                <div className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm text-slate-700 font-bold shadow-inner">
+                                    {fixedRca.title}
+                                </div>
                             </div>
                         ) : (
-                            <select
-                                id="action_rca_id"
-                                name="action_rca_id"
+                            <Select
+                                id={`${idPrefix}-rca-id`}
+                                label={t('actionModal.linkedAnalysis')}
                                 required
-                                className="w-full border p-2 rounded text-sm bg-white text-slate-900"
+                                options={[{ value: '', label: t('actionModal.selectRca') }, ...(rcaList?.map(r => ({ value: r.id, label: r.title })) || [])]}
                                 value={form.rca_id}
                                 onChange={e => setForm({ ...form, rca_id: e.target.value })}
-                            >
-                                <option value="">{t('actionModal.selectRca')}</option>
-                                {rcaList?.map(r => <option key={r.id} value={r.id}>{r.title}</option>)}
-                            </select>
+                            />
                         )}
                     </div>
-                    <div>
-                        <label htmlFor="action_description" className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.actionDescription')} <span className="text-red-500" aria-hidden="true">*</span></label>
-                        <textarea
-                            id="action_description"
-                            name="action_description"
+
+                    <Textarea
+                        id={`${idPrefix}-description`}
+                        label={t('actionModal.actionDescription')}
+                        required
+                        rows={4}
+                        placeholder="..."
+                        value={form.action}
+                        onChange={e => setForm({ ...form, action: e.target.value })}
+                    />
+
+                    <div className="grid grid-cols-2 gap-6">
+                        <Input
+                            id={`${idPrefix}-responsible`}
+                            label={t('actionModal.responsible')}
                             required
-                            className="w-full border p-2 rounded text-sm h-24 bg-white text-slate-900"
-                            value={form.action}
-                            onChange={e => setForm({ ...form, action: e.target.value })}
+                            type="text"
+                            value={form.responsible}
+                            onChange={e => setForm({ ...form, responsible: e.target.value })}
+                        />
+                        <Input
+                            id={`${idPrefix}-date`}
+                            label={t('actionModal.dueDate')}
+                            required
+                            type="date"
+                            value={form.date}
+                            onChange={e => setForm({ ...form, date: e.target.value })}
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label htmlFor="action_responsible" className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.responsible')} <span className="text-red-500" aria-hidden="true">*</span></label>
-                            <input
-                                id="action_responsible"
-                                name="action_responsible"
-                                type="text"
-                                required
-                                aria-required="true"
-                                className="w-full border p-2 rounded text-sm bg-white text-slate-900"
-                                value={form.responsible}
-                                onChange={e => setForm({ ...form, responsible: e.target.value })}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="action_date" className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.dueDate')} <span className="text-red-500" aria-hidden="true">*</span></label>
-                            <input
-                                id="action_date"
-                                name="action_date"
-                                type="date"
-                                required
-                                aria-required="true"
-                                className="w-full border p-2 rounded text-sm bg-white text-slate-900"
-                                value={form.date}
-                                onChange={e => setForm({ ...form, date: e.target.value })}
-                            />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label htmlFor="action_status" className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.statusBox')}</label>
-                            <select
-                                id="action_status"
-                                name="action_status"
-                                className="w-full border p-2 rounded text-sm bg-white text-slate-900"
-                                value={form.status}
-                                onChange={e => setForm({ ...form, status: e.target.value as any })}
-                            >
-                                <option value="1">{t('actionModal.statusOptions.approved')}</option>
-                                <option value="2">{t('actionModal.statusOptions.inProgress')}</option>
-                                <option value="3">{t('actionModal.statusOptions.completed')}</option>
-                                <option value="4">{t('actionModal.statusOptions.verified')}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label htmlFor="action_moc" className="block text-xs font-medium text-slate-500 mb-1">{t('actionModal.mocNumber')}</label>
-                            <input
-                                id="action_moc"
-                                name="action_moc"
-                                type="text"
-                                className="w-full border p-2 rounded text-sm bg-white text-slate-900"
-                                value={form.moc_number || ''}
-                                onChange={e => setForm({ ...form, moc_number: e.target.value })}
-                            />
-                        </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                        <Select
+                            id={`${idPrefix}-status`}
+                            label={t('actionModal.statusBox')}
+                            options={[
+                                { value: '1', label: t('actionModal.statusOptions.approved') },
+                                { value: '2', label: t('actionModal.statusOptions.inProgress') },
+                                { value: '3', label: t('actionModal.statusOptions.completed') },
+                                { value: '4', label: t('actionModal.statusOptions.verified') }
+                            ]}
+                            value={form.status}
+                            onChange={e => setForm({ ...form, status: e.target.value as any })}
+                        />
+                        <Input
+                            id={`${idPrefix}-moc`}
+                            label={t('actionModal.mocNumber')}
+                            type="text"
+                            value={form.moc_number || ''}
+                            onChange={e => setForm({ ...form, moc_number: e.target.value })}
+                        />
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-4">
-                        <button type="button" onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">{t('actionModal.cancel')}</button>
-                        <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">{t('actionModal.save')}</button>
+                    <div className="flex justify-end gap-4 pt-6 border-t border-slate-50">
+                        <button 
+                            type="button" 
+                            onClick={onClose} 
+                            className="px-6 py-2.5 text-slate-500 font-bold hover:bg-slate-50 rounded-xl text-sm transition-all border border-transparent hover:border-slate-200"
+                        >
+                            {t('actionModal.cancel')}
+                        </button>
+                        <button 
+                            type="submit" 
+                            className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-black shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+                        >
+                            {t('actionModal.save')}
+                        </button>
                     </div>
                 </form>
             </div>

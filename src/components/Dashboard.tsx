@@ -74,26 +74,28 @@ const ChartCard: React.FC<{
 }> = ({ title, children, icon, isInteractive, isLoading, tooltip }) => {
     const { t } = useLanguage();
     return (
-        <div title={tooltip} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col min-h-[420px] transition-all hover:shadow-md relative group overflow-hidden cursor-help">
-            <div title={tooltip} className="flex items-center justify-between mb-4 border-b border-slate-50 pb-2 flex-shrink-0">
-                <div title={tooltip} className="flex items-center gap-2">
-                    {icon && <span title={tooltip} className="text-slate-400">{icon}</span>}
-                    <h3 title={tooltip} className="font-bold text-slate-700 text-sm uppercase tracking-wider">{title}</h3>
+        <div title={tooltip} className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200/60 flex flex-col min-h-[480px] transition-all hover:shadow-xl hover:shadow-blue-500/5 group overflow-hidden cursor-help">
+            <div title={tooltip} className="flex items-center justify-between mb-8 border-b border-slate-50 pb-4 flex-shrink-0">
+                <div title={tooltip} className="flex items-center gap-3">
+                    <div className="p-2.5 bg-slate-50 rounded-xl text-slate-400 group-hover:text-blue-600 group-hover:bg-blue-50 transition-all">
+                        {icon}
+                    </div>
+                    <h3 title={tooltip} className="font-black text-slate-700 text-xs uppercase tracking-[0.2em]">{title}</h3>
                 </div>
                 {isInteractive && (
-                    <div title={tooltip} className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-blue-500 flex items-center gap-1">
-                        <MousePointerClick size={12} /> {t('common.filter')}
+                    <div title={tooltip} className="opacity-0 group-hover:opacity-100 transition-all text-[10px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-full">
+                        <MousePointerClick size={12} strokeWidth={3} /> {t('common.filter')}
                     </div>
                 )}
             </div>
             <div className="flex-1 w-full relative">
                 {isLoading ? (
-                    <div className="h-full w-full flex flex-col gap-4">
-                        <Skeleton className="flex-1 w-full" />
-                        <div className="flex justify-between gap-2">
-                            <Skeleton className="h-4 w-20" />
-                            <Skeleton className="h-4 w-20" />
-                            <Skeleton className="h-4 w-20" />
+                    <div className="h-full w-full flex flex-col gap-6">
+                        <Skeleton className="flex-1 w-full rounded-2xl" />
+                        <div className="flex justify-between gap-4">
+                            <Skeleton className="h-4 w-24 rounded-full" />
+                            <Skeleton className="h-4 w-24 rounded-full" />
+                            <Skeleton className="h-4 w-24 rounded-full" />
                         </div>
                     </div>
                 ) : children}
@@ -235,19 +237,19 @@ export const Dashboard: React.FC = () => {
     const totalCost = useMemo(() => filteredRecords.reduce((acc, r) => acc + (r.financial_impact || 0), 0), [filteredRecords]);
 
     return (
-        <div className="p-8 space-y-8 max-w-[1600px] mx-auto pb-20">
+        <div className="p-8 lg:p-12 space-y-12 max-w-[1600px] mx-auto pb-32">
             {/* Cabeçalho */}
-            <div className="flex justify-between items-end animate-in fade-in duration-700 slide-in-from-top-4">
+            <div className="flex justify-between items-end animate-in fade-in duration-1000 slide-in-from-top-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                        <Activity className="text-blue-600" /> {t('dashboard.title')}
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tight font-display flex items-center gap-3">
+                        <Activity className="text-blue-600 w-10 h-10" /> {t('dashboard.title')}
                     </h1>
-                    <p className="text-slate-500 mt-1">{t('dashboard.description')}</p>
+                    <p className="text-slate-500 mt-2 font-medium text-lg leading-relaxed">{t('dashboard.description')}</p>
                 </div>
             </div>
 
             {/* Barra de Filtros */}
-            <div className="animate-in fade-in duration-700 slide-in-from-top-4 delay-100">
+            <div className="animate-in fade-in duration-1000 slide-in-from-top-4 delay-100">
                 <FilterBar
                     isOpen={showFilters}
                     onToggle={() => setShowFilters(!showFilters)}
@@ -273,33 +275,40 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* Cartões de KPI */}
-            <div ref={kpiRef as any} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div ref={kpiRef as any} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {[
-                    { label: t('dashboard.kpi.durationMin'), value: totalDowntimeMin, icon: <Clock size={14} />, color: 'text-blue-600', tooltip: t('dashboard.tooltips.durationMin') },
-                    { label: t('dashboard.kpi.durationHours'), value: Number(totalDowntimeHours.toFixed(1)), icon: <Clock size={14} />, color: 'text-indigo-600', tooltip: t('dashboard.tooltips.durationHours') },
-                    { label: t('dashboard.kpi.totalCost'), value: totalCost, icon: <TrendingUp size={14} />, color: 'text-emerald-600', prefix: language === 'pt' ? 'R$ ' : '$', tooltip: t('dashboard.tooltips.totalCost') },
-                    { label: t('dashboard.kpi.totalRcas'), value: filteredRecords.length, icon: <PieIcon size={14} />, color: 'text-slate-500', tooltip: t('dashboard.tooltips.totalRcas') }
+                    { label: t('dashboard.kpi.durationMin'), value: totalDowntimeMin, icon: <Clock size={16} />, color: 'text-blue-600', bgColor: 'bg-blue-50', tooltip: t('dashboard.tooltips.durationMin') },
+                    { label: t('dashboard.kpi.durationHours'), value: Number(totalDowntimeHours.toFixed(1)), icon: <Clock size={16} />, color: 'text-indigo-600', bgColor: 'bg-indigo-50', tooltip: t('dashboard.tooltips.durationHours') },
+                    { label: t('dashboard.kpi.totalCost'), value: totalCost, icon: <TrendingUp size={16} />, color: 'text-emerald-600', bgColor: 'bg-emerald-50', prefix: language === 'pt' ? 'R$ ' : '$', tooltip: t('dashboard.tooltips.totalCost') },
+                    { label: t('dashboard.kpi.totalRcas'), value: filteredRecords.length, icon: <PieIcon size={16} />, color: 'text-slate-600', bgColor: 'bg-slate-50', tooltip: t('dashboard.tooltips.totalRcas') }
                 ].map((kpi, i) => (
-                    <div key={i} title={kpi.tooltip} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden group hover:border-blue-300 transition-colors cursor-help pointer-events-auto">
-                        <div title={kpi.tooltip} className={`text-xs ${kpi.color} font-bold uppercase tracking-wider mb-2 flex items-center justify-between`}>
-                            <div title={kpi.tooltip} className="flex items-center gap-1">{kpi.icon} {kpi.label}</div>
+                    <div key={i} title={kpi.tooltip} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200/60 relative overflow-hidden group hover:border-blue-300 hover:shadow-xl hover:shadow-blue-500/5 transition-all cursor-help pointer-events-auto">
+                        <div title={kpi.tooltip} className={`flex items-center justify-between mb-6`}>
+                            <div className={`p-3 ${kpi.bgColor} ${kpi.color} rounded-2xl shadow-sm transition-transform group-hover:scale-110 duration-300`}>
+                                {kpi.icon}
+                            </div>
                             <div title={kpi.tooltip} className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Info size={14} className="text-slate-300" />
+                                <Info size={16} className="text-slate-300" />
                             </div>
                         </div>
-                        <div title={kpi.tooltip} className="text-3xl font-black text-slate-800 relative z-10 whitespace-nowrap truncate leading-tight">
-                            {isLoading ? (
-                                <Skeleton className="h-10 w-3/4" />
-                            ) : (
-                                <AnimatedCounter value={kpi.value} prefix={kpi.prefix} />
-                            )}
+                        <div title={kpi.tooltip} className="space-y-1">
+                            <div title={kpi.tooltip} className={`text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 group-hover:text-blue-600 transition-colors`}>{kpi.label}</div>
+                            <div title={kpi.tooltip} className="text-4xl font-black text-slate-900 relative z-10 whitespace-nowrap truncate leading-tight tracking-tighter">
+                                {isLoading ? (
+                                    <Skeleton className="h-12 w-3/4 rounded-lg" />
+                                ) : (
+                                    <AnimatedCounter value={kpi.value} prefix={kpi.prefix} />
+                                )}
+                            </div>
                         </div>
+                        {/* Efeito de fundo decorativo */}
+                        <div className={`absolute -right-4 -bottom-4 w-24 h-24 ${kpi.bgColor} opacity-0 group-hover:opacity-20 rounded-full transition-all duration-500 blur-3xl`}></div>
                     </div>
                 ))}
             </div>
 
             {/* Grade Principal de Gráficos */}
-            <div ref={chartsRef as any} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div ref={chartsRef as any} className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <ChartCard 
                     title={t('dashboard.charts.totalByStatus')} 
                     icon={<CheckCircle size={16} />} 

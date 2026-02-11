@@ -3,16 +3,19 @@
  * Fluxo: Integra uma barra lateral redimensionável contendo a hierarquia completa com um painel de edição detalhado, permitindo a manutenção da estrutura organizacional (Área > Equipamento > Subgrupo) através de operações CRUD e algoritmos recursivos.
  */
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useId } from 'react';
 import { AssetNode } from '../types';
-import { Folder, Database, Layers, Plus, Trash2, Edit2, ChevronRight, ChevronDown, Lock, GripVertical } from 'lucide-react';
+import { Database, Layers, Plus, Trash2, Edit2, Lock, GripVertical, Info } from 'lucide-react';
 import { useAssetsLogic } from '../hooks/useAssetsLogic';
 import { ConfirmModal } from './ConfirmModal';
 import { AssetTreeNode } from './AssetTreeNode';
 import { useLanguage } from '../context/LanguageDefinition'; 
+import { Input } from './ui/Input';
+import { Select } from './ui/Select';
 
 export const AssetsManager: React.FC = () => {
   const { t } = useLanguage();
+  const idPrefix = useId();
   const {
     assets, selectedNode, setSelectedNode, parentNode, setParentNode,
     isEditing, setIsEditing, nodeName, setNodeName, nodeType, setNodeType,
@@ -21,9 +24,9 @@ export const AssetsManager: React.FC = () => {
   } = useAssetsLogic();
 
   // --- Estado do Redimensionamento da Barra Lateral ---
-  const MIN_WIDTH = 200;
+  const MIN_WIDTH = 250;
   const MAX_WIDTH = 600;
-  const DEFAULT_WIDTH = 350;
+  const DEFAULT_WIDTH = 380;
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH);
   const isResizing = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,7 +46,6 @@ export const AssetsManager: React.FC = () => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing.current || !containerRef.current) return;
 
-      // Calcula a largura baseada na posição do mouse em relação ao container principal
       const containerRect = containerRef.current.getBoundingClientRect();
       const newWidth = e.clientX - containerRect.left;
 
@@ -70,23 +72,23 @@ export const AssetsManager: React.FC = () => {
   }, []);
 
   return (
-    <div ref={containerRef} className="flex h-full p-8 gap-0 max-w-[1600px] mx-auto">
+    <div ref={containerRef} className="flex h-full p-8 lg:p-12 gap-0 max-w-[1600px] mx-auto animate-in fade-in duration-700">
       {/* Barra Lateral da Árvore - Redimensionável */}
       <div
-        className="bg-white rounded-l-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden"
+        className="bg-white rounded-l-[2rem] shadow-sm border border-slate-200/60 flex flex-col overflow-hidden"
         style={{ width: `${sidebarWidth}px`, minWidth: `${MIN_WIDTH}px`, maxWidth: `${MAX_WIDTH}px` }}
       >
-        <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-          <h2 className="font-bold text-slate-700">{t('assets.hierarchy')}</h2>
+        <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+          <h2 className="font-black text-slate-700 text-xs uppercase tracking-[0.2em]">{t('assets.hierarchy')}</h2>
           <button
             onClick={() => { setSelectedNode(null); startAdd(null); }}
-            className="p-2 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
+            className="p-2 bg-white hover:bg-blue-50 text-blue-600 rounded-xl shadow-sm border border-slate-200 transition-all active:scale-95"
             title={t('assets.tooltips.addRootArea')}
           >
-            <Plus size={18} />
+            <Plus size={20} strokeWidth={3} />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto overflow-x-auto p-2">
+        <div className="flex-1 overflow-y-auto overflow-x-auto p-4 custom-scrollbar">
           {assets.map(asset => (
             <AssetTreeNode
               key={asset.id}
@@ -101,118 +103,127 @@ export const AssetsManager: React.FC = () => {
               isEditing={isEditing}
             />
           ))}
-          {assets.length === 0 && <div className="text-center p-8 text-slate-400 text-sm">{t('assets.noAssets')}</div>}
+          {assets.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-full text-slate-300">
+              <Database size={48} className="mb-4 opacity-20" />
+              <p className="text-sm font-bold">{t('assets.noAssets')}</p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Alça de Redimensionamento (Resize Handle) */}
       <div
         onMouseDown={handleMouseDown}
-        className="w-2 cursor-col-resize bg-slate-100 hover:bg-blue-200 flex items-center justify-center transition-colors border-y border-slate-200"
+        className="w-1.5 cursor-col-resize bg-slate-100 hover:bg-blue-400 flex items-center justify-center transition-all border-y border-slate-200 z-10"
         title={t('common.tooltips.resize')}
       >
-        <GripVertical size={12} className="text-slate-400" />
+        <div className="w-px h-8 bg-slate-300 rounded-full"></div>
       </div>
 
 
       {/* Painel de Edição Detalhada */}
-      <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+      <div className="flex-1 bg-white rounded-r-[2rem] shadow-sm border border-slate-200/60 p-10 lg:p-16 relative overflow-hidden group/panel">
         {!isEditing && selectedNode ? (
-          <div className="h-full flex flex-col">
-            <div className="mb-8">
-              <span className={`text-xs font-bold px-2 py-1 rounded uppercase mb-2 inline-block
-                ${selectedNode.type === 'AREA' ? 'bg-slate-100 text-slate-600' :
-                  selectedNode.type === 'EQUIPMENT' ? 'bg-blue-100 text-blue-600' : 'bg-indigo-100 text-indigo-600'}`}>
+          <div className="h-full flex flex-col animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="mb-12">
+              <span className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase mb-4 inline-block border shadow-sm tracking-widest
+                ${selectedNode.type === 'AREA' ? 'bg-slate-50 text-slate-600 border-slate-200' :
+                  selectedNode.type === 'EQUIPMENT' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-cyan-50 text-cyan-600 border-cyan-100'}`}>
                 {t(`assets.types.${selectedNode.type}`) || selectedNode.type}
               </span>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">{selectedNode.name}</h1>
-              <div className="flex items-center gap-2 text-slate-400 font-mono text-xs bg-slate-50 p-2 rounded w-fit">
-                <Lock size={12} />
-                ID: {selectedNode.id}
+              <h1 className="text-4xl font-black text-slate-900 mb-4 tracking-tighter font-display">{selectedNode.name}</h1>
+              <div className="flex items-center gap-3 text-slate-400 font-mono text-xs bg-slate-50 px-4 py-2 rounded-xl w-fit border border-slate-100">
+                <Lock size={14} className="opacity-50" />
+                <span className="font-bold">SYSTEM ID:</span> {selectedNode.id}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mt-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-auto">
               <button
                 onClick={() => startEdit(selectedNode)}
-                className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-lg font-medium transition-colors"
+                className="flex items-center justify-center gap-3 bg-white hover:bg-slate-50 text-slate-700 py-4 rounded-2xl font-bold border border-slate-200 transition-all shadow-sm active:scale-95"
               >
-                <Edit2 size={18} /> {t('assets.rename')}
+                <Edit2 size={20} /> {t('assets.rename')}
               </button>
               <button
                 onClick={() => handleDelete(selectedNode)}
-                className="flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-lg font-medium transition-colors"
+                className="flex items-center justify-center gap-3 bg-rose-50 hover:bg-rose-100 text-rose-600 py-4 rounded-2xl font-bold border border-rose-100 transition-all active:scale-95"
               >
-                <Trash2 size={18} /> {t('assets.delete')}
+                <Trash2 size={20} /> {t('assets.delete')}
               </button>
               {selectedNode.type !== 'SUBGROUP' && (
                 <button
                   onClick={() => startAdd(selectedNode)}
-                  className="col-span-2 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors shadow-sm"
+                  className="sm:col-span-2 flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-2xl font-black transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]"
                 >
-                  <Plus size={18} /> {t('assets.addChild')} ({selectedNode.type === 'AREA' ? t('filters.equipment') : t('filters.subgroup')})
+                  <Plus size={22} strokeWidth={3} /> {t('assets.addChild')} ({selectedNode.type === 'AREA' ? t('filters.equipment') : t('filters.subgroup')})
                 </button>
               )}
             </div>
           </div>
         ) : isEditing ? (
-          <div className="h-full flex flex-col max-w-lg mx-auto justify-center">
-            <h2 className="text-2xl font-bold mb-6 text-slate-800">
-              {parentNode || (!selectedNode && !parentNode) ? t('assets.new') : t('assets.edit')}
-            </h2>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1">{t('assets.type')}</label>
-                <select
-                  value={nodeType}
-                  onChange={e => setNodeType(e.target.value as any)}
-                  disabled={!!selectedNode && !parentNode}
-                  className="w-full border border-slate-300 rounded-lg p-3 bg-white text-slate-900"
-                >
-                  <option value="AREA">{t('filters.area')}</option>
-                  <option value="EQUIPMENT">{t('filters.equipment')}</option>
-                  <option value="SUBGROUP">{t('filters.subgroup')}</option>
-                </select>
+          <div className="h-full flex flex-col max-w-lg mx-auto justify-center animate-in fade-in zoom-in-95 duration-300">
+            <div className="mb-10 text-center">
+              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-blue-100">
+                {parentNode || (!selectedNode && !parentNode) ? <Plus size={32} strokeWidth={2.5} /> : <Edit2 size={32} strokeWidth={2.5} />}
               </div>
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight font-display">
+                {parentNode || (!selectedNode && !parentNode) ? t('assets.new') : t('assets.edit')}
+              </h2>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1">{t('assets.name')}</label>
-                <input
-                  type="text"
-                  value={nodeName}
-                  onChange={e => setNodeName(e.target.value)}
-                  placeholder={t('assets.placeholder')}
-                  className="w-full border border-slate-300 rounded-lg p-3 bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              </div>
+            <div className="space-y-6">
+              <Select
+                id={`${idPrefix}-type`}
+                label={t('assets.type')}
+                value={nodeType}
+                onChange={e => setNodeType(e.target.value as any)}
+                disabled={!!selectedNode && !parentNode}
+                options={[
+                  { value: 'AREA', label: t('filters.area') },
+                  { value: 'EQUIPMENT', label: t('filters.equipment') },
+                  { value: 'SUBGROUP', label: t('filters.subgroup') }
+                ]}
+              />
+
+              <Input
+                id={`${idPrefix}-name`}
+                label={t('assets.name')}
+                type="text"
+                value={nodeName}
+                onChange={e => setNodeName(e.target.value)}
+                placeholder={t('assets.placeholder')}
+                autoFocus
+              />
 
               {!parentNode && selectedNode && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1">{t('assets.systemId')}</label>
-                  <div className="w-full bg-slate-100 border border-slate-200 rounded-lg p-3 text-slate-500 font-mono text-sm flex items-center gap-2">
-                    <Lock size={14} />
-                    {selectedNode.id}
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('assets.systemId')}</label>
+                  <div className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-500 font-mono text-sm flex items-center gap-3 shadow-inner">
+                    <Lock size={16} className="opacity-40" />
+                    <span className="font-bold">{selectedNode.id}</span>
                   </div>
                 </div>
               )}
 
               {(parentNode || (!selectedNode && !parentNode)) && (
-                <div className="p-3 bg-blue-50 text-blue-700 text-xs rounded-lg">
-                  {t('assets.idHint')}
+                <div className="p-4 bg-blue-50/50 text-blue-700 text-xs rounded-xl border border-blue-100 flex gap-3">
+                  <Info size={18} className="flex-shrink-0" />
+                  <p className="font-medium leading-relaxed">{t('assets.idHint')}</p>
                 </div>
               )}
 
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-4 pt-8">
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="flex-1 py-3 border border-slate-300 rounded-lg text-slate-600 font-medium hover:bg-slate-50"
+                  className="flex-1 py-4 border border-slate-200 rounded-2xl text-slate-500 font-bold hover:bg-slate-50 transition-all"
                 >
                   {t('common.cancel')}
                 </button>
                 <button
                   onClick={parentNode || (!selectedNode && !parentNode) ? handleAddChild : handleUpdate}
-                  className="flex-1 py-3 bg-blue-600 rounded-lg text-white font-medium hover:bg-blue-700 shadow-sm"
+                  className="flex-1 py-4 bg-blue-600 rounded-2xl text-white font-black hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
                 >
                   {t('common.save')}
                 </button>
@@ -220,11 +231,16 @@ export const AssetsManager: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-slate-400">
-            <Layers size={64} className="mb-4 text-slate-200" />
-            <p>{t('assets.selectPrompt')}</p>
+          <div className="h-full flex flex-col items-center justify-center text-slate-300 animate-in fade-in duration-1000">
+            <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mb-8 border border-slate-100 shadow-inner">
+              <Layers size={48} className="opacity-20" />
+            </div>
+            <p className="font-black text-xs uppercase tracking-[0.2em]">{t('assets.selectPrompt')}</p>
           </div>
         )}
+        
+        {/* Elemento Decorativo */}
+        <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-blue-50 opacity-0 group-hover/panel:opacity-30 rounded-full transition-all duration-1000 blur-3xl -z-10"></div>
       </div>
 
       <ConfirmModal

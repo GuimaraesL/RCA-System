@@ -140,29 +140,57 @@ export const fetchRecordById = async (id: string): Promise<RcaRecord | null> => 
     }
 };
 
-export const saveRecordToApi = async (record: RcaRecord): Promise<void> => {
+export const saveRecordToApi = async (record: RcaRecord, isUpdate?: boolean): Promise<void> => {
     console.log('🔄 API: Persistindo análise:', record.id);
 
-    const existing = await fetchRecordById(record.id);
-
-    if (existing) {
-        console.log('🔄 API: Atualizando registro existente...');
+    // Se o chamador explicitamente disse que é um update ou criação, respeitamos para evitar 404 no console
+    if (isUpdate === true) {
         const response = await fetch(`${API_BASE}/rcas/${record.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(record)
         });
         await checkResponse(response, `PUT /rcas/${record.id}`);
-    } else {
-        console.log('🔄 API: Criando novo registro de análise...');
+        return;
+    }
+
+    if (isUpdate === false) {
         const response = await fetch(`${API_BASE}/rcas`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(record)
         });
         await checkResponse(response, 'POST /rcas');
+        return;
     }
-    console.log('✅ API: Análise salva com sucesso:', record.id);
+
+    // Modo Automático (Fallback): Tenta atualizar primeiro (otimista)
+    try {
+        const response = await fetch(`${API_BASE}/rcas/${record.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(record)
+        });
+
+        if (response.ok) {
+            await checkResponse(response, `PUT /rcas/${record.id}`);
+            return;
+        }
+        
+        if (response.status === 404) {
+            const createResponse = await fetch(`${API_BASE}/rcas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(record)
+            });
+            await checkResponse(createResponse, 'POST /rcas');
+            return;
+        }
+
+        await checkResponse(response, `PUT /rcas/${record.id}`);
+    } catch (error) {
+        throw error;
+    }
 };
 
 export const deleteRecordFromApi = async (id: string): Promise<void> => {
@@ -202,8 +230,28 @@ export const fetchActionsByRca = async (rcaId: string): Promise<ActionRecord[]> 
     return checkResponse(response, `GET /actions?rca_id=${rcaId}`);
 };
 
-export const saveActionToApi = async (action: ActionRecord): Promise<void> => {
+export const saveActionToApi = async (action: ActionRecord, isUpdate?: boolean): Promise<void> => {
     console.log('🔄 API: Persistindo plano de ação:', action.id);
+
+    if (isUpdate === true) {
+        const response = await fetch(`${API_BASE}/actions/${action.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(action)
+        });
+        await checkResponse(response, `PUT /actions/${action.id}`);
+        return;
+    }
+
+    if (isUpdate === false) {
+        const response = await fetch(`${API_BASE}/actions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(action)
+        });
+        await checkResponse(response, 'POST /actions');
+        return;
+    }
 
     const checkResponse_local = await fetch(`${API_BASE}/actions/${action.id}`);
 
@@ -249,43 +297,55 @@ export const fetchTriggers = async (): Promise<TriggerRecord[]> => {
     return checkResponse(response, 'GET /triggers');
 };
 
-export const saveTriggerToApi = async (trigger: TriggerRecord): Promise<void> => {
+export const saveTriggerToApi = async (trigger: TriggerRecord, isUpdate?: boolean): Promise<void> => {
     console.log('🔄 API: Persistindo gatilho:', trigger.id);
 
-    // Tenta criar (POST). Se falhar por conflito (ID existe), tenta atualizar (PUT).
-    // Isso evita o GET inicial que gera erro 404 no console para novos itens.
-    try {
+    if (isUpdate === true) {
+        const response = await fetch(`${API_BASE}/triggers/${trigger.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(trigger)
+        });
+        await checkResponse(response, `PUT /triggers/${trigger.id}`);
+        return;
+    }
+
+    if (isUpdate === false) {
         const response = await fetch(`${API_BASE}/triggers`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(trigger)
         });
-
-        if (response.ok) {
-            await checkResponse(response, 'POST /triggers');
-            return;
-        }
-
-        // Se o erro for de conflito (409) ou se quisermos forçar o update caso já exista
-        // (Dependendo da implementação do backend, pode retornar 409 ou 500)
-        // Aqui assumimos que se falhou o POST, tentamos o PUT se tiver ID
-        if (trigger.id) {
-            console.log('🔄 API: Registro provável já existente. Tentando atualização (PUT)...');
-            const updateResponse = await fetch(`${API_BASE}/triggers/${trigger.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(trigger)
-            });
-            await checkResponse(updateResponse, `PUT /triggers/${trigger.id}`);
-        } else {
-             // Se não tem ID e falhou o POST, é erro real
-             await checkResponse(response, 'POST /triggers');
-        }
-
-    } catch (error) {
-        // Fallback: Se a lógica otimista falhar, lança o erro original
-        throw error;
+        await checkResponse(response, 'POST /triggers');
+        return;
     }
+
+    // Tenta atualizar primeiro se tiver ID (abordagem padrão para updates)
+    if (trigger.id) {
+        try {
+            const checkRes = await fetch(`${API_BASE}/triggers/${trigger.id}`);
+            if (checkRes.ok) {
+                console.log('🔄 API: Registro existente encontrado. Atualizando (PUT)...');
+                const updateResponse = await fetch(`${API_BASE}/triggers/${trigger.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(trigger)
+                });
+                await checkResponse(updateResponse, `PUT /triggers/${trigger.id}`);
+                return;
+            }
+        } catch (e) {
+            console.warn('⚠️ API: Falha ao verificar existência do gatilho, tentando POST...');
+        }
+    }
+
+    // Se não existir ou não tiver ID, tenta criar (POST)
+    const response = await fetch(`${API_BASE}/triggers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(trigger)
+    });
+    await checkResponse(response, 'POST /triggers');
 };
 
 export const deleteTriggerFromApi = async (id: string): Promise<void> => {

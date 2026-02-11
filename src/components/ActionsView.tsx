@@ -100,19 +100,22 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
   }, [filters, sortConfig]);
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col">
+    <div className="p-8 lg:p-12 max-w-[1600px] mx-auto h-full flex flex-col space-y-8">
       {/* Cabeçalho da Vista */}
-      <div className="flex justify-between items-center mb-6 flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-500">
+      <div className="flex justify-between items-end flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-700">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">{t('sidebar.actions')}</h1>
-          <p className="text-slate-500 mt-1">{t('actionsPage.subtitle')}</p>
+          <h1 className="text-4xl font-black text-slate-900 font-display tracking-tight">{t('sidebar.actions')}</h1>
+          <p className="text-slate-500 mt-2 font-medium">{t('actionsPage.subtitle')}</p>
         </div>
-        <button onClick={openNew} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 shadow-sm">
-          <Plus size={18} /> {t('table.actions')}
+        <button 
+          onClick={openNew} 
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+        >
+          <Plus size={20} strokeWidth={3} /> {t('table.actions')}
         </button>
       </div>
 
-      <div className="animate-in fade-in slide-in-from-top-4 duration-500 delay-100">
+      <div className="animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
         <FilterBar
           isOpen={showFilters}
           onToggle={() => setShowFilters(!showFilters)}
@@ -141,73 +144,82 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
       </div>
 
       {/* Grade de Dados */}
-      <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-700 delay-200">
+      <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-1000 delay-200">
         <div className="overflow-auto flex-1 custom-scrollbar">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 bg-slate-50 group z-10">
+          <table className="w-full text-left text-sm text-slate-600 border-separate border-spacing-0">
+            <thead className="bg-slate-50 text-slate-500 font-black border-b border-slate-100 sticky top-0 z-10">
               <tr>
-                <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} width="w-44" />
-                <SortHeader label={t('table.what')} sortKey="action" currentSort={sortConfig} onSort={handleSort} />
-                <SortHeader label={t('table.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
-                <SortHeader label={t('table.dueDate')} sortKey="date" currentSort={sortConfig} onSort={handleSort} />
-                <SortHeader label={t('sidebar.analyses')} sortKey="rcaTitle" currentSort={sortConfig} onSort={handleSort} />
-                <th className="px-6 py-3 text-right">{t('table.actions')}</th>
+                <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} width="w-48" className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
+                <SortHeader label={t('table.what')} sortKey="action" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
+                <SortHeader label={t('table.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
+                <SortHeader label={t('table.dueDate')} sortKey="date" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
+                <SortHeader label={t('sidebar.analyses')} sortKey="rcaTitle" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
+                <th className="px-8 py-5 text-right border-b border-slate-100 text-[10px] uppercase tracking-widest font-black text-slate-400">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-50">
               {filteredActions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(action => (
                 <tr
                   key={action.id}
-                  className="hover:bg-blue-50/50 cursor-pointer transition-colors"
+                  className="hover:bg-blue-50/30 cursor-pointer transition-all group"
                   onClick={() => openEdit(action)}
                 >
-                  <td className="px-6 py-4">{getStatusBadge(action.status)}</td>
-                  <td className="px-6 py-4 font-medium text-slate-800 max-w-xs truncate" title={action.action}>{action.action}</td>
-                  <td className="px-6 py-4">{action.responsible}</td>
-                  <td className="px-6 py-4 font-mono">{formatDate(action.date)}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-8 py-6">{getStatusBadge(action.status)}</td>
+                  <td className="px-8 py-6 font-bold text-slate-800 max-w-xs truncate" title={action.action}>{action.action}</td>
+                  <td className="px-8 py-6 font-medium text-slate-500">{action.responsible}</td>
+                  <td className="px-8 py-6 font-mono text-xs font-bold text-slate-400">{formatDate(action.date)}</td>
+                  <td className="px-8 py-6">
                     <button
                       onClick={(e) => { e.stopPropagation(); onOpenRca && onOpenRca(action.rca_id); }}
                       className="group text-left focus:outline-none"
                       title={t('common.tooltips.viewDetails')}
                     >
-                      <div className="text-xs font-bold text-blue-600 truncate max-w-[200px] flex items-center gap-1 group-hover:underline">
+                      <div className="text-xs font-black text-blue-600 truncate max-w-[200px] flex items-center gap-1.5 group-hover:underline">
                         {action.rcaTitle}
-                        <ExternalLink size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-all" />
                       </div>
-                      <div className="text-[10px] text-slate-400 group-hover:text-blue-400 transition-colors">{action.assetName}</div>
+                      <div className="text-[10px] font-bold text-slate-400 group-hover:text-blue-400 transition-colors mt-0.5">{action.assetName}</div>
                     </button>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <button onClick={(e) => { e.stopPropagation(); openEdit(action); }} className="text-slate-400 hover:text-blue-600 mr-3"><Edit2 size={16} /></button>
-                    <button onClick={(e) => { e.stopPropagation(); handleDelete(action.id); }} className="text-slate-400 hover:text-red-600"><Trash2 size={16} /></button>
+                  <td className="px-8 py-6 text-right">
+                    <div className="flex justify-end gap-2">
+                      <button onClick={(e) => { e.stopPropagation(); openEdit(action); }} className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Edit2 size={16} /></button>
+                      <button onClick={(e) => { e.stopPropagation(); handleDelete(action.id); }} className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"><Trash2 size={16} /></button>
+                    </div>
                   </td>
                 </tr>
               ))}
               {filteredActions.length === 0 && (
-                <tr><td colSpan={6} className="p-8 text-center text-slate-400">{t('actionsPage.noActions')}</td></tr>
+                <tr>
+                  <td colSpan={6} className="p-20 text-center text-slate-400">
+                    <div className="bg-slate-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                      <CheckCircle2 size={40} className="opacity-20" />
+                    </div>
+                    <p className="text-lg font-bold text-slate-300">{t('actionsPage.noActions')}</p>
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
 
           {/* Paginação */}
           {filteredActions.length > 0 && (
-            <div className="p-4 flex items-center justify-between border-t border-slate-100 bg-slate-50">
-              <div className="text-sm text-slate-500">
-                {t('pagination.showing')} <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredActions.length)}</span> {t('pagination.of')} <span className="font-medium">{filteredActions.length}</span> {t('pagination.results')}
+            <div className="p-6 flex items-center justify-between border-t border-slate-100 bg-slate-50/50">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                {t('pagination.showing')} <span className="text-slate-900 font-black">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="text-slate-900 font-black">{Math.min(currentPage * itemsPerPage, filteredActions.length)}</span> {t('pagination.of')} <span className="text-slate-900 font-black">{filteredActions.length}</span>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 border border-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
+                  className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
                 >
                   {t('pagination.previous')}
                 </button>
                 <button
                   onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredActions.length ? prev + 1 : prev))}
                   disabled={currentPage * itemsPerPage >= filteredActions.length}
-                  className="px-3 py-1 border border-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
+                  className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
                 >
                   {t('pagination.next')}
                 </button>

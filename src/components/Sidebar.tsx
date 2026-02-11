@@ -42,13 +42,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
                 setIsMobileOpen(false); // Fecha o menu mobile ao selecionar um item
             }}
             className={`
-                w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium
-                ${view === id ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-800'}
+                w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm tracking-tight
+                ${view === id 
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' 
+                    : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}
                 ${isCollapsed ? 'justify-center px-2' : ''}
             `}
             title={isCollapsed ? label : ''}
         >
-            <Icon size={20} className="flex-shrink-0" />
+            <Icon size={20} className={`flex-shrink-0 ${view === id ? 'text-white' : 'text-slate-500 group-hover:text-blue-400'}`} />
             {!isCollapsed && <span>{label}</span>}
         </button>
     );
@@ -58,61 +60,63 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
             {/* Gatilho do Menu Mobile */}
             <button 
                 onClick={toggleMobile}
-                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-slate-900 text-white rounded-md shadow-lg"
+                className="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-slate-900 text-white rounded-xl shadow-xl border border-slate-800"
             >
                 <Menu size={24} />
             </button>
 
             {/* Container da Sidebar */}
             <aside className={`
-                fixed lg:static inset-y-0 left-0 z-40 bg-slate-900 text-slate-300 flex flex-col transition-all duration-300 ease-in-out shadow-xl
+                fixed lg:static inset-y-0 left-0 z-40 bg-slate-900 text-slate-300 flex flex-col transition-all duration-300 ease-in-out shadow-2xl
                 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-                ${isCollapsed ? 'lg:w-20' : 'lg:w-64'}
-                w-64 flex-shrink-0
+                ${isCollapsed ? 'lg:w-24' : 'lg:w-72'}
+                w-72 flex-shrink-0 border-r border-slate-800
             `}>
                 {/* Cabeçalho do Logotipo */}
-                <div className={`p-6 border-b border-slate-800 flex ${isCollapsed ? 'flex-col items-center gap-4' : 'items-center justify-between'}`}>
-                    <div className="flex items-center gap-2 text-white font-bold text-lg overflow-hidden">
-                        <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center shadow-lg shadow-blue-900/50 flex-shrink-0">
-                            <AlertTriangle size={18} className="text-white" />
+                <div className={`p-8 border-b border-slate-800/50 flex ${isCollapsed ? 'flex-col items-center gap-6' : 'items-center justify-between'}`}>
+                    <div className="flex items-center gap-3 text-white font-black text-xl overflow-hidden tracking-tighter font-display">
+                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20 flex-shrink-0">
+                            <AlertTriangle size={22} className="text-white" />
                         </div>
-                        {!isCollapsed && <span className="whitespace-nowrap">{t('common.appTitle')}</span>}
+                        {!isCollapsed && <span className="whitespace-nowrap uppercase">{t('common.appTitle')}</span>}
                     </div>
                     
                     {/* Botão de Colapso Desktop (Oculto em Mobile) */}
-                    <button onClick={toggleCollapse} className="hidden lg:block text-slate-500 hover:text-white transition-transform active:scale-90">
+                    <button onClick={toggleCollapse} className="hidden lg:flex p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-white transition-all active:scale-95 border border-transparent hover:border-slate-700">
                         {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
                     </button>
                 </div>
 
                 {/* Navegação Principal */}
-                <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
-                    <NavItem id="DASHBOARD" icon={LayoutDashboard} label={t('sidebar.dashboard')} />
-                    <NavItem id="TRIGGERS" icon={Siren} label={t('sidebar.triggers')} />
-                    <NavItem id="ANALYSES" icon={List} label={t('sidebar.analyses')} />
-                    <NavItem id="ACTIONS" icon={CheckSquare} label={t('sidebar.actions')} />
-                    <NavItem id="ASSETS" icon={Database} label={t('sidebar.assets')} />
+                <nav className="flex-1 p-6 space-y-3 overflow-y-auto custom-scrollbar">
+                    <div className="space-y-1">
+                        {!isCollapsed && <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4 px-4">{t('sidebar.menu') || 'Navegação'}</p>}
+                        <NavItem id="DASHBOARD" icon={LayoutDashboard} label={t('sidebar.dashboard')} />
+                        <NavItem id="TRIGGERS" icon={Siren} label={t('sidebar.triggers')} />
+                        <NavItem id="ANALYSES" icon={List} label={t('sidebar.analyses')} />
+                        <NavItem id="ACTIONS" icon={CheckSquare} label={t('sidebar.actions')} />
+                        <NavItem id="ASSETS" icon={Database} label={t('sidebar.assets')} />
+                    </div>
 
-                    <div className="pt-4 mt-4 border-t border-slate-800">
+                    <div className="pt-6 mt-6 border-t border-slate-800/50 space-y-1">
+                        {!isCollapsed && <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4 px-4">{t('sidebar.system') || 'Sistema'}</p>}
                         <NavItem id="SETTINGS" icon={Settings} label={t('sidebar.settings')} />
                         <NavItem id="MIGRATION" icon={Upload} label={t('sidebar.migration')} />
                     </div>
                 </nav>
 
                 {/* Rodapé e Seletor de Idioma */}
-                <div className={`p-6 border-t border-slate-800 text-xs text-slate-500 ${isCollapsed ? 'text-center' : ''}`}>
-                    {isCollapsed ? (
-                        <div className="flex flex-col gap-4 items-center">
-                            <LanguageSelector compact />
-                        </div>
-                    ) : (
-                        <>
-                            v17.2 Context API<br />
-                            {t('common.runningOn')} React 18
-                            <div className="mt-4 pt-4 border-t border-slate-800">
-                                <LanguageSelector />
+                <div className={`p-8 border-t border-slate-800/50 bg-slate-950/30 ${isCollapsed ? 'text-center flex flex-col items-center gap-6' : ''}`}>
+                    <div className={isCollapsed ? "w-full flex justify-center" : ""}>
+                        <LanguageSelector compact={isCollapsed} />
+                    </div>
+                    {!isCollapsed && (
+                        <div className="mt-6 pt-6 border-t border-slate-800/30">
+                            <div className="flex items-center justify-between text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+                                <span>Engine v17.2</span>
+                                <span className="px-1.5 py-0.5 bg-slate-800 rounded">R18</span>
                             </div>
-                        </>
+                        </div>
                     )}
                 </div>
             </aside>

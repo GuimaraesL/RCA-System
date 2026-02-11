@@ -159,7 +159,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     console.log('📝 Contexto: Adicionando RCA...', record.id);
     try {
       if (useApi) {
-        await api.saveRecordToApi(record);
+        await api.saveRecordToApi(record, false);
       } else {
         storage.saveRecord(record);
       }
@@ -174,7 +174,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     console.log('📝 Contexto: Atualizando RCA...', record.id);
     try {
       if (useApi) {
-        await api.saveRecordToApi(record);
+        await api.saveRecordToApi(record, true);
       } else {
         storage.saveRecord(record);
       }
@@ -224,7 +224,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     console.log('📝 Contexto: Adicionando ação...', action.id);
     try {
       if (useApi) {
-        await api.saveActionToApi(action);
+        await api.saveActionToApi(action, false);
       } else {
         storage.saveAction(action);
       }
@@ -238,7 +238,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateAction = async (action: ActionRecord): Promise<void> => {
     try {
       if (useApi) {
-        await api.saveActionToApi(action);
+        await api.saveActionToApi(action, true);
       } else {
         storage.saveAction(action);
       }
@@ -270,7 +270,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     console.log('📝 Contexto: Adicionando gatilho...', trigger.id);
     try {
       if (useApi) {
-        await api.saveTriggerToApi(trigger);
+        await api.saveTriggerToApi(trigger, false);
       } else {
         storage.saveTrigger(trigger);
       }
@@ -285,7 +285,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     console.log('📝 Contexto: Atualizando gatilho...', trigger.id);
     try {
       if (useApi) {
-        await api.saveTriggerToApi(trigger);
+        await api.saveTriggerToApi(trigger, true);
       } else {
         storage.saveTrigger(trigger);
       }

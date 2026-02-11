@@ -3,7 +3,7 @@
  * Fluxo: Renderiza uma lista de verificação técnica para garantir que os padrões de manutenção foram seguidos, com cálculo de progresso em tempo real e suporte a comentários individuais por item.
  */
 
-import React from 'react';
+import React, { useId } from 'react';
 import { RcaRecord } from '../../types';
 import { ListChecks, CheckSquare, Square, XSquare } from 'lucide-react';
 import { useSorting } from '../../hooks/useSorting';
@@ -17,6 +17,7 @@ interface Step6Props {
 
 export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
     const { t } = useLanguage();
+    const idPrefix = useId();
 
     const updatePrecision = (id: string, field: 'status' | 'comment', value: any) => {
         if (!data.precision_maintenance) return;
@@ -39,25 +40,25 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
     return (
         <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {/* Cabeçalho e Barra de Progresso */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="bg-indigo-50 p-3 rounded-full text-indigo-600">
-                        <ListChecks size={24} />
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200/60 flex items-center justify-between gap-10">
+                <div className="flex items-center gap-5">
+                    <div className="bg-blue-50 p-4 rounded-xl text-blue-600 shadow-sm border border-blue-100">
+                        <ListChecks size={28} />
                     </div>
                     <div>
-                        <h2 className="text-lg font-bold text-slate-800">{t('wizard.step6.title')}</h2>
-                        <p className="text-sm text-slate-500">{t('wizard.step6.subtitle')}</p>
+                        <h2 className="text-xl font-bold text-slate-900 font-display tracking-tight">{t('wizard.step6.title')}</h2>
+                        <p className="text-sm text-slate-500 font-medium">{t('wizard.step6.subtitle')}</p>
                     </div>
                 </div>
 
-                <div className="w-1/3">
-                    <div className="flex justify-between text-xs mb-1 font-medium">
-                        <span className="text-slate-500">{t('wizard.step6.completionStatus')}</span>
-                        <span className="text-indigo-600">{percent}% ({completed}/{total})</span>
+                <div className="flex-1 max-w-md">
+                    <div className="flex justify-between text-[10px] mb-2 font-black uppercase tracking-widest">
+                        <span className="text-slate-400">{t('wizard.step6.completionStatus')}</span>
+                        <span className="text-blue-600">{percent}% ({completed}/{total})</span>
                     </div>
-                    <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                    <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200/50">
                         <div
-                            className="bg-indigo-600 h-2.5 rounded-full transition-all duration-500 ease-out"
+                            className="bg-blue-600 h-full rounded-full transition-all duration-700 ease-in-out shadow-[0_0_8px_rgba(37,99,235,0.3)]"
                             style={{ width: `${percent}%` }}
                         ></div>
                     </div>
@@ -65,39 +66,63 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
             </div>
 
             {/* Tabela de Atividades */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden">
                 <table className="w-full text-sm text-left">
                     <thead>
-                        <tr className="bg-slate-50 text-slate-500 border-b group">
-                            <SortHeader label={t('table.id')} sortKey="id" currentSort={sortConfig} onSort={handleSort} className="text-center w-32" />
-                            <SortHeader label={t('wizard.step6.activity')} sortKey="activity" currentSort={sortConfig} onSort={handleSort} />
-                            <th className="p-3 w-24 text-center">{t('wizard.step6.executed')}</th>
-                            <th className="p-3 w-24 text-center">{t('wizard.step6.notExecuted')}</th>
-                            <th className="p-3 w-24 text-center">{t('wizard.step6.notApplicable')}</th>
-                            <SortHeader label={t('wizard.step6.comment')} sortKey="comment" currentSort={sortConfig} onSort={handleSort} />
+                        <tr className="bg-slate-50 text-slate-500 border-b border-slate-100">
+                            <SortHeader label={t('table.id')} sortKey="id" currentSort={sortConfig} onSort={handleSort} className="text-center w-24 px-6 py-4 font-black text-[10px] uppercase tracking-widest" />
+                            <SortHeader label={t('wizard.step6.activity')} sortKey="activity" currentSort={sortConfig} onSort={handleSort} className="px-6 py-4 font-black text-[10px] uppercase tracking-widest" />
+                            <th className="px-4 py-4 w-24 text-center font-black text-[10px] uppercase tracking-widest">{t('wizard.step6.executed')}</th>
+                            <th className="px-4 py-4 w-24 text-center font-black text-[10px] uppercase tracking-widest">{t('wizard.step6.notExecuted')}</th>
+                            <th className="px-4 py-4 w-24 text-center font-black text-[10px] uppercase tracking-widest">{t('wizard.step6.notApplicable')}</th>
+                            <SortHeader label={t('wizard.step6.comment')} sortKey="comment" currentSort={sortConfig} onSort={handleSort} className="px-6 py-4 font-black text-[10px] uppercase tracking-widest" />
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-50">
                         {precisionMaintenance.map((item) => (
-                            <tr key={item.id} className="hover:bg-slate-50">
-                                <td className="p-3 text-center text-xs font-mono text-slate-400 truncate max-w-[100px]" title={item.id}>{item.id}</td>
-                                <td className="p-3 font-medium text-slate-700">
+                            <tr key={item.id} className="hover:bg-blue-50/20 transition-colors">
+                                <td className="px-6 py-4 text-center text-xs font-mono text-slate-400 truncate max-w-[100px]" title={item.id}>{item.id}</td>
+                                <td className="px-6 py-4 font-bold text-slate-700 leading-relaxed">
                                     {t(item.activity || '')}
                                 </td>
-                                <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'status', 'EXECUTED')} className={`p-1 rounded ${item.status === 'EXECUTED' ? 'text-green-600 bg-green-50' : 'text-slate-300'}`}>{item.status === 'EXECUTED' ? <CheckSquare size={18} /> : <Square size={18} />}</button></td>
-                                <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'status', 'NOT_EXECUTED')} className={`p-1 rounded ${item.status === 'NOT_EXECUTED' ? 'text-red-500 bg-red-50' : 'text-slate-300'}`}>{item.status === 'NOT_EXECUTED' ? <XSquare size={18} /> : <Square size={18} />}</button></td>
-                                <td className="p-3 text-center"><button onClick={() => updatePrecision(item.id, 'status', 'NOT_APPLICABLE')} className={`p-1 rounded ${item.status === 'NOT_APPLICABLE' ? 'text-slate-500 bg-slate-100' : 'text-slate-300'}`}>{item.status === 'NOT_APPLICABLE' ? <CheckSquare size={18} /> : <Square size={18} />}</button></td>
-                                <td className="p-3">
-                                    <input
-                                        id={`checklist_comment_${item.id}`}
-                                        name={`checklist_comment_${item.id}`}
-                                        type="text"
-                                        className="w-full border-b border-slate-200 focus:border-blue-500 outline-none bg-transparent text-xs py-1 text-slate-900 placeholder:text-slate-400"
-                                        placeholder={t('wizard.step6.addComment')}
-                                        aria-label={`${t('wizard.step6.comment')} - ${item.activity || item.question_snapshot || ''}`}
-                                        value={item.comment || ''}
-                                        onChange={(e) => updatePrecision(item.id, 'comment', e.target.value)}
-                                    />
+                                <td className="px-4 py-4 text-center">
+                                    <button 
+                                        onClick={() => updatePrecision(item.id, 'status', 'EXECUTED')} 
+                                        className={`p-2 rounded-lg transition-all ${item.status === 'EXECUTED' ? 'text-emerald-600 bg-emerald-50 border border-emerald-100 shadow-sm' : 'text-slate-300 hover:text-slate-400'}`}
+                                    >
+                                        {item.status === 'EXECUTED' ? <CheckSquare size={20} strokeWidth={2.5} /> : <Square size={20} />}
+                                    </button>
+                                </td>
+                                <td className="px-4 py-4 text-center">
+                                    <button 
+                                        onClick={() => updatePrecision(item.id, 'status', 'NOT_EXECUTED')} 
+                                        className={`p-2 rounded-lg transition-all ${item.status === 'NOT_EXECUTED' ? 'text-rose-600 bg-rose-50 border border-rose-100 shadow-sm' : 'text-slate-300 hover:text-slate-400'}`}
+                                    >
+                                        {item.status === 'NOT_EXECUTED' ? <XSquare size={20} strokeWidth={2.5} /> : <Square size={20} />}
+                                    </button>
+                                </td>
+                                <td className="px-4 py-4 text-center">
+                                    <button 
+                                        onClick={() => updatePrecision(item.id, 'status', 'NOT_APPLICABLE')} 
+                                        className={`p-2 rounded-lg transition-all ${item.status === 'NOT_APPLICABLE' ? 'text-slate-600 bg-slate-100 border border-slate-200 shadow-sm' : 'text-slate-300 hover:text-slate-400'}`}
+                                    >
+                                        {item.status === 'NOT_APPLICABLE' ? <CheckSquare size={20} strokeWidth={2.5} /> : <Square size={20} />}
+                                    </button>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="relative group/input">
+                                        <input
+                                            id={`${idPrefix}-checklist-comment-${item.id}`}
+                                            name={`checklist_comment_${item.id}`}
+                                            type="text"
+                                            className="w-full border-b border-slate-200 focus:border-blue-500 outline-none bg-transparent text-sm py-1.5 text-slate-900 placeholder:text-slate-300 transition-colors font-medium"
+                                            placeholder={t('wizard.step6.addComment')}
+                                            aria-label={`${t('wizard.step6.comment')} - ${item.activity || item.question_snapshot || ''}`}
+                                            value={item.comment || ''}
+                                            onChange={(e) => updatePrecision(item.id, 'comment', e.target.value)}
+                                        />
+                                        <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-focus-within/input:w-full"></div>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

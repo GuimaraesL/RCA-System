@@ -3,9 +3,9 @@
  * Fluxo: Renderiza um questionário técnico focado em fatores humanos, permitindo a identificação de falhas sistêmicas de treinamento, procedimentos ou rotina, consolidando com uma validação final do coordenador.
  */
 
-import React from 'react';
+import React, { useId } from 'react';
 import { RcaRecord } from '../../types';
-import { UserCheck, CheckSquare, Square, XSquare } from 'lucide-react';
+import { UserCheck, CheckSquare, Square, XSquare, Info, ShieldCheck } from 'lucide-react';
 import { Textarea } from '../ui/Textarea';
 import { useSorting } from '../../hooks/useSorting';
 import { SortHeader } from '../ui/SortHeader';
@@ -18,6 +18,7 @@ interface StepHRAProps {
 
 export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
     const { t } = useLanguage();
+    const idPrefix = useId();
 
     const updateHraQuestion = (id: string, field: 'answer' | 'comment', value: any) => {
         if (!data.human_reliability) return;
@@ -41,83 +42,114 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
     if (!data.human_reliability) return null;
 
     return (
-        <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="max-w-[1600px] mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {/* Cabeçalho de Contexto HRA */}
-            <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-lg flex gap-3 text-indigo-700 text-sm">
-                <UserCheck size={20} className="mt-0.5" />
+            <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-xl flex gap-4 text-blue-800 text-sm shadow-sm">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 flex-shrink-0">
+                    <UserCheck size={24} />
+                </div>
                 <div>
-                    <strong>{t('wizard.stepHRA.title')}</strong>
-                    <p>{t('wizard.stepHRA.subtitle')}</p>
+                    <strong className="text-blue-900 font-bold block mb-1 text-base">{t('wizard.stepHRA.title')}</strong>
+                    <p className="font-medium opacity-80">{t('wizard.stepHRA.subtitle')}</p>
                 </div>
             </div>
 
             {/* Questionário Detalhado */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">{t('wizard.stepHRA.questionnaire')}</h3>
-                <table className="w-full text-sm text-left">
-                    <thead>
-                        <tr className="bg-slate-50 text-slate-500 border-b group">
-                            <SortHeader label={t('table.id')} sortKey="id" currentSort={sortConfig} onSort={handleSort} className="w-16" />
-                            <SortHeader label={t('wizard.stepHRA.question')} sortKey="question" currentSort={sortConfig} onSort={handleSort} />
-                            <th className="p-3 w-24 text-center">{t('wizard.stepHRA.yes')}</th>
-                            <th className="p-3 w-24 text-center">{t('wizard.stepHRA.no')}</th>
-                            <SortHeader label={t('wizard.stepHRA.comments')} sortKey="comment" currentSort={sortConfig} onSort={handleSort} className="w-1/3" />
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {questions.map(q => (
-                            <tr key={q.id} className="hover:bg-slate-50">
-                                <td className="p-3 font-mono text-xs text-slate-400 max-w-[80px] truncate" title={q.id}>{q.id}</td>
-                                <td className="p-3">
-                                    <div className="text-xs text-slate-400 mb-1 font-bold uppercase">{t(q.category || '')}</div>
-                                    {t(q.question || '')}
-                                </td>
-                                <td className="p-3 text-center"><button onClick={() => updateHraQuestion(q.id, 'answer', 'YES')} className={`p-1 rounded ${q.answer === 'YES' ? 'text-green-600 bg-green-50' : 'text-slate-300'}`}>{q.answer === 'YES' ? <CheckSquare size={18} /> : <Square size={18} />}</button></td>
-                                <td className="p-3 text-center"><button onClick={() => updateHraQuestion(q.id, 'answer', 'NO')} className={`p-1 rounded ${q.answer === 'NO' ? 'text-red-500 bg-red-50' : 'text-slate-300'}`}>{q.answer === 'NO' ? <XSquare size={18} /> : <Square size={18} />}</button></td>
-                                <td className="p-3">
-                                    <input
-                                        id={`hra_comment_${q.id}`}
-                                        name={`hra_comment_${q.id}`}
-                                        type="text"
-                                        className="w-full border-b border-slate-200 focus:border-indigo-500 outline-none bg-transparent text-xs py-1 text-slate-900 placeholder:text-slate-400"
-                                        placeholder={t('wizard.stepHRA.addComment')}
-                                        aria-label={`${t('wizard.stepHRA.comments')} - ${t(q.question_snapshot || '') || t(q.question || '')}`}
-                                        value={q.comment}
-                                        onChange={e => updateHraQuestion(q.id, 'comment', e.target.value)}
-                                    />
-                                </td>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/60 overflow-hidden">
+                <div className="px-8 py-5 border-b border-slate-100 bg-white">
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <span className="w-1.5 h-4 bg-blue-500 rounded-full"></span>
+                        {t('wizard.stepHRA.questionnaire')}
+                    </h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead>
+                            <tr className="bg-slate-50 text-slate-500 border-b border-slate-100">
+                                <SortHeader label={t('table.id')} sortKey="id" currentSort={sortConfig} onSort={handleSort} className="w-20 px-6 py-4 font-black text-[10px] uppercase tracking-widest text-center" />
+                                <SortHeader label={t('wizard.stepHRA.question')} sortKey="question" currentSort={sortConfig} onSort={handleSort} className="px-6 py-4 font-black text-[10px] uppercase tracking-widest" />
+                                <th className="px-4 py-4 w-24 text-center font-black text-[10px] uppercase tracking-widest">{t('wizard.stepHRA.yes')}</th>
+                                <th className="px-4 py-4 w-24 text-center font-black text-[10px] uppercase tracking-widest">{t('wizard.stepHRA.no')}</th>
+                                <SortHeader label={t('wizard.stepHRA.comments')} sortKey="comment" currentSort={sortConfig} onSort={handleSort} className="w-1/3 px-6 py-4 font-black text-[10px] uppercase tracking-widest" />
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                            {questions.map(q => (
+                                <tr key={q.id} className="hover:bg-blue-50/20 transition-all group">
+                                    <td className="px-6 py-5 font-mono text-xs text-slate-400 text-center" title={q.id}>{q.id}</td>
+                                    <td className="px-6 py-5">
+                                        <div className="text-[10px] text-blue-600 mb-1.5 font-black uppercase tracking-widest opacity-70">{t(q.category || '')}</div>
+                                        <div className="text-slate-700 font-bold leading-relaxed">{t(q.question || '')}</div>
+                                    </td>
+                                    <td className="px-4 py-5 text-center">
+                                        <button 
+                                            onClick={() => updateHraQuestion(q.id, 'answer', 'YES')} 
+                                            className={`p-2 rounded-lg transition-all ${q.answer === 'YES' ? 'text-emerald-600 bg-emerald-50 border border-emerald-100 shadow-sm' : 'text-slate-300 hover:text-slate-400'}`}
+                                        >
+                                            {q.answer === 'YES' ? <CheckSquare size={20} strokeWidth={2.5} /> : <Square size={20} />}
+                                        </button>
+                                    </td>
+                                    <td className="px-4 py-5 text-center">
+                                        <button 
+                                            onClick={() => updateHraQuestion(q.id, 'answer', 'NO')} 
+                                            className={`p-2 rounded-lg transition-all ${q.answer === 'NO' ? 'text-rose-600 bg-rose-50 border border-rose-100 shadow-sm' : 'text-slate-300 hover:text-slate-400'}`}
+                                        >
+                                            {q.answer === 'NO' ? <XSquare size={20} strokeWidth={2.5} /> : <Square size={20} />}
+                                        </button>
+                                    </td>
+                                    <td className="px-6 py-5">
+                                        <div className="relative group/input">
+                                            <input
+                                                id={`${idPrefix}-hra-comment-${q.id}`}
+                                                name={`hra_comment_${q.id}`}
+                                                type="text"
+                                                className="w-full border-b border-slate-200 focus:border-blue-500 outline-none bg-transparent text-sm py-1.5 text-slate-900 placeholder:text-slate-300 transition-colors font-medium"
+                                                placeholder={t('wizard.stepHRA.addComment')}
+                                                aria-label={`${t('wizard.stepHRA.comments')} - ${t(q.question_snapshot || '') || t(q.question || '')}`}
+                                                value={q.comment}
+                                                onChange={e => updateHraQuestion(q.id, 'comment', e.target.value)}
+                                            />
+                                            <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-focus-within/input:w-full"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {/* Conclusão da Análise de Fatores Humanos */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">{t('wizard.stepHRA.conclusion')}</h3>
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200/60">
+                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-8 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-blue-500 rounded-full"></span>
+                    {t('wizard.stepHRA.conclusion')}
+                </h3>
 
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {(data.human_reliability.conclusions || []).map(c => (
-                        <div key={c.id} className={`p-4 rounded border ${c.selected ? 'border-indigo-300 bg-indigo-50/20' : 'border-slate-200'}`}>
-                            <div className="flex items-center gap-3 mb-2">
+                        <div key={c.id} className={`p-6 rounded-xl border transition-all duration-300 ${c.selected ? 'border-blue-300 bg-blue-50/30 shadow-sm' : 'border-slate-100 bg-slate-50/30 hover:border-slate-200 hover:bg-slate-50'}`}>
+                            <div className="flex items-start gap-4 mb-4">
                                 <button
-                                    id={`btn_hra_conclusion_${c.id}`}
+                                    id={`${idPrefix}-btn-hra-concl-${c.id}`}
                                     onClick={() => updateHraConclusion(c.id, 'selected', !c.selected)}
-                                    className={c.selected ? 'text-indigo-600' : 'text-slate-300'}
+                                    className={`mt-0.5 transition-colors ${c.selected ? 'text-blue-600' : 'text-slate-300'}`}
                                     aria-pressed={c.selected}
-                                    aria-labelledby={`label_hra_conclusion_${c.id}`}
+                                    aria-labelledby={`${idPrefix}-label-hra-concl-${c.id}`}
                                 >
-                                    {c.selected ? <CheckSquare size={20} /> : <Square size={20} />}
+                                    {c.selected ? <CheckSquare size={24} strokeWidth={2.5} /> : <Square size={24} />}
                                 </button>
-                                <label id={`label_hra_conclusion_${c.id}`} htmlFor={`btn_hra_conclusion_${c.id}`} className={`font-bold text-sm cursor-pointer ${c.selected ? 'text-indigo-800' : 'text-slate-700'}`}>{t(c.label || '')}</label>
+                                <label id={`${idPrefix}-label-hra-concl-${c.id}`} htmlFor={`${idPrefix}-btn-hra-concl-${c.id}`} className={`font-bold text-sm cursor-pointer leading-tight ${c.selected ? 'text-blue-900' : 'text-slate-600'}`}>
+                                    {t(c.label || '')}
+                                </label>
                             </div>
                             {c.selected && (
-                                <div className="pl-8 animate-in fade-in slide-in-from-top-1">
+                                <div className="pl-10 animate-in fade-in slide-in-from-top-2">
                                     <Textarea
-                                        id={`hra_conclusion_description_${c.id}`}
+                                        id={`${idPrefix}-hra-concl-desc-${c.id}`}
                                         name={`hra_conclusion_description_${c.id}`}
                                         placeholder={t('wizard.stepHRA.describeBriefly')}
-                                        rows={2}
+                                        rows={3}
                                         value={c.description}
                                         onChange={e => updateHraConclusion(c.id, 'description', e.target.value)}
                                     />
@@ -129,36 +161,39 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
             </div>
 
             {/* Validação Institucional */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">{t('wizard.stepHRA.validation')}</h3>
-                <div className="flex items-start gap-4">
-                    <div className="flex-1">
-                        <span id="hra_validation_label" className="block text-xs font-medium text-slate-500 mb-1">{t('wizard.stepHRA.validationQuestion')}</span>
-                        <div id="hra_validation_selector" className="flex gap-4 mt-2" role="radiogroup" aria-labelledby="hra_validation_label">
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200/60 group hover:border-blue-200 transition-all">
+                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-8 flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-emerald-500 rounded-full"></span>
+                    {t('wizard.stepHRA.validation')}
+                </h3>
+                <div className="flex flex-col lg:flex-row items-start gap-10">
+                    <div className="flex-1 w-full">
+                        <span id={`${idPrefix}-hra-val-label`} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{t('wizard.stepHRA.validationQuestion')}</span>
+                        <div id={`${idPrefix}-hra-val-selector`} className="flex gap-4" role="radiogroup" aria-labelledby={`${idPrefix}-hra-val-label`}>
                             <button
                                 aria-checked={data.human_reliability!.validation?.isValidated === 'YES'}
                                 role="radio"
                                 onClick={() => onChange('human_reliability', { ...data.human_reliability!, validation: { ... (data.human_reliability!.validation || { isValidated: '', comment: '' }), isValidated: 'YES' } })}
-                                className={`flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium ${data.human_reliability!.validation?.isValidated === 'YES' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-white border-slate-300 text-slate-600'}`}
+                                className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl border-2 text-sm font-black transition-all ${data.human_reliability!.validation?.isValidated === 'YES' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm shadow-emerald-500/10' : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'}`}
                             >
-                                <CheckSquare size={16} /> {t('wizard.stepHRA.yes').toUpperCase()}
+                                <CheckSquare size={18} strokeWidth={3} /> {t('wizard.stepHRA.yes').toUpperCase()}
                             </button>
                             <button
                                 aria-checked={data.human_reliability!.validation?.isValidated === 'NO'}
                                 role="radio"
                                 onClick={() => onChange('human_reliability', { ...data.human_reliability!, validation: { ... (data.human_reliability!.validation || { isValidated: '', comment: '' }), isValidated: 'NO' } })}
-                                className={`flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium ${data.human_reliability!.validation?.isValidated === 'NO' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-slate-300 text-slate-600'}`}
+                                className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl border-2 text-sm font-black transition-all ${data.human_reliability!.validation?.isValidated === 'NO' ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-sm shadow-rose-500/10' : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'}`}
                             >
-                                <XSquare size={16} /> {t('wizard.stepHRA.no').toUpperCase()}
+                                <XSquare size={18} strokeWidth={3} /> {t('wizard.stepHRA.no').toUpperCase()}
                             </button>
                         </div>
                     </div>
-                    <div className="flex-[2]">
-                        <label htmlFor="hra_coordinator_comment" className="block text-xs font-medium text-slate-500 mb-1">{t('wizard.stepHRA.coordinatorComments')}</label>
+                    <div className="flex-[2] w-full">
+                        <label htmlFor={`${idPrefix}-hra-coord-comment`} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">{t('wizard.stepHRA.coordinatorComments')}</label>
                         <Textarea
-                            id="hra_coordinator_comment"
+                            id={`${idPrefix}-hra-coord-comment`}
                             name="hra_coordinator_comment"
-                            rows={3}
+                            rows={4}
                             value={data.human_reliability!.validation?.comment || ''}
                             onChange={e => onChange('human_reliability', { ...data.human_reliability!, validation: { ... (data.human_reliability!.validation || { isValidated: '', comment: '' }), comment: e.target.value } })}
                         />

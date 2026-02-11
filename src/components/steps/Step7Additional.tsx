@@ -3,11 +3,11 @@
  * Fluxo: Captura notas de reunião, comentários gerais, histórico do ativo e consolida as lições aprendidas para prevenção de reincidências.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useId } from 'react';
 import { Textarea } from '../ui/Textarea';
 import { Input } from '../ui/Input';
 import { RcaRecord } from '../../types';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Info, Link as LinkIcon, MessageSquare, History } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageDefinition';
 
 interface Step7Props {
@@ -17,6 +17,7 @@ interface Step7Props {
 
 export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
     const { t } = useLanguage();
+    const idPrefix = useId();
     const [newLink, setNewLink] = useState({ title: '', url: '' });
 
     // Garante a existência do objeto additionalInfo para compatibilidade com registros legados
@@ -43,64 +44,78 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
     };
 
     return (
-        <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('wizard.step7.title')}</h2>
-                <p className="text-gray-600">{t('wizard.step7.subtitle')}</p>
+        <div className="max-w-[1600px] mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="border-b border-slate-200 pb-4">
+                <h2 className="text-2xl font-bold text-slate-900 font-display tracking-tight">{t('wizard.step7.title')}</h2>
+                <p className="text-slate-500 text-sm mt-1">{t('wizard.step7.subtitle')}</p>
             </div>
 
-            <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200/60 group hover:border-blue-200 transition-all">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><MessageSquare size={20} /></div>
+                        <h3 className="font-bold text-slate-800 uppercase tracking-widest text-[10px]">{t('wizard.step7.meetingNotes')}</h3>
+                    </div>
                     <Textarea
-                        id="meeting_notes"
-                        label={t('wizard.step7.meetingNotes')}
+                        id={`${idPrefix}-meeting-notes`}
                         placeholder={t('wizard.step7.meetingNotesPlaceholder')}
-                        rows={6}
+                        rows={10}
                         value={info.meetingNotes}
                         onChange={(e) => updateInfo('meetingNotes', e.target.value)}
                     />
                 </div>
 
-                {/* Seção de Links Relacionados (Evidências Externas) */}
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">{t('wizard.step7.links')}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Input
-                            id="link_title"
-                            name="link_title"
-                            label={t('wizard.step7.linkTitle')}
-                            placeholder={t('wizard.step7.linkTitlePlaceholder')}
-                            value={newLink.title}
-                            onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
-                        />
-                        <Input
-                            id="link_url"
-                            name="link_url"
-                            label={t('wizard.step7.linkUrl')}
-                            placeholder="https://..."
-                            value={newLink.url}
-                            onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+                <div className="space-y-10">
+                    {/* Seção de Links Relacionados (Evidências Externas) */}
+                    <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200/60 group hover:border-blue-200 transition-all">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><LinkIcon size={20} /></div>
+                            <h3 className="font-bold text-slate-800 uppercase tracking-widest text-[10px]">{t('wizard.step7.links')}</h3>
+                        </div>
+                        <div className="grid grid-cols-1 gap-6">
+                            <Input
+                                id={`${idPrefix}-link-title`}
+                                name="link_title"
+                                label={t('wizard.step7.linkTitle')}
+                                placeholder={t('wizard.step7.linkTitlePlaceholder')}
+                                value={newLink.title}
+                                onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
+                            />
+                            <Input
+                                id={`${idPrefix}-link-url`}
+                                name="link_url"
+                                label={t('wizard.step7.linkUrl')}
+                                placeholder="https://..."
+                                value={newLink.url}
+                                onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200/60 group hover:border-blue-200 transition-all">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Info size={20} /></div>
+                            <h3 className="font-bold text-slate-800 uppercase tracking-widest text-[10px]">{t('wizard.step7.generalComments')}</h3>
+                        </div>
+                        <Textarea
+                            id={`${idPrefix}-general-comments`}
+                            placeholder={t('wizard.step7.generalCommentsPlaceholder')}
+                            rows={6}
+                            value={info.comments}
+                            onChange={(e) => updateInfo('comments', e.target.value)}
                         />
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                <div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm border border-slate-200/60 group hover:border-blue-200 transition-all">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><History size={20} /></div>
+                        <h3 className="font-bold text-slate-800 uppercase tracking-widest text-[10px]">{t('wizard.step7.historicalInfo')}</h3>
+                    </div>
                     <Textarea
-                        id="general_comments"
-                        label={t('wizard.step7.generalComments')}
-                        placeholder={t('wizard.step7.generalCommentsPlaceholder')}
-                        rows={6}
-                        value={info.comments}
-                        onChange={(e) => updateInfo('comments', e.target.value)}
-                    />
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                    <Textarea
-                        id="historical_info"
-                        label={t('wizard.step7.historicalInfo')}
+                        id={`${idPrefix}-historical-info`}
                         placeholder={t('wizard.step7.historicalInfoPlaceholder')}
-                        rows={8}
+                        rows={6}
                         value={info.historicalInfo}
                         onChange={(e) => updateInfo('historicalInfo', e.target.value)}
                     />
@@ -108,37 +123,51 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange }) => {
             </div>
 
             {/* Gestão de Lições Aprendidas */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                <div className="flex justify-between items-center mb-4 border-b pb-2">
-                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">{t('wizard.step7.lessonsLearned')}</h3>
-                    <button onClick={addLesson} className="text-blue-600 text-xs font-bold flex items-center gap-1 hover:text-blue-700">
-                        <Plus size={14} /> {t('wizard.add')}
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200/60">
+                <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+                    <h3 className="text-xl font-bold text-slate-900 flex items-center gap-3">
+                        <span className="w-1.5 h-6 bg-blue-600 rounded-full"></span>
+                        {t('wizard.step7.lessonsLearned')}
+                    </h3>
+                    <button onClick={addLesson} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition-all">
+                        <Plus size={16} /> {t('wizard.add')}
                     </button>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-4">
                     {data.lessons_learned.map((lesson, idx) => (
-                        <div key={idx} className="flex gap-2">
+                        <div key={idx} className="flex gap-4 items-center group animate-in slide-in-from-left-2 duration-300">
+                            <div className="flex-shrink-0 w-8 h-8 bg-slate-100 text-slate-500 rounded-lg flex items-center justify-center font-bold text-xs">
+                                {idx + 1}
+                            </div>
                             <input
-                                id={`lesson_${idx}`}
+                                id={`${idPrefix}-lesson-${idx}`}
                                 name={`lesson_${idx}`}
                                 type="text"
-                                className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-slate-900 placeholder:text-slate-400"
+                                className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm"
                                 value={lesson}
                                 onChange={e => updateLesson(idx, e.target.value)}
                             />
-                            <button onClick={() => removeLesson(idx)} className="text-slate-300 hover:text-red-500 transition-colors">
-                                <Trash2 size={16} />
+                            <button onClick={() => removeLesson(idx)} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100">
+                                <Trash2 size={18} />
                             </button>
                         </div>
                     ))}
-                    {data.lessons_learned.length === 0 && <p className="text-xs text-slate-400 italic">{t('wizard.step7.lessonsEmpty')}</p>}
+                    {data.lessons_learned.length === 0 && (
+                        <div className="py-12 text-center border-2 border-dashed border-slate-100 rounded-xl bg-slate-50/30">
+                            <p className="text-sm text-slate-400 font-medium">{t('wizard.step7.lessonsEmpty')}</p>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
-                    <strong>{t('wizard.step7.tip')}</strong> {t('wizard.step7.tipText')}
-                </p>
+            <div className="mt-10 p-6 bg-blue-50/50 border border-blue-100 rounded-xl flex items-start gap-4">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 flex-shrink-0">
+                    <Info size={24} />
+                </div>
+                <div>
+                    <strong className="text-blue-900 font-bold block mb-1 uppercase tracking-tight text-xs">{t('wizard.step7.tip')}</strong>
+                    <p className="text-sm text-blue-800 leading-relaxed font-medium opacity-80">{t('wizard.step7.tipText')}</p>
+                </div>
             </div>
         </div>
     );

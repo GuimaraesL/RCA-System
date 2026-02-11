@@ -49,26 +49,32 @@ const AssetTreeNode: React.FC<{
   return (
     <div className="select-none">
       <div 
-        className={`flex items-center py-1.5 px-2 rounded-md transition-colors ${
-          isSelected ? 'bg-blue-100 text-blue-700' : 
-          isSelectable ? 'hover:bg-slate-100 text-slate-700 cursor-pointer' : 'text-slate-400 cursor-default'
+        className={`flex items-center py-2 px-3 rounded-xl transition-all duration-200 group ${
+          isSelected ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 
+          isSelectable ? 'hover:bg-slate-50 text-slate-700 cursor-pointer border border-transparent hover:border-slate-100' : 'text-slate-500 cursor-default'
         }`}
-        style={{ marginLeft: `${depth * 16}px` }}
+        style={{ marginLeft: `${depth * 20}px` }}
         onClick={handleClick}
       >
         <div 
           onClick={hasChildren ? handleToggle : undefined}
-          className={`mr-2 p-0.5 rounded hover:bg-slate-200 cursor-pointer ${hasChildren ? 'visible' : 'invisible'}`}
+          className={`mr-2 p-1 rounded-lg hover:bg-black/5 transition-colors cursor-pointer ${hasChildren ? 'visible' : 'invisible'}`}
         >
-          {isOpen ? <ChevronDown size={14} className="text-slate-500" /> : <ChevronRight size={14} className="text-slate-500" />}
+          {isOpen ? <ChevronDown size={14} className={isSelected ? "text-white" : "text-slate-400"} /> : <ChevronRight size={14} className={isSelected ? "text-white" : "text-slate-400"} />}
         </div>
         
         {/* Ícones específicos por tipo de nível hierárquico */}
-        {node.type === 'AREA' && <Folder size={16} className={`mr-2 ${isSelectable ? 'text-slate-500' : 'text-slate-300'}`} />}
-        {node.type === 'EQUIPMENT' && <Database size={16} className={`mr-2 ${isSelectable ? 'text-blue-500' : 'text-slate-300'}`} />}
-        {node.type === 'SUBGROUP' && <Layers size={16} className={`mr-2 ${isSelectable ? 'text-indigo-500' : 'text-slate-300'}`} />}
+        <div className={`p-1.5 rounded-lg mr-2.5 transition-colors ${isSelected ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-blue-50'}`}>
+            {node.type === 'AREA' && <Folder size={14} className={isSelected ? 'text-white' : isSelectable ? 'text-slate-500' : 'text-slate-600'} />}
+            {node.type === 'EQUIPMENT' && <Database size={14} className={isSelected ? 'text-white' : isSelectable ? 'text-blue-500' : 'text-blue-600'} />}
+            {node.type === 'SUBGROUP' && <Layers size={14} className={isSelected ? 'text-white' : isSelectable ? 'text-cyan-500' : 'text-cyan-600'} />}
+        </div>
         
-        <span className={`text-sm font-medium ${isSelectable ? '' : 'italic'}`}>{node.name}</span>
+        <span className={`text-xs ${isSelected ? 'font-black' : isSelectable ? 'font-bold' : 'font-black text-slate-700 opacity-80'} truncate`}>{node.name}</span>
+        
+        {isSelected && (
+            <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
+        )}
       </div>
       
       {/* Renderização recursiva de descendentes */}
@@ -111,11 +117,16 @@ export const AssetSelector: React.FC<AssetSelectorProps> = ({ assets, onSelect, 
   }, [assets]);
 
   if (!sortedAssets || sortedAssets.length === 0) {
-      return <div className="p-4 text-xs text-slate-400 text-center italic">{t('assets.noAssets')}</div>;
+      return (
+        <div className="p-12 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+            <Database size={32} className="mx-auto mb-3 text-slate-300 opacity-50" />
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{t('assets.noAssets')}</p>
+        </div>
+      );
   }
   
   return (
-    <div className="border rounded-lg p-2 bg-white shadow-sm h-64 overflow-y-auto custom-scrollbar">
+    <div className="border border-slate-200/60 rounded-2xl p-3 bg-white shadow-inner h-72 overflow-y-auto custom-scrollbar flex flex-col gap-1.5">
       {sortedAssets.map(asset => (
         <AssetTreeNode 
           key={asset.id} 

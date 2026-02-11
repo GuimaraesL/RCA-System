@@ -1,9 +1,9 @@
-
 import React, { useState, useMemo } from 'react';
-import { Search, FileText, CheckCircle, Clock, AlertCircle, Calendar, Filter } from 'lucide-react';
+import { Search, FileText, Calendar, Filter, ChevronRight, X, Database } from 'lucide-react';
 import { RcaRecord, AssetNode } from '../types';
 import { useLanguage } from '../context/LanguageDefinition';
 import { translateStatus } from '../utils/statusUtils';
+import { AssetSelector } from './AssetSelector';
 
 interface RcaSelectorProps {
     records: RcaRecord[];
@@ -14,32 +14,13 @@ interface RcaSelectorProps {
 
 export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, onSelect, onCancel }) => {
     const { t } = useLanguage();
+    const idPrefix = React.useId();
     const [searchTerm, setSearchTerm] = useState('');
 
     // Filters State
-    const [selectedArea, setSelectedArea] = useState('');
-    const [selectedEquip, setSelectedEquip] = useState('');
-    const [selectedSub, setSelectedSub] = useState('');
+    const [selectedAsset, setSelectedAsset] = useState<AssetNode | null>(null);
     const [selectedYear, setSelectedYear] = useState('');
     const [selectedMonth, setSelectedMonth] = useState('');
-
-    // Derived Options for Filters
-    const areas = useMemo(() => assets.filter(a => a.type === 'AREA'), [assets]);
-    const equipments = useMemo(() => {
-        if (!selectedArea) return [];
-        const areaNode = areas.find(a => a.id === selectedArea);
-        return areaNode?.children || [];
-    }, [selectedArea, areas]);
-
-    const subgroups = useMemo(() => {
-        if (!selectedEquip) return [];
-        for (const area of areas) {
-            const areaWithEquip = areas.find(a => a.children?.some(e => e.id === selectedEquip));
-            const eq = areaWithEquip?.children?.find(e => e.id === selectedEquip);
-            if (eq) return eq.children || [];
-        }
-        return [];
-    }, [selectedEquip, areas]);
 
     const years = useMemo(() => {
         const uniqueYears = new Set<string>();
@@ -52,21 +33,6 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, onSel
         return Array.from(uniqueYears).sort().reverse();
     }, [records]);
 
-    const months = [
-        { value: '0', label: t('filters.monthsList.jan') || 'Janeiro' },
-        { value: '1', label: t('filters.monthsList.feb') || 'Fevereiro' },
-        { value: '2', label: t('filters.monthsList.mar') || 'Março' },
-        { value: '3', label: t('filters.monthsList.apr') || 'Abril' },
-        { value: '4', label: t('filters.monthsList.may') || 'Maio' },
-        { value: '5', label: t('filters.monthsList.jun') || 'Junho' },
-        { value: '6', label: t('filters.monthsList.jul') || 'Julho' },
-        { value: '7', label: t('filters.monthsList.aug') || 'Agosto' },
-        { value: '8', label: t('filters.monthsList.sep') || 'Setembro' },
-        { value: '9', label: t('filters.monthsList.oct') || 'Outubro' },
-        { value: '10', label: t('filters.monthsList.nov') || 'Novembro' },
-        { value: '11', label: t('filters.monthsList.dec') || 'Dezembro' }
-    ];
-
     const filteredRecords = useMemo(() => {
         return records.filter(r => {
             // Text Search
@@ -78,10 +44,12 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, onSel
 
             if (!matchesSearch) return false;
 
-            // Filters
-            if (selectedArea && r.area_id !== selectedArea) return false;
-            if (selectedEquip && r.equipment_id !== selectedEquip) return false;
-            if (selectedSub && r.subgroup_id !== selectedSub) return false;
+            // Asset Hierarchy Filter
+            if (selectedAsset) {
+                if (selectedAsset.type === 'AREA' && r.area_id !== selectedAsset.id) return false;
+                if (selectedAsset.type === 'EQUIPMENT' && r.equipment_id !== selectedAsset.id) return false;
+                if (selectedAsset.type === 'SUBGROUP' && r.subgroup_id !== selectedAsset.id) return false;
+            }
 
             if (selectedYear || selectedMonth) {
                 const dateStr = r.failure_date || r.analysis_date;
@@ -93,14 +61,14 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, onSel
 
             return true;
         });
-    }, [records, searchTerm, selectedArea, selectedEquip, selectedSub, selectedYear, selectedMonth]);
+    }, [records, searchTerm, selectedAsset, selectedYear, selectedMonth]);
 
     const getStatusColor = (status: string) => {
         const s = (status || '').toLowerCase();
-        if (s.includes('conclu') || s.includes('done') || s.includes('fech')) return 'bg-green-100 text-green-700 border-green-200';
-        if (s.includes('anda') || s.includes('progress')) return 'bg-blue-100 text-blue-700 border-blue-200';
-        if (s.includes('cancel') || s.includes('remov')) return 'bg-slate-100 text-slate-500 border-slate-200 line-through';
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        if (s.includes('conclu') || s.includes('done') || s.includes('fech')) return 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-sm';
+        if (s.includes('anda') || s.includes('progress')) return 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm';
+        if (s.includes('cancel') || s.includes('remov')) return 'bg-rose-50 text-rose-700 border-rose-100 line-through opacity-60';
+        return 'bg-slate-50 text-slate-600 border-slate-200';
     };
 
     const formatDate = (dateStr: string) => {
@@ -111,149 +79,142 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, onSel
     };
 
     return (
-        <div className="flex flex-col h-[600px] w-full max-w-4xl bg-white rounded-lg overflow-hidden shadow-2xl">
+        <div className="flex flex-col md:flex-row h-[800px] w-full max-w-6xl bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-300">
 
-            {/* Header & Filters */}
-            <div className="p-4 border-b border-slate-200 bg-slate-50 space-y-3">
-
-                {/* Search Bar */}
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input
-                        type="text"
-                        placeholder={t('rcaSelector.searchPlaceholder')}
-                        className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm shadow-sm"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        autoFocus
+            {/* Sidebar de Filtros (Asset Tree) */}
+            <div className="w-full md:w-80 border-r border-slate-100 bg-slate-50/50 flex flex-col p-8 gap-6">
+                <div>
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">{t('assets.hierarchy')}</h3>
+                    <AssetSelector
+                        assets={assets}
+                        onSelect={setSelectedAsset}
+                        selectedAssetId={selectedAsset?.id}
                     />
-                </div>
-
-                {/* Filters Row */}
-                <div className="flex flex-wrap gap-2">
-                    <select
-                        className="text-xs border border-slate-300 rounded px-2 py-1.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none max-w-[150px]"
-                        value={selectedArea}
-                        onChange={(e) => { setSelectedArea(e.target.value); setSelectedEquip(''); setSelectedSub(''); }}
-                    >
-                        <option value="">{t('rcaSelector.filters.areas')}</option>
-                        {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                    </select>
-
-                    <select
-                        className="text-xs border border-slate-300 rounded px-2 py-1.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none max-w-[150px]"
-                        value={selectedEquip}
-                        onChange={(e) => { setSelectedEquip(e.target.value); setSelectedSub(''); }}
-                        disabled={!selectedArea}
-                    >
-                        <option value="">{t('rcaSelector.filters.equipments')}</option>
-                        {equipments.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                    </select>
-
-                    <select
-                        className="text-xs border border-slate-300 rounded px-2 py-1.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none max-w-[150px]"
-                        value={selectedSub}
-                        onChange={(e) => setSelectedSub(e.target.value)}
-                        disabled={!selectedEquip}
-                    >
-                        <option value="">{t('rcaSelector.filters.subgroups')}</option>
-                        {subgroups.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                    </select>
-
-                    <div className="w-px h-6 bg-slate-300 mx-1 self-center"></div>
-
-                    <select
-                        className="text-xs border border-slate-300 rounded px-2 py-1.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none w-24"
-                        value={selectedYear}
-                        onChange={(e) => setSelectedYear(e.target.value)}
-                    >
-                        <option value="">{t('rcaSelector.filters.year')}</option>
-                        {years.map(y => <option key={y} value={y}>{y}</option>)}
-                    </select>
-
-                    <select
-                        className="text-xs border border-slate-300 rounded px-2 py-1.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none w-28"
-                        value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(e.target.value)}
-                    >
-                        <option value="">{t('rcaSelector.filters.month')}</option>
-                        {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-                    </select>
-
-                    {(selectedArea || selectedYear || selectedMonth) && (
-                        <button
-                            onClick={() => { setSelectedArea(''); setSelectedEquip(''); setSelectedSub(''); setSelectedYear(''); setSelectedMonth(''); }}
-                            className="text-xs text-red-500 hover:text-red-700 ml-auto font-medium"
-                        >
-                            {t('rcaSelector.filters.clear')}
-                        </button>
+                    {selectedAsset && (
+                        <div className="mt-4 p-3 bg-white rounded-xl border border-blue-100 shadow-sm flex items-center justify-between animate-in fade-in slide-in-from-top-2">
+                            <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
+                                <span className="text-xs font-bold text-blue-700 truncate max-w-[180px]">{selectedAsset.name}</span>
+                            </div>
+                            <button onClick={() => setSelectedAsset(null)} className="text-slate-300 hover:text-rose-500 transition-colors">
+                                <X size={14} strokeWidth={3} />
+                            </button>
+                        </div>
                     )}
                 </div>
 
-                <div className="text-xs text-slate-500 flex justify-between items-center pt-1">
-                    <span>
-                        <strong className="text-slate-700">{filteredRecords.length}</strong> {t('rcaSelector.resultsFound').replace('{0}', '')}
-                    </span>
-                    {records.length > 500 && filteredRecords.length > 50 && <span className="text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-100">{t('rcaSelector.manyResults')}</span>}
+                <div className="space-y-4">
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">{t('rcaSelector.filters.year')}</h3>
+                    <select
+                        id={`${idPrefix}-year`}
+                        className="w-full text-xs font-black border border-slate-200 rounded-xl px-4 py-2.5 bg-white focus:ring-4 focus:ring-blue-500/10 outline-none cursor-pointer transition-all"
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(e.target.value)}
+                    >
+                        <option value="">TODOS OS ANOS</option>
+                        {years.map(y => <option key={y} value={y}>{y}</option>)}
+                    </select>
                 </div>
+
+                {(selectedAsset || selectedYear) && (
+                    <button
+                        onClick={() => { setSelectedAsset(null); setSelectedYear(''); setSearchTerm(''); }}
+                        className="mt-auto w-full flex items-center justify-center gap-2 py-3 bg-white border border-rose-100 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-50 transition-all active:scale-95"
+                    >
+                        <Filter size={14} strokeWidth={3} />
+                        Limpar Filtros
+                    </button>
+                )}
             </div>
 
-            {/* List */}
-            <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-slate-50/50">
-                {filteredRecords.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-60">
-                        <Filter size={48} className="mb-2" />
-                        <p>{t('rcaSelector.noResults')}</p>
-                    </div>
-                ) : (
-                    filteredRecords.slice(0, 100).map(rca => (
-                        <div
-                            key={rca.id}
-                            onClick={() => onSelect(rca.id)}
-                            className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow-md cursor-pointer transition-all group"
-                        >
-                            <div className="flex justify-between items-start mb-1">
-                                <div className="flex items-center gap-2">
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${getStatusColor(rca.status)} uppercase`}>
-                                        {translateStatus(rca.status, rca.status, t)}
-                                    </span>
-                                    <span className="font-mono text-xs font-medium text-slate-500">{rca.id}</span>
-                                    {rca.os_number && <span className="font-mono text-xs text-slate-400 bg-slate-100 px-1 rounded">OS: {rca.os_number}</span>}
-                                </div>
-                                <div className="flex items-center text-xs text-slate-400 gap-1">
-                                    <Calendar size={12} />
-                                    {formatDate(rca.failure_date || rca.analysis_date)}
-                                </div>
-                            </div>
-
-                            <div className="text-sm font-medium text-slate-800 line-clamp-2 group-hover:text-blue-700">
-                                {rca.what || <span className="italic text-slate-400">{t('common.noDescription')}</span>}
-                            </div>
-
-                            {rca.file_path && (
-                                <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-400 truncate max-w-full">
-                                    <FileText size={10} />
-                                    <span className="truncate" title={rca.file_path}>{rca.file_path}</span>
-                                </div>
-                            )}
+            {/* Conteúdo Principal (Busca e Lista) */}
+            <div className="flex-1 flex flex-col bg-white overflow-hidden">
+                <div className="p-8 border-b border-slate-100 space-y-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl"><FileText size={22} /></div>
+                            <h3 className="text-xl font-black text-slate-900 font-display tracking-tight uppercase italic">{t('rcaSelector.title') || 'Vincular Análise'}</h3>
                         </div>
-                    ))
-                )}
-                {filteredRecords.length > 100 && (
-                    <div className="p-2 text-center text-xs text-slate-400 italic">
-                        {t('rcaSelector.showingFirst').replace('{0}', '100').replace('{1}', filteredRecords.length.toString())}
+                        <div className="text-right">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Encontradas</span>
+                            <strong className="text-2xl font-black text-blue-600 leading-none">{filteredRecords.length}</strong>
+                        </div>
                     </div>
-                )}
-            </div>
 
-            {/* Footer */}
-            <div className="p-3 border-t border-slate-200 bg-slate-50 flex justify-end">
-                <button
-                    onClick={onCancel}
-                    className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg text-sm font-medium transition-colors"
-                >
-                    {t('rcaSelector.cancel')}
-                </button>
+                    <div className="relative group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={20} />
+                        <input
+                            id={`${idPrefix}-search`}
+                            type="text"
+                            placeholder={t('rcaSelector.searchPlaceholder')}
+                            className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none text-sm font-bold shadow-inner transition-all placeholder-slate-400"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            autoFocus
+                        />
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-8 space-y-4 bg-slate-50/30 custom-scrollbar">
+                    {filteredRecords.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full text-slate-300">
+                            <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-slate-100">
+                                <Database size={40} className="opacity-20" />
+                            </div>
+                            <p className="font-black text-xs uppercase tracking-widest">{t('rcaSelector.noResults')}</p>
+                        </div>
+                    ) : (
+                        filteredRecords.slice(0, 100).map(rca => (
+                            <div
+                                key={rca.id}
+                                onClick={() => onSelect(rca.id)}
+                                className="bg-white p-6 rounded-[1.5rem] border border-slate-200/60 shadow-sm hover:border-blue-400 hover:shadow-xl hover:shadow-blue-500/5 cursor-pointer transition-all group animate-in fade-in duration-300"
+                            >
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="flex items-center gap-3">
+                                        <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg border uppercase tracking-widest ${getStatusColor(rca.status)}`}>
+                                            {translateStatus(rca.status, rca.status, t)}
+                                        </span>
+                                        <span className="font-mono text-xs font-black text-slate-400 group-hover:text-blue-500 transition-colors">#{rca.id.substring(0, 8)}</span>
+                                    </div>
+                                    <div className="flex items-center text-[10px] text-slate-400 font-black uppercase tracking-widest gap-2 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+                                        <Calendar size={12} strokeWidth={3} />
+                                        {formatDate(rca.failure_date || rca.analysis_date)}
+                                    </div>
+                                </div>
+
+                                <div className="text-base font-bold text-slate-800 line-clamp-1 group-hover:text-blue-700 transition-colors mt-2">
+                                    {rca.what || <span className="italic text-slate-300 font-medium">{t('common.noDescription')}</span>}
+                                </div>
+
+                                <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
+                                    <div className="flex items-center gap-4">
+                                        {rca.os_number && (
+                                            <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded uppercase tracking-widest">
+                                                OS: {rca.os_number}
+                                            </div>
+                                        )}
+                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate max-w-[250px]">
+                                            {rca.asset_name_display || '-'}
+                                        </div>
+                                    </div>
+                                    <div className="opacity-0 group-hover:opacity-100 transition-all text-blue-600 font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5">
+                                        Vincular <ChevronRight size={14} strokeWidth={3} />
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                <div className="px-8 py-6 border-t border-slate-100 bg-white flex justify-end">
+                    <button
+                        onClick={onCancel}
+                        className="px-8 py-3 text-slate-500 font-black uppercase tracking-widest text-[11px] hover:bg-slate-50 rounded-2xl transition-all border border-transparent hover:border-slate-200"
+                    >
+                        {t('rcaSelector.cancel')}
+                    </button>
+                </div>
             </div>
         </div>
     );

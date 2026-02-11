@@ -3,7 +3,7 @@
  * Fluxo: Gerencia ações imediatas de contenção (internas ao registro) e orquestra a vinculação de planos de ação corretiva globais através de uma tabela interativa com suporte a ordenação e status de 'Box'.
  */
 
-import React, { useRef } from 'react';
+import React, { useRef, useId } from 'react';
 import { RcaRecord, ActionRecord } from '../../types';
 import { ClipboardList, Plus, Target, CheckCircle2, AlertTriangle, Edit2, Trash2, Clock, ShieldCheck, Award, Info } from 'lucide-react';
 import { useSorting } from '../../hooks/useSorting';
@@ -27,6 +27,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
     data, onChange, linkedActions, onAddActionPlan, onEditActionPlan, onDeleteActionPlan, isFieldRequired, errors
 }) => {
     const { t, formatDate } = useLanguage();
+    const idPrefix = useId();
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -53,7 +54,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
             );
           case ACTION_STATUS_IDS.VERIFIED: 
             return (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-wider border border-indigo-100 shadow-sm">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black uppercase tracking-wider border border-slate-200 shadow-sm">
                 <Award size={12} strokeWidth={3} />
                 {t('actionModal.statusOptions.verified')}
               </span>
@@ -89,104 +90,108 @@ export const Step5Actions: React.FC<Step5Props> = ({
     const listRef = useEnterAnimation([sortedActions]);
 
     return (
-        <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="max-w-[1600px] mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {/* Cabeçalho de Orientação */}
-            <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-lg flex gap-3 text-indigo-700 text-sm">
-                <Target size={20} className="mt-0.5" />
+            <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-xl flex gap-4 text-blue-800 text-sm shadow-sm">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 flex-shrink-0">
+                    <Target size={24} />
+                </div>
                 <div>
-                    <strong>{t('wizard.step5.header')}</strong>
-                    <p>{t('wizard.step5.headerDesc')}</p>
+                    <strong className="text-blue-900 font-bold block mb-1 text-base">{t('wizard.step5.header')}</strong>
+                    <p className="font-medium opacity-80">{t('wizard.step5.headerDesc')}</p>
                 </div>
             </div>
 
             {/* Ações Internas (Contenção Imediata) */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                        <AlertTriangle size={16} className="text-amber-500" /> {t('wizard.step5.containmentTitle')}
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200/60">
+                <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+                    <h3 className="text-xl font-bold text-slate-900 flex items-center gap-3">
+                        <AlertTriangle size={24} className="text-amber-500" /> {t('wizard.step5.containmentTitle')}
                     </h3>
-                    <button onClick={addInternalAction} className="text-xs flex items-center gap-1 font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100">
-                        <Plus size={14} /> {t('wizard.step5.containmentAdd')}
+                    <button onClick={addInternalAction} className="text-xs font-bold flex items-center gap-2 text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-all border border-blue-100">
+                        <Plus size={16} /> {t('wizard.step5.containmentAdd')}
                     </button>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                     {(!data.containment_actions || data.containment_actions.length === 0) && (
-                        <div className="text-center p-6 bg-slate-50 rounded border border-dashed border-slate-200 text-slate-400 text-xs">
+                        <div className="text-center py-12 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 text-slate-400 text-sm font-medium">
                             {t('wizard.step5.containmentEmpty')}
                         </div>
                     )}
                     {data.containment_actions?.map((action, idx) => (
-                        <div key={idx} className="flex gap-4 items-start p-3 bg-slate-50 rounded border border-slate-100 group">
+                        <div key={idx} className="flex gap-6 items-start p-6 bg-slate-50/30 rounded-xl border border-slate-100 group hover:bg-white hover:border-slate-200 transition-all duration-300">
                             <div className="flex-1 space-y-2">
-                                <label htmlFor={`containment_action_${idx}_action`} className="text-[10px] font-bold text-slate-400 uppercase">{t('wizard.step5.whatAction')}</label>
+                                <label htmlFor={`${idPrefix}-cont-act-${idx}`} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('wizard.step5.whatAction')}</label>
                                 <input
-                                    id={`containment_action_${idx}_action`}
+                                    id={`${idPrefix}-cont-act-${idx}`}
                                     name={`containment_action_${idx}_action`}
-                                    className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
+                                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
                                     placeholder={t('wizard.step5.whatPlaceholder')}
                                     value={action.action}
                                     onChange={e => updateInternalAction(idx, 'action', e.target.value)}
                                 />
                             </div>
-                            <div className="w-32 space-y-2">
-                                <label htmlFor={`containment_action_${idx}_responsible`} className="text-[10px] font-bold text-slate-400 uppercase">{t('wizard.step5.whoResponsible')}</label>
+                            <div className="w-48 space-y-2">
+                                <label htmlFor={`${idPrefix}-cont-resp-${idx}`} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('wizard.step5.whoResponsible')}</label>
                                 <input
-                                    id={`containment_action_${idx}_responsible`}
+                                    id={`${idPrefix}-cont-resp-${idx}`}
                                     name={`containment_action_${idx}_responsible`}
-                                    className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
+                                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
                                     value={action.responsible}
                                     onChange={e => updateInternalAction(idx, 'responsible', e.target.value)}
                                 />
                             </div>
-                            <div className="w-32 space-y-2">
-                                <label htmlFor={`containment_action_${idx}_date`} className="text-[10px] font-bold text-slate-400 uppercase">{t('wizard.step5.whenDate')}</label>
+                            <div className="w-48 space-y-2">
+                                <label htmlFor={`${idPrefix}-cont-date-${idx}`} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('wizard.step5.whenDate')}</label>
                                 <input
-                                    id={`containment_action_${idx}_date`}
+                                    id={`${idPrefix}-cont-date-${idx}`}
                                     name={`containment_action_${idx}_date`}
                                     type="date"
-                                    className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
+                                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
                                     value={action.date}
                                     onChange={e => updateInternalAction(idx, 'date', e.target.value)}
                                 />
                             </div>
-                            <button onClick={() => removeInternalAction(idx)} className="mt-6 text-slate-300 hover:text-red-500"><Trash2 size={16} /></button>
+                            <button onClick={() => removeInternalAction(idx)} className="mt-8 p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                                <Trash2 size={20} />
+                            </button>
                         </div>
                     ))}
                 </div>
             </div>
 
             {/* Ações Corretivas (Vinculadas Globalmente) */}
-            <div className={`bg-white p-6 rounded-lg shadow-sm border relative ${errors?.actions ? 'border-red-500 ring-2 ring-red-50' : 'border-slate-200'}`}>
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                        <CheckCircle2 size={16} className="text-green-600" /> {t('wizard.step5.correctiveTitle')} {isFieldRequired('actions') && <span className="text-red-500">*</span>}
+            <div className={`bg-white p-8 rounded-xl shadow-sm border relative transition-all ${errors?.actions ? 'border-rose-300 ring-4 ring-rose-50' : 'border-slate-200/60'}`}>
+                <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+                    <h3 className="text-xl font-bold text-slate-900 flex items-center gap-3">
+                        <CheckCircle2 size={24} className="text-emerald-500" /> {t('wizard.step5.correctiveTitle')} {isFieldRequired('actions') && <span className="text-rose-500">*</span>}
                     </h3>
                     <div className="flex gap-2">
                         <button
                             onClick={() => onAddActionPlan('CORRECTIVE')}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition-colors"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-sm shadow-blue-500/20 transition-all"
                         >
-                            <Plus size={14} /> {t('wizard.step5.correctiveAdd')}
+                            <Plus size={18} /> {t('wizard.step5.correctiveAdd')}
                         </button>
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="overflow-hidden rounded-xl border border-slate-100">
                     <table className="w-full text-left text-sm text-slate-600">
-                        <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-semibold">
+                        <thead className="bg-slate-50 text-slate-500 text-[10px] uppercase font-black tracking-widest border-b border-slate-100">
                             <tr>
-                                <SortHeader label={t('common.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} width="w-40" />
+                                <SortHeader label={t('common.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} width="w-44" />
                                 <SortHeader label={t('actionModal.actionDescription')} sortKey="action" currentSort={sortConfig} onSort={handleSort} width="w-1/2" />
                                 <SortHeader label={t('actionModal.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label={t('actionModal.dueDate')} sortKey="date" currentSort={sortConfig} onSort={handleSort} />
-                                <th className="px-4 py-2 text-right"></th>
+                                <th className="px-6 py-4 text-right">Ações</th>
                             </tr>
                         </thead>
-                        <tbody ref={listRef as any} className="divide-y divide-slate-100">
+                        <tbody ref={listRef as any} className="divide-y divide-slate-50">
                             {sortedActions.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} className="p-4 text-center text-slate-400 italic bg-slate-50/50">
+                                    <td colSpan={5} className="p-12 text-center text-slate-400 italic bg-white font-medium">
                                         {t('wizard.step5.correctiveEmpty')}
                                     </td>
                                 </tr>
@@ -194,28 +199,28 @@ export const Step5Actions: React.FC<Step5Props> = ({
                             {sortedActions.map(act => (
                                 <tr
                                     key={act.id}
-                                    className="hover:bg-blue-50/50 cursor-pointer transition-colors opacity-0"
+                                    className="hover:bg-blue-50/30 cursor-pointer transition-all opacity-0"
                                     onClick={() => onEditActionPlan(act)}
                                 >
-                                    <td className="px-4 py-2">
+                                    <td className="px-6 py-4">
                                         {getStatusBadge(act.status)}
                                     </td>
-                                    <td className="px-4 py-2 font-medium text-slate-800">{act.action}</td>
-                                    <td className="px-4 py-2 text-xs">{act.responsible}</td>
-                                    <td className="px-4 py-2 font-mono text-xs">{formatDate(act.date)}</td>
-                                    <td className="px-4 py-2 text-right">
-                                        <div className="flex justify-end gap-2">
+                                    <td className="px-6 py-4 font-bold text-slate-800">{act.action}</td>
+                                    <td className="px-6 py-4 text-slate-500 font-medium">{act.responsible}</td>
+                                    <td className="px-6 py-4 font-mono text-xs text-slate-400">{formatDate(act.date)}</td>
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex justify-end gap-3">
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onEditActionPlan(act); }}
-                                                className="text-slate-400 hover:text-blue-600 p-1 hover:bg-blue-50 rounded"
+                                                className="text-slate-400 hover:text-blue-600 p-1.5 hover:bg-blue-50 rounded-lg transition-all"
                                             >
-                                                <Edit2 size={14} />
+                                                <Edit2 size={16} />
                                             </button>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onDeleteActionPlan(act.id); }}
-                                                className="text-slate-400 hover:text-red-600 p-1 hover:bg-red-50 rounded"
+                                                className="text-slate-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition-all"
                                             >
-                                                <Trash2 size={14} />
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     </td>

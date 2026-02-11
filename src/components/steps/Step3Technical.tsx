@@ -3,7 +3,7 @@
  * Fluxo: Gerencia a classificação da falha (Especialidade > Modo de Falha > Categoria) e captura dados numéricos de impacto (Downtime e Financeiro).
  */
 
-import React from 'react';
+import React, { useId } from 'react';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { RcaRecord, TaxonomyConfig } from '../../types';
@@ -19,6 +19,7 @@ interface Step3Props {
 
 export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy, errors, isFieldRequired }) => {
     const { t } = useLanguage();
+    const idPrefix = useId();
 
     /**
      * Lógica de Dropdown Dependente (Especialidade -> Modo de Falha).
@@ -45,13 +46,15 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
 
     return (
         <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('wizard.step3.title')}</h2>
-                <p className="text-gray-600 mb-6">{t('wizard.step3.subtitle')}</p>
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200/60">
+                <div className="border-b border-slate-100 pb-4 mb-8">
+                    <h2 className="text-2xl font-bold text-slate-900 font-display tracking-tight">{t('wizard.step3.title')}</h2>
+                    <p className="text-slate-500 text-sm mt-1">{t('wizard.step3.subtitle')}</p>
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
                     <Select
-                        id="specialty"
+                        id={`${idPrefix}-specialty`}
                         name="specialty"
                         label={t('wizard.step3.specialty')}
                         required={isFieldRequired('specialty_id')}
@@ -62,7 +65,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                     />
 
                     <Select
-                        id="failure_mode"
+                        id={`${idPrefix}-failure_mode`}
                         name="failure_mode"
                         label={t('wizard.step3.failureMode')}
                         required={isFieldRequired('failure_mode_id')}
@@ -74,7 +77,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
 
                     <div className="md:col-span-2">
                         <Select
-                            id="failure_category"
+                            id={`${idPrefix}-failure_category`}
                             name="failure_category"
                             label={t('wizard.step3.failureCategory')}
                             required={isFieldRequired('failure_category_id')}
@@ -87,13 +90,14 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                 </div>
 
                 {/* Seção de Dados Quantitativos */}
-                <div>
-                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b pb-2">
+                <div className="pt-8 border-t border-slate-50">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-6 flex items-center gap-2">
+                        <span className="w-1 h-4 bg-emerald-500 rounded-full"></span>
                         {t('wizard.step3.quantitativeData')}
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <Input
-                            id="downtime_minutes"
+                            id={`${idPrefix}-downtime_minutes`}
                             name="downtime_minutes"
                             type="number"
                             label={t('wizard.step3.downtimeMinutes')}
@@ -104,7 +108,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                             error={errors?.downtime_minutes}
                         />
                         <Input
-                            id="financial_impact"
+                            id={`${idPrefix}-financial_impact`}
                             name="financial_impact"
                             type="number"
                             label={t('wizard.step3.financialImpact')}
@@ -116,13 +120,22 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                         />
                     </div>
                 </div>
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                        <strong>{t('wizard.step3.estimatedImpact')}</strong>{' '}
-                        {(data.financial_impact || 0).toLocaleString('pt-BR', {
-                            style: 'currency',
-                            currency: 'BRL'
-                        })} em {data.downtime_minutes || 0} {t('wizard.step3.minutesOfDowntime')}
+                
+                <div className="mt-8 p-5 bg-blue-50/50 border border-blue-100 rounded-xl flex items-center gap-4">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
+                        $
+                    </div>
+                    <p className="text-sm text-blue-800 leading-relaxed">
+                        <strong className="font-bold">{t('wizard.step3.estimatedImpact')}</strong><br/>
+                        <span className="text-lg font-black">
+                            {(data.financial_impact || 0).toLocaleString('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL'
+                            })}
+                        </span>
+                        <span className="ml-2 text-blue-600 font-medium italic">
+                            em {data.downtime_minutes || 0} {t('wizard.step3.minutesOfDowntime')}
+                        </span>
                     </p>
                 </div>
             </div>

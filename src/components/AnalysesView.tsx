@@ -119,23 +119,23 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
     }, [filters]);
 
     return (
-        <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col">
+        <div className="p-8 lg:p-12 max-w-[1600px] mx-auto h-full flex flex-col space-y-8">
             {/* Cabeçalho da Vista */}
-            <div className="flex justify-between items-center mb-6 flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="flex justify-between items-end flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-700">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">{t('analysesPage.title')}</h1>
-                    <p className="text-slate-500 mt-1">{t('analysesPage.subtitle')}</p>
+                    <h1 className="text-4xl font-black text-slate-900 font-display tracking-tight">{t('analysesPage.title')}</h1>
+                    <p className="text-slate-500 mt-2 font-medium">{t('analysesPage.subtitle')}</p>
                 </div>
                 <button
                     onClick={onNew}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 shadow-sm transition-colors"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
                 >
-                    <Plus size={18} /> {t('analysesPage.newButton')}
+                    <Plus size={20} strokeWidth={3} /> {t('analysesPage.newButton')}
                 </button>
             </div>
 
             {/* Barra de Filtros */}
-            <div className="animate-in fade-in slide-in-from-top-4 duration-500 delay-100">
+            <div className="animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
                 <FilterBar
                     isOpen={showFilters}
                     onToggle={() => setShowFilters(!showFilters)}
@@ -165,26 +165,28 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
             </div>
 
             {/* Tabela de Dados */}
-            <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-700 delay-200">
+            <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-1000 delay-200">
                 <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
-                    <table className="w-full text-left text-sm text-slate-600">
-                        <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200 sticky top-0 z-10 group">
+                    <table className="w-full text-left text-sm text-slate-600 border-separate border-spacing-0">
+                        <thead className="bg-slate-50 text-slate-500 font-black border-b border-slate-100 sticky top-0 z-10">
                             <tr>
-                                <SortHeader label={t('table.id') + " / " + t('table.type')} sortKey="id" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label={t('table.what') + " / " + t('table.description')} sortKey="what" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label={t('filters.sections.location')} sortKey="asset_name_display" currentSort={sortConfig} onSort={handleSort} width="w-48" />
-                                <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label={t('table.impact')} sortKey="financial_impact" currentSort={sortConfig} onSort={handleSort} />
-                                <SortHeader label={t('table.date')} sortKey="failure_date" currentSort={sortConfig} onSort={handleSort} width="w-32" />
-                                <th className="px-6 py-4 w-16">{t('table.actions')}</th>
+                                <SortHeader label={t('table.id') + " / " + t('table.type')} sortKey="id" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
+                                <SortHeader label={t('table.what') + " / " + t('table.description')} sortKey="what" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
+                                <SortHeader label={t('filters.sections.location')} sortKey="asset_name_display" currentSort={sortConfig} onSort={handleSort} width="w-64" className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
+                                <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
+                                <SortHeader label={t('table.impact')} sortKey="financial_impact" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
+                                <SortHeader label={t('table.date')} sortKey="failure_date" currentSort={sortConfig} onSort={handleSort} width="w-40" className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
+                                <th className="px-8 py-5 w-20 border-b border-slate-100 text-[10px] uppercase tracking-widest font-black text-slate-400 text-right">{t('table.actions')}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-50">
                             {filteredRecords.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="p-12 text-center text-slate-400">
-                                        <FileText size={48} className="mx-auto mb-3 opacity-20" />
-                                        {t('analysesPage.noRecords')}
+                                    <td colSpan={7} className="p-20 text-center text-slate-400">
+                                        <div className="bg-slate-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                                            <FileText size={40} className="opacity-20" />
+                                        </div>
+                                        <p className="text-lg font-bold text-slate-300">{t('analysesPage.noRecords')}</p>
                                     </td>
                                 </tr>
                             )}
@@ -192,49 +194,49 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                 const rawName = getName('analysisStatuses', r.status);
                                 const statusName = translateStatus(r.status, rawName, t);
                                 return (
-                                    <tr key={r.id} onClick={() => onEdit(r)} className="hover:bg-blue-50 cursor-pointer transition-colors group">
-                                        <td className="px-6 py-5">
-                                            <div className="font-mono text-[10px] text-slate-400 group-hover:text-blue-400 transition-colors">#RCA-{r.id.substring(0, 6)}</div>
-                                            <div className="text-xs font-bold text-blue-600 uppercase tracking-tight">{getName('analysisTypes', r.analysis_type)}</div>
+                                    <tr key={r.id} onClick={() => onEdit(r)} className="hover:bg-blue-50/30 cursor-pointer transition-all group">
+                                        <td className="px-8 py-6">
+                                            <div className="font-mono text-[10px] text-slate-400 group-hover:text-blue-500 transition-colors mb-1 font-bold">#RCA-{r.id.substring(0, 6)}</div>
+                                            <div className="text-xs font-black text-slate-700 uppercase tracking-tight">{getName('analysisTypes', r.analysis_type)}</div>
                                         </td>
-                                        <td className="px-6 py-4 max-w-sm">
-                                            <div className="font-medium text-slate-900 truncate" title={r.what}>{r.what}</div>
-                                            <div className="text-xs text-slate-400 truncate" title={r.problem_description}>{r.problem_description}</div>
+                                        <td className="px-8 py-6 max-w-sm">
+                                            <div className="font-bold text-slate-900 truncate mb-1" title={r.what}>{r.what}</div>
+                                            <div className="text-xs text-slate-400 truncate leading-relaxed" title={r.problem_description}>{r.problem_description}</div>
                                         </td>
-                                        <td className="px-6 py-4 max-w-xs">
-                                            <div className="text-slate-700 truncate" title={getAssetName(r.subgroup_id || r.equipment_id || r.area_id, assets) || r.asset_name_display}>
+                                        <td className="px-8 py-6 max-w-xs">
+                                            <div className="text-slate-700 font-bold truncate mb-1" title={getAssetName(r.subgroup_id || r.equipment_id || r.area_id, assets) || r.asset_name_display}>
                                                 {getAssetName(r.subgroup_id || r.equipment_id || r.area_id, assets) || r.asset_name_display || '-'}
                                             </div>
-                                            <div className="text-xs text-slate-400 truncate">{getName('componentTypes', r.component_type)}</div>
+                                            <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{getName('componentTypes', r.component_type)}</div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${r.status === STATUS_IDS.CONCLUDED ? 'bg-status-concluded/10 text-status-concluded border border-status-concluded/20' :
-                                                r.status === STATUS_IDS.CANCELLED ? 'bg-status-delayed/10 text-status-delayed border border-status-delayed/20' :
-                                                    r.status === STATUS_IDS.WAITING_VERIFICATION ? 'bg-status-wait/10 text-status-wait border border-status-wait/20' :
-                                                        r.status === STATUS_IDS.IN_PROGRESS ? 'bg-status-in-progress/10 text-status-in-progress border border-status-in-progress/20' :
-                                                            'bg-slate-100 text-slate-600 border border-slate-200'
+                                        <td className="px-8 py-6">
+                                            <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${r.status === STATUS_IDS.CONCLUDED ? 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-sm' :
+                                                r.status === STATUS_IDS.CANCELLED ? 'bg-rose-50 text-rose-700 border-rose-100 shadow-sm' :
+                                                    r.status === STATUS_IDS.WAITING_VERIFICATION ? 'bg-amber-50 text-amber-700 border-amber-100 shadow-sm' :
+                                                        r.status === STATUS_IDS.IN_PROGRESS ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm' :
+                                                            'bg-slate-50 text-slate-600 border-slate-200'
                                                 }`}>
                                                 {statusName}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-slate-900 font-medium">
-                                                {language === 'pt' ? 'R$ ' : '$'}
+                                        <td className="px-8 py-6">
+                                            <div className="text-slate-900 font-black text-base">
+                                                <span className="text-[10px] text-slate-400 mr-1">{language === 'pt' ? 'R$' : '$'}</span>
                                                 {r.financial_impact?.toLocaleString()}
                                             </div>
-                                            <div className="text-xs text-slate-400">{r.downtime_minutes} min</div>
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{r.downtime_minutes} min total</div>
                                         </td>
-                                        <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
+                                        <td className="px-8 py-6 text-slate-500 font-medium whitespace-nowrap">
                                             {formatDate(r.failure_date)}
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-8 py-6 text-right">
                                             <button
                                                 data-testid="delete-rca-btn"
                                                 onClick={(e) => handleDelete(e, r.id)}
-                                                className="text-slate-400 hover:text-red-600 p-1 rounded transition-colors"
+                                                className="text-slate-300 hover:text-rose-600 p-2 hover:bg-rose-50 rounded-lg transition-all"
                                                 title={t('analysesPage.tooltips.deleteRca')}
                                             >
-                                                <Trash2 size={16} />
+                                                <Trash2 size={18} />
                                             </button>
                                         </td>
                                     </tr>
@@ -245,22 +247,22 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                     
                     {/* Controles de Paginação */}
                     {filteredRecords.length > 0 && (
-                        <div className="p-4 flex items-center justify-between border-t border-slate-100 bg-slate-50">
-                            <div className="text-sm text-slate-500">
-                                {t('pagination.showing')} <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredRecords.length)}</span> {t('pagination.of')} <span className="font-medium">{filteredRecords.length}</span> {t('pagination.results')}
+                        <div className="p-6 flex items-center justify-between border-t border-slate-100 bg-slate-50/50">
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                {t('pagination.showing')} <span className="text-slate-900 font-black">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="text-slate-900 font-black">{Math.min(currentPage * itemsPerPage, filteredRecords.length)}</span> {t('pagination.of')} <span className="text-slate-900 font-black">{filteredRecords.length}</span>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-3">
                                 <button
                                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                     disabled={currentPage === 1}
-                                    className="px-3 py-1 border border-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
+                                    className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
                                 >
                                     {t('pagination.previous')}
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredRecords.length ? prev + 1 : prev))}
                                     disabled={currentPage * itemsPerPage >= filteredRecords.length}
-                                    className="px-3 py-1 border border-slate-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
+                                    className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
                                 >
                                     {t('pagination.next')}
                                 </button>

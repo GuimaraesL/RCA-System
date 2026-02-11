@@ -15,7 +15,10 @@ export const Select: React.FC<SelectProps> = ({ label, options, error, required,
     return (
         <div className="w-full">
             {label && (
-                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-tight">
+                <label 
+                    htmlFor={props.id}
+                    className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-tight cursor-pointer"
+                >
                     {label} {required && <span className="text-red-500" aria-hidden="true">*</span>}
                 </label>
             )}

@@ -14,14 +14,18 @@ export const Input: React.FC<InputProps> = ({ label, error, required, className 
     return (
         <div className="w-full">
             {label && (
-                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-tight">
+                <label 
+                    htmlFor={props.id}
+                    className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-tight cursor-pointer"
+                >
                     {label} {required && <span className="text-red-500" aria-hidden="true">*</span>}
                 </label>
             )}
             <input
                 {...props}
+                value={props.value ?? ''}
                 className={`
-                    w-full px-3 py-2 bg-white border rounded-lg text-sm transition-all outline-none
+                    w-full px-3 py-2 bg-white border rounded-lg text-sm transition-all outline-none placeholder-slate-400
                     ${error
                         ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-100'
                         : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'}

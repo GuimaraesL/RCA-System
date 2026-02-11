@@ -115,20 +115,20 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
     if (!taxonomy || !assets) return <div className="p-8 text-center text-slate-500 animate-pulse">{t('common.loading')}</div>;
 
     return (
-        <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col relative">
+        <div className="p-8 lg:p-12 max-w-[1600px] mx-auto h-full flex flex-col relative space-y-8">
             {/* Cabeçalho */}
-            <div className="flex justify-between items-center mb-6 flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="flex justify-between items-end flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-700">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">{t('triggersPage.title')}</h1>
-                    <p className="text-slate-500 mt-1">{t('triggersPage.manageDowntime')}</p>
+                    <h1 className="text-4xl font-black text-slate-900 font-display tracking-tight">{t('triggersPage.title')}</h1>
+                    <p className="text-slate-500 mt-2 font-medium">{t('triggersPage.manageDowntime')}</p>
                 </div>
-                <button onClick={handleNew} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 shadow-sm transition-colors">
-                    <Plus size={18} /> {t('triggersPage.newTrigger')}
+                <button onClick={handleNew} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95">
+                    <Plus size={20} strokeWidth={3} /> {t('triggersPage.newTrigger')}
                 </button>
             </div>
 
             {/* Seção de Filtros */}
-            <div className="animate-in fade-in slide-in-from-top-4 duration-500 delay-100">
+            <div className="animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
                 <FilterBar
                     isOpen={showFilters}
                     onToggle={() => setShowFilters(!showFilters)}
@@ -174,22 +174,24 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                 />
             </div>
 
-            <TriggersList
-                filteredTriggers={filteredTriggers}
-                currentPage={currentPage}
-                itemsPerPage={itemsPerPage}
-                assets={assets}
-                taxonomy={taxonomy}
-                records={records}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onLinkRca={openLinkModal}
-                onCreateRca={handleCreateRca}
-                onOpenRca={onOpenRca}
-                sortConfig={sortConfig}
-                handleSort={handleSort}
-                setCurrentPage={setCurrentPage}
-            />
+            <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-1000 delay-200">
+                <TriggersList
+                    filteredTriggers={filteredTriggers}
+                    currentPage={currentPage}
+                    itemsPerPage={itemsPerPage}
+                    assets={assets}
+                    taxonomy={taxonomy}
+                    records={records}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onLinkRca={openLinkModal}
+                    onCreateRca={handleCreateRca}
+                    onOpenRca={onOpenRca}
+                    sortConfig={sortConfig}
+                    handleSort={handleSort}
+                    setCurrentPage={setCurrentPage}
+                />
+            </div>
 
             {/* Modais de Edição e Vinculação */}
             {isModalOpen && editingTrigger && (
@@ -205,8 +207,8 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
 
             {
                 linkModalOpen && triggerToLink && (
-                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                        <div className="w-full max-w-2xl">
+                    <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+                        <div className="w-full max-w-6xl animate-in zoom-in-95 duration-300">
                             <RcaSelector
                                 records={records}
                                 assets={assets} 
