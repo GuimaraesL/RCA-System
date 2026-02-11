@@ -56,6 +56,21 @@ interface FilterBarProps {
     // Global Filter Props
     isGlobal?: boolean;
     onGlobalToggle?: () => void;
+    // Dependent Filters (Sets of valid IDs)
+    availableOptions?: {
+        status: Set<string>;
+        analysisType: Set<string>;
+        specialty: Set<string>;
+        failureMode: Set<string>;
+        failureCategory: Set<string>;
+        componentType: Set<string>;
+        rootCause6M: Set<string>;
+        area: Set<string>;
+        equipment: Set<string>;
+        subgroup: Set<string>;
+        year: Set<string>;
+        months: Set<string>;
+    };
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({
@@ -68,7 +83,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     onToggle,
     totalResults,
     isGlobal,
-    onGlobalToggle
+    onGlobalToggle,
+    availableOptions
 }) => {
     const { t } = useLanguage();
 
@@ -131,22 +147,26 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     };
 
     // --- Derived Data ---
-    const areas = useMemo(() => assets.filter(n => n.type === 'AREA'), [assets]);
+    const areas = useMemo(() => {
+        return assets.filter(n => n.type === 'AREA' && (!availableOptions || availableOptions.area.has(n.id)));
+    }, [assets, availableOptions]);
 
     const equipments = useMemo(() => {
         if (filters.area === 'ALL') return [];
         const areaNode = assets.find(n => n.id === filters.area);
-        return areaNode?.children?.filter(n => n.type === 'EQUIPMENT') || [];
-    }, [assets, filters.area]);
+        const children = areaNode?.children || [];
+        return children.filter(n => n.type === 'EQUIPMENT' && (!availableOptions || availableOptions.equipment.has(n.id)));
+    }, [assets, filters.area, availableOptions]);
 
     const subgroups = useMemo(() => {
         if (filters.equipment === 'ALL') return [];
         const areaNode = assets.find(n => n.id === filters.area);
         const eqNode = areaNode?.children?.find(n => n.id === filters.equipment);
-        return eqNode?.children?.filter(n => n.type === 'SUBGROUP') || [];
-    }, [assets, filters.area, filters.equipment]);
+        const children = eqNode?.children || [];
+        return children.filter(n => n.type === 'SUBGROUP' && (!availableOptions || availableOptions.subgroup.has(n.id)));
+    }, [assets, filters.area, filters.equipment, availableOptions]);
 
-    const years = ['2023', '2024', '2025', '2026'];
+    const years = ['2023', '2024', '2025', '2026'].filter(y => !availableOptions || availableOptions.year.has(y));
     const monthsList = [
         { id: '01', label: t('filters.monthsList.jan') }, { id: '02', label: t('filters.monthsList.feb') }, { id: '03', label: t('filters.monthsList.mar') },
         { id: '04', label: t('filters.monthsList.apr') }, { id: '05', label: t('filters.monthsList.may') }, { id: '06', label: t('filters.monthsList.jun') },
@@ -294,13 +314,18 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                     <div className="flex flex-wrap gap-1" role="group" aria-labelledby="filter_month_label">
                                         {monthsList.map(m => {
                                             const isActive = (filters.months || []).includes(m.id);
+                                            const isAvailable = !availableOptions || availableOptions.months.has(m.id);
                                             return (
                                                 <button
                                                     key={m.id}
-                                                    onClick={() => toggleMonth(m.id)}
-                                                    className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all border ${isActive
-                                                        ? 'bg-blue-600 text-white border-blue-600 shadow-md transform scale-105'
-                                                        : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-600'
+                                                    onClick={() => isAvailable && toggleMonth(m.id)}
+                                                    disabled={!isAvailable}
+                                                    className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all border ${
+                                                        !isAvailable 
+                                                            ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed'
+                                                            : isActive
+                                                                ? 'bg-blue-600 text-white border-blue-600 shadow-md transform scale-105'
+                                                                : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-600'
                                                         }`}
                                                 >
                                                     {m.label}
@@ -391,7 +416,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                                 onChange={e => handleChange('analysisType', e.target.value)}
                                             >
                                                 <option value="ALL">{t('filters.options.allTypes')}</option>
-                                                {analysisTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                                {analysisTypes.filter(t => !availableOptions || availableOptions.analysisType.has(t.id)).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                                             </select>
                                         </div>
                                     )}
@@ -406,7 +431,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                                 onChange={e => handleChange('specialty', e.target.value)}
                                             >
                                                 <option value="ALL">{t('filters.options.allSpecialties')}</option>
-                                                {specialties.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                                {specialties.filter(s => !availableOptions || availableOptions.specialty.has(s.id)).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                             </select>
                                         </div>
                                     )}
@@ -421,7 +446,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                                 onChange={e => handleChange('status', e.target.value)}
                                             >
                                                 <option value="ALL">{t('filters.options.allStatus')}</option>
-                                                {statuses.map(s => <option key={s.id} value={s.id}>{translateStatus(s.id, s.name, t)}</option>)}
+                                                {statuses.filter(s => !availableOptions || availableOptions.status.has(s.id)).map(s => <option key={s.id} value={s.id}>{translateStatus(s.id, s.name, t)}</option>)}
                                             </select>
                                         </div>
                                     )}
@@ -436,7 +461,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                                 onChange={e => handleChange('componentType', e.target.value)}
                                             >
                                                 <option value="ALL">{t('filters.options.all')}</option>
-                                                {componentTypes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                                {componentTypes.filter(c => !availableOptions || availableOptions.componentType.has(c.id)).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                             </select>
                                         </div>
                                     )}

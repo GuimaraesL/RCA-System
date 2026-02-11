@@ -78,7 +78,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
   );
 
   // Hook de filtragem cruzada inteligente
-  const { filteredActions: filteredContent } = useFilteredData(filters);
+  const { filteredActions: filteredContent, availableOptions } = useFilteredData(filters);
 
   const dynamicOptions = useMemo(() => {
     return {
@@ -136,6 +136,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
           }}
           isGlobal={isGlobal}
           onGlobalToggle={toggleGlobal}
+          availableOptions={availableOptions}
         />
       </div>
 

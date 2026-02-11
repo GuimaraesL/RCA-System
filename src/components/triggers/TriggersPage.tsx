@@ -34,7 +34,8 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
         showFilters, setShowFilters, filters, setFilters, handleReset, isGlobal, toggleGlobal,
         dynamicOptions,
         filteredTriggers,
-        sortConfig, handleSort
+        sortConfig, handleSort,
+        availableTriggerOptions
     } = useTriggersLogic();
 
     // --- Orquestradores de Interface ---
@@ -169,6 +170,7 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                     }}
                     isGlobal={isGlobal}
                     onGlobalToggle={toggleGlobal}
+                    availableOptions={availableTriggerOptions}
                 />
             </div>
 

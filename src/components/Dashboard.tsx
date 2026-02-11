@@ -141,7 +141,7 @@ export const Dashboard: React.FC = () => {
     );
 
     // Orquestrador de filtros cruzados inteligentes
-    const { filteredRCAs: filteredRecords } = useFilteredData(filters);
+    const { filteredRCAs: filteredRecords, availableOptions } = useFilteredData(filters);
 
     const resolveTaxonomyName = (type: keyof typeof taxonomy, id: string) => {
         if (!taxonomy || !taxonomy[type]) return id;
@@ -282,6 +282,7 @@ export const Dashboard: React.FC = () => {
                     }}
                     isGlobal={isGlobal}
                     onGlobalToggle={toggleGlobal}
+                    availableOptions={availableOptions}
                 />
             </div>
 

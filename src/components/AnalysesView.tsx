@@ -46,7 +46,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
     );
 
     // Hook de filtragem inteligente (Cross-Filtering)
-    const { filteredRCAs: filteredContent } = useFilteredData(filters);
+    const { filteredRCAs: filteredContent, availableOptions } = useFilteredData(filters);
 
     // --- Orquestradores de Exclusão ---
     const handleDelete = (e: React.MouseEvent, id: string) => {
@@ -160,6 +160,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                     }}
                     isGlobal={isGlobal}
                     onGlobalToggle={toggleGlobal}
+                    availableOptions={availableOptions}
                 />
             </div>
 

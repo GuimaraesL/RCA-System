@@ -8,6 +8,7 @@ import { useFilterPersistence } from '../hooks/useFilterPersistence';
 import { useSorting } from '../hooks/useSorting';
 import { SortHeader } from './ui/SortHeader';
 import { useLanguage } from '../context/LanguageDefinition';
+import { useFilteredData } from '../hooks/useFilteredData';
 
 interface ReportsViewProps {
     records: RcaRecord[];
@@ -72,35 +73,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
         false
     );
 
-    // Apply Filters to get Base Records
-    const filteredRecords = useMemo(() => {
-        return records.filter(r => {
-            const searchLower = filters.searchTerm.toLowerCase();
-            const matchesSearch = !filters.searchTerm ||
-                r.what?.toLowerCase().includes(searchLower) ||
-                r.problem_description?.toLowerCase().includes(searchLower) ||
-                r.id.toLowerCase().includes(searchLower);
-
-            const rDate = new Date(r.failure_date);
-            const matchesYear = !filters.year || rDate.getFullYear().toString() === filters.year;
-
-            const rMonth = (rDate.getMonth() + 1).toString().padStart(2, '0');
-            const matchesMonth = filters.months.length === 0 || filters.months.includes(rMonth);
-
-            const matchesStatus = filters.status === 'ALL' || r.status === filters.status;
-            const matchesType = filters.analysisType === 'ALL' || r.analysis_type === filters.analysisType;
-            const matchesComponent = filters.componentType === 'ALL' || r.component_type === filters.componentType;
-
-            // Simplified Asset Matches for Report (Can expand if needed)
-            let matchesAsset = true;
-            if (filters.subgroup !== 'ALL') matchesAsset = r.subgroup_id === filters.subgroup;
-            else if (filters.equipment !== 'ALL') matchesAsset = r.equipment_id === filters.equipment;
-            else if (filters.area !== 'ALL') matchesAsset = r.area_id === filters.area;
-
-            return matchesSearch && matchesYear && matchesMonth && matchesStatus && matchesType && matchesAsset && matchesComponent;
-        });
-    }, [records, filters]);
-
+    // Apply Filters to get Base Records via standard Hook
+    const { filteredRCAs: filteredRecords, availableOptions } = useFilteredData(filters);
 
     // KPI Calculation
     const isClosed = (status: string) => status === STATUS_IDS.CONCLUDED || status === 'Ef. Comprovada';
@@ -150,6 +124,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                 onReset={() => handleReset(defaultFilters)}
                 totalResults={filteredRecords.length}
                 config={{ showDate: true, showStatus: true, showSearch: true, showAnalysisType: true, showAssetHierarchy: true, showComponentType: true }}
+                availableOptions={availableOptions}
             />
 
             {/* KPI Cards */}

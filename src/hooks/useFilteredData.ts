@@ -103,9 +103,90 @@ export const useFilteredData = (filters: FilterState) => {
         });
     }, [actions, filters, searchLower]);
 
+    // --- OPÇÕES DISPONÍVEIS (DEPENDENT FILTERS) ---
+    const availableOptions = useMemo(() => {
+        const options = {
+            status: new Set<string>(),
+            analysisType: new Set<string>(),
+            specialty: new Set<string>(),
+            failureMode: new Set<string>(),
+            failureCategory: new Set<string>(),
+            componentType: new Set<string>(),
+            rootCause6M: new Set<string>(),
+            area: new Set<string>(),
+            equipment: new Set<string>(),
+            subgroup: new Set<string>(),
+            year: new Set<string>(),
+            months: new Set<string>(),
+        };
+
+        // O(N): Extração em passo único após a filtragem principal
+        filteredRCAs.forEach(r => {
+            if (r.status) options.status.add(r.status);
+            if (r.analysis_type) options.analysisType.add(r.analysis_type);
+            if (r.specialty_id) options.specialty.add(r.specialty_id);
+            if (r.failure_mode_id) options.failureMode.add(r.failure_mode_id);
+            if (r.failure_category_id) options.failureCategory.add(r.failure_category_id);
+            if (r.component_type) options.componentType.add(r.component_type);
+            
+            if (r.area_id) options.area.add(r.area_id);
+            if (r.equipment_id) options.equipment.add(r.equipment_id);
+            if (r.subgroup_id) options.subgroup.add(r.subgroup_id);
+
+            if (r.failure_date) {
+                const [y, m] = r.failure_date.split('-');
+                if (y) options.year.add(y);
+                if (m) options.months.add(m);
+            }
+
+            r.root_causes?.forEach(rc => {
+                if (rc.root_cause_m_id) options.rootCause6M.add(rc.root_cause_m_id);
+            });
+        });
+
+        return options;
+    }, [filteredRCAs]);
+
+    // --- OPÇÕES DISPONÍVEIS PARA GATILHOS (DEPENDENT FILTERS) ---
+    const availableTriggerOptions = useMemo(() => {
+        const options = {
+            status: new Set<string>(),
+            analysisType: new Set<string>(),
+            specialty: new Set<string>(), // Gatilhos não têm especialidade direta, mas mantemos estrutura
+            failureMode: new Set<string>(),
+            failureCategory: new Set<string>(),
+            componentType: new Set<string>(),
+            rootCause6M: new Set<string>(),
+            area: new Set<string>(),
+            equipment: new Set<string>(),
+            subgroup: new Set<string>(),
+            year: new Set<string>(),
+            months: new Set<string>(),
+        };
+
+        filteredTriggers.forEach(t => {
+            if (t.status) options.status.add(t.status);
+            if (t.analysis_type_id) options.analysisType.add(t.analysis_type_id);
+            
+            if (t.area_id) options.area.add(t.area_id);
+            if (t.equipment_id) options.equipment.add(t.equipment_id);
+            if (t.subgroup_id) options.subgroup.add(t.subgroup_id);
+
+            if (t.start_date) {
+                const [y, m] = t.start_date.split('-');
+                if (y) options.year.add(y);
+                if (m) options.months.add(m);
+            }
+        });
+
+        return options;
+    }, [filteredTriggers]);
+
     return {
         filteredRCAs,
         filteredTriggers,
-        filteredActions
+        filteredActions,
+        availableOptions,
+        availableTriggerOptions
     };
 };

@@ -41,7 +41,7 @@ export const useTriggersLogic = () => {
     );
 
     // Hook de filtragem inteligente (Cross-Filtering)
-    const { filteredTriggers: filteredContent } = useFilteredData(filters);
+    const { filteredTriggers: filteredContent, availableTriggerOptions } = useFilteredData(filters);
 
     /**
      * Define as opções dinâmicas para os seletores de filtros, baseando-se na taxonomia e nos ativos em uso.
@@ -70,6 +70,7 @@ export const useTriggersLogic = () => {
         showFilters, setShowFilters, filters, setFilters, handleReset, isGlobal, toggleGlobal,
         dynamicOptions,
         filteredTriggers,
-        sortConfig, handleSort
+        sortConfig, handleSort,
+        availableTriggerOptions
     };
 };
