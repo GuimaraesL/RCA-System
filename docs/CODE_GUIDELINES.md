@@ -69,7 +69,7 @@ Arquivos de serviço ou teste devem conter um pequeno bloco informativo no topo:
 ## 5. UI/UX e Estilo
 
 - **Framework:** Tailwind CSS v4.
-- **Cores:** Siga a paleta de tons Slate/Blue/Indigo do projeto.
+- **Cores:** Siga a paleta de tons Slate/Blue do projeto (Zero Roxo/Indigo).
 - **Acessibilidade:** Todo input deve ter um `label` associado ou `aria-label`.
 - **Reatividade:** Garanta que componentes pesados utilizem `React.memo` ou `useMemo` para evitar re-renderizações desnecessárias (especialmente com i18n).
 

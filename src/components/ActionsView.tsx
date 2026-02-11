@@ -13,7 +13,7 @@ import { ConfirmModal } from './ConfirmModal';
 import { ActionModal } from './ActionModal';
 import { useSorting } from '../hooks/useSorting';
 import { SortHeader } from './ui/SortHeader';
-import { useLanguage } from '../context/LanguageDefinition'; 
+import { useLanguage } from '../context/LanguageDefinition';
 import { useFilteredData } from '../hooks/useFilteredData';
 import { ACTION_STATUS_IDS } from '../constants/SystemConstants';
 
@@ -29,30 +29,30 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
    */
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case ACTION_STATUS_IDS.APPROVED: 
+      case ACTION_STATUS_IDS.APPROVED:
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider border border-emerald-100 shadow-sm">
             <CheckCircle2 size={12} strokeWidth={3} />
             {t('actionModal.statusOptions.approved')}
           </span>
         );
-      case ACTION_STATUS_IDS.IN_PROGRESS: 
+      case ACTION_STATUS_IDS.IN_PROGRESS:
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px] font-black uppercase tracking-wider border border-amber-100 shadow-sm">
             <Clock size={12} strokeWidth={3} />
             {t('actionModal.statusOptions.inProgress')}
           </span>
         );
-      case ACTION_STATUS_IDS.COMPLETED: 
+      case ACTION_STATUS_IDS.COMPLETED:
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-wider border border-blue-100 shadow-sm">
             <ShieldCheck size={12} strokeWidth={3} />
             {t('actionModal.statusOptions.completed')}
           </span>
         );
-      case ACTION_STATUS_IDS.VERIFIED: 
+      case ACTION_STATUS_IDS.VERIFIED:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-wider border border-indigo-100 shadow-sm">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black uppercase tracking-wider border border-slate-200 shadow-sm">
             <Award size={12} strokeWidth={3} />
             {t('actionModal.statusOptions.verified')}
           </span>
@@ -126,7 +126,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
             showAnalysisType: false, showComponentType: true
           }}
           options={{
-            statuses: dynamicOptions.statuses.map(s => ({ id: s, name: `Box ${s}` })), 
+            statuses: dynamicOptions.statuses.map(s => ({ id: s, name: `Box ${s}` })),
             assets: dynamicOptions.assets,
             specialties: dynamicOptions.specialties,
             failureModes: taxonomy.failureModes,
@@ -188,7 +188,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
               )}
             </tbody>
           </table>
-          
+
           {/* Paginação */}
           {filteredActions.length > 0 && (
             <div className="p-4 flex items-center justify-between border-t border-slate-100 bg-slate-50">
