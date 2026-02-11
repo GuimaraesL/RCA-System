@@ -5,7 +5,7 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { AssetNode, RcaRecord } from '../types';
-import { STATUS_IDS, STATUS_COLORS, ROOT_CAUSE_COLORS } from '../constants/SystemConstants';
+import { STATUS_IDS, STATUS_COLORS, ROOT_CAUSE_COLORS, CHART_PALETTE } from '../constants/SystemConstants';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Clock, TrendingUp, AlertCircle, CheckCircle, PieChart as PieIcon, Activity, MousePointerClick } from 'lucide-react';
 import { FilterBar, FilterState } from './FilterBar';
@@ -21,20 +21,6 @@ import { Skeleton } from './ui/Skeleton';
 import { SafeResponsiveContainer } from './ui/SafeResponsiveContainer';
 import { Info } from 'lucide-react';
 
-// Paleta de Cores Profissional (Tons Frios + Acentos)
-const COLORS = [
-    '#3b82f6', // Blue 500
-    '#10b981', // Emerald 500
-    '#f59e0b', // Amber 500
-    '#6366f1', // Indigo 500
-    '#ec4899', // Pink 500
-    '#06b6d4', // Cyan 500
-    '#6366f1', // Indigo 500
-    '#ef4444', // Red 500
-    '#84cc16', // Lime 500
-    '#14b8a6', // Teal 500
-];
-
 /**
  * Retorna uma cor estável para um ID, garantindo que o mesmo item sempre tenha a mesma cor.
  */
@@ -46,7 +32,7 @@ const getStableColor = (id: string, mapping?: Record<string, string>) => {
     for (let i = 0; i < id.length; i++) {
         hash = id.charCodeAt(i) + ((hash << 5) - hash);
     }
-    return COLORS[Math.abs(hash) % COLORS.length];
+    return CHART_PALETTE[Math.abs(hash) % CHART_PALETTE.length];
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -449,7 +435,7 @@ export const Dashboard: React.FC = () => {
                                 <Tooltip content={<CustomTooltip />} />
                                 <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20} onClick={(data) => handleChartClick('equipment', data.id)} cursor="pointer">
                                     {dataEquip.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill="#3b82f6" opacity={filters.equipment !== 'ALL' && filters.equipment !== entry.id ? 0.2 : 1} />
+                                        <Cell key={`cell-${index}`} fill={getStableColor(entry.id)} opacity={filters.equipment !== 'ALL' && filters.equipment !== entry.id ? 0.2 : 1} />
                                     ))}
                                 </Bar>
                             </BarChart>
@@ -472,7 +458,7 @@ export const Dashboard: React.FC = () => {
                                 <Tooltip content={<CustomTooltip />} />
                                 <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20} onClick={(data) => handleChartClick('subgroup', data.id)} cursor="pointer">
                                     {dataSub.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill="#06b6d4" opacity={filters.subgroup !== 'ALL' && filters.subgroup !== entry.id ? 0.2 : 1} />
+                                        <Cell key={`cell-${index}`} fill={getStableColor(entry.id)} opacity={filters.subgroup !== 'ALL' && filters.subgroup !== entry.id ? 0.2 : 1} />
                                     ))}
                                 </Bar>
                             </BarChart>
@@ -493,7 +479,7 @@ export const Dashboard: React.FC = () => {
                                 <XAxis type="number" hide />
                                 <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 11 }} tickFormatter={(val) => truncateLabel(val)} />
                                 <Tooltip content={<CustomTooltip />} />
-                                <Bar dataKey="count" fill="#10b981" radius={[0, 4, 4, 0]} barSize={20} onClick={(data) => handleChartClick('componentType', data.id)} cursor="pointer">
+                                <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20} onClick={(data) => handleChartClick('componentType', data.id)} cursor="pointer">
                                     {dataComp.map((entry) => (
                                         <Cell
                                             key={`cell-${entry.id}`}
@@ -520,9 +506,9 @@ export const Dashboard: React.FC = () => {
                                 <XAxis type="number" hide />
                                 <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 11 }} tickFormatter={(val) => truncateLabel(val)} />
                                 <Tooltip content={<CustomTooltip />} />
-                                <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} barSize={15} onClick={(data) => handleChartClick('failureMode', data.id)} cursor="pointer">
+                                <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={15} onClick={(data) => handleChartClick('failureMode', data.id)} cursor="pointer">
                                     {dataMode.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill="#6366f1" opacity={filters.failureMode !== 'ALL' && filters.failureMode !== entry.id ? 0.2 : 1} />
+                                        <Cell key={`cell-${index}`} fill={getStableColor(entry.id)} opacity={filters.failureMode !== 'ALL' && filters.failureMode !== entry.id ? 0.2 : 1} />
                                     ))}
                                 </Bar>
                             </BarChart>
@@ -543,9 +529,9 @@ export const Dashboard: React.FC = () => {
                                 <XAxis type="number" hide />
                                 <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 11 }} tickFormatter={(val) => truncateLabel(val)} />
                                 <Tooltip content={<CustomTooltip />} />
-                                <Bar dataKey="count" fill="#f59e0b" radius={[0, 4, 4, 0]} barSize={15} onClick={(data) => handleChartClick('failureCategory', data.id)} cursor="pointer">
+                                <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={15} onClick={(data) => handleChartClick('failureCategory', data.id)} cursor="pointer">
                                     {dataCat.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill="#f59e0b" opacity={filters.failureCategory !== 'ALL' && filters.failureCategory !== entry.id ? 0.2 : 1} />
+                                        <Cell key={`cell-${index}`} fill={getStableColor(entry.id)} opacity={filters.failureCategory !== 'ALL' && filters.failureCategory !== entry.id ? 0.2 : 1} />
                                     ))}
                                 </Bar>
                             </BarChart>

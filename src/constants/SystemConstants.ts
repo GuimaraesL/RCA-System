@@ -52,3 +52,17 @@ export const ROOT_CAUSE_COLORS: Record<string, string> = {
     [ROOT_CAUSE_M_IDS.MEASUREMENT]: '#ec4899', // Pink
     [ROOT_CAUSE_M_IDS.ENVIRONMENT]: '#06b6d4', // Cyan
 };
+
+// Paleta Global de Gráficos (Tons Frios + Acentos)
+export const CHART_PALETTE = [
+    '#3b82f6', // Blue 500
+    '#10b981', // Emerald 500
+    '#f59e0b', // Amber 500
+    '#6366f1', // Indigo 500
+    '#ec4899', // Pink 500
+    '#06b6d4', // Cyan 500
+    '#ef4444', // Red 500
+    '#84cc16', // Lime 500
+    '#14b8a6', // Teal 500
+    '#a855f7', // Purple 500 (Usar com cuidado, seguindo diretrizes)
+];
