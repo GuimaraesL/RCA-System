@@ -76,16 +76,16 @@ export const rcaSchema = z.object({
 
 /**
  * Schema para Gatilhos (Triggers).
- * Define campos obrigatórios para garantir a rastreabilidade de eventos de parada.
+ * Validação estrutural básica. Regras de obrigatoriedade são definidas dinamicamente nas configurações do sistema.
  */
 export const triggerSchema = z.object({
     id: z.string().optional(), 
-    area_id: z.string().min(1, "Área é obrigatória"),
+    area_id: z.string().nullish(), // Relaxado: Obrigigatoriedade vem da config
     equipment_id: z.string().nullish(),
     subgroup_id: z.string().nullish(), 
 
-    start_date: z.string().min(1, { message: "Data de início é obrigatória" }),
-    end_date: z.string().min(1, "Data de fim é obrigatória"),
+    start_date: z.string().nullish(), // Relaxado
+    end_date: z.string().nullish(),   // Relaxado
     duration_minutes: z.coerce.number().optional().default(0),
 
     stop_type: z.string().optional(),

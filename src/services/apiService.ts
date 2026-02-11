@@ -252,22 +252,39 @@ export const fetchTriggers = async (): Promise<TriggerRecord[]> => {
 export const saveTriggerToApi = async (trigger: TriggerRecord): Promise<void> => {
     console.log('🔄 API: Persistindo gatilho:', trigger.id);
 
-    const checkResponse_local = await fetch(`${API_BASE}/triggers/${trigger.id}`);
-
-    if (checkResponse_local.ok) {
-        const response = await fetch(`${API_BASE}/triggers/${trigger.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(trigger)
-        });
-        await checkResponse(response, `PUT /triggers/${trigger.id}`);
-    } else {
+    // Tenta criar (POST). Se falhar por conflito (ID existe), tenta atualizar (PUT).
+    // Isso evita o GET inicial que gera erro 404 no console para novos itens.
+    try {
         const response = await fetch(`${API_BASE}/triggers`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(trigger)
         });
-        await checkResponse(response, 'POST /triggers');
+
+        if (response.ok) {
+            await checkResponse(response, 'POST /triggers');
+            return;
+        }
+
+        // Se o erro for de conflito (409) ou se quisermos forçar o update caso já exista
+        // (Dependendo da implementação do backend, pode retornar 409 ou 500)
+        // Aqui assumimos que se falhou o POST, tentamos o PUT se tiver ID
+        if (trigger.id) {
+            console.log('🔄 API: Registro provável já existente. Tentando atualização (PUT)...');
+            const updateResponse = await fetch(`${API_BASE}/triggers/${trigger.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(trigger)
+            });
+            await checkResponse(updateResponse, `PUT /triggers/${trigger.id}`);
+        } else {
+             // Se não tem ID e falhou o POST, é erro real
+             await checkResponse(response, 'POST /triggers');
+        }
+
+    } catch (error) {
+        // Fallback: Se a lógica otimista falhar, lança o erro original
+        throw error;
     }
 };
 

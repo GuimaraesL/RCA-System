@@ -120,7 +120,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             type="datetime-local"
                             required={isRequired('start_date')}
                             error={localErrors.start_date}
-                            value={editingTrigger.start_date}
+                            value={editingTrigger.start_date || ''}
                             onChange={e => setEditingTrigger({ ...editingTrigger, start_date: e.target.value })}
                         />
                         <Input
@@ -129,7 +129,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             type="datetime-local"
                             required={isRequired('end_date')}
                             error={localErrors.end_date}
-                            value={editingTrigger.end_date}
+                            value={editingTrigger.end_date || ''}
                             onChange={e => setEditingTrigger({ ...editingTrigger, end_date: e.target.value })}
                         />
                     </div>
@@ -166,7 +166,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             label={t('triggerModal.stopType')}
                             required={isRequired('stop_type')}
                             error={localErrors.stop_type}
-                            value={editingTrigger.stop_type}
+                            value={editingTrigger.stop_type || ''}
                             onChange={e => setEditingTrigger({ ...editingTrigger, stop_type: e.target.value })}
                         />
                         <Input
@@ -174,7 +174,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             label={t('triggerModal.stopReason')}
                             required={isRequired('stop_reason')}
                             error={localErrors.stop_reason}
-                            value={editingTrigger.stop_reason}
+                            value={editingTrigger.stop_reason || ''}
                             onChange={e => setEditingTrigger({ ...editingTrigger, stop_reason: e.target.value })}
                         />
                     </div>
@@ -185,7 +185,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             label={t('triggerModal.analysisType')}
                             required={isRequired('analysis_type_id')}
                             error={localErrors.analysis_type_id}
-                            value={editingTrigger.analysis_type_id}
+                            value={editingTrigger.analysis_type_id || ''}
                             onChange={e => setEditingTrigger({ ...editingTrigger, analysis_type_id: e.target.value })}
                             options={[{ value: '', label: t('triggerModal.selectPlaceholder') }, ...(taxonomy.analysisTypes || []).map(t => ({ value: t.id, label: t.name }))]}
                         />
@@ -194,7 +194,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             label={t('triggerModal.responsible')}
                             required={isRequired('responsible')}
                             error={localErrors.responsible}
-                            value={editingTrigger.responsible}
+                            value={editingTrigger.responsible || ''}
                             onChange={e => setEditingTrigger({ ...editingTrigger, responsible: e.target.value })}
                         />
                     </div>
@@ -204,7 +204,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                         label={t('triggerModal.status')}
                         required={isRequired('status')}
                         error={localErrors.status}
-                        value={editingTrigger.status}
+                        value={editingTrigger.status || ''}
                         onChange={e => setEditingTrigger({ ...editingTrigger, status: e.target.value as any })}
                         options={[{ value: '', label: t('triggerModal.selectPlaceholder') }, ...(taxonomy.triggerStatuses || []).map(s => ({ value: s.id, label: translateTriggerStatus(s.id, s.name, t) }))]}
                     />
@@ -214,7 +214,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                         label={t('triggerModal.comments')}
                         required={isRequired('comments')}
                         error={localErrors.comments}
-                        value={editingTrigger.comments}
+                        value={editingTrigger.comments || ''}
                         onChange={e => setEditingTrigger({ ...editingTrigger, comments: e.target.value })}
                         rows={3}
                     />

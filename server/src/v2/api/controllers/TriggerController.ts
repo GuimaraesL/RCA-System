@@ -6,6 +6,7 @@
 import { Request, Response } from 'express';
 import { TriggerService } from '../../domain/services/TriggerService';
 import { SqlTriggerRepository } from '../../infrastructure/repositories/SqlTriggerRepository';
+import { triggerSchema } from '../schemas/validation';
 
 export class TriggerController {
     private triggerService: TriggerService;
@@ -38,6 +39,17 @@ export class TriggerController {
 
     public create = (req: Request, res: Response): void => {
         try {
+            // Validação de dados de entrada com Zod
+            const validation = triggerSchema.safeParse(req.body);
+            
+            if (!validation.success) {
+                res.status(400).json({ 
+                    error: 'Dados inválidos', 
+                    details: validation.error.format() 
+                });
+                return;
+            }
+
             const trigger = this.triggerService.createTrigger(req.body);
             res.status(201).json(trigger);
         } catch (error: any) {
@@ -47,6 +59,17 @@ export class TriggerController {
 
     public update = (req: Request, res: Response): void => {
         try {
+            // Validação parcial para atualização
+            const validation = triggerSchema.partial().safeParse(req.body);
+
+            if (!validation.success) {
+                res.status(400).json({ 
+                    error: 'Dados inválidos', 
+                    details: validation.error.format() 
+                });
+                return;
+            }
+
             this.triggerService.updateTrigger(req.params.id, req.body);
             res.json({ message: 'Gatilho atualizado com sucesso' });
         } catch (error: any) {
