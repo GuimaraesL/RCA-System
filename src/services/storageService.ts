@@ -240,11 +240,50 @@ export const saveAssets = (assets: AssetNode[]): void => {
 
 export const LEGACY_getTaxonomy = (): TaxonomyConfig => {
   const data = safeGetItem<TaxonomyConfig>(KEYS.TAXONOMY, LEGACY_KEYS.TAXONOMY);
+  
   if (!data) {
     safeSetItem(KEYS.TAXONOMY, INITIAL_TAXONOMY);
     return INITIAL_TAXONOMY;
   }
-  return data;
+
+  // Sanitização Retroativa: Remove duplicatas de ID que causam erro no React
+  let hasChanges = false;
+  const sanitized = { ...data };
+
+  const cleanList = (list: TaxonomyItem[] | undefined): TaxonomyItem[] => {
+    if (!list || !Array.isArray(list)) return [];
+    
+    const seen = new Set<string>();
+    const uniqueList: TaxonomyItem[] = [];
+    
+    for (const item of list) {
+      if (!seen.has(item.id)) {
+        seen.add(item.id);
+        uniqueList.push(item);
+      } else {
+        hasChanges = true; // Marca que houve limpeza
+      }
+    }
+    return uniqueList;
+  };
+
+  // Aplica limpeza em todas as listas conhecidas
+  sanitized.analysisTypes = cleanList(sanitized.analysisTypes);
+  sanitized.analysisStatuses = cleanList(sanitized.analysisStatuses);
+  sanitized.specialties = cleanList(sanitized.specialties);
+  sanitized.failureModes = cleanList(sanitized.failureModes);
+  sanitized.failureCategories = cleanList(sanitized.failureCategories);
+  sanitized.componentTypes = cleanList(sanitized.componentTypes);
+  sanitized.rootCauseMs = cleanList(sanitized.rootCauseMs);
+  sanitized.triggerStatuses = cleanList(sanitized.triggerStatuses);
+
+  // Se limpou algo, salva a versão corrigida
+  if (hasChanges) {
+    console.warn('[Storage] Taxonomia sanitizada: Duplicatas removidas automaticamente.');
+    safeSetItem(KEYS.TAXONOMY, sanitized);
+  }
+
+  return sanitized;
 };
 
 export const saveTaxonomy = (taxonomy: TaxonomyConfig): void => {
@@ -364,10 +403,25 @@ export const importData = (jsonContent: string): { success: boolean, message: st
     const ensureTaxonomy = (listKey: keyof TaxonomyConfig, val: string) => {
       if (!val) return '';
       const list = (taxonomy[listKey] as TaxonomyItem[]) || [];
-      const existing = list.find(i => i.id === val || i.name.toLowerCase() === val.toLowerCase());
+      
+      // Sanitização agressiva para comparação
+      const cleanVal = sanitizeString(val).toLowerCase();
+      
+      const existing = list.find(i => 
+        i.id === val || 
+        sanitizeString(i.name).toLowerCase() === cleanVal
+      );
+      
       if (existing) return existing.id;
 
+      // Gera ID e garante que não conflite com nada na lista (embora improvável com UUID/Timestamp)
       const newId = val.length < 10 ? val : generateId('AUTO');
+      
+      // Dupla verificação de ID para evitar colisão absoluta
+      if (list.some(i => i.id === newId)) {
+         return ensureTaxonomy(listKey, val); // Tenta novamente (novo ID gerado)
+      }
+
       list.push({ id: newId, name: sanitizeString(val) }); 
       // @ts-ignore
       taxonomy[listKey] = list;
