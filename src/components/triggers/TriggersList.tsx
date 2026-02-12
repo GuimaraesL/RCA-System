@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { TriggerRecord, AssetNode, TaxonomyConfig, RcaRecord } from '../../types';
-import { Plus, Edit2, Trash2, Link, FileText, Check } from 'lucide-react';
+import { Plus, Edit2, Trash2, Link, FileText, Check, X } from 'lucide-react';
 import { SortHeader } from '../ui/SortHeader';
 import { getAssetName, getTaxonomyName, getFarol, getStatusColor } from '../../utils/triggerHelpers';
 import { translateTriggerStatus } from '../../utils/statusUtils';
@@ -21,6 +21,7 @@ interface TriggersListProps {
     onEdit: (t: TriggerRecord) => void;
     onDelete: (id: string) => void;
     onLinkRca: (t: TriggerRecord) => void; 
+    onUnlinkRca: (t: TriggerRecord) => void;
     onCreateRca: (t: TriggerRecord) => void;
     onOpenRca: (rcaId: string) => void;
     sortConfig: { key: string; direction: 'asc' | 'desc' } | null;
@@ -38,6 +39,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
     onEdit,
     onDelete,
     onLinkRca,
+    onUnlinkRca,
     onCreateRca,
     onOpenRca,
     sortConfig,
@@ -115,12 +117,28 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                     <td className="px-6 py-5 text-xs font-medium text-slate-500">{trigger.responsible}</td>
                                     <td className="px-6 py-5">
                                         {trigger.rca_id ? (
-                                            <div
-                                                className="flex items-center gap-2 text-blue-600 font-black text-[10px] uppercase tracking-widest bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg w-fit cursor-pointer hover:bg-blue-100 transition-all shadow-sm"
-                                                onClick={(e) => { e.stopPropagation(); onOpenRca(trigger.rca_id!); }}
-                                                title={t('triggersPage.tooltips.openRca')}
-                                            >
-                                                <Link size={14} strokeWidth={3} /> {linkedRca?.what ? linkedRca.what.substring(0, 15) + '...' : `#RCA-${trigger.rca_id.substring(0, 4)}`}
+                                            <div className="flex items-center gap-2">
+                                                <div
+                                                    className="flex items-center gap-2 text-blue-600 font-black text-[10px] uppercase tracking-widest bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg w-fit cursor-pointer hover:bg-blue-100 transition-all shadow-sm"
+                                                    onClick={(e) => { e.stopPropagation(); onOpenRca(trigger.rca_id!); }}
+                                                    title={t('triggersPage.tooltips.openRca')}
+                                                >
+                                                    <Link size={14} strokeWidth={3} /> {linkedRca?.what ? (linkedRca.what.length > 15 ? linkedRca.what.substring(0, 15) + '...' : linkedRca.what) : `#RCA-${trigger.rca_id.substring(0, 4)}`}
+                                                </div>
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); onLinkRca(trigger); }}
+                                                    className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                    title={t('triggersPage.tooltips.linkRca') || 'Trocar Vínculo'}
+                                                >
+                                                    <Edit2 size={14} />
+                                                </button>
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); onUnlinkRca(trigger); }}
+                                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                                                    title={t('common.remove') || 'Remover Vínculo'}
+                                                >
+                                                    <X size={14} strokeWidth={3} />
+                                                </button>
                                             </div>
                                         ) : (
                                             <div className="flex gap-2">

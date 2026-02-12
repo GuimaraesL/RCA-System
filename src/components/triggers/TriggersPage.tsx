@@ -107,6 +107,11 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
         updateTrigger({ ...trigger, rca_id: rcaId, status: doneStatus });
     };
 
+    const handleUnlinkRca = (trigger: TriggerRecord) => {
+        const defaultStatus = taxonomy.triggerStatuses?.[0]?.id || trigger.status;
+        updateTrigger({ ...trigger, rca_id: '', status: defaultStatus });
+    };
+
     const handleCreateRca = (trigger: TriggerRecord) => {
         onCreateRca(trigger);
     };
@@ -185,6 +190,7 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     onLinkRca={openLinkModal}
+                    onUnlinkRca={handleUnlinkRca}
                     onCreateRca={handleCreateRca}
                     onOpenRca={onOpenRca}
                     sortConfig={sortConfig}
