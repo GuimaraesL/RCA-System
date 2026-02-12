@@ -8,9 +8,12 @@ import { useRcaContext } from '../context/RcaContext';
 import { FilterState } from '../components/FilterBar';
 import { useActionsLogic } from './useActionsLogic';
 
-export const useFilteredData = (filters: FilterState) => {
-    const { records, triggers, assets } = useRcaContext();
+export const useFilteredData = (filters: FilterState, overrideRecords?: RcaRecord[], overrideAssets?: AssetNode[]) => {
+    const { records: contextRecords, triggers, assets: contextAssets } = useRcaContext();
     const { actions } = useActionsLogic();
+
+    const records = overrideRecords || contextRecords;
+    const assets = overrideAssets || contextAssets;
 
     /**
      * Normaliza o termo de busca para comparação insensível a acentos e caixa alta.

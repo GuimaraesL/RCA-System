@@ -490,6 +490,8 @@ export const en: TranslationSchema = {
     },
 
     rcaSelector: {
+        title: "Link Analysis",
+        description: "Select an existing analysis to link to this trigger event.",
         searchPlaceholder: "Search RCA by ID, Title or OS...",
         resultsFound: "{0} analyses found",
         manyResults: "Many results, please refine your search.",

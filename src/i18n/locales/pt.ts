@@ -484,6 +484,8 @@ export const pt: TranslationSchema = {
         overdue: "ATRASADO"
     },
     rcaSelector: {
+        title: "Vincular Análise",
+        description: "Selecione uma análise existente para vincular a este evento de gatilho.",
         searchPlaceholder: "Buscar RCA por ID, Título ou OS...",
         resultsFound: "{0} análises encontradas",
         manyResults: "Muitos resultados, refine sua busca.",
