@@ -474,7 +474,11 @@ export const en: TranslationSchema = {
         deleteAssetMessage: "Are you sure you want to delete this asset? This will also delete all children.",
         linkRcaTitle: "Link RCA",
         linkRcaMessage: "Select RCA to link to Trigger",
-        selectRcaPlaceholder: "Select an RCA..."
+        selectRcaPlaceholder: "Select an RCA...",
+        pendingChangesTitle: "Editor Open",
+        pendingChangesMessage: "You have an analysis in progress. Do you want to discard changes and change the page?",
+        leaveWithoutSaving: "Leave without Saving",
+        stayAndEdit: "Continue Editing"
     },
     reports: {
         title: "Reports & Insights",

@@ -469,7 +469,11 @@ export const pt: TranslationSchema = {
         deleteAssetMessage: "Tem certeza que deseja excluir este ativo? Isso também excluirá todos os filhos.",
         linkRcaTitle: "Vincular RCA",
         linkRcaMessage: "Selecione a RCA para vincular ao Gatilho",
-        selectRcaPlaceholder: "Selecione uma RCA..."
+        selectRcaPlaceholder: "Selecione uma RCA...",
+        pendingChangesTitle: "Editor Aberto",
+        pendingChangesMessage: "Você possui uma análise em edição. Deseja descartar as alterações e mudar de página?",
+        leaveWithoutSaving: "Sair sem Salvar",
+        stayAndEdit: "Continuar Editando"
     },
     reports: {
         title: "Relatórios & Insights",

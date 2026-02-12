@@ -24,6 +24,7 @@ import { FilterProvider } from './context/FilterContext';
 import { useLanguage } from './context/LanguageDefinition';
 import { Sidebar } from './components/Sidebar';
 import { generateId } from './services/utils';
+import { ConfirmModal } from './components/ConfirmModal';
 
 const AppContent: React.FC = () => {
     const { t } = useLanguage();
@@ -31,12 +32,38 @@ const AppContent: React.FC = () => {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState<RcaRecord | null>(null);
 
+    // Estado para Guarda de Navegação
+    const [showNavConfirm, setShowNavConfirm] = useState(false);
+    const [pendingView, setPendingView] = useState<typeof view | null>(null);
+
     const { refreshAll, records, updateTrigger, addRecord, taxonomy, assets } = useRcaContext();
 
     const handleCloseEditor = () => {
         setIsEditorOpen(false);
         setEditingRecord(null);
         refreshAll(); // Sincroniza dados para refletir mudanças no Dashboard
+    };
+
+    /**
+     * Intercepta a mudança de visão se o editor estiver aberto para evitar perda de dados acidental.
+     */
+    const handleViewChange = (nextView: typeof view) => {
+        if (isEditorOpen) {
+            setPendingView(nextView);
+            setShowNavConfirm(true);
+        } else {
+            setView(nextView);
+        }
+    };
+
+    const confirmNavigation = () => {
+        if (pendingView) {
+            setView(pendingView);
+            setIsEditorOpen(false);
+            setEditingRecord(null);
+        }
+        setShowNavConfirm(false);
+        setPendingView(null);
     };
 
     const openNew = () => {
@@ -97,6 +124,7 @@ const AppContent: React.FC = () => {
             equipment_id: trigger.equipment_id,
             subgroup_id: trigger.subgroup_id,
             asset_name_display: assetName,
+            component_type: '',
             analysis_type: trigger.analysis_type_id,
             what: `${t('common.failurePrefix')}: ${trigger.stop_reason}`,
             problem_description: `${trigger.stop_type} - ${trigger.stop_reason}. ${trigger.comments || ''}`,
@@ -142,7 +170,7 @@ const AppContent: React.FC = () => {
 
     return (
         <div className="flex h-screen bg-page-gradient font-sans text-slate-900">
-            <Sidebar view={view} setView={setView} />
+            <Sidebar view={view} setView={handleViewChange} />
 
             <main className="flex-1 overflow-hidden relative flex flex-col w-full">
                 <Suspense fallback={
@@ -176,6 +204,18 @@ const AppContent: React.FC = () => {
                     )}
                 </Suspense>
             </main>
+
+            {/* Modal de Confirmação de Saída do Editor */}
+            <ConfirmModal
+                isOpen={showNavConfirm}
+                title={t('modals.pendingChangesTitle')}
+                message={t('modals.pendingChangesMessage')}
+                confirmText={t('modals.leaveWithoutSaving')}
+                cancelText={t('modals.stayAndEdit')}
+                onConfirm={confirmNavigation}
+                onCancel={() => setShowNavConfirm(false)}
+                variant="warning"
+            />
         </div>
     );
 };

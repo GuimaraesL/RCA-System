@@ -24,6 +24,7 @@ export const Select: React.FC<SelectProps> = ({ label, options, error, required,
             )}
             <select
                 {...props}
+                value={props.value ?? ''}
                 className={`
                     w-full px-3 py-2 bg-white border rounded-lg text-sm transition-all outline-none cursor-pointer
                     ${error
