@@ -159,12 +159,18 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, onSel
                         assets={filteredAssets}
                         onSelect={setSelectedAsset}
                         selectedAssetId={selectedAsset?.id}
+                        selectableTypes={['SUBGROUP']}
                     />
                     {selectedAsset && (
                         <div className="p-3 bg-white rounded-2xl border border-blue-100 shadow-sm flex items-center justify-between animate-in slide-in-from-left-2">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-blue-600 shadow-sm shadow-blue-600/40"></div>
-                                <span className="text-[11px] font-black text-blue-700 truncate max-w-[180px] uppercase tracking-tight">{selectedAsset.name}</span>
+                                <span 
+                                    className="text-[11px] font-black text-blue-700 truncate max-w-[180px] uppercase tracking-tight"
+                                    title={selectedAsset.name}
+                                >
+                                    {selectedAsset.name}
+                                </span>
                             </div>
                             <button onClick={() => setSelectedAsset(null)} className="p-1 hover:bg-rose-50 text-slate-300 hover:text-rose-500 rounded-lg transition-all">
                                 <X size={14} strokeWidth={3} />
@@ -332,7 +338,10 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, onSel
                                     <div className="flex flex-wrap items-center gap-6">
                                         <div className="flex items-center gap-2">
                                             <div className="p-1.5 bg-slate-100 rounded-lg text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors"><Database size={14} /></div>
-                                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate max-w-[200px]">
+                                            <div 
+                                                className="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate max-w-[200px]"
+                                                title={rca.asset_name_display || ''}
+                                            >
                                                 {rca.asset_name_display || '-'}
                                             </div>
                                         </div>

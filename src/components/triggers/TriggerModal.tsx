@@ -156,6 +156,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                                 assets={assets}
                                 onSelect={handleAssetSelect}
                                 selectedAssetId={editingTrigger.subgroup_id || editingTrigger.equipment_id || editingTrigger.area_id}
+                                selectableTypes={['SUBGROUP']}
                             />
                         </div>
                         {hasAssetError && <span className="text-xs text-rose-500 font-bold block animate-in fade-in flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-rose-500"></span>{t('common.requiredField')}</span>}
