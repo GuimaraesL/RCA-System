@@ -1,5 +1,5 @@
-﻿import React from 'react';
-import { useLanguage } from '../context/LanguageDefinition';
+import React from 'react';
+import { useLanguage } from '../../context/LanguageDefinition';
 
 interface LanguageSelectorProps {
     compact?: boolean;

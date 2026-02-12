@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { AssetNode } from '../types'; 
+import { AssetNode } from '../../types'; 
 import { ChevronRight, ChevronDown, Folder, Database, Layers } from 'lucide-react';
 
 interface AssetTreeNodeProps {

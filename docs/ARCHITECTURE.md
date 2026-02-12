@@ -65,7 +65,13 @@ O Frontend foi construído utilizando **React 19** e **Vite**, focado na experi�
 ### 3.2 Estrutura de Diretórios (`src/`)
 A organização do código frontend segue uma estrutura modular baseada em responsabilidades:
 
-- **/components:** Componentes visuais puramente de apresentação. Devem ser agnósticos à lógica de negócios complexa.
+- **/components:** Componentes React organizados por categoria funcional:
+    - **/layout:** Componentes estruturais e globais (ex: `Sidebar`, `FilterBar`, `LanguageSelector`).
+    - **/views:** Componentes que representam telas inteiras ou dashboards (ex: `AnalysesView`, `Dashboard`).
+    - **/modals:** Diálogos e editores flutuantes (ex: `RcaEditor`, `ConfirmModal`).
+    - **/selectors:** Componentes especializados em seleção de dados complexos (ex: `AssetSelector`, `RcaSelector`).
+    - **/ui:** Elementos atômicos de interface (ex: `Button`, `Input`, `Select`).
+    - **/steps:** Passos individuais do Wizard do editor de RCA.
 - **/hooks:** Encapsulam a lógica de negócios, chamadas de API (via services) e efeitos colaterais. Os componentes consomem estes hooks.
 - **/context:** Provedores de estado global (ex: Tema, Autenticação, Dados Mestres, i18n).
 - **/services:** Camada de serviço responsável por isolar a comunicação com o Backend. Contém métodos para GET, POST, PUT, DELETE, tratando erros HTTP.

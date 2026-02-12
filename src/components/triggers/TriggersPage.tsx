@@ -7,12 +7,12 @@ import React from 'react';
 import { useTriggersLogic } from '../../hooks/useTriggersLogic'; 
 import { TriggersList } from './TriggersList';
 import { TriggerModal } from './TriggerModal';
-import { FilterBar } from '../FilterBar';
+import { FilterBar } from '../layout/FilterBar';
 import { TriggerRecord } from '../../types';
 import { Plus } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageDefinition';
-import { RcaSelector } from '../RcaSelector';
-import { ConfirmModal } from '../ConfirmModal'; 
+import { RcaSelector } from '../selectors/RcaSelector';
+import { ConfirmModal } from '../modals/ConfirmModal'; 
 
 interface TriggersPageProps {
     onCreateRca: (trigger: TriggerRecord) => void;

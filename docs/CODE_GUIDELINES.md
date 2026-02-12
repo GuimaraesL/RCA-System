@@ -9,7 +9,13 @@ Este guia define os padrões técnicos, arquiteturais e de comportamento para o 
 O projeto segue uma separação rigorosa entre as camadas para garantir testabilidade e manutenção.
 
 ### 1.1. Frontend (`src/`)
-- **Components (`/components`):** Apenas apresentação e interação de UI. Devem ser agnósticos à origem dos dados quando possível.
+- **Components (`/components`):** Organizados estritamente por subpastas funcionais:
+    - `layout/`: Estrutura global.
+    - `views/`: Telas principais.
+    - `modals/`: Janelas de diálogo.
+    - `selectors/`: Seletores complexos.
+    - `ui/`: Componentes atômicos.
+    - `steps/`: Partes do Wizard RCA.
 - **Hooks (`/hooks`):** Toda a lógica de negócio, validação e estado complexo reside aqui. Componentes chamam hooks; eles não processam dados pesados.
 - **Context (`/context`):** Estado global e orquestração de dados (ex: Cache de API, Configurações).
 - **Services (`/services`):** Portas de saída para o mundo externo (API REST, LocalStorage, CSV).
@@ -20,6 +26,10 @@ O projeto segue uma separação rigorosa entre as camadas para garantir testabil
 - **Domain (`/domain`):** Serviços com as regras de negócio "hardcore" (ex: cálculo dinâmico de status).
 - **Infrastructure (`/infrastructure`):** Repositórios (SQL) e conexão com banco de dados.
 - **Types (`/types`):** Definições de interfaces que refletem o contrato entre as camadas.
+
+### 1.3. Integridade de Arquitetura
+O projeto utiliza testes estáticos para garantir que a estrutura de pastas e imports permaneça íntegra.
+- **Teste de Imports:** Localizado em `src/__tests__/architecture.test.ts`. Ele verifica se todos os imports relativos apontam para arquivos existentes. Este teste deve passar obrigatoriamente antes de qualquer merge.
 
 ---
 

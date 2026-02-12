@@ -9,7 +9,7 @@ import { TriggerRecord, AssetNode } from '../types';
 import { useFilterPersistence } from './useFilterPersistence';
 import { useSorting } from './useSorting';
 import { filterAssetsByUsage } from '../services/utils';
-import { FilterState } from '../components/FilterBar';
+import { FilterState } from '../components/layout/FilterBar';
 import { useFilteredData } from './useFilteredData';
 
 export const useTriggersLogic = () => {

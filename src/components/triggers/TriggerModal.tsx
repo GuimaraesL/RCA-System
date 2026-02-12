@@ -1,7 +1,7 @@
 
 import React, { useRef, useEffect, useState, useId } from 'react';
 import { TriggerRecord, AssetNode, TaxonomyConfig } from '../../types';
-import { AssetSelector } from '../AssetSelector';
+import { AssetSelector } from '../selectors/AssetSelector';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { Textarea } from '../ui/Textarea';

@@ -7,7 +7,7 @@ import React, { useId } from 'react';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { AssetNode, RcaRecord, TaxonomyConfig } from '../../types';
-import { AssetSelector } from '../AssetSelector';
+import { AssetSelector } from '../selectors/AssetSelector';
 import { RefreshCw } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageDefinition';
 

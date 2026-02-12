@@ -11,11 +11,11 @@ import {
   ShieldCheck, ChevronRight, 
   ListTree, AlertCircle
 } from 'lucide-react';
-import { useSettingsLogic } from '../hooks/useSettingsLogic';
-import { TaxonomyConfig, TaxonomyItem } from '../types';
-import { ConfirmModal } from './ConfirmModal';
-import { useLanguage } from '../context/LanguageDefinition';
-import { MandatoryFieldSelector } from './MandatoryFieldSelector';
+import { useSettingsLogic } from '../../hooks/useSettingsLogic';
+import { TaxonomyConfig, TaxonomyItem } from '../../types';
+import { ConfirmModal } from '../modals/ConfirmModal';
+import { useLanguage } from '../../context/LanguageDefinition';
+import { MandatoryFieldSelector } from '../selectors/MandatoryFieldSelector';
 
 /**
  * Sub-componente interno para gestão individual de listas de taxonomia com UI moderna.

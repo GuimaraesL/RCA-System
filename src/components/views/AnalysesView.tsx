@@ -4,20 +4,20 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { RcaRecord, TaxonomyConfig } from '../types';
-import { STATUS_IDS } from '../constants/SystemConstants';
+import { RcaRecord, TaxonomyConfig } from '../../types';
+import { STATUS_IDS } from '../../constants/SystemConstants';
 import { Plus, FileText, Trash2 } from 'lucide-react';
-import { SortHeader } from './ui/SortHeader';
-import { FilterBar, FilterState } from './FilterBar';
-import { useFilterPersistence } from '../hooks/useFilterPersistence';
-import { useSorting } from '../hooks/useSorting';
-import { useRcaContext } from '../context/RcaContext';
-import { filterAssetsByUsage } from '../services/utils';
-import { ConfirmModal } from './ConfirmModal';
-import { getAssetName } from '../utils/triggerHelpers';
-import { translateStatus } from '../utils/statusUtils';
-import { useFilteredData } from '../hooks/useFilteredData';
-import { useLanguage } from '../context/LanguageDefinition'; 
+import { SortHeader } from '../ui/SortHeader';
+import { FilterBar, FilterState } from '../layout/FilterBar';
+import { useFilterPersistence } from '../../hooks/useFilterPersistence';
+import { useSorting } from '../../hooks/useSorting';
+import { useRcaContext } from '../../context/RcaContext';
+import { filterAssetsByUsage } from '../../services/utils';
+import { ConfirmModal } from '../modals/ConfirmModal';
+import { getAssetName } from '../../utils/triggerHelpers';
+import { translateStatus } from '../../utils/statusUtils';
+import { useFilteredData } from '../../hooks/useFilteredData';
+import { useLanguage } from '../../context/LanguageDefinition'; 
 
 interface AnalysesViewProps {
     onNew: () => void;

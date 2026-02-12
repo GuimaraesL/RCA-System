@@ -5,7 +5,7 @@
 
 import { useMemo } from 'react';
 import { useRcaContext } from '../context/RcaContext';
-import { FilterState } from '../components/FilterBar';
+import { FilterState } from '../components/layout/FilterBar';
 import { useActionsLogic } from './useActionsLogic';
 
 export const useFilteredData = (filters: FilterState, overrideRecords?: RcaRecord[], overrideAssets?: AssetNode[]) => {

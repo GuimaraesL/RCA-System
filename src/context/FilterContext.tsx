@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { FilterState } from '../components/FilterBar';
+import { FilterState } from '../components/layout/FilterBar';
 import { safeGetItem, safeSetItem } from '../services/storageService';
 
 interface FilterContextType {

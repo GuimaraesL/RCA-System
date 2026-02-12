@@ -5,9 +5,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Siren, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
-import { useLanguage } from '../context/LanguageDefinition';
+import { useLanguage } from '../../context/LanguageDefinition';
 import { LanguageSelector } from './LanguageSelector';
-import { safeGetItem, safeSetItem } from '../services/storageService';
+import { safeGetItem, safeSetItem } from '../../services/storageService';
 
 interface SidebarProps {
     view: 'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'TRIGGERS' | 'ASSETS' | 'SETTINGS' | 'MIGRATION';

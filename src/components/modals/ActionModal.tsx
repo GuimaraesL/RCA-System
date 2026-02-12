@@ -4,12 +4,12 @@
  */
 
 import React, { useState, useEffect, useRef, useId } from 'react';
-import { ActionRecord } from '../types';
-import { useLanguage } from '../context/LanguageDefinition';
-import { animateModalEnter } from '../services/animations';
-import { Input } from './ui/Input';
-import { Select } from './ui/Select';
-import { Textarea } from './ui/Textarea';
+import { ActionRecord } from '../../types';
+import { useLanguage } from '../../context/LanguageDefinition';
+import { animateModalEnter } from '../../services/animations';
+import { Input } from '../ui/Input';
+import { Select } from '../ui/Select';
+import { Textarea } from '../ui/Textarea';
 import { X, ShieldCheck } from 'lucide-react';
 
 interface ActionModalProps {

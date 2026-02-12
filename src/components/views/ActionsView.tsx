@@ -3,19 +3,19 @@
  * Fluxo: Renderiza uma tabela de ações corretivas com suporte a filtros cruzados, ordenação e vinculação direta com as análises de origem.
  */
 
-import React, { useMemo, useState, useRef } from 'react';
-import { useRcaContext } from '../context/RcaContext';
-import { useActionsLogic } from '../hooks/useActionsLogic';
-import { Plus, Edit2, Trash2, ExternalLink, CheckCircle2, Clock, ShieldCheck, Award, Info } from 'lucide-react';
-import { FilterBar, FilterState } from './FilterBar';
-import { useFilterPersistence } from '../hooks/useFilterPersistence';
-import { ConfirmModal } from './ConfirmModal';
-import { ActionModal } from './ActionModal';
-import { useSorting } from '../hooks/useSorting';
-import { SortHeader } from './ui/SortHeader';
-import { useLanguage } from '../context/LanguageDefinition';
-import { useFilteredData } from '../hooks/useFilteredData';
-import { ACTION_STATUS_IDS } from '../constants/SystemConstants';
+import React, { useMemo, useState } from 'react';
+import { useRcaContext } from '../../context/RcaContext';
+import { useActionsLogic } from '../../hooks/useActionsLogic';
+import { Plus, Edit2, Trash2, ExternalLink, CheckCircle2, Clock, ShieldCheck, Award } from 'lucide-react';
+import { FilterBar, FilterState } from '../layout/FilterBar';
+import { useFilterPersistence } from '../../hooks/useFilterPersistence';
+import { ConfirmModal } from '../modals/ConfirmModal';
+import { ActionModal } from '../modals/ActionModal';
+import { useSorting } from '../../hooks/useSorting';
+import { SortHeader } from '../ui/SortHeader';
+import { useLanguage } from '../../context/LanguageDefinition';
+import { useFilteredData } from '../../hooks/useFilteredData';
+import { ACTION_STATUS_IDS } from '../../constants/SystemConstants';
 
 interface ActionsViewProps {
   onOpenRca?: (id: string) => void;

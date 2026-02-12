@@ -4,14 +4,14 @@
  */
 
 import React, { useState, useRef, useCallback, useEffect, useId } from 'react';
-import { AssetNode } from '../types';
+import { AssetNode } from '../../types';
 import { Database, Layers, Plus, Trash2, Edit2, Lock, GripVertical, Info } from 'lucide-react';
-import { useAssetsLogic } from '../hooks/useAssetsLogic';
-import { ConfirmModal } from './ConfirmModal';
-import { AssetTreeNode } from './AssetTreeNode';
-import { useLanguage } from '../context/LanguageDefinition'; 
-import { Input } from './ui/Input';
-import { Select } from './ui/Select';
+import { useAssetsLogic } from '../../hooks/useAssetsLogic';
+import { ConfirmModal } from '../modals/ConfirmModal';
+import { AssetTreeNode } from '../selectors/AssetTreeNode';
+import { useLanguage } from '../../context/LanguageDefinition'; 
+import { Input } from '../ui/Input';
+import { Select } from '../ui/Select';
 
 export const AssetsManager: React.FC = () => {
   const { t } = useLanguage();

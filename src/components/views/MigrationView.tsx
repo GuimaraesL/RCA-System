@@ -11,12 +11,12 @@ import {
   Info, ShieldCheck, Box, Settings, X, Check,
   FileDown, FileUp, TableProperties
 } from 'lucide-react';
-import { importData, saveAssets, saveActions, saveRecords, saveTriggers, saveTaxonomy } from '../services/storageService';
-import { fetchAllRecordsFull, importDataToApi, importRecordsToApi, importActionsToApi, importTriggersToApi, importAssetsToApi, importTaxonomyToApi } from '../services/apiService';
-import { MigrationData, TaxonomyConfig } from '../types';
-import { CsvEntityType, getCsvTemplate, exportToCsv as exportToCsvService, importFromCsv } from '../services/csvService';
-import { useRcaContext } from '../context/RcaContext';
-import { useLanguage } from '../context/LanguageDefinition'; 
+import { importData, saveAssets, saveActions, saveRecords, saveTriggers, saveTaxonomy } from '../../services/storageService';
+import { fetchAllRecordsFull, importDataToApi, importRecordsToApi, importActionsToApi, importTriggersToApi, importAssetsToApi, importTaxonomyToApi } from '../../services/apiService';
+import { MigrationData, TaxonomyConfig } from '../../types';
+import { CsvEntityType, getCsvTemplate, exportToCsv as exportToCsvService, importFromCsv } from '../../services/csvService';
+import { useRcaContext } from '../../context/RcaContext';
+import { useLanguage } from '../../context/LanguageDefinition'; 
 
 export const MigrationView: React.FC = () => {
     const { t } = useLanguage();

@@ -4,9 +4,9 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { AssetNode } from '../types';
+import { AssetNode } from '../../types';
 import { ChevronRight, ChevronDown, Folder, Database, Layers } from 'lucide-react';
-import { useLanguage } from '../context/LanguageDefinition';
+import { useLanguage } from '../../context/LanguageDefinition';
 
 interface AssetSelectorProps {
   assets: AssetNode[];

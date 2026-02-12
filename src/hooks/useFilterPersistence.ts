@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { FilterState } from '../components/FilterBar';
+import { FilterState } from '../components/layout/FilterBar';
 import { useGlobalFilters } from '../context/FilterContext';
 import { safeGetItem, safeSetItem } from '../services/storageService';
 

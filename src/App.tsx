@@ -9,22 +9,22 @@ import { Loader2 } from 'lucide-react';
 import { RcaRecord, TriggerRecord } from './types';
 
 // Carregamento Preguiçoso (Lazy Loading) para otimização de performance e divisão de código
-const RcaEditor = lazy(() => import('./components/RcaEditor').then(m => ({ default: m.RcaEditor })));
-const AssetsManager = lazy(() => import('./components/AssetsManager').then(m => ({ default: m.AssetsManager })));
-const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
-const AnalysesView = lazy(() => import('./components/AnalysesView').then(m => ({ default: m.AnalysesView })));
-const ActionsView = lazy(() => import('./components/ActionsView').then(m => ({ default: m.ActionsView })));
+const RcaEditor = lazy(() => import('./components/modals/RcaEditor').then(m => ({ default: m.RcaEditor })));
+const AssetsManager = lazy(() => import('./components/views/AssetsManager').then(m => ({ default: m.AssetsManager })));
+const Dashboard = lazy(() => import('./components/views/Dashboard').then(m => ({ default: m.Dashboard })));
+const AnalysesView = lazy(() => import('./components/views/AnalysesView').then(m => ({ default: m.AnalysesView })));
+const ActionsView = lazy(() => import('./components/views/ActionsView').then(m => ({ default: m.ActionsView })));
 const TriggersView = lazy(() => import('./components/triggers').then(m => ({ default: m.TriggersPage })));
-const SettingsView = lazy(() => import('./components/SettingsView').then(m => ({ default: m.SettingsView })));
-const MigrationView = lazy(() => import('./components/MigrationView').then(m => ({ default: m.MigrationView })));
+const SettingsView = lazy(() => import('./components/views/SettingsView').then(m => ({ default: m.SettingsView })));
+const MigrationView = lazy(() => import('./components/views/MigrationView').then(m => ({ default: m.MigrationView })));
 
 import { RcaProvider, useRcaContext } from './context/RcaContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { FilterProvider } from './context/FilterContext';
 import { useLanguage } from './context/LanguageDefinition';
-import { Sidebar } from './components/Sidebar';
+import { Sidebar } from './components/layout/Sidebar';
 import { generateId } from './services/utils';
-import { ConfirmModal } from './components/ConfirmModal';
+import { ConfirmModal } from './components/modals/ConfirmModal';
 
 const AppContent: React.FC = () => {
     const { t } = useLanguage();

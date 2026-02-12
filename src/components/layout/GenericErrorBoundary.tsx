@@ -1,6 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { LanguageContext } from '../context/LanguageDefinition';
+import { LanguageContext } from '../../context/LanguageDefinition';
 
 interface Props {
     children: ReactNode;

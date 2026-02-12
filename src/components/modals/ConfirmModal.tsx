@@ -5,8 +5,8 @@
 
 import React, { useEffect, useRef } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
-import { animateModalEnter } from '../services/animations';
-import { useLanguage } from '../context/LanguageDefinition';
+import { animateModalEnter } from '../../services/animations';
+import { useLanguage } from '../../context/LanguageDefinition';
 
 interface ConfirmModalProps {
     isOpen: boolean;

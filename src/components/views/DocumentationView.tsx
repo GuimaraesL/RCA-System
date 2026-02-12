@@ -2,7 +2,7 @@
 import React from 'react';
 import { Book, Database, Server, Share2, ShieldCheck, Cpu, Layers, FileJson, Workflow } from 'lucide-react';
 
-import { useLanguage } from '../context/LanguageDefinition';
+import { useLanguage } from '../../context/LanguageDefinition';
 
 export const DocumentationView: React.FC = () => {
     const { t } = useLanguage();

@@ -14,12 +14,16 @@ A Análise de Causa Raiz (RCA) é a entidade principal do sistema. Seu ciclo de 
 - **ID:** Gerado automaticamente (UUID) se não fornecido.
 - **Status Inicial:** Sempre inicia como `Em Andamento` (IN_PROGRESS).
 - **Versão:** Define a versão do formulário utilizada (ex: `17.2`).
+- **Seleção de Ativos:** Por governança, o sistema permite a seleção técnica apenas ao nível de **Subgrupo**. Áreas e Equipamentos servem apenas para navegação hierárquica.
 - **Herança:** Se criada via Gatilho, herda:
     - Ativo (Área, Equipamento, Subgrupo).
     - Descrição do problema (do `stop_reason`).
     - Data da falha.
 
-### 2. Cálculo Automático de Status
+### 2. Edição e Segurança de Dados
+- **Guarda de Navegação:** O sistema impede a mudança acidental de página (via Sidebar) enquanto o Editor de RCA estiver aberto. O usuário deve confirmar que deseja sair, sob risco de perda de alterações não salvas.
+
+### 3. Cálculo Automático de Status
 O sistema recalcula o status da RCA a cada salvamento ou alteração em suas Ações vinculadas.
 
 | Status | Regra de Negócio |

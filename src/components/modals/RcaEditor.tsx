@@ -4,27 +4,27 @@
  */
 
 import React, { useEffect, useState, useRef } from 'react';
-import { RcaRecord, ActionRecord } from '../types';
-import { STATUS_IDS, ROOT_CAUSE_M_IDS } from '../constants/SystemConstants';
-import { generateId } from '../services/utils';
-import { useRcaContext } from '../context/RcaContext';
+import { RcaRecord, ActionRecord } from '../../types';
+import { STATUS_IDS, ROOT_CAUSE_M_IDS } from '../../constants/SystemConstants';
+import { generateId } from '../../services/utils';
+import { useRcaContext } from '../../context/RcaContext';
 import { Save, ArrowLeft, Lock, Check, ChevronDown } from 'lucide-react';
-import { useRcaLogic } from '../hooks/useRcaLogic';
+import { useRcaLogic } from '../../hooks/useRcaLogic';
 import { ActionModal } from './ActionModal';
-import { useLanguage } from '../context/LanguageDefinition';
-import { translateStatus } from '../utils/statusUtils';
+import { useLanguage } from '../../context/LanguageDefinition';
+import { translateStatus } from '../../utils/statusUtils';
 import { ConfirmModal } from './ConfirmModal';
-import { animateModalEnter } from '../services/animations'; 
+import { animateModalEnter } from '../../services/animations'; 
 
 // Importação dos Passos do Wizard
-import { Step1General } from './steps/Step1General';
-import { Step2Problem } from './steps/Step2Problem';
-import { Step3Technical } from './steps/Step3Technical';
-import { Step4Investigation } from './steps/Step4Investigation';
-import { Step5Actions } from './steps/Step5Actions';
-import { Step6Checklist } from './steps/Step6Checklist';
-import { Step7Additional } from './steps/Step7Additional';
-import { StepHRA } from './steps/StepHRA';
+import { Step1General } from '../steps/Step1General';
+import { Step2Problem } from '../steps/Step2Problem';
+import { Step3Technical } from '../steps/Step3Technical';
+import { Step4Investigation } from '../steps/Step4Investigation';
+import { Step5Actions } from '../steps/Step5Actions';
+import { Step6Checklist } from '../steps/Step6Checklist';
+import { Step7Additional } from '../steps/Step7Additional';
+import { StepHRA } from '../steps/StepHRA';
 
 interface RcaEditorProps {
     existingRecord?: RcaRecord | null;

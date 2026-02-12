@@ -1,14 +1,14 @@
 
 import React, { useMemo } from 'react';
-import { RcaRecord, ActionRecord } from '../types';
-import { STATUS_IDS, ACTION_STATUS_IDS } from '../constants/SystemConstants';
+import { RcaRecord, ActionRecord } from '../../types';
+import { STATUS_IDS, ACTION_STATUS_IDS } from '../../constants/SystemConstants';
 import { ArrowUp, ArrowDown, Activity, AlertCircle, Calendar, CheckCircle2, Clock, ShieldCheck, Award } from 'lucide-react';
-import { FilterBar, FilterState } from './FilterBar';
-import { useFilterPersistence } from '../hooks/useFilterPersistence';
-import { useSorting } from '../hooks/useSorting';
-import { SortHeader } from './ui/SortHeader';
-import { useLanguage } from '../context/LanguageDefinition';
-import { useFilteredData } from '../hooks/useFilteredData';
+import { FilterBar, FilterState } from '../layout/FilterBar';
+import { useFilterPersistence } from '../../hooks/useFilterPersistence';
+import { useSorting } from '../../hooks/useSorting';
+import { SortHeader } from '../ui/SortHeader';
+import { useLanguage } from '../../context/LanguageDefinition';
+import { useFilteredData } from '../../hooks/useFilteredData';
 
 interface ReportsViewProps {
     records: RcaRecord[];

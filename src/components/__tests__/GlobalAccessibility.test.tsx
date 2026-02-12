@@ -73,9 +73,9 @@ vi.mock('../../hooks/useEnterAnimation', () => ({
 }));
 
 // Componentes a serem testados
-import { FilterBar } from '../FilterBar';
-import { ActionModal } from '../ActionModal';
-import { ConfirmModal } from '../ConfirmModal';
+import { FilterBar } from '../layout/FilterBar';
+import { ActionModal } from '../modals/ActionModal';
+import { ConfirmModal } from '../modals/ConfirmModal';
 import { TriggerModal } from '../triggers/TriggerModal';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
