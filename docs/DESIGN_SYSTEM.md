@@ -101,3 +101,19 @@ Containers principais de conteúdo.
 - ✅ **Feedback Claro:** Use cores de status consistentemente.
 - ✅ **Espaço em Branco:** Deixe os dados "respirarem".
 - ✅ **Micro-interações:** Adicione `hover` e `focus` states em tudo que for clicável.
+---
+
+> **Nota:** Este documento deve ser mantido vivo e atualizado conforme a arquitetura evolui. Qualquer decisão de design system significativa deve ser refletida aqui.
+
+---
+
+## 📚 Documentação Relacionada
+- [Visão Geral do Produto (PRD)](./PRD.md)
+- [Arquitetura Técnica](./ARCHITECTURE.md)
+- [Referência da API](./API_REFERENCE.md)
+- [Diretrizes de Código](./CODE_GUIDELINES.md)
+- [PRD - Requisitos de UX](./PRD.md)
+
+---
+
+> **Nota de Manutenção:** Mantenha este documento atualizado. Alterações visuais devem respeitar estas diretrizes. Consulte [PRD.md](./PRD.md) para requisitos de UX.TESTING.md)

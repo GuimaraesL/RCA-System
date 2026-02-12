@@ -117,3 +117,22 @@ Inputs invisíveis podem bloquear cliques em botões reais.
 1. Certifique-se de que as dependências estão instaladas: `npm install` e `npm install --prefix server`.
 2. Instale os navegadores do Playwright: `npx playwright install`.
 3. O frontend deve estar configurado para rodar na porta 3000 durante os testes E2E locais (conforme `playwright.config.ts`).
+
+---
+
+> **Nota:** Este documento deve ser mantido vivo e atualizado conforme a arquitetura evolui. Qualquer decisão em relação a testes e automação deve ser refletida aqui.
+
+---
+
+## 📚 Documentação Relacionada
+- [Visão Geral do Produto (PRD)](./PRD.md)
+- [Arquitetura Técnica](./ARCHITECTURE.md)
+- [Referência da API](./API_REFERENCE.md)
+- [Diretrizes de Código](./CODE_GUIDELINES.md)
+- [Design System](./DESIGN_SYSTEM.md)
+- [Catálogo de Testes](./TEST_CATALOG.md)
+- [PRD - Requisitos](./PRD.md)
+
+---
+
+> **Nota de Manutenção:** Mantenha este documento atualizado. Ajustes na estratégia de testes devem ser refletidos no [TEST_CATALOG.md](./TEST_CATALOG.md).

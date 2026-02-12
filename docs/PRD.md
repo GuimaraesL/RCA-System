@@ -9,23 +9,23 @@ Autor: **Time de Excelência Operacional & Antigravity AI**
 
 ## 1. Visão Geral
 
-O **RCA System** é uma plataforma corporativa de **Gestão do Ciclo de Vida de Falhas (Failure Lifecycle Management)**. Seu objetivo é unificar, em uma única interface de alta performance e globalmente acessível, o registro de paradas operacionais (Triggers), a execução de análises de causa raiz (RCA) e o acompanhamento de planos de ação corretiva.
+O **RCA System** é uma plataforma corporativa de **Gestão do Ciclo de Vida de Falhas (Failure Lifecycle Management)**. Seu objetivo é unificar, em uma única interface de alta performance, o registro de paradas operacionais (Triggers), a execução de análises de causa raiz (RCA) e o acompanhamento de planos de ação corretiva entre as manufaturas da planta.
 
 O diferencial estratégico do produto é a **Performance Extrema**, a **UX Premium** (alinhada ao Design System corporativo) e o suporte nativo a **Internacionalização (i18n)**, garantindo que equipes globais possam colaborar sem barreiras linguísticas.
 
-### 1.1 O Problema
-Sistemas legados de gestão de falhas sofrem com:
-- Lentidão excessiva ao carregar históricos de paradas.
-- Desconexão entre o evento (Trigger) e a análise (RCA).
-- Falta de padronização nos dados e terminologias inconsistentes entre regiões.
-- Interfaces arcaicas que desestimulam o uso e dificultam a adoção global.
+### 1.1 O Problema (Contexto Regional)
+Atualmente, a gestão de falhas nas manufaturas sofre com **fragmentação crítica e falta de padronização**:
+- **Desconexão Sistêmica:** "Triggers" (paradas) e "RCAs" são geridos em planilhas Excel isoladas, enquanto os "Planos de Ação" ficam no SharePoint. Não há vínculo digital entre eles.
+- **Cultura de "Excel Livre":** Cada manufatura realiza suas análises de maneira própria, cadastrando dados sem padrão estruturado.
+- **Impossibilidade de Governança:** A liberdade excessiva das planilhas impede a consolidação de KPIs regionais confiáveis.
+- **Perda de Rastreabilidade:** Não se sabe se uma parada gerou uma RCA, ou se a ação planejada no SharePoint foi efetiva para evitar a reincidência.
 
 ### 1.2 A Solução
-Um sistema web moderno (React + Node) focado em:
-- **Zero Lag:** Renderização otimizada para datasets massivos.
-- **Integridade:** Validação estrita de dados na entrada via Schemas (Zod).
-- **Globalização:** Interface totalmente traduzida e adaptável ao contexto do usuário.
-- **Padronização Visual:** Design System rigoroso para consistência profissional.
+O **RCA System** nasce para ser a **Plataforma Única de Verdade**, substituindo o ecossistema de planilhas/SharePoint por:
+- **Centralização:** Triggers, RCAs e Ações integrados em um único fluxo contínuo.
+- **Padronização Forçada:** A interface não aceita "tudo". Schemas rígidos (Zod) e taxonomia unificada obrigam o usuário a seguir o padrão corporativo.
+- **Conectividade:** O Plano de Ação nasce dentro da RCA, que nasce de um Trigger. O ciclo é inquebrável.
+- **Governança Regional:** Permite que a liderança enxergue dados comparáveis entre diferentes manufaturas.
 
 ---
 
@@ -34,8 +34,8 @@ Um sistema web moderno (React + Node) focado em:
 | Persona | Perfil | Principais Casos de Uso |
 | :--- | :--- | :--- |
 | **Operador / Técnico** | Focado no chão de fábrica. | - Registrar "Triggers" (eventos de parada). <br> - Verificar status de paradas pendentes em seu idioma local. |
-| **Engenheiro / Analista** | Responsável pela melhoria contínua. | - Realizar RCAs usando metodologia 6M. <br> - Criar planos de ação. <br> - Exportar relatórios técnicos (PDF). |
-| **Gerente de Área** | Focado em KPIs e prazos. | - Visualizar Dashboards (Pareto, Tendências). <br> - Monitorar "Auto-Status" das análises. <br> - Auditar a eficácia das ações globalmente. |
+| **Engenheiro / Analista** | Responsável pela melhoria contínua. | - Realizar RCAs usando metodologia 6M. <br> - Criar planos de ação. |
+| **Gerente de Área** | Focado em KPIs e prazos. | - Visualizar Dashboards. <br> - Monitorar "Auto-Status" das análises. <br> - Auditar a eficácia das ações globalmente. |
 
 ---
 
@@ -44,7 +44,7 @@ Um sistema web moderno (React + Node) focado em:
 ### 3.1 Módulo de Triggers (Eventos)
 - **RF-001 (Importação):** O sistema deve permitir a importação de eventos via CSV/JSON com validação estrita de schema (datas, floats).
 - **RF-002 (Listagem):** Exibição tabular de eventos de parada com performance O(1) para renderização.
-- **RF-003 (Vínculo):** Permitir associar um ou mais Triggers a uma RCA nova ou existente.
+- **RF-003 (Vínculo):** Permitir associar **um único** Trigger a uma RCA. (Suporte a múltiplos triggers previsto para versões futuras).
 
 ### 3.2 Módulo de RCA (Root Cause Analysis)
 - **RF-004 (Metodologia 6M):** Interface interativa para classificação de causas nas 6 categorias (Mão de obra, Método, Máquina, Material, Meio ambiente, Medida).
@@ -52,12 +52,12 @@ Um sistema web moderno (React + Node) focado em:
 - **RF-006 (Auto-Status):** O sistema deve calcular automaticamente o status da análise (`Em Andamento`, `Aguardando Validação`, `Concluído`) baseado no preenchimento dos campos obrigatórios e planos de ação.
 
 ### 3.3 Dashboard & Analytics
-- **RF-007 (Gráficos Dinâmicos):** Visualização interativa da distribuição de falhas por categoria (6M) utilizando bibliotecas performáticas.
+- **RF-007 (Dashboard):** Visualização interativa da distribuição de falhas por categoria (6M).
 - **RF-008 (Filtros Globais):** Busca textual e filtros de data que atuam sobre 100% do dataset (client-side) instantaneamente.
-- **RF-009 (Exportação):** Capacidade de gerar relatórios (PDF) das análises concluídas para documentação física.
+- **RF-008 (Filtros Globais):** Busca textual e filtros de data que atuam sobre 100% do dataset (client-side) instantaneamente.
 
 ### 3.4 Suporte Internacional (i18n)
-- **RF-010 (Multi-idioma):** Suporte completo a Inglês (EN), Português (PT) e Espanhol (ES) em toda a interface.
+- **RF-010 (Multi-idioma):** Suporte completo a Inglês (EN) e Português (PT) em toda a interface.
 - **RF-011 (Contexto Dinâmico):** Traduções de dados dinâmicos (Status, Categorias 6M) devem persistir corretamente após filtros e recarregamentos.
 
 ### 3.5 Documentação e Ajuda
@@ -82,7 +82,7 @@ Um sistema web moderno (React + Node) focado em:
 ### 4.3 Qualidade e Manutenibilidade
 - **RNF-006 (Testes):** Cobertura de testes unitários (Vitest) para lógica de negócios e componentes críticos, além de testes E2E (Playwright) para fluxos principais.
 - **RNF-007 (Sanitização):** O Backend deve utilizar Zod para validação rigorosa de schemas de entrada.
-- **RNF-008 (Persistência):** Banco de dados SQLite (`sql.js`) para portabilidade local, com estrutura preparada para migração futura se necessário.
+- **RNF-008 (Persistência):** Banco de dados SQLite (`sql.js`) para portabilidade local. **Nota:** Atualmente a estrutura é acoplada ao SQLite e não está preparada para migração direta (Dívida Técnica registrada na **Issue #40**).
 
 ---
 
@@ -97,7 +97,7 @@ Um sistema web moderno (React + Node) focado em:
 - **Bibliotecas Chave:**
     - UI: `lucide-react` (Ícones), `recharts` (Gráficos), `animejs` (Animações).
     - Performance: `react-window`, `react-virtualized-auto-sizer`.
-    - i18n: `react-i18next` (ou solução customizada leve).
+    - i18n: Solução customizada (Context API + Dicionários JSON).
 
 ### 5.2 Fluxo de Dados
 1. **Frontend** carrega dataset inicial e definições de localização.
@@ -117,3 +117,17 @@ Um sistema web moderno (React + Node) focado em:
 ---
 
 > **Nota:** Este documento deve ser mantido atualizado em sincronia com `docs/DESIGN_SYSTEM.md` e `docs/TESTING.md`.
+
+---
+
+## 📚 Documentação Relacionada
+- [Arquitetura Técnica](./ARCHITECTURE.md)
+- [Regras de Negócio](./BUSINESS_RULES.md)
+- [Referência da API](./API_REFERENCE.md)
+- [Diretrizes de Código](./CODE_GUIDELINES.md)
+- [Design System](./DESIGN_SYSTEM.md)
+- [Guia de Testes](./TESTING.md)
+
+---
+
+> **Nota de Manutenção:** Este é o documento mestre. Mantenha-o atualizado com a verdade do produto. Se alterar requisitos aqui, atualize os documentos relacionados acima.
