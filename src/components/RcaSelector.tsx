@@ -1,25 +1,27 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, FileText, Calendar, Filter, ChevronRight, X, Database, Layers, Activity } from 'lucide-react';
-import { RcaRecord, AssetNode } from '../types';
+import { RcaRecord, AssetNode, TaxonomyConfig } from '../types';
 import { useLanguage } from '../context/LanguageDefinition';
 import { translateStatus } from '../utils/statusUtils';
 import { AssetSelector } from './AssetSelector';
 import { STATUS_IDS } from '../constants/SystemConstants';
-import { useRcaContext } from '../context/RcaContext';
 import { filterAssetsByUsage } from '../services/utils';
 import { useFilteredData } from '../hooks/useFilteredData';
 
 interface RcaSelectorProps {
     records: RcaRecord[];
     assets: AssetNode[];
+    taxonomy: TaxonomyConfig;
     onSelect: (rcaId: string) => void;
     onCancel: () => void;
 }
 
-export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, onSelect, onCancel }) => {
+export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxonomy, onSelect, onCancel }) => {
     const { t, language } = useLanguage();
-    const { taxonomy } = useRcaContext();
     const idPrefix = React.useId();
+
+    // Proteção contra taxonomia indefinida (Issue #83 Fix)
+    if (!taxonomy) return null;
     
     // --- Local Selection State ---
     const [searchTerm, setSearchTerm] = useState('');
@@ -308,64 +310,69 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, onSel
                             <p className="font-black text-[11px] uppercase tracking-[0.3em]">{t('rcaSelector.noResults')}</p>
                         </div>
                     ) : (
-                        paginatedRecords.map(rca => (
-                            <div
-                                key={rca.id}
-                                onClick={() => onSelect(rca.id)}
-                                className="bg-white p-8 rounded-[2.25rem] border border-slate-200/60 shadow-sm hover:border-blue-400 hover:shadow-2xl hover:shadow-blue-500/10 cursor-pointer transition-all group animate-in fade-in slide-in-from-bottom-2 duration-500"
-                            >
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center gap-4">
-                                        <span className={`text-[9px] font-black px-3 py-1.5 rounded-lg border uppercase tracking-widest ${getStatusStyles(rca.status)}`}>
-                                            {translateStatus(rca.status, rca.status, t)}
-                                        </span>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
-                                            <span className="font-mono text-[11px] font-black text-slate-400 group-hover:text-blue-500 transition-colors uppercase tracking-widest">#RCA-{rca.id.substring(0, 8)}</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center text-[10px] text-slate-400 font-black uppercase tracking-widest gap-2.5 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 shadow-inner">
-                                        <Calendar size={14} className="text-slate-300" strokeWidth={3} />
-                                        {formatDate(rca.failure_date || rca.analysis_date)}
-                                    </div>
-                                </div>
+                        paginatedRecords.map(rca => {
+                            const statusObj = taxonomy.analysisStatuses.find(s => s.id === rca.status);
+                            const statusName = statusObj ? statusObj.name : rca.status;
 
-                                <div className="text-lg font-black text-slate-800 line-clamp-2 group-hover:text-blue-700 transition-colors tracking-tight leading-tight">
-                                    {rca.what || <span className="italic text-slate-300 font-bold opacity-50">{t('common.noDescription')}</span>}
-                                </div>
-
-                                <div className="flex flex-wrap items-center justify-between mt-6 pt-6 border-t border-slate-50 gap-4">
-                                    <div className="flex flex-wrap items-center gap-6">
-                                        <div className="flex items-center gap-2">
-                                            <div className="p-1.5 bg-slate-100 rounded-lg text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors"><Database size={14} /></div>
-                                            <div 
-                                                className="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate max-w-[200px]"
-                                                title={rca.asset_name_display || ''}
-                                            >
-                                                {rca.asset_name_display || '-'}
+                            return (
+                                <div
+                                    key={rca.id}
+                                    onClick={() => onSelect(rca.id)}
+                                    className="bg-white p-8 rounded-[2.25rem] border border-slate-200/60 shadow-sm hover:border-blue-400 hover:shadow-2xl hover:shadow-blue-500/10 cursor-pointer transition-all group animate-in fade-in slide-in-from-bottom-2 duration-500"
+                                >
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="flex items-center gap-4">
+                                            <span className={`text-[9px] font-black px-3 py-1.5 rounded-lg border uppercase tracking-widest ${getStatusStyles(rca.status)}`}>
+                                                {translateStatus(rca.status, statusName, t)}
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+                                                <span className="font-mono text-[11px] font-black text-slate-400 group-hover:text-blue-500 transition-colors uppercase tracking-widest">#RCA-{rca.id.substring(0, 8)}</span>
                                             </div>
                                         </div>
-                                        {rca.os_number && (
+                                        <div className="flex items-center text-[10px] text-slate-400 font-black uppercase tracking-widest gap-2.5 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 shadow-inner">
+                                            <Calendar size={14} className="text-slate-300" strokeWidth={3} />
+                                            {formatDate(rca.failure_date || rca.analysis_date)}
+                                        </div>
+                                    </div>
+
+                                    <div className="text-lg font-black text-slate-800 line-clamp-2 group-hover:text-blue-700 transition-colors tracking-tight leading-tight">
+                                        {rca.what || <span className="italic text-slate-300 font-bold opacity-50">{t('common.noDescription')}</span>}
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center justify-between mt-6 pt-6 border-t border-slate-50 gap-4">
+                                        <div className="flex flex-wrap items-center gap-6">
                                             <div className="flex items-center gap-2">
-                                                <div className="p-1.5 bg-slate-100 rounded-lg text-slate-400 group-hover:bg-cyan-50 group-hover:text-cyan-600 transition-colors"><Layers size={14} /></div>
-                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                                    OS: <span className="text-slate-600">{rca.os_number}</span>
+                                                <div className="p-1.5 bg-slate-100 rounded-lg text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors"><Database size={14} /></div>
+                                                <div 
+                                                    className="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate max-w-[200px]"
+                                                    title={rca.asset_name_display || ''}
+                                                >
+                                                    {rca.asset_name_display || '-'}
                                                 </div>
                                             </div>
-                                        )}
-                                        <div className="flex items-center gap-2">
-                                            <div className="p-1.5 bg-slate-100 rounded-lg text-slate-400 group-hover:bg-amber-50 group-hover:text-amber-600 transition-colors"><Activity size={14} /></div>
-                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                                {rca.analysis_type ? (taxonomy.analysisTypes.find(at => at.id === rca.analysis_type)?.name || rca.analysis_type) : '-'}
+                                            {rca.os_number && (
+                                                <div className="flex items-center gap-2">
+                                                    <div className="p-1.5 bg-slate-100 rounded-lg text-slate-400 group-hover:bg-cyan-50 group-hover:text-cyan-600 transition-colors"><Layers size={14} /></div>
+                                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                        OS: <span className="text-slate-600">{rca.os_number}</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <div className="flex items-center gap-2">
+                                                <div className="p-1.5 bg-slate-100 rounded-lg text-slate-400 group-hover:bg-amber-50 group-hover:text-amber-600 transition-colors"><Activity size={14} /></div>
+                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                    {rca.analysis_type ? (taxonomy.analysisTypes.find(at => at.id === rca.analysis_type)?.name || rca.analysis_type) : '-'}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-blue-600 font-black text-[10px] uppercase tracking-[0.2em] bg-blue-50/50 px-4 py-2 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm group-hover:shadow-blue-600/20 group-hover:scale-105 active:scale-95">
-                                        Vincular <ChevronRight size={14} strokeWidth={4} />
+                                        <div className="flex items-center gap-2 text-blue-600 font-black text-[10px] uppercase tracking-[0.2em] bg-blue-50/50 px-4 py-2 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm group-hover:shadow-blue-600/20 group-hover:scale-105 active:scale-95">
+                                            Vincular <ChevronRight size={14} strokeWidth={4} />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     )}
                 </div>
 

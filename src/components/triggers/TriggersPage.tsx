@@ -212,6 +212,7 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                             <RcaSelector
                                 records={records}
                                 assets={assets} 
+                                taxonomy={taxonomy}
                                 onSelect={(rcaId) => {
                                     handleLinkRca(triggerToLink, rcaId);
                                     closeLinkModal();
