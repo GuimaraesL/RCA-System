@@ -33,7 +33,7 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
     const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     // Lógica de ordenação da tabela
-    const { sortedItems: precisionMaintenance, sortConfig, handleSort } = useSorting(data.precision_maintenance || [], { key: 'id', direction: 'asc' });
+    const { sortedItems: precisionMaintenance, sortConfig, handleSort } = useSorting<any>(data.precision_maintenance || [], { key: 'activity', direction: 'asc' });
 
     if (!data.precision_maintenance) return null;
 
@@ -70,7 +70,6 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
                 <table className="w-full text-sm text-left">
                     <thead>
                         <tr className="bg-slate-50 text-slate-500 border-b border-slate-100">
-                            <SortHeader label={t('table.id')} sortKey="id" currentSort={sortConfig} onSort={handleSort} className="text-center w-24 px-6 py-4 font-black text-[10px] uppercase tracking-widest" />
                             <SortHeader label={t('wizard.step6.activity')} sortKey="activity" currentSort={sortConfig} onSort={handleSort} className="px-6 py-4 font-black text-[10px] uppercase tracking-widest" />
                             <th className="px-4 py-4 w-24 text-center font-black text-[10px] uppercase tracking-widest">{t('wizard.step6.executed')}</th>
                             <th className="px-4 py-4 w-24 text-center font-black text-[10px] uppercase tracking-widest">{t('wizard.step6.notExecuted')}</th>
@@ -81,7 +80,6 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange }) => {
                     <tbody className="divide-y divide-slate-50">
                         {precisionMaintenance.map((item) => (
                             <tr key={item.id} className="hover:bg-blue-50/20 transition-colors">
-                                <td className="px-6 py-4 text-center text-xs font-mono text-slate-400 truncate max-w-[100px]" title={item.id}>{item.id}</td>
                                 <td className="px-6 py-4 font-bold text-slate-700 leading-relaxed">
                                     {t(item.activity || '')}
                                 </td>

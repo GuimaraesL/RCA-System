@@ -37,7 +37,7 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
     };
 
     // Lógica de ordenação das questões do questionário
-    const { sortedItems: questions, sortConfig, handleSort } = useSorting(data.human_reliability?.questions || [], { key: 'id', direction: 'asc' });
+    const { sortedItems: questions, sortConfig, handleSort } = useSorting<any>(data.human_reliability?.questions || [], { key: 'question', direction: 'asc' });
 
     if (!data.human_reliability) return null;
 
@@ -66,7 +66,6 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                     <table className="w-full text-sm text-left">
                         <thead>
                             <tr className="bg-slate-50 text-slate-500 border-b border-slate-100">
-                                <SortHeader label={t('table.id')} sortKey="id" currentSort={sortConfig} onSort={handleSort} className="w-20 px-6 py-4 font-black text-[10px] uppercase tracking-widest text-center" />
                                 <SortHeader label={t('wizard.stepHRA.question')} sortKey="question" currentSort={sortConfig} onSort={handleSort} className="px-6 py-4 font-black text-[10px] uppercase tracking-widest" />
                                 <th className="px-4 py-4 w-24 text-center font-black text-[10px] uppercase tracking-widest">{t('wizard.stepHRA.yes')}</th>
                                 <th className="px-4 py-4 w-24 text-center font-black text-[10px] uppercase tracking-widest">{t('wizard.stepHRA.no')}</th>
@@ -76,7 +75,6 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                         <tbody className="divide-y divide-slate-50">
                             {questions.map(q => (
                                 <tr key={q.id} className="hover:bg-blue-50/20 transition-all group">
-                                    <td className="px-6 py-5 font-mono text-xs text-slate-400 text-center" title={q.id}>{q.id}</td>
                                     <td className="px-6 py-5">
                                         <div className="text-[10px] text-blue-600 mb-1.5 font-black uppercase tracking-widest opacity-70">{t(q.category || '')}</div>
                                         <div className="text-slate-700 font-bold leading-relaxed">{t(q.question || '')}</div>
