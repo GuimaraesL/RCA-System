@@ -32,16 +32,51 @@ const AppContent: React.FC = () => {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState<RcaRecord | null>(null);
 
+    // Estado para Rollback de RCA criada via Gatilho
+    const [rollbackTrigger, setRollbackTrigger] = useState<TriggerRecord | null>(null);
+
     // Estado para Guarda de Navegação
     const [showNavConfirm, setShowNavConfirm] = useState(false);
     const [pendingView, setPendingView] = useState<typeof view | null>(null);
 
-    const { refreshAll, records, updateTrigger, addRecord, taxonomy, assets } = useRcaContext();
+    const { refreshAll, records, updateTrigger, addRecord, deleteRecord, taxonomy, assets } = useRcaContext();
 
     const handleCloseEditor = () => {
         setIsEditorOpen(false);
         setEditingRecord(null);
+        setRollbackTrigger(null);
         refreshAll(); // Sincroniza dados para refletir mudanças no Dashboard
+    };
+
+    /**
+     * Finaliza a edição salvando as alterações.
+     */
+    const handleSaveRca = () => {
+        handleCloseEditor();
+    };
+
+    /**
+     * Cancela a edição e realiza rollback se a RCA foi criada via Gatilho e não foi confirmada.
+     */
+    const handleCancelRca = async () => {
+        if (rollbackTrigger && editingRecord) {
+            try {
+                console.log('🔄 Cancelamento detectado. Iniciando rollback para RCA:', editingRecord.id);
+                // 1. Remove o vínculo do gatilho e restaura seu status original
+                await updateTrigger({ 
+                    ...rollbackTrigger, 
+                    rca_id: null 
+                });
+                
+                // 2. Exclui o rascunho da RCA persistido
+                await deleteRecord(editingRecord.id);
+                
+                console.log('✅ Rollback concluído com sucesso');
+            } catch (error) {
+                console.error('❌ Falha ao realizar rollback:', error);
+            }
+        }
+        handleCloseEditor();
     };
 
     /**
@@ -56,11 +91,20 @@ const AppContent: React.FC = () => {
         }
     };
 
-    const confirmNavigation = () => {
+    const confirmNavigation = async () => {
         if (pendingView) {
+            if (rollbackTrigger && editingRecord) {
+                try {
+                    await updateTrigger({ ...rollbackTrigger, rca_id: null });
+                    await deleteRecord(editingRecord.id);
+                } catch (e) {
+                    console.error('Erro no rollback durante navegação:', e);
+                }
+            }
             setView(pendingView);
             setIsEditorOpen(false);
             setEditingRecord(null);
+            setRollbackTrigger(null);
         }
         setShowNavConfirm(false);
         setPendingView(null);
@@ -155,6 +199,7 @@ const AppContent: React.FC = () => {
             await addRecord(newRca);
             
             setEditingRecord(newRca);
+            setRollbackTrigger(trigger); // Armazena para possível rollback em caso de cancelamento
             setIsEditorOpen(true);
 
             // Atualiza o status do gatilho para indicar que o processo de análise iniciou
@@ -186,8 +231,8 @@ const AppContent: React.FC = () => {
                             <div className="flex-1 p-6 overflow-hidden">
                                 <RcaEditor
                                     existingRecord={editingRecord}
-                                    onClose={handleCloseEditor}
-                                    onSave={handleCloseEditor}
+                                    onClose={handleCancelRca}
+                                    onSave={handleSaveRca}
                                 />
                             </div>
                         </div>
