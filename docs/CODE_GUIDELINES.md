@@ -16,7 +16,7 @@ O projeto segue uma separação rigorosa entre as camadas para garantir testabil
     - `selectors/`: Seletores complexos.
     - `ui/`: Componentes atômicos.
     - `steps/`: Partes do Wizard RCA.
-- **Hooks (`/hooks`):** Toda a lógica de negócio, validação e estado complexo reside aqui. Componentes chamam hooks; eles não processam dados pesados.
+- **Hooks (`/hooks`):** Toda a lógica de negócio, validação e estado complexo reside aqui. Componentes chamam hooks; eles não processam dados pesados. (ex: `useRcaForm.ts`, `useFilteredData.ts`)
 - **Context (`/context`):** Estado global e orquestração de dados (ex: Cache de API, Configurações).
 - **Services (`/services`):** Portas de saída para o mundo externo (API REST, LocalStorage, CSV).
 - **Utils (`/utils`):** Funções puras, cálculos matemáticos e formatadores de data.
@@ -37,7 +37,7 @@ O projeto utiliza testes estáticos para garantir que a estrutura de pastas e im
 
 ### 2.1. Arquivos e Pastas
 - **Componentes React:** `PascalCase.tsx` (ex: `RcaEditor.tsx`).
-- **Hooks:** `camelCase` com prefixo `use` (ex: `useRcaLogic.ts`).
+- **Hooks:** `camelCase` com prefixo `use` (ex: `useRcaForm.ts`).
 - **Arquivos de Lógica/Utils:** `camelCase.ts` (ex: `apiService.ts`).
 - **Pastas:** `kebab-case` ou `camelCase` (preferência por minúsculas).
 
