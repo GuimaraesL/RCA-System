@@ -102,10 +102,10 @@ export class RcaService {
             rca = this.migrateRcaData(rca);
 
             // 3. Cálculo de Status
-            // Prioriza ações fornecidas no lote (ex: restauração de backup completo),
-            // caso contrário, busca no banco de dados.
+            // Prioriza ações fornecidas no lote, mas se não houver, busca no banco para garantir
+            // que o motor de status tenha o contexto completo.
             let rcaActions = providedActions.filter(a => a.rca_id?.trim().toLowerCase() === rca.id?.trim().toLowerCase());
-            if (rcaActions.length === 0 && providedActions.length === 0) {
+            if (rcaActions.length === 0) {
                 rcaActions = this.actionRepo.findByRcaId(rca.id);
             }
             

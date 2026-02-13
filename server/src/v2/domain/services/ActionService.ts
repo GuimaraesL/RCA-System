@@ -56,6 +56,21 @@ export class ActionService {
 
     public bulkImport(actions: Action[]): void {
         this.actionRepo.bulkCreate(actions);
+
+        // Identifica IDs únicos de RCAs afetadas para disparar o recálculo de status
+        const affectedRcaIds = Array.from(new Set(
+            actions.map(a => a.rca_id).filter(id => id && id.trim().length > 0)
+        ));
+
+        console.log(`[ActionService] 🔄 Disparando recálculo para ${affectedRcaIds.length} RCAs após importação em massa.`);
+        
+        for (const rcaId of affectedRcaIds) {
+            try {
+                this.triggerRcaRecalculation(rcaId);
+            } catch (error) {
+                console.warn(`[ActionService] ⚠️ Falha ao recalcular status da RCA ${rcaId}:`, error);
+            }
+        }
     }
 
     public getById(id: string): Action | null {
