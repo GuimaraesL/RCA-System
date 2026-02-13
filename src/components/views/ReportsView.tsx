@@ -171,7 +171,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden animate-in fade-in duration-1000 delay-300">
                     <div className="px-8 py-5 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                         <h3 className="font-black text-slate-700 text-xs uppercase tracking-[0.2em] flex items-center gap-3">
-                            <AlertTriangle size={18} className="text-amber-500" /> {t('reports.filteredActionsTitle')}
+                            <AlertCircle size={18} className="text-amber-500" /> {t('reports.filteredActionsTitle')}
                         </h3>
                     </div>
                     <div className="overflow-x-auto">

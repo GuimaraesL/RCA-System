@@ -8,7 +8,7 @@ import { useState, useMemo } from 'react';
 export type SortDirection = 'asc' | 'desc';
 
 export interface SortConfig<T> {
-    key: keyof T | string;
+    key: string;
     direction: SortDirection;
 }
 
@@ -19,7 +19,7 @@ export function useSorting<T>(items: T[], initialConfig: SortConfig<T> = { key: 
      * Alterna a ordenação de uma coluna. 
      * Se a coluna já estiver ativa, inverte a direção; caso contrário, define-a como ascendente.
      */
-    const handleSort = (key: keyof T | string) => {
+    const handleSort = (key: string) => {
         setSortConfig(current => ({
             key,
             direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc'

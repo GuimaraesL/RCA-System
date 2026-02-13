@@ -69,15 +69,15 @@ describe('SqlTriggerRepository Integration Test', () => {
             id: 'TRG-UPDATE',
             area_id: 'A1',
             start_date: 'D1',
-            end_date: null as any,
+            end_date: undefined,
             status: 'OLD',
-            stop_type: null,
-            stop_reason: null,
-            comments: null,
-            analysis_type_id: null,
-            responsible: null,
-            rca_id: null,
-            file_path: null,
+            stop_type: undefined,
+            stop_reason: undefined,
+            comments: undefined,
+            analysis_type_id: undefined,
+            responsible: undefined,
+            rca_id: undefined,
+            file_path: undefined,
             duration_minutes: 0
         };
         repo.create(trigger);
@@ -91,9 +91,9 @@ describe('SqlTriggerRepository Integration Test', () => {
         const id = 'TRG-DEL';
         repo.create({ 
             id, area_id: 'A', start_date: 'D', status: 'S',
-            end_date: null as any, stop_type: null, stop_reason: null,
-            comments: null, analysis_type_id: null, responsible: null,
-            rca_id: null, file_path: null, duration_minutes: 0
+            end_date: undefined, stop_type: undefined, stop_reason: undefined,
+            comments: undefined, analysis_type_id: undefined, responsible: undefined,
+            rca_id: undefined, file_path: undefined, duration_minutes: 0
         });
         expect(repo.findById(id)).toBeDefined();
         repo.delete(id);
@@ -104,15 +104,15 @@ describe('SqlTriggerRepository Integration Test', () => {
         const batch: Trigger[] = [
             { 
                 id: 'B1', area_id: 'A', start_date: 'D', status: 'S',
-                end_date: null as any, stop_type: null, stop_reason: null,
-                comments: null, analysis_type_id: null, responsible: null,
-                rca_id: null, file_path: null, duration_minutes: 0
+                end_date: undefined, stop_type: undefined, stop_reason: undefined,
+                comments: undefined, analysis_type_id: undefined, responsible: undefined,
+                rca_id: undefined, file_path: undefined, duration_minutes: 0
             },
             { 
                 id: 'B2', area_id: 'A', start_date: 'D', status: 'S',
-                end_date: null as any, stop_type: null, stop_reason: null,
-                comments: null, analysis_type_id: null, responsible: null,
-                rca_id: null, file_path: null, duration_minutes: 0
+                end_date: undefined, stop_type: undefined, stop_reason: undefined,
+                comments: undefined, analysis_type_id: undefined, responsible: undefined,
+                rca_id: undefined, file_path: undefined, duration_minutes: 0
             }
         ];
         repo.bulkCreate(batch);

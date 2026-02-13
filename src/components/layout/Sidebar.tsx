@@ -16,7 +16,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
     const { t } = useLanguage();
-    
+
     // Estado para controle de colapso (desktop) e abertura (mobile)
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -43,8 +43,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
             }}
             className={`
                 w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm tracking-tight
-                ${view === id 
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' 
+                ${view === id
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
                     : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}
                 ${isCollapsed ? 'justify-center px-2' : ''}
             `}
@@ -57,12 +57,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
 
     return (
         <>
-            {/* Gatilho do Menu Mobile */}
-            <button 
+            {/* Gatilho do Menu Mobile (FAB) */}
+            <button
                 onClick={toggleMobile}
-                className="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-slate-900 text-white rounded-xl shadow-xl border border-slate-800"
+                className="lg:hidden fixed bottom-6 right-6 z-50 p-4 bg-blue-600 text-white rounded-full shadow-2xl shadow-blue-900/40 hover:bg-blue-700 hover:scale-105 transition-all border border-blue-500/50 flex items-center justify-center active:scale-95"
+                aria-label="Menu"
             >
-                <Menu size={24} />
+                <Menu size={24} strokeWidth={3} />
             </button>
 
             {/* Container da Sidebar */}
@@ -80,7 +81,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
                         </div>
                         {!isCollapsed && <span className="whitespace-nowrap uppercase">{t('common.appTitle')}</span>}
                     </div>
-                    
+
                     {/* Botão de Colapso Desktop (Oculto em Mobile) */}
                     <button onClick={toggleCollapse} className="hidden lg:flex p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-white transition-all active:scale-95 border border-transparent hover:border-slate-700">
                         {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
@@ -123,7 +124,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
 
             {/* Overlay para Mobile */}
             {isMobileOpen && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm"
                     onClick={() => setIsMobileOpen(false)}
                 />

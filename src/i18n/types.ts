@@ -79,6 +79,8 @@ export interface TranslationSchema {
         assets: string;
         settings: string;
         migration: string;
+        menu: string;
+        system: string;
     };
     dashboard: {
         title: string;
@@ -458,6 +460,10 @@ export interface TranslationSchema {
         linkRcaTitle: string;
         linkRcaMessage: string;
         selectRcaPlaceholder: string;
+        pendingChangesTitle: string;
+        pendingChangesMessage: string;
+        leaveWithoutSaving: string;
+        stayAndEdit: string;
     };
     reports: {
         title: string;
@@ -472,6 +478,8 @@ export interface TranslationSchema {
         overdue: string;
     };
     rcaSelector: {
+        title: string;
+        description: string;
         searchPlaceholder: string;
         resultsFound: string;
         manyResults: string;

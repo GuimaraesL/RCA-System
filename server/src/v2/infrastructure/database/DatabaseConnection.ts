@@ -80,6 +80,22 @@ export class DatabaseConnection {
         return this.db;
     }
 
+    /**
+     * Define o caminho do banco de dados manualmente.
+     * Útil para scripts de diagnóstico ou testes.
+     */
+    public setDbPath(path: string): void {
+        this.dbPath = path;
+    }
+
+    /**
+     * Injeta uma instância de banco de dados diretamente.
+     * Utilizado para ponte de compatibilidade ou mocks.
+     */
+    public setRawDatabase(db: Database): void {
+        this.db = db;
+    }
+
     private saveTimeout: NodeJS.Timeout | null = null;
     private readonly SAVE_DELAY_MS = 1000; // Delay de 1 segundo para debounce de escrita
 
