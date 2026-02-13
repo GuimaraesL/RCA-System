@@ -12,8 +12,8 @@ import { ActionModal } from './ActionModal';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { translateStatus } from '../../utils/statusUtils';
 import { ConfirmModal } from './ConfirmModal';
-import { animateModalEnter } from '../../services/animations'; 
 import { getWizardSteps } from '../../constants/WizardSteps';
+import { Button } from '../ui/Button';
 
 // Importação dos Passos do Wizard
 import { Step1General } from '../steps/Step1General';
@@ -33,12 +33,12 @@ interface RcaEditorProps {
 
 export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, onSave }) => {
     const { t } = useLanguage();
-    const containerRef = useRef<HTMLDivElement>(null);
 
     const {
         formData, setFormData,
         step, setStep,
         isAnalyzing,
+        isSaving,
         validationErrors,
         linkedActions,
         handleChange,
@@ -60,11 +60,6 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     const [editingAction, setEditingAction] = useState<ActionRecord | null>(null);
     const [deleteActionModalOpen, setDeleteActionModalOpen] = useState(false);
     const [actionToDelete, setActionToDelete] = useState<string | null>(null);
-
-    // Dispara animação de entrada
-    useEffect(() => {
-        if (containerRef.current) animateModalEnter(containerRef.current);
-    }, []);
 
     // Orquestradores de UI para Planos de Ação
     const handleAddAction = () => {
@@ -104,7 +99,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     const headerId = React.useId();
 
     return (
-        <div ref={containerRef} className="bg-white rounded-xl shadow-xl border border-slate-200 flex flex-col h-full w-full max-w-[1600px] mx-auto relative opacity-0 overflow-hidden"> 
+        <div className="bg-white rounded-xl shadow-xl border border-slate-200 flex flex-col h-full w-full max-w-[1600px] mx-auto relative overflow-hidden animate-scale-in"> 
             {/* Cabeçalho */}
             <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100 bg-white z-10">
                 <div className="flex items-center gap-4">
@@ -165,14 +160,17 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                                 onClick={() => setStep(s.id)}
                                 data-testid={`step-indicator-${s.id}`}
                             >
+                                {/* Linha Conectora */}
                                 {index < stepsList.length - 1 && (
-                                    <div className={`absolute top-4 left-1/2 w-full h-[2px] -z-10 transition-colors duration-500 ${isCompletedStep ? 'bg-emerald-500' : 'bg-slate-200'}`} />
+                                    <div className={`absolute top-4 left-1/2 w-full h-[2px] transition-colors duration-500 ${isCompletedStep ? 'bg-emerald-500' : 'bg-slate-200'}`} style={{ zIndex: 0 }} />
                                 )}
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300 z-10 relative
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300 relative
                                     ${isCompletedStep ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm' :
                                     isCurrent ? 'bg-blue-600 border-blue-600 text-white shadow-md ring-4 ring-blue-100 scale-110' :
                                     hasError ? 'bg-white border-rose-500 text-rose-500 shadow-sm' :
-                                    'bg-white border-slate-300 text-slate-400 group-hover:border-blue-400 group-hover:text-blue-500'}`}>
+                                    'bg-white border-slate-300 text-slate-400 group-hover:border-blue-400 group-hover:text-blue-500'}`}
+                                    style={{ zIndex: 1 }}
+                                >
                                     {isCompletedStep ? <Check size={16} strokeWidth={3} /> : s.id}
                                     {hasError && !isCurrent && !isCompletedStep && <span className="absolute -top-1 -right-1 w-3 h-3 bg-rose-500 rounded-full border-2 border-white"></span>}
                                 </div>
@@ -198,7 +196,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
 
             {/* Conteúdo */}
             <div className="flex-1 overflow-y-auto p-8 lg:p-12 bg-slate-50 custom-scrollbar">
-                <div className="max-w-7xl mx-auto min-h-full">
+                <div key={step} className="max-w-7xl mx-auto min-h-full animate-slide-up">
                     {step === 1 && <Step1General data={formData} onChange={handleChange} assets={assets} taxonomy={taxonomy} onAssetSelect={handleAssetSelect} onRefreshAssets={refreshAssets} errors={validationErrors} isFieldRequired={isFieldRequired} />}
                     {step === 2 && <Step2Problem data={formData} onChange={handleChange} taxonomy={taxonomy} errors={validationErrors} isFieldRequired={isFieldRequired} />}
                     {step === 3 && <Step3Technical data={formData} onChange={handleChange} taxonomy={taxonomy} errors={validationErrors} isFieldRequired={isFieldRequired} />}
@@ -212,37 +210,46 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
 
             {/* Rodapé */}
             <div className="px-8 py-5 border-t border-slate-200 bg-white rounded-b-xl flex justify-between items-center z-20 shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.05)]">
-                <button onClick={onClose} className="px-6 py-2.5 text-slate-500 font-semibold hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-colors border border-transparent" data-testid="btn-cancel-editor">{t('common.cancel')}</button>
+                <Button 
+                    variant="ghost" 
+                    onClick={onClose} 
+                    data-testid="btn-cancel-editor"
+                >
+                    {t('common.cancel')}
+                </Button>
                 <div className="flex gap-4">
                     {step > 1 && (
-                        <button 
+                        <Button
+                            variant="secondary"
                             onClick={() => {
                                 if (step === 8) setStep(4);
                                 else setStep(s => Math.max(1, s - 1));
                             }} 
-                            className="px-6 py-2.5 bg-white text-slate-700 font-bold border border-slate-300 rounded-lg hover:bg-slate-50 transition-all shadow-sm focus:ring-2 focus:ring-slate-200 focus:outline-none"
                             data-testid="btn-prev-step"
                         >
                             {t('pagination.previous')}
-                        </button>
+                        </Button>
                     )}
-                    <button 
+                    <Button 
+                        variant="primary"
                         onClick={handleSave} 
-                        className="flex items-center gap-2 px-6 py-2.5 bg-white text-blue-600 font-bold border border-blue-200 rounded-lg hover:bg-blue-50 transition-all shadow-sm focus:ring-2 focus:ring-blue-100 focus:outline-none"
+                        isLoading={isSaving}
                         data-testid="btn-save-rca"
+                        className="gap-2"
                     >
-                        <Save size={18} />
+                        {!isSaving && <Save size={18} />}
                         {t('common.save')}
-                    </button>
+                    </Button>
                     {step < 7 && (
-                        <button 
+                        <Button 
+                            variant="primary"
                             onClick={() => setStep(s => Math.min(7, s + 1))} 
-                            className="group flex items-center gap-2 px-8 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all shadow-sm focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                             data-testid="btn-next-step"
+                            className="group gap-2 px-8"
                         >
                             {t('pagination.next')}
                             <ArrowLeft size={18} className="rotate-180 group-hover:translate-x-1 transition-transform" />
-                        </button>
+                        </Button>
                     )}
                 </div>
             </div>

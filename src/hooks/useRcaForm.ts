@@ -15,6 +15,7 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
 
     const [step, setStep] = useState(1);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
     const [linkedActions, setLinkedActions] = useState<ActionRecord[]>([]);
 
@@ -164,12 +165,15 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
         const errors = validateForm();
         if (Object.keys(errors).length > 0) return;
 
+        setIsSaving(true);
         try {
             if (initialRecord) await updateRecord(formData);
             else await addRecord(formData);
             onSaveSuccess();
         } catch (error) {
             console.error('❌ Erro ao salvar RCA:', error);
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -198,6 +202,7 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
         formData, setFormData,
         step, setStep,
         isAnalyzing,
+        isSaving,
         validationErrors,
         linkedActions,
         handleChange,

@@ -1,11 +1,10 @@
 
-import React, { useRef, useEffect, useState, useId } from 'react';
+import React, { useEffect, useState, useId } from 'react';
 import { TriggerRecord, AssetNode, TaxonomyConfig } from '../../types';
 import { AssetSelector } from '../selectors/AssetSelector';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { Textarea } from '../ui/Textarea';
-import { animateModalEnter } from '../../services/animations';
 import { calculateDuration, getAssetName, findAssetPath } from '../../utils/triggerHelpers';
 import { translateTriggerStatus } from '../../utils/statusUtils';
 import { generateId } from '../../services/utils';
@@ -35,14 +34,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
 }) => {
     const { t } = useLanguage();
     const idPrefix = useId();
-    const modalRef = useRef<HTMLDivElement>(null);
     const [localErrors, setLocalErrors] = useState<Record<string, boolean>>({});
-
-    useEffect(() => {
-        if (modalRef.current) {
-            animateModalEnter(modalRef.current);
-        }
-    }, []);
 
     useEffect(() => {
         // Convert array errors to record
@@ -107,8 +99,11 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
     const hasAssetError = localErrors.area_id || localErrors.equipment_id || localErrors.subgroup_id;
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div ref={modalRef} className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden opacity-0 flex flex-col max-h-[90vh] border border-slate-200">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+            <div 
+                data-testid="modal-trigger"
+                className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-200 animate-scale-in"
+            >
                 <div className="px-8 py-6 border-b border-slate-100 bg-white flex justify-between items-center flex-shrink-0">
                     <h3 className="font-black text-xl text-slate-900 font-display tracking-tight uppercase italic">{t('triggerModal.title')}</h3>
                     <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-50 rounded-full text-slate-400 transition-colors">
@@ -241,12 +236,14 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                 <div className="px-8 py-6 border-t border-slate-100 bg-white flex justify-end gap-4 flex-shrink-0">
                     <button 
                         onClick={() => setIsModalOpen(false)} 
+                        data-testid="btn-cancel-trigger"
                         className="px-8 py-3 text-slate-500 font-black uppercase tracking-widest text-[11px] hover:bg-slate-50 rounded-2xl transition-all border border-transparent hover:border-slate-200"
                     >
                         {t('triggerModal.cancel')}
                     </button>
                     <button 
                         onClick={onSaveClick} 
+                        data-testid="btn-save-trigger"
                         className="px-10 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-95"
                     >
                         {t('triggerModal.save')}

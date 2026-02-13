@@ -3,10 +3,9 @@
  * Fluxo: Gerencia o formulário de ações corretivas, permitindo a vinculação com análises existentes, definição de prazos, responsáveis e status de aprovação (Box).
  */
 
-import React, { useState, useEffect, useRef, useId } from 'react';
+import React, { useState, useEffect, useId } from 'react';
 import { ActionRecord } from '../../types';
 import { useLanguage } from '../../context/LanguageDefinition';
-import { animateModalEnter } from '../../services/animations';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { Textarea } from '../ui/Textarea';
@@ -24,6 +23,7 @@ interface ActionModalProps {
 export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, rcaList, fixedRca, onClose, onSave }) => {
     const { t } = useLanguage();
     const idPrefix = useId();
+    const [errors, setErrors] = useState<Record<string, boolean>>({});
     const [form, setForm] = useState<ActionRecord>({
         id: '',
         rca_id: '',
@@ -34,10 +34,9 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
         moc_number: ''
     });
 
-    const containerRef = useRef<HTMLDivElement>(null);
-
     useEffect(() => {
         if (isOpen) {
+            setErrors({});
             if (initialData) {
                 setForm(initialData);
             } else {
@@ -51,29 +50,35 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                     moc_number: ''
                 });
             }
-            // Gatilho da animação de entrada
-            if (containerRef.current) {
-                animateModalEnter(containerRef.current);
-            }
         }
     }, [isOpen, initialData, fixedRca]);
 
     if (!isOpen) return null;
 
+    const validate = () => {
+        const newErrors: Record<string, boolean> = {};
+        if (!form.rca_id) newErrors.rca_id = true;
+        if (!form.action.trim()) newErrors.action = true;
+        if (!form.responsible.trim()) newErrors.responsible = true;
+        if (!form.date) newErrors.date = true;
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Validações básicas de formulário
-        if (!form.rca_id) return alert(t('actionModal.linkedAnalysis') + ' é obrigatório');
-        if (!form.action.trim()) return alert(t('actionModal.actionDescription') + ' é obrigatório');
-        if (!form.responsible.trim()) return alert(t('actionModal.responsible') + ' é obrigatório');
-        if (!form.date) return alert(t('actionModal.dueDate') + ' é obrigatório');
-
-        onSave(form);
+        if (validate()) {
+            onSave(form);
+        }
     };
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div ref={containerRef} className="bg-white rounded-[2rem] shadow-2xl w-full max-w-xl overflow-hidden opacity-0 border border-slate-200">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+            <div 
+                data-testid="modal-action"
+                className="bg-white rounded-[2rem] shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200 animate-scale-in"
+            >
                 <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
@@ -102,9 +107,13 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                                 id={`${idPrefix}-rca-id`}
                                 label={t('actionModal.linkedAnalysis')}
                                 required
+                                error={errors.rca_id}
                                 options={[{ value: '', label: t('actionModal.selectRca') }, ...(rcaList?.map(r => ({ value: r.id, label: r.title })) || [])]}
                                 value={form.rca_id}
-                                onChange={e => setForm({ ...form, rca_id: e.target.value })}
+                                onChange={e => {
+                                    setForm({ ...form, rca_id: e.target.value });
+                                    if (errors.rca_id) setErrors(prev => ({ ...prev, rca_id: false }));
+                                }}
                             />
                         )}
                     </div>
@@ -113,10 +122,14 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                         id={`${idPrefix}-description`}
                         label={t('actionModal.actionDescription')}
                         required
+                        error={errors.action}
                         rows={4}
                         placeholder="..."
                         value={form.action}
-                        onChange={e => setForm({ ...form, action: e.target.value })}
+                        onChange={e => {
+                            setForm({ ...form, action: e.target.value });
+                            if (errors.action) setErrors(prev => ({ ...prev, action: false }));
+                        }}
                     />
 
                     <div className="grid grid-cols-2 gap-6">
@@ -124,17 +137,25 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                             id={`${idPrefix}-responsible`}
                             label={t('actionModal.responsible')}
                             required
+                            error={errors.responsible}
                             type="text"
                             value={form.responsible}
-                            onChange={e => setForm({ ...form, responsible: e.target.value })}
+                            onChange={e => {
+                                setForm({ ...form, responsible: e.target.value });
+                                if (errors.responsible) setErrors(prev => ({ ...prev, responsible: false }));
+                            }}
                         />
                         <Input
                             id={`${idPrefix}-date`}
                             label={t('actionModal.dueDate')}
                             required
+                            error={errors.date}
                             type="date"
                             value={form.date}
-                            onChange={e => setForm({ ...form, date: e.target.value })}
+                            onChange={e => {
+                                setForm({ ...form, date: e.target.value });
+                                if (errors.date) setErrors(prev => ({ ...prev, date: false }));
+                            }}
                         />
                     </div>
 
@@ -164,12 +185,14 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                         <button 
                             type="button" 
                             onClick={onClose} 
+                            data-testid="btn-cancel-action"
                             className="px-6 py-2.5 text-slate-500 font-bold hover:bg-slate-50 rounded-xl text-sm transition-all border border-transparent hover:border-slate-200"
                         >
                             {t('actionModal.cancel')}
                         </button>
                         <button 
                             type="submit" 
+                            data-testid="btn-save-action"
                             className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-black shadow-lg shadow-blue-600/20 transition-all active:scale-95"
                         >
                             {t('actionModal.save')}

@@ -12,7 +12,7 @@ interface SkeletonProps {
 export const Skeleton: React.FC<SkeletonProps> = ({ className = '' }) => {
     return (
         <div 
-            className={`animate-pulse bg-slate-200 rounded-md ${className}`} 
+            className={`animate-pulse bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100 bg-[length:400%_100%] rounded-md ${className}`} 
             aria-hidden="true" 
         />
     );

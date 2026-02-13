@@ -3,9 +3,8 @@
  * Fluxo: Substitui o uso de window.confirm() (que é bloqueado em ambientes corporativos restritos), provendo uma interface acessível, animada e com suporte a diferentes variantes de severidade (Perigo, Alerta, Info).
  */
 
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { AlertTriangle, X } from 'lucide-react';
-import { animateModalEnter } from '../../services/animations';
 import { useLanguage } from '../../context/LanguageDefinition';
 
 interface ConfirmModalProps {
@@ -30,17 +29,10 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     variant = 'danger'
 }) => {
     const { t } = useLanguage();
-    const containerRef = useRef<HTMLDivElement>(null);
 
     const finalTitle = title || t('common.confirm');
     const finalConfirmText = confirmText || t('common.confirm');
     const finalCancelText = cancelText || t('common.cancel');
-
-    useEffect(() => {
-        if (isOpen && containerRef.current) {
-            animateModalEnter(containerRef.current);
-        }
-    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -65,10 +57,10 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     const colors = variantColors[variant];
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
             <div
-                ref={containerRef}
-                className={`bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 ${(window as any).isPlaywright ? 'opacity-100' : 'opacity-0'}`}
+                data-testid="modal-confirm"
+                className={`bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 animate-scale-in`}
             >
                 {/* Cabeçalho */}
                 <div className={`px-8 py-6 ${colors.bg} flex items-center gap-4 border-b border-slate-100`}>
@@ -93,12 +85,14 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                 <div className="px-8 py-6 bg-slate-50 flex justify-end gap-4 border-t border-slate-100">
                     <button
                         onClick={onCancel}
+                        data-testid="btn-confirm-no"
                         className="px-6 py-2.5 text-slate-500 font-bold rounded-xl hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-slate-200"
                     >
                         {finalCancelText}
                     </button>
                     <button
                         onClick={onConfirm}
+                        data-testid="btn-confirm-yes"
                         className={`px-8 py-2.5 text-white font-black rounded-xl shadow-lg transition-all active:scale-95 ${colors.button}`}
                     >
                         {finalConfirmText}
