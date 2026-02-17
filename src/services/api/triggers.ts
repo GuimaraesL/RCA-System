@@ -1,17 +1,22 @@
 
+/**
+ * Proposta: Serviço de API para gestão de Gatilhos (Triggers).
+ * Fluxo: Implementa a busca, persistência individual e em massa, e exclusão de eventos de parada técnica no backend.
+ */
+
 import { TriggerRecord } from "../../types";
 import { API_BASE, checkResponse } from "./base";
 
 // --- GATILHOS (TRIGGERS) ---
 
 export const fetchTriggers = async (): Promise<TriggerRecord[]> => {
-    console.log('🔄 API: Buscando lista de gatilhos...');
+    console.log('API: Buscando lista de gatilhos...');
     const response = await fetch(`${API_BASE}/triggers`);
     return checkResponse(response, 'GET /triggers');
 };
 
 export const saveTriggerToApi = async (trigger: TriggerRecord, isUpdate?: boolean): Promise<void> => {
-    console.log('🔄 API: Persistindo gatilho:', trigger.id);
+    console.log('API: Persistindo gatilho:', trigger.id);
 
     if (isUpdate === true) {
         const response = await fetch(`${API_BASE}/triggers/${trigger.id}`, {
@@ -38,7 +43,7 @@ export const saveTriggerToApi = async (trigger: TriggerRecord, isUpdate?: boolea
         try {
             const checkRes = await fetch(`${API_BASE}/triggers/${trigger.id}`);
             if (checkRes.ok) {
-                console.log('🔄 API: Registro existente encontrado. Atualizando (PUT)...');
+                console.log('API: Registro existente encontrado. Atualizando (PUT)...');
                 const updateResponse = await fetch(`${API_BASE}/triggers/${trigger.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -48,7 +53,7 @@ export const saveTriggerToApi = async (trigger: TriggerRecord, isUpdate?: boolea
                 return;
             }
         } catch (e) {
-            console.warn('⚠️ API: Falha ao verificar existência do gatilho, tentando POST...');
+            console.warn('API: Falha ao verificar existência do gatilho, tentando POST...');
         }
     }
 
@@ -62,13 +67,13 @@ export const saveTriggerToApi = async (trigger: TriggerRecord, isUpdate?: boolea
 };
 
 export const deleteTriggerFromApi = async (id: string): Promise<void> => {
-    console.log('🔄 API: Excluindo gatilho:', id);
+    console.log('API: Excluindo gatilho:', id);
     const response = await fetch(`${API_BASE}/triggers/${id}`, { method: 'DELETE' });
     await checkResponse(response, `DELETE /triggers/${id}`);
 };
 
 export const importTriggersToApi = async (triggers: TriggerRecord[]): Promise<void> => {
-    console.log('🔄 API: Importando lote de gatilhos...', triggers.length);
+    console.log('API: Importando lote de gatilhos...', triggers.length);
     const response = await fetch(`${API_BASE}/triggers/bulk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -76,3 +81,4 @@ export const importTriggersToApi = async (triggers: TriggerRecord[]): Promise<vo
     });
     await checkResponse(response, 'POST /triggers/bulk');
 };
+

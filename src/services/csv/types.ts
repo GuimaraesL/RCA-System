@@ -1,4 +1,9 @@
 
+/**
+ * Proposta: Definições de tipos e contratos para o serviço de CSV.
+ * Fluxo: Centraliza as interfaces de contexto, resultados de importação e mapeamentos de taxonomia utilizados pelos módulos de importação e exportação.
+ */
+
 import { AssetNode, ActionRecord, TaxonomyConfig, RcaRecord, TriggerRecord } from "../../types";
 
 export interface CsvContextData {

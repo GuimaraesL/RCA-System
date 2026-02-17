@@ -1,3 +1,8 @@
+/**
+ * Proposta: Definição da estrutura de passos do Wizard de RCA.
+ * Fluxo: Organiza a navegação sequencial do editor, mapeando títulos, subtítulos e campos obrigatórios para cada etapa da análise.
+ */
+
 export interface WizardStep {
     id: number;
     title: string;

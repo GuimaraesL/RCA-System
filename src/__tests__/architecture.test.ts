@@ -76,7 +76,7 @@ describe('Arquitetura e Integridade', () => {
         }
 
         if (errors.length > 0) {
-            console.error('\n❌ Imports Quebrados Encontrados:\n' + errors.join('\n'));
+            console.error('\nImports Quebrados Encontrados:\n' + errors.join('\n'));
         }
 
         expect(errors).toHaveLength(0);

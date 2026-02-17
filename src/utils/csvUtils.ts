@@ -1,3 +1,7 @@
+/**
+ * Proposta: Utilitários para serialização e parsing de arquivos CSV.
+ * Fluxo: Provê funções para detecção automática de separadores, conversão de arrays de objetos para CSV (com proteção contra injeção) e parser robusto para leitura de dados importados.
+ */
 
 /**
  * Detecta o separador mais provável (vírgula ou ponto e vírgula).

@@ -1,3 +1,8 @@
+/**
+ * Proposta: Seletor de idioma (PT/EN) para internacionalização.
+ * Fluxo: Renderiza botões para alternância de localidade, persistindo a escolha no contexto global e no LocalStorage.
+ */
+
 import React from 'react';
 import { useLanguage } from '../../context/LanguageDefinition';
 

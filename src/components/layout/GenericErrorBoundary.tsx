@@ -1,3 +1,8 @@
+/**
+ * Proposta: Limite de erro (Error Boundary) genérico para captura de falhas de renderização.
+ * Fluxo: Intercepta erros no ciclo de vida dos componentes filhos, exibe uma interface de erro amigável com stack trace e evita o travamento total da aplicação.
+ */
+
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { LanguageContext } from '../../context/LanguageDefinition';

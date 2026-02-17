@@ -59,9 +59,9 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
         if (!recordToDelete) return;
         try {
             await deleteRecord(recordToDelete);
-            console.log('✅ Contexto: RCA excluída com sucesso');
+            console.log('Contexto: RCA excluída com sucesso');
         } catch (error) {
-            console.error('❌ Erro ao excluir RCA:', error);
+            console.error('Erro ao excluir RCA:', error);
         }
         setDeleteModalOpen(false);
         setRecordToDelete(null);

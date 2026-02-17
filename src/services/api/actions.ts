@@ -1,3 +1,7 @@
+/**
+ * Proposta: Serviço de API para gestão de Planos de Ação (CAPA).
+ * Fluxo: Provê métodos para busca, salvamento individual e importação em massa de ações corretivas vinculadas às análises RCA.
+ */
 
 import { ActionRecord } from "../../types";
 import { API_BASE, checkResponse } from "./base";
@@ -5,7 +9,7 @@ import { API_BASE, checkResponse } from "./base";
 // --- PLANOS DE AÇÃO (CAPA) ---
 
 export const fetchActions = async (): Promise<ActionRecord[]> => {
-    console.log('🔄 API: Buscando lista de planos de ação...');
+    console.log('API: Buscando lista de planos de ação...');
     const response = await fetch(`${API_BASE}/actions`);
     return checkResponse(response, 'GET /actions');
 };
@@ -16,7 +20,7 @@ export const fetchActionsByRca = async (rcaId: string): Promise<ActionRecord[]> 
 };
 
 export const saveActionToApi = async (action: ActionRecord, isUpdate?: boolean): Promise<void> => {
-    console.log('🔄 API: Persistindo plano de ação:', action.id);
+    console.log('API: Persistindo plano de ação:', action.id);
 
     if (isUpdate === true) {
         const response = await fetch(`${API_BASE}/actions/${action.id}`, {
@@ -58,13 +62,13 @@ export const saveActionToApi = async (action: ActionRecord, isUpdate?: boolean):
 };
 
 export const deleteActionFromApi = async (id: string): Promise<void> => {
-    console.log('🔄 API: Excluindo plano de ação:', id);
+    console.log('API: Excluindo plano de ação:', id);
     const response = await fetch(`${API_BASE}/actions/${id}`, { method: 'DELETE' });
     await checkResponse(response, `DELETE /actions/${id}`);
 };
 
 export const importActionsToApi = async (actions: ActionRecord[]): Promise<void> => {
-    console.log('🔄 API: Importando lote de planos de ação...', actions.length);
+    console.log('API: Importando lote de planos de ação...', actions.length);
     const response = await fetch(`${API_BASE}/actions/bulk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

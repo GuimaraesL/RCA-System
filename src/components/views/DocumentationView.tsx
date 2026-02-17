@@ -1,4 +1,9 @@
 
+/**
+ * Proposta: Central de Documentação e Treinamento do Sistema.
+ * Fluxo: Renderiza guias interativos sobre a arquitetura do projeto, fluxos de trabalho e integrações disponíveis, consumindo conteúdos do dicionário de tradução.
+ */
+
 import React from 'react';
 import { Book, Database, Server, Share2, ShieldCheck, Cpu, Layers, FileJson, Workflow } from 'lucide-react';
 

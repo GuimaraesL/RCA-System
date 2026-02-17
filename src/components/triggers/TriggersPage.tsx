@@ -75,9 +75,9 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
         if (!triggerToDelete) return;
         try {
             await deleteTrigger(triggerToDelete);
-            console.log('✅ Contexto: Gatilho excluído com sucesso');
+            console.log('Contexto: Gatilho excluído com sucesso');
         } catch (error) {
-            console.error('❌ Erro ao excluir gatilho:', error);
+            console.error('Erro ao excluir gatilho:', error);
         }
         setDeleteModalOpen(false);
         setTriggerToDelete(null);

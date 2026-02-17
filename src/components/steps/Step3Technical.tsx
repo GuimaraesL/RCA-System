@@ -38,7 +38,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
         if (data.failure_mode_id && data.specialty_id) {
             const isValid = filteredFailureModes.some(fm => fm.id === data.failure_mode_id);
             if (!isValid) {
-                console.log('🔄 Sincronização: Resetando Modo de Falha devido a incompatibilidade com a Especialidade');
+                console.log('Sincronização: Resetando Modo de Falha devido a incompatibilidade com a Especialidade');
                 onChange('failure_mode_id', '');
             }
         }

@@ -17,13 +17,13 @@ export const useSettingsLogic = () => {
    */
   const handleUpdate = async (field: keyof TaxonomyConfig, newItems: TaxonomyItem[]) => {
     setIsSaving(true);
-    console.log(`⚙️ Configurações: Atualizando campo ${field}...`);
+    console.log(`Configurações: Atualizando campo ${field}...`);
     const newTaxonomy = { ...taxonomy, [field]: newItems };
     try {
       await updateTaxonomy(newTaxonomy);
-      console.log(`✅ Configurações: Campo ${field} atualizado com sucesso.`);
+      console.log(`Configurações: Campo ${field} atualizado com sucesso.`);
     } catch (error) {
-      console.error(`❌ Configurações: Erro ao atualizar campo ${field}:`, error);
+      console.error(`Configurações: Erro ao atualizar campo ${field}:`, error);
     } finally {
       // Pequeno delay para garantir que o usuário veja o estado de salvamento se for muito rápido
       setTimeout(() => setIsSaving(false), 500);
@@ -78,9 +78,9 @@ export const useSettingsLogic = () => {
     const newTaxonomy = { ...taxonomy, mandatoryFields: newConfig };
     try {
       await updateTaxonomy(newTaxonomy);
-      console.log(`✅ Configurações: Regras de campos obrigatórios atualizadas.`);
+      console.log(`Configurações: Regras de campos obrigatórios atualizadas.`);
     } catch (error) {
-      console.error(`❌ Configurações: Erro ao atualizar campos obrigatórios:`, error);
+      console.error(`Configurações: Erro ao atualizar campos obrigatórios:`, error);
     } finally {
       setTimeout(() => setIsSaving(false), 500);
     }

@@ -12,7 +12,7 @@ export const API_BASE = 'http://localhost:3001/api';
 export const checkResponse = async (response: Response, operation: string): Promise<any> => {
     if (!response.ok) {
         const errorBody = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
-        console.error(`❌ Erro na API [${operation}]:`, response.status, errorBody);
+        console.error(`API Error [${operation}]:`, response.status, errorBody);
         const details = errorBody.details
             ? ` (${JSON.stringify(errorBody.details)})`
             : '';

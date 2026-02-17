@@ -73,14 +73,14 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         });
         clearTimeout(timeoutId);
         if (response.ok) {
-          console.log('✅ API disponível - Operando em modo conectado');
+          console.log('Context: API disponível - Operando em modo conectado');
           setUseApi(true);
         } else {
           setUseApi(false);
         }
       } catch (err: any) {
         clearTimeout(timeoutId);
-        console.log('⚠️ API indisponível - Utilizando LocalStorage (Modo Offline)', err.name === 'AbortError' ? '(Timeout)' : '');
+        console.log('Context: API indisponível - Utilizando LocalStorage (Modo Offline)', err.name === 'AbortError' ? '(Timeout)' : '');
         setUseApi(false);
       }
     };
@@ -91,7 +91,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
    * Recarrega todos os dados do sistema a partir da fonte ativa.
    */
   const refreshAll = useCallback(async () => {
-    console.log('🔄 Sincronizando dados... (Modo API:', useApi, ')');
+    console.log('Sincronizando dados... (Modo API:', useApi, ')');
     setIsLoading(true);
     try {
       if (useApi === null) return;
@@ -109,17 +109,17 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setActions(acts);
         setTriggers(trigs);
         setTaxonomy(tax);
-        console.log('✅ Sincronização completa via API');
+        console.log('Sincronização completa via API');
       } else {
         setRecords(storage.LEGACY_getRecords());
         setAssets(storage.LEGACY_getAssets());
         setActions(storage.LEGACY_getActions());
         setTriggers(storage.LEGACY_getTriggers());
         setTaxonomy(storage.LEGACY_getTaxonomy());
-        console.log('✅ Sincronização completa via LocalStorage');
+        console.log('Sincronização completa via LocalStorage');
       }
     } catch (error) {
-      console.error('❌ Erro ao sincronizar dados:', error);
+      console.error('Erro ao sincronizar dados:', error);
       // Fallback de segurança para LocalStorage em caso de falha na carga da API
       setRecords(storage.LEGACY_getRecords());
       setAssets(storage.LEGACY_getAssets());
@@ -144,7 +144,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const isRelevantKey = event.key && (event.key.startsWith('rca_app_v1_') || event.key.startsWith('rca_'));
       
       if (isRelevantKey) {
-        console.log('🔄 Storage alterado externamente (outra aba). Sincronizando...', event.key);
+        console.log('Storage alterado externamente (outra aba). Sincronizando...', event.key);
         refreshAll();
       }
     };
@@ -156,7 +156,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // --- Wrappers de Persistência para Análises ---
 
   const addRecord = async (record: RcaRecord): Promise<void> => {
-    console.log('📝 Contexto: Adicionando RCA...', record.id);
+    console.log('Contexto: Adicionando RCA...', record.id);
     try {
       if (useApi) {
         await api.saveRecordToApi(record, false);
@@ -165,13 +165,13 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       await refreshAll();
     } catch (error) {
-      console.error('❌ Erro ao adicionar RCA:', error);
+      console.error('Erro ao adicionar RCA:', error);
       throw error;
     }
   };
 
   const updateRecord = async (record: RcaRecord): Promise<void> => {
-    console.log('📝 Contexto: Atualizando RCA...', record.id);
+    console.log('Contexto: Atualizando RCA...', record.id);
     try {
       if (useApi) {
         await api.saveRecordToApi(record, true);
@@ -180,13 +180,13 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       await refreshAll();
     } catch (error) {
-      console.error('❌ Erro ao atualizar RCA:', error);
+      console.error('Erro ao atualizar RCA:', error);
       throw error;
     }
   };
 
   const deleteRecord = async (id: string): Promise<void> => {
-    console.log('🗑️ Contexto: Excluindo RCA...', id);
+    console.log('Contexto: Excluindo RCA...', id);
     try {
       if (useApi) {
         await api.deleteRecordFromApi(id);
@@ -196,7 +196,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       await refreshAll();
     } catch (error) {
-      console.error('❌ Erro ao excluir RCA:', error);
+      console.error('Erro ao excluir RCA:', error);
       throw error;
     }
   };
@@ -204,7 +204,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // --- Wrappers para Ativos ---
 
   const updateAssets = async (newAssets: AssetNode[]): Promise<void> => {
-    console.log('📝 Contexto: Atualizando árvore de ativos...');
+    console.log('Contexto: Atualizando árvore de ativos...');
     try {
       if (useApi) {
         await api.importAssetsToApi(newAssets);
@@ -213,7 +213,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       setAssets(newAssets);
     } catch (error) {
-      console.error('❌ Erro ao atualizar ativos:', error);
+      console.error('Erro ao atualizar ativos:', error);
       throw error;
     }
   };
@@ -221,7 +221,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // --- Wrappers para Planos de Ação ---
 
   const addAction = async (action: ActionRecord): Promise<void> => {
-    console.log('📝 Contexto: Adicionando ação...', action.id);
+    console.log('Contexto: Adicionando ação...', action.id);
     try {
       if (useApi) {
         await api.saveActionToApi(action, false);
@@ -230,7 +230,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       await refreshAll();
     } catch (error) {
-      console.error('❌ Erro ao adicionar ação:', error);
+      console.error('Erro ao adicionar ação:', error);
       throw error;
     }
   };
@@ -244,13 +244,13 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       await refreshAll();
     } catch (error) {
-      console.error('❌ Erro ao atualizar ação:', error);
+      console.error('Erro ao atualizar ação:', error);
       throw error;
     }
   };
 
   const deleteActionInternal = async (id: string): Promise<void> => {
-    console.log('🗑️ Contexto: Excluindo ação...', id);
+    console.log('Contexto: Excluindo ação...', id);
     try {
       if (useApi) {
         await api.deleteActionFromApi(id);
@@ -259,7 +259,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       await refreshAll();
     } catch (error) {
-      console.error('❌ Erro ao excluir ação:', error);
+      console.error('Erro ao excluir ação:', error);
       throw error;
     }
   };
@@ -267,7 +267,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // --- Wrappers para Gatilhos ---
 
   const addTrigger = async (trigger: TriggerRecord): Promise<void> => {
-    console.log('📝 Contexto: Adicionando gatilho...', trigger.id);
+    console.log('Contexto: Adicionando gatilho...', trigger.id);
     try {
       if (useApi) {
         await api.saveTriggerToApi(trigger, false);
@@ -276,13 +276,13 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       await refreshAll();
     } catch (error) {
-      console.error('❌ Erro ao adicionar gatilho:', error);
+      console.error('Erro ao adicionar gatilho:', error);
       throw error;
     }
   };
 
   const updateTrigger = async (trigger: TriggerRecord): Promise<void> => {
-    console.log('📝 Contexto: Atualizando gatilho...', trigger.id);
+    console.log('Contexto: Atualizando gatilho...', trigger.id);
     try {
       if (useApi) {
         await api.saveTriggerToApi(trigger, true);
@@ -291,13 +291,13 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       await refreshAll();
     } catch (error) {
-      console.error('❌ Erro ao atualizar gatilho:', error);
+      console.error('Erro ao atualizar gatilho:', error);
       throw error;
     }
   };
 
   const deleteTriggerInternal = async (id: string): Promise<void> => {
-    console.log('🗑️ Contexto: Excluindo gatilho...', id);
+    console.log('Contexto: Excluindo gatilho...', id);
     try {
       if (useApi) {
         await api.deleteTriggerFromApi(id);
@@ -306,7 +306,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       await refreshAll();
     } catch (error) {
-      console.error('❌ Erro ao excluir gatilho:', error);
+      console.error('Erro ao excluir gatilho:', error);
       throw error;
     }
   };
@@ -314,7 +314,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // --- Wrappers para Taxonomia ---
 
   const updateTaxonomyInternal = async (newTaxonomy: TaxonomyConfig): Promise<void> => {
-    console.log('📝 Contexto: Atualizando configurações de taxonomia...');
+    console.log('Contexto: Atualizando configurações de taxonomia...');
     try {
       if (useApi) {
         await api.saveTaxonomyToApi(newTaxonomy);
@@ -323,7 +323,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       setTaxonomy(newTaxonomy);
     } catch (error) {
-      console.error('❌ Erro ao atualizar taxonomia:', error);
+      console.error('Erro ao atualizar taxonomia:', error);
       throw error;
     }
   };

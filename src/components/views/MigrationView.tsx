@@ -316,7 +316,7 @@ export const MigrationView: React.FC = () => {
                                                                     <span className={`font-black text-sm uppercase tracking-widest ${importMode === mode.id ? `text-${mode.color === 'rose' ? 'rose' : mode.color}-700` : 'text-slate-500'}`}>{mode.label}</span>
                                                                     <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${importMode === mode.id ? `bg-${mode.color === 'rose' ? 'rose' : mode.color}-600 border-${mode.color === 'rose' ? 'rose' : mode.color}-600 shadow-lg shadow-${mode.color === 'rose' ? 'rose' : mode.color}-500/20` : 'border-slate-200'}`}>{importMode === mode.id && <Check size={14} className="text-white" strokeWidth={4} />}</div>
                                                                 </div>
-                                                                <p className={`text-[11px] font-bold leading-relaxed ${importMode === mode.id ? `text-${mode.color === 'rose' ? 'rose' : mode.color}-600/80` : 'text-slate-400'}`}>{mode.warning && '⚠️ '}{mode.desc}</p>
+                                                                <p className={`text-[11px] font-bold leading-relaxed ${importMode === mode.id ? `text-${mode.color === 'rose' ? 'rose' : mode.color}-600/80` : 'text-slate-400'}`}>{mode.warning && 'Atenção: '}{mode.desc}</p>
                                                             </button>
                                                         ))}
                                                     </div>

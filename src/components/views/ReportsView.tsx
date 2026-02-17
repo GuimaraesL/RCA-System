@@ -1,3 +1,7 @@
+/**
+ * Proposta: Vista de Relatórios consolidada com tabelas de ações pendentes.
+ * Fluxo: Agrega e filtra ações corretivas de todas as análises, destacando itens atrasados e provendo KPIs rápidos de conformidade.
+ */
 
 import React, { useMemo } from 'react';
 import { RcaRecord, ActionRecord } from '../../types';

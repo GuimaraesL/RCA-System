@@ -1,3 +1,7 @@
+/**
+ * Proposta: Modal para criação e edição de Gatilhos (Triggers).
+ * Fluxo: Gerencia o formulário de eventos de parada, integrando-se à árvore de ativos e permitindo a vinculação posterior com análises RCA.
+ */
 
 import React, { useEffect, useState, useId } from 'react';
 import { TriggerRecord, AssetNode, TaxonomyConfig } from '../../types';

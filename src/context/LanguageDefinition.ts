@@ -1,3 +1,8 @@
+/**
+ * Proposta: Definições de tipos e interfaces para o sistema de internacionalização (i18n).
+ * Fluxo: Provê o contrato base para o contexto de idioma, definindo os tipos suportados e a estrutura da função de tradução.
+ */
+
 import { createContext, useContext } from 'react';
 import { TranslationSchema } from '../i18n/types';
 

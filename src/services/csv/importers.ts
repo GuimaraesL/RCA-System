@@ -1,4 +1,9 @@
 
+/**
+ * Proposta: Lógica de importação de dados a partir de arquivos CSV.
+ * Fluxo: Implementa a leitura e normalização de arquivos CSV, validando schemas, convertendo tipos de dados (datas, números) e reconstruindo hierarquias de ativos e vínculos entre entidades.
+ */
+
 import { fromCSV, detectSeparator } from "../../utils/csvUtils";
 import { parseDateString } from "../../utils/parsingUtils";
 import { generateId } from "../utils";

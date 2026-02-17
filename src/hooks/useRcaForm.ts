@@ -171,7 +171,7 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
             else await addRecord(formData);
             onSaveSuccess();
         } catch (error) {
-            console.error('❌ Erro ao salvar RCA:', error);
+            console.error('Erro ao salvar RCA:', error);
         } finally {
             setIsSaving(false);
         }
@@ -184,7 +184,7 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
             if (actions.find(a => a.id === action.id)) await updateAction(action);
             else await addAction(action);
         } catch (error) {
-            console.error('❌ Erro ao salvar ação:', error);
+            console.error('Erro ao salvar ação:', error);
         }
     };
 

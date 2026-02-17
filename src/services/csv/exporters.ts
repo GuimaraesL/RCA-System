@@ -1,4 +1,9 @@
 
+/**
+ * Proposta: Lógica de exportação de dados para formato CSV.
+ * Fluxo: Implementa a transformação de entidades do sistema (Ativos, Ações, Gatilhos, RCAs) em strings CSV formatadas, com suporte a templates e tratamento de tipos complexos (arrays e objetos).
+ */
+
 import { toCSV } from "../../utils/csvUtils";
 import { AssetNode, TaxonomyItem } from "../../types";
 import { CsvContextData, CsvEntityType, TAXONOMY_MAP } from "./types";

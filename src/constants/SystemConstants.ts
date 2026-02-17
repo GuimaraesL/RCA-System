@@ -1,3 +1,8 @@
+/**
+ * Proposta: Constantes globais do sistema e definições de IDs padrão.
+ * Fluxo: Centraliza identificadores de status, categorias 6M e paletas de cores utilizadas em toda a interface e lógica de negócio.
+ */
+
 export enum STATUS_IDS {
     IN_PROGRESS = 'STATUS-01',
     WAITING_VERIFICATION = 'STATUS-02',

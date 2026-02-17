@@ -82,7 +82,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
             try {
                 await handleDeleteAction(actionToDelete);
             } catch (error) {
-                console.error('❌ Erro ao excluir ação:', error);
+                console.error('Erro ao excluir ação:', error);
             }
         }
         setDeleteActionModalOpen(false);

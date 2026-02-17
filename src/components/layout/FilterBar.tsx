@@ -1,3 +1,7 @@
+/**
+ * Proposta: Barra de filtros dinâmica com suporte a cross-filtering e persistência.
+ * Fluxo: Renderiza controles de busca, data e localização técnica, gerenciando o estado de filtros ativos e provendo feedback visual via chips e contadores.
+ */
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { Search, Filter, RefreshCw, ChevronUp, ChevronDown, Calendar, X, MapPin, Tag, Globe, Lock, Info } from 'lucide-react';

@@ -1,3 +1,7 @@
+/**
+ * Proposta: Contexto para gerenciamento de filtros globais e persistência de preferências de visualização.
+ * Fluxo: Centraliza o estado dos filtros (busca, data, status, ativos), gerenciando a sincronização entre abas e o armazenamento local para garantir uma experiência consistente em todo o sistema.
+ */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { FilterState } from '../components/layout/FilterBar';

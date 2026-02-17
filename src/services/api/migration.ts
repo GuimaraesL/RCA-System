@@ -1,4 +1,9 @@
 
+/**
+ * Proposta: Serviço de API para orquestração de migração e importação de dados.
+ * Fluxo: Implementa a lógica complexa de importação integral (JSON), incluindo extração de ativos de registros, limpeza de dados existentes no modo substituição e normalização de status/taxonomia.
+ */
+
 import { TaxonomyConfig, TaxonomyItem } from "../../types";
 import { STATUS_IDS } from "../../constants/SystemConstants";
 import { API_BASE, checkResponse, generateId } from "./base";
@@ -30,7 +35,7 @@ const extractAssetsFromRecords = (records: any[]): any[] => {
         if (r.subgroup_id && r.equipment_id) addAsset(r.subgroup_id, r.subgroup_id, 'SUBGROUP', r.equipment_id);
     });
 
-    console.log(`ℹ️ Ativos extraídos automaticamente: ${assetsMap.size}`);
+    console.log(`API: Ativos extraídos automaticamente: ${assetsMap.size}`);
     return Array.from(assetsMap.values());
 };
 
@@ -39,7 +44,7 @@ const deleteAllRecords = async () => {
     const ids = rcas.map(r => r.id);
     if (ids.length === 0) return;
 
-    console.log(`🧹 Limpando ${ids.length} análises via exclusão em massa...`);
+    console.log(`API: Limpando ${ids.length} análises via exclusão em massa...`);
     const response = await fetch(`${API_BASE}/rcas/bulk-delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -53,7 +58,7 @@ const deleteAllActions = async () => {
     const ids = acts.map(a => a.id);
     if (ids.length === 0) return;
 
-    console.log(`🧹 Limpando ${ids.length} ações via exclusão em massa...`);
+    console.log(`API: Limpando ${ids.length} ações via exclusão em massa...`);
     const response = await fetch(`${API_BASE}/actions/bulk-delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -67,7 +72,7 @@ const deleteAllTriggers = async () => {
     const ids = trigs.map(t => t.id);
     if (ids.length === 0) return;
 
-    console.log(`🧹 Limpando ${ids.length} gatilhos via exclusão em massa...`);
+    console.log(`API: Limpando ${ids.length} gatilhos via exclusão em massa...`);
     const response = await fetch(`${API_BASE}/triggers/bulk-delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -80,7 +85,7 @@ const deleteAllTriggers = async () => {
  * Executa a orquestração de importação total de dados para o servidor.
  */
 export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'REPLACE' = 'REPLACE', taxonomyFilters?: string[]): Promise<{ success: boolean, message: string }> => {
-    console.log(`🔄 API: Iniciando importação em massa [Modo: ${mode}]...`, {
+    console.log(`API: Iniciando importação em massa [Modo: ${mode}]...`, {
         análises: data.records?.length || 0,
         filtros: taxonomyFilters
     });
@@ -88,7 +93,7 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
     try {
         // 0. FASE DE LIMPEZA (Modo Substituição)
         if (mode === 'REPLACE') {
-            console.log('⚠️ MODO SUBSTITUIÇÃO: Eliminando dados existentes...');
+            console.log('API: MODO SUBSTITUIÇÃO - Eliminando dados existentes...');
             await Promise.all([deleteAllActions(), deleteAllTriggers()]);
             await deleteAllRecords();
         }
@@ -99,14 +104,14 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
         if (!assetsToImport || assetsToImport.length === 0) {
             const rcas = data.records || data.results || [];
             if (rcas.length > 0) {
-                console.log('⚠️ JSON sem ativos explícitos. Tentando extração a partir das análises...');
+                console.log('API: JSON sem ativos explícitos. Tentando extração a partir das análises...');
                 assetsToImport = extractAssetsFromRecords(rcas);
             }
         }
 
         if (assetsToImport && assetsToImport.length > 0) {
             await importAssetsToApi(assetsToImport);
-            console.log('✅ Ativos processados:', assetsToImport.length);
+            console.log('API: Ativos processados:', assetsToImport.length);
         }
 
         // 2. GESTÃO DE TAXONOMIA
@@ -144,7 +149,7 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
         const idMap = new Map<string, string>(); 
 
         if (mode === 'APPEND') {
-            console.log('➕ MODO ANEXAR: Gerando novos IDs (preservando UUIDs)...');
+            console.log('API: MODO ANEXAR - Gerando novos IDs (preservando UUIDs)...');
             const shouldPreserve = (id: string, type: string) => {
                 return id && id.length > 30 && !id.startsWith(type + '-');
             };
@@ -242,7 +247,7 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
         });
 
         await saveTaxonomyToApi(taxonomyToSave);
-        console.log('✅ Taxonomia atualizada.');
+        console.log('API: Taxonomia atualizada.');
 
         // 3. EXECUÇÃO DA PERSISTÊNCIA (Lote Consolidado)
         const preparedActions = actionsToImportRaw.map((a: any) => ({
@@ -252,7 +257,7 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
         }));
 
         if (normalizedRcas.length > 0) {
-            console.log('🔄 Importando lote de análises com contexto...');
+            console.log('API: Importando lote de análises com contexto...');
             const response = await fetch(`${API_BASE}/rcas/bulk`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -262,7 +267,7 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
         }
 
         if (preparedActions.length > 0) {
-            console.log('🔄 Persistindo lote de planos de ação...');
+            console.log('API: Persistindo lote de planos de ação...');
             const response = await fetch(`${API_BASE}/actions/bulk`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -276,7 +281,8 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
             message: `Importação (${mode}) concluída com sucesso.`
         };
     } catch (error) {
-        console.error('❌ Falha crítica na importação:', error);
+        console.error('API Error: Falha crítica na importação:', error);
         return { success: false, message: `Falha na importação: ${error}` };
     }
 };
+

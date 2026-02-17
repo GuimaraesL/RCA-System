@@ -1,5 +1,10 @@
 
 /**
+ * Proposta: Utilitários para parsing e normalização de tipos de dados.
+ * Fluxo: Provê lógica para conversão de datas em diversos formatos (ISO, PT-BR, Excel Serial) para um formato padronizado de sistema.
+ */
+
+/**
  * Converte strings de data (incluindo formatos do Excel) para ISO String.
  * Suporta datas seriais do Excel e formato padrão DD/MM/YYYY HH:mm.
  */

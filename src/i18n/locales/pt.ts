@@ -718,7 +718,7 @@ export const pt: TranslationSchema = {
             historicalInfoPlaceholder: "Contexto histórico relevante...",
             lessonsLearned: "8. Lições Aprendidas",
             lessonsEmpty: "Nenhuma lição aprendida registrada.",
-            tip: "💡 Dica:",
+            tip: "Dica:",
             tipText: "Use estas seções para documentar discussões importantes, lições aprendidas e contexto histórico relevante para futuras análises."
         },
         stepHRA: {

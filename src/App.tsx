@@ -61,7 +61,7 @@ const AppContent: React.FC = () => {
     const handleCancelRca = async () => {
         if (rollbackTrigger && editingRecord) {
             try {
-                console.log('🔄 Cancelamento detectado. Iniciando rollback para RCA:', editingRecord.id);
+                console.log('Rollback: Cancelamento detectado. Iniciando rollback para RCA:', editingRecord.id);
                 // 1. Remove o vínculo do gatilho e restaura seu status original
                 await updateTrigger({ 
                     ...rollbackTrigger, 
@@ -71,9 +71,9 @@ const AppContent: React.FC = () => {
                 // 2. Exclui o rascunho da RCA persistido
                 await deleteRecord(editingRecord.id);
                 
-                console.log('✅ Rollback concluído com sucesso');
+                console.log('Rollback: Concluído com sucesso');
             } catch (error) {
-                console.error('❌ Falha ao realizar rollback:', error);
+                console.error('Rollback Error: Falha ao realizar rollback:', error);
             }
         }
         handleCloseEditor();
@@ -206,9 +206,9 @@ const AppContent: React.FC = () => {
             const inProgressStatusId = taxonomy.triggerStatuses?.find(s => s.name === 'Em análise' || s.name === 'Em Análise')?.id || trigger.status;
             await updateTrigger({ ...trigger, rca_id: newRca.id, status: inProgressStatusId });
             
-            console.log('✅ RCA criada e vinculada ao gatilho com sucesso');
+            console.log('Context: RCA criada e vinculada ao gatilho com sucesso');
         } catch (error) {
-            console.error('❌ Falha ao criar RCA a partir do gatilho:', error);
+            console.error('Context Error: Falha ao criar RCA a partir do gatilho:', error);
             alert('Erro ao criar RCA. Verifique a conexão com o servidor.');
         }
     };
