@@ -4,8 +4,9 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Siren, ChevronLeft, ChevronRight, Menu, CircleHelp } from 'lucide-react';
+import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Siren, ChevronLeft, ChevronRight, Menu, CircleHelp, Sun, Moon, Monitor } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageDefinition';
+import { useTheme } from '../../context/ThemeContext';
 import { LanguageSelector } from './LanguageSelector';
 import { ShortcutLabel } from '../ui/ShortcutLabel';
 import { safeGetItem, safeSetItem } from '../../services/storageService';
@@ -16,6 +17,35 @@ interface SidebarProps {
     toggleRef?: React.RefObject<(() => void) | null>;
     onShowHelp?: () => void;
 }
+
+const ThemeToggle = () => {
+    const { theme, setTheme } = useTheme();
+    const { t } = useLanguage();
+
+    const cycleTheme = () => {
+        if (theme === 'light') setTheme('dark');
+        else if (theme === 'dark') setTheme('system');
+        else setTheme('light');
+    };
+
+    // Simplification: Light -> Dark -> System -> Light
+    // Icon logic:
+    // Light -> Sun
+    // Dark -> Moon
+    // System -> Monitor
+
+    return (
+        <button
+            onClick={cycleTheme}
+            className="p-2 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-white transition-all active:scale-95 border border-transparent hover:border-slate-700"
+            title={t(`settings.theme${theme.charAt(0).toUpperCase() + theme.slice(1)}`) || 'Alternar Tema'}
+        >
+            {theme === 'light' && <Sun size={20} />}
+            {theme === 'dark' && <Moon size={20} />}
+            {theme === 'system' && <Monitor size={20} />}
+        </button>
+    );
+};
 
 export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onShowHelp }) => {
     const { t } = useLanguage();
@@ -122,6 +152,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onSh
                         <div className="flex-1">
                             <LanguageSelector compact={isCollapsed} />
                         </div>
+
+                        {/* Theme Toggle */}
+                        <div className="flex items-center">
+                            <ThemeToggle />
+                        </div>
+
                         {onShowHelp && (
                             <button
                                 onClick={onShowHelp}

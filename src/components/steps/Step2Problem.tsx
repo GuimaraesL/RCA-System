@@ -23,10 +23,10 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
 
     return (
         <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200/60">
-                <div className="border-b border-slate-100 pb-4 mb-8">
-                    <h2 className="text-2xl font-bold text-slate-900 font-display tracking-tight">{t('wizard.step2.title')}</h2>
-                    <p className="text-slate-500 text-sm mt-1">{t('wizard.step2.subtitle')}</p>
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800">
+                <div className="border-b border-slate-100 dark:border-slate-800 pb-4 mb-8">
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display tracking-tight">{t('wizard.step2.title')}</h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('wizard.step2.subtitle')}</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
@@ -66,7 +66,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                     </div>
                 </div>
 
-                <div className="space-y-8 pt-8 border-t border-slate-50">
+                <div className="space-y-8 pt-8 border-t border-slate-50 dark:border-slate-800">
                     <Input
                         id={`${idPrefix}-what`}
                         name="what"

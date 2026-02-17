@@ -124,8 +124,8 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
             {/* Cabeçalho da Vista */}
             <div className="flex justify-between items-end flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-700">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 font-display tracking-tight">{t('analysesPage.title')}</h1>
-                    <p className="text-slate-500 mt-2 font-medium">{t('analysesPage.subtitle')}</p>
+                    <h1 className="text-4xl font-black text-slate-900 dark:text-white font-display tracking-tight">{t('analysesPage.title')}</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">{t('analysesPage.subtitle')}</p>
                 </div>
                 <button
                     onClick={onNew}
@@ -167,26 +167,26 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
             </div>
 
             {/* Tabela de Dados */}
-            <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-1000 delay-200">
+            <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-1000 delay-200">
                 <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
-                    <table className="w-full text-left text-sm text-slate-600 border-separate border-spacing-0">
-                        <thead className="bg-slate-50 text-slate-500 font-black border-b border-slate-100 sticky top-0 z-10">
+                    <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300 border-separate border-spacing-0">
+                        <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-black border-b border-slate-100 dark:border-slate-700 sticky top-0 z-10">
                             <tr>
-                                <SortHeader label={t('table.id') + " / " + t('table.type')} sortKey="id" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                                <SortHeader label={t('table.what') + " / " + t('table.description')} sortKey="what" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                                <SortHeader label={t('filters.sections.location')} sortKey="asset_name_display" currentSort={sortConfig} onSort={handleSort} width="w-64" className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                                <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                                <SortHeader label={t('table.impact')} sortKey="financial_impact" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                                <SortHeader label={t('table.date')} sortKey="failure_date" currentSort={sortConfig} onSort={handleSort} width="w-40" className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                                <th className="px-8 py-5 w-20 border-b border-slate-100 text-[10px] uppercase tracking-widest font-black text-slate-400 text-right">{t('table.actions')}</th>
+                                <SortHeader label={t('table.id') + " / " + t('table.type')} sortKey="id" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                                <SortHeader label={t('table.what') + " / " + t('table.description')} sortKey="what" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                                <SortHeader label={t('filters.sections.location')} sortKey="asset_name_display" currentSort={sortConfig} onSort={handleSort} width="w-64" className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                                <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                                <SortHeader label={t('table.impact')} sortKey="financial_impact" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                                <SortHeader label={t('table.date')} sortKey="failure_date" currentSort={sortConfig} onSort={handleSort} width="w-40" className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                                <th className="px-8 py-5 w-20 border-b border-slate-100 dark:border-slate-700 text-[10px] uppercase tracking-widest font-black text-slate-400 dark:text-slate-500 text-right">{t('table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                             {filteredRecords.length === 0 && (
                                 <tr>
                                     <td colSpan={7} className="p-20 text-center text-slate-400">
-                                        <div className="bg-slate-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                            <FileText size={40} className="opacity-20" />
+                                        <div className="bg-slate-50 dark:bg-slate-800 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                                            <FileText size={40} className="opacity-20 text-slate-400/50 dark:text-slate-500/50" />
                                         </div>
                                         <p className="text-lg font-bold text-slate-300">{t('analysesPage.noRecords')}</p>
                                     </td>
@@ -196,46 +196,46 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                 const rawName = getName('analysisStatuses', r.status);
                                 const statusName = translateStatus(r.status, rawName, t);
                                 return (
-                                    <tr key={r.id} onClick={() => onEdit(r)} className="hover:bg-blue-50/30 cursor-pointer transition-all group">
+                                    <tr key={r.id} onClick={() => onEdit(r)} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 cursor-pointer transition-all group">
                                         <td className="px-8 py-6">
-                                            <div className="font-mono text-[10px] text-slate-400 group-hover:text-blue-500 transition-colors mb-1 font-bold">#RCA-{r.id.substring(0, 6)}</div>
-                                            <div className="text-xs font-black text-slate-700 uppercase tracking-tight">{getName('analysisTypes', r.analysis_type)}</div>
+                                            <div className="font-mono text-[10px] text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors mb-1 font-bold">#RCA-{r.id.substring(0, 6)}</div>
+                                            <div className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">{getName('analysisTypes', r.analysis_type)}</div>
                                         </td>
                                         <td className="px-8 py-6 max-w-sm">
-                                            <div className="font-bold text-slate-900 truncate mb-1" title={r.what}>{r.what}</div>
-                                            <div className="text-xs text-slate-400 truncate leading-relaxed" title={r.problem_description}>{r.problem_description}</div>
+                                            <div className="font-bold text-slate-900 dark:text-slate-100 truncate mb-1" title={r.what}>{r.what}</div>
+                                            <div className="text-xs text-slate-400 dark:text-slate-500 truncate leading-relaxed" title={r.problem_description}>{r.problem_description}</div>
                                         </td>
                                         <td className="px-8 py-6 max-w-xs">
-                                            <div className="text-slate-700 font-bold truncate mb-1" title={getAssetName(r.subgroup_id || r.equipment_id || r.area_id, assets) || r.asset_name_display}>
+                                            <div className="text-slate-700 dark:text-slate-300 font-bold truncate mb-1" title={getAssetName(r.subgroup_id || r.equipment_id || r.area_id, assets) || r.asset_name_display}>
                                                 {getAssetName(r.subgroup_id || r.equipment_id || r.area_id, assets) || r.asset_name_display || '-'}
                                             </div>
-                                            <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{getName('componentTypes', r.component_type)}</div>
+                                            <div className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest">{getName('componentTypes', r.component_type)}</div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${r.status === STATUS_IDS.CONCLUDED ? 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-sm' :
-                                                r.status === STATUS_IDS.CANCELLED ? 'bg-rose-50 text-rose-700 border-rose-100 shadow-sm' :
-                                                    r.status === STATUS_IDS.WAITING_VERIFICATION ? 'bg-amber-50 text-amber-700 border-amber-100 shadow-sm' :
-                                                        r.status === STATUS_IDS.IN_PROGRESS ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm' :
-                                                            'bg-slate-50 text-slate-600 border-slate-200'
+                                            <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${r.status === STATUS_IDS.CONCLUDED ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30' :
+                                                    r.status === STATUS_IDS.CANCELLED ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-900/30' :
+                                                        r.status === STATUS_IDS.WAITING_VERIFICATION ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-900/30' :
+                                                            r.status === STATUS_IDS.IN_PROGRESS ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-900/30' :
+                                                                'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                                                 }`}>
                                                 {statusName}
                                             </span>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <div className="text-slate-900 font-black text-base">
-                                                <span className="text-[10px] text-slate-400 mr-1">{language === 'pt' ? 'R$' : '$'}</span>
+                                            <div className="text-slate-900 dark:text-white font-black text-base">
+                                                <span className="text-[10px] text-slate-400 dark:text-slate-500 mr-1">{language === 'pt' ? 'R$' : '$'}</span>
                                                 {r.financial_impact?.toLocaleString()}
                                             </div>
-                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{r.downtime_minutes} min total</div>
+                                            <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{r.downtime_minutes} min total</div>
                                         </td>
-                                        <td className="px-8 py-6 text-slate-500 font-medium whitespace-nowrap">
+                                        <td className="px-8 py-6 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
                                             {formatDate(r.failure_date)}
                                         </td>
                                         <td className="px-8 py-6 text-right">
                                             <button
                                                 data-testid="delete-rca-btn"
                                                 onClick={(e) => handleDelete(e, r.id)}
-                                                className="text-slate-300 hover:text-rose-600 p-2 hover:bg-rose-50 rounded-lg transition-all"
+                                                className="text-slate-300 dark:text-slate-600 hover:text-rose-600 dark:hover:text-rose-400 p-2 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all"
                                                 title={t('analysesPage.tooltips.deleteRca')}
                                             >
                                                 <Trash2 size={18} />
@@ -249,15 +249,15 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
 
                     {/* Controles de Paginação */}
                     {filteredRecords.length > 0 && (
-                        <div className="p-6 flex items-center justify-between border-t border-slate-100 bg-slate-50/50">
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                                {t('pagination.showing')} <span className="text-slate-900 font-black">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="text-slate-900 font-black">{Math.min(currentPage * itemsPerPage, filteredRecords.length)}</span> {t('pagination.of')} <span className="text-slate-900 font-black">{filteredRecords.length}</span>
+                        <div className="p-6 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                            <div className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                                {t('pagination.showing')} <span className="text-slate-900 dark:text-white font-black">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="text-slate-900 dark:text-white font-black">{Math.min(currentPage * itemsPerPage, filteredRecords.length)}</span> {t('pagination.of')} <span className="text-slate-900 dark:text-white font-black">{filteredRecords.length}</span>
                             </div>
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                     disabled={currentPage === 1}
-                                    className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
+                                    className="px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 transition-all shadow-sm active:scale-95"
                                     title="←"
                                 >
                                     {t('pagination.previous')}
@@ -265,7 +265,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                 <button
                                     onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredRecords.length ? prev + 1 : prev))}
                                     disabled={currentPage * itemsPerPage >= filteredRecords.length}
-                                    className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
+                                    className="px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 transition-all shadow-sm active:scale-95"
                                     title="→"
                                 >
                                     {t('pagination.next')}

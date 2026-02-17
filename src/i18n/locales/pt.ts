@@ -273,7 +273,11 @@ export const pt: TranslationSchema = {
     },
     settings: {
         title: "Configurações do Sistema",
-        description: "Gerencie listas de classificação com IDs de Sistema únicos.",
+        description: "Configure a taxonomia, listas e parâmetros gerais",
+        theme: "Tema",
+        themeLight: "Modo Claro",
+        themeDark: "Modo Escuro",
+        themeSystem: "Preferência do Sistema",
         analysisTypes: "Tipos de Análise",
         analysisStatuses: "Status de Análise",
         triggerStatuses: "Status de Gatilho",

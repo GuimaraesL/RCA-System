@@ -25,7 +25,7 @@ const NodeEditor: React.FC<{
 }> = ({ node, depth, onUpdate, onDelete, canDelete }) => {
     const { t } = useLanguage();
 
-    const isActive = (node.whys || []).length < 5; 
+    const isActive = (node.whys || []).length < 5;
 
     /**
      * Atualiza o texto de um nível específico de 'Porquê' dentro do nó atual.
@@ -91,9 +91,9 @@ const NodeEditor: React.FC<{
     };
 
     return (
-        <div className={`relative pl-6 ${depth > 0 ? 'border-l-2 border-slate-200 ml-4' : ''}`}>
+        <div className={`relative pl-6 ${depth > 0 ? 'border-l-2 border-slate-200 dark:border-slate-700 ml-4' : ''}`}>
             {/* Indicador visual da ramificação */}
-            <div className="absolute -left-[9px] top-6 w-4 h-4 rounded-full bg-slate-200 border-2 border-white"></div>
+            <div className="absolute -left-[9px] top-6 w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-600 border-2 border-white dark:border-slate-800"></div>
 
             {/* Título da Ramificação (Contexto da Causa) */}
             {depth > 0 && node.cause_effect !== undefined && (
@@ -103,7 +103,7 @@ const NodeEditor: React.FC<{
                         id={`node_${node.id}_cause_effect`}
                         value={node.cause_effect}
                         onChange={e => onUpdate({ ...node, cause_effect: e.target.value })}
-                        className="bg-amber-50 border-amber-200 font-semibold text-amber-900 h-8 text-sm w-full md:w-1/2"
+                        className="bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 font-semibold text-amber-900 dark:text-amber-100 h-8 text-sm w-full md:w-1/2"
                         placeholder={t('wizard.step4.fiveWhys.previousCausePlaceholder')}
                     />
                     {canDelete && (
@@ -115,16 +115,16 @@ const NodeEditor: React.FC<{
             )}
 
             {/* Listagem dos Níveis de Porquê do Nó Atual */}
-            <div className="space-y-3 bg-white p-4 rounded-lg border border-slate-200 shadow-sm mb-4">
+            <div className="space-y-3 bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm mb-4">
                 {(node.whys || []).map((why, idx) => (
                     <div key={idx} className="flex gap-3 items-start group">
                         <div className={`
                             flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
-                            ${why.level === 1 ? 'bg-red-100 text-red-700' :
-                                why.level === 2 ? 'bg-orange-100 text-orange-700' :
-                                    why.level === 3 ? 'bg-yellow-100 text-yellow-700' :
-                                        why.level === 4 ? 'bg-green-100 text-green-700' :
-                                            'bg-blue-100 text-blue-700'}
+                            ${why.level === 1 ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
+                                why.level === 2 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' :
+                                    why.level === 3 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' :
+                                        why.level === 4 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
+                                            'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'}
                         `}>
                             {why.level}
                         </div>
@@ -158,12 +158,12 @@ const NodeEditor: React.FC<{
 
                 <div className="flex gap-2 pt-2">
                     {(node.whys || []).length < 5 && (
-                        <Button variant="secondary" size="sm" onClick={addWhy} className="text-xs">
+                        <Button variant="secondary" size="sm" onClick={addWhy} className="text-xs dark:text-slate-300 dark:hover:text-white dark:border-slate-700 dark:hover:bg-slate-800">
                             <Plus size={14} className="mr-1" /> {t('wizard.step4.fiveWhys.addWhy')}
                         </Button>
                     )}
                     {(node.whys || []).length >= 1 && (
-                        <Button variant="secondary" size="sm" onClick={addChild} className="text-xs border-dashed text-slate-500">
+                        <Button variant="secondary" size="sm" onClick={addChild} className="text-xs border-dashed text-slate-500 dark:text-slate-400 dark:border-slate-700 dark:hover:text-slate-200 dark:hover:bg-slate-800">
                             <CornerDownRight size={14} className="mr-1" /> {t('wizard.step4.fiveWhys.branchCause')}
                         </Button>
                     )}
@@ -216,7 +216,7 @@ export const FiveWhysEditor: React.FC<FiveWhysEditorProps> = ({ chains, onChange
     return (
         <div className="space-y-8">
             {chains.map((chain, idx) => (
-                <div key={chain.chain_id} className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div key={chain.chain_id} className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
                             <label htmlFor={`chain_${chain.chain_id}_title`} className="sr-only">{t('wizard.step4.fiveWhys.pathTitlePlaceholder')}</label>
@@ -225,7 +225,7 @@ export const FiveWhysEditor: React.FC<FiveWhysEditorProps> = ({ chains, onChange
                                 name={`chain_${chain.chain_id}_title`}
                                 value={chain.cause_effect}
                                 onChange={e => updateChain(idx, { ...chain, cause_effect: e.target.value })}
-                                className="font-bold text-lg bg-transparent border-none text-slate-800 focus:bg-white w-full"
+                                className="font-bold text-lg bg-transparent border-none text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-700 w-full"
                                 placeholder={t('wizard.step4.fiveWhys.pathTitlePlaceholder')}
                             />
                         </div>
@@ -238,13 +238,13 @@ export const FiveWhysEditor: React.FC<FiveWhysEditorProps> = ({ chains, onChange
                         node={chain.root_node}
                         depth={0}
                         onUpdate={u => updateChain(idx, { ...chain, root_node: u })}
-                        onDelete={() => { }} 
+                        onDelete={() => { }}
                         canDelete={false}
                     />
                 </div>
             ))}
 
-            <Button onClick={addChain} variant="primary" className="w-full border-dashed border-2 border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-300">
+            <Button onClick={addChain} variant="primary" className="w-full border-dashed border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:border-blue-300 dark:hover:border-blue-700">
                 <Plus size={20} className="mr-2" /> {t('wizard.step4.fiveWhys.addNewPath')}
             </Button>
         </div>

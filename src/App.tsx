@@ -19,6 +19,7 @@ const SettingsView = lazy(() => import('./components/views/SettingsView').then(m
 const MigrationView = lazy(() => import('./components/views/MigrationView').then(m => ({ default: m.MigrationView })));
 
 import { RcaProvider, useRcaContext } from './context/RcaContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { FilterProvider } from './context/FilterContext';
 import { useLanguage } from './context/LanguageDefinition';
@@ -257,7 +258,7 @@ const AppContent: React.FC = () => {
     };
 
     return (
-        <div className="flex h-screen bg-page-gradient font-sans text-slate-900">
+        <div className="flex h-screen bg-page-gradient font-sans text-slate-900 dark:text-slate-100">
             <Sidebar view={view} setView={handleViewChange} toggleRef={sidebarToggleRef} onShowHelp={handleToggleShortcutsHelp} />
 
             <main className="flex-1 overflow-hidden relative flex flex-col w-full">
@@ -270,7 +271,7 @@ const AppContent: React.FC = () => {
                     </div>
                 }>
                     {isEditorOpen ? (
-                        <div className="absolute inset-0 bg-slate-50 p-0 z-20 overflow-hidden flex flex-col">
+                        <div className="absolute inset-0 bg-slate-50 dark:bg-slate-900 p-0 z-20 overflow-hidden flex flex-col">
                             <div className="flex-1 p-6 overflow-hidden">
                                 <RcaEditor
                                     existingRecord={editingRecord}
@@ -280,7 +281,7 @@ const AppContent: React.FC = () => {
                             </div>
                         </div>
                     ) : (
-                        <div key={view} className={`flex-1 overflow-auto bg-slate-50/50 ${(window as any).isPlaywright ? '' : 'animate-in fade-in slide-in-from-bottom-2 duration-300'}`}>
+                        <div key={view} className={`flex-1 overflow-auto bg-slate-50/50 dark:bg-slate-900/50 ${(window as any).isPlaywright ? '' : 'animate-in fade-in slide-in-from-bottom-2 duration-300'}`}>
                             {view === 'DASHBOARD' && <Dashboard />}
                             {view === 'TRIGGERS' && <TriggersView onCreateRca={handleCreateRcaFromTrigger} onOpenRca={handleOpenRca} />}
                             {view === 'ANALYSES' && <AnalysesView onNew={openNew} onEdit={openEdit} />}
@@ -316,12 +317,14 @@ const AppContent: React.FC = () => {
 
 export default function App() {
     return (
-        <LanguageProvider>
-            <FilterProvider>
-                <RcaProvider>
-                    <AppContent />
-                </RcaProvider>
-            </FilterProvider>
-        </LanguageProvider>
+        <ThemeProvider>
+            <LanguageProvider>
+                <FilterProvider>
+                    <RcaProvider>
+                        <AppContent />
+                    </RcaProvider>
+                </FilterProvider>
+            </LanguageProvider>
+        </ThemeProvider>
     );
 }

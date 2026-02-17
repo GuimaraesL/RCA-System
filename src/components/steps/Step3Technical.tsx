@@ -46,10 +46,10 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
 
     return (
         <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200/60">
-                <div className="border-b border-slate-100 pb-4 mb-8">
-                    <h2 className="text-2xl font-bold text-slate-900 font-display tracking-tight">{t('wizard.step3.title')}</h2>
-                    <p className="text-slate-500 text-sm mt-1">{t('wizard.step3.subtitle')}</p>
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800">
+                <div className="border-b border-slate-100 dark:border-slate-800 pb-4 mb-8">
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display tracking-tight">{t('wizard.step3.title')}</h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('wizard.step3.subtitle')}</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
@@ -90,8 +90,8 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                 </div>
 
                 {/* Seção de Dados Quantitativos */}
-                <div className="pt-8 border-t border-slate-50">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-6 flex items-center gap-2">
+                <div className="pt-8 border-t border-slate-50 dark:border-slate-800">
+                    <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
                         <span className="w-1 h-4 bg-emerald-500 rounded-full"></span>
                         {t('wizard.step3.quantitativeData')}
                     </h3>
@@ -120,20 +120,20 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                         />
                     </div>
                 </div>
-                
-                <div className="mt-8 p-5 bg-blue-50/50 border border-blue-100 rounded-xl flex items-center gap-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
+
+                <div className="mt-8 p-5 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 rounded-xl flex items-center gap-4">
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800/50 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
                         $
                     </div>
-                    <p className="text-sm text-blue-800 leading-relaxed">
-                        <strong className="font-bold">{t('wizard.step3.estimatedImpact')}</strong><br/>
-                        <span className="text-lg font-black">
+                    <p className="text-sm text-blue-800 dark:text-blue-100 leading-relaxed">
+                        <strong className="font-bold">{t('wizard.step3.estimatedImpact')}</strong><br />
+                        <span className="text-lg font-black dark:text-white">
                             {(data.financial_impact || 0).toLocaleString('pt-BR', {
                                 style: 'currency',
                                 currency: 'BRL'
                             })}
                         </span>
-                        <span className="ml-2 text-blue-600 font-medium italic">
+                        <span className="ml-2 text-blue-600 dark:text-blue-400 font-medium italic">
                             em {data.downtime_minutes || 0} {t('wizard.step3.minutesOfDowntime')}
                         </span>
                     </p>

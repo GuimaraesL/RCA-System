@@ -106,8 +106,8 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
       {/* Cabeçalho da Vista */}
       <div className="flex justify-between items-end flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-700">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 font-display tracking-tight">{t('sidebar.actions')}</h1>
-          <p className="text-slate-500 mt-2 font-medium">{t('actionsPage.subtitle')}</p>
+          <h1 className="text-4xl font-black text-slate-900 dark:text-white font-display tracking-tight">{t('sidebar.actions')}</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">{t('actionsPage.subtitle')}</p>
         </div>
         <button
           onClick={openNew}
@@ -148,41 +148,41 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
       </div>
 
       {/* Grade de Dados */}
-      <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-1000 delay-200">
+      <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-1000 delay-200">
         <div className="overflow-auto flex-1 custom-scrollbar">
-          <table className="w-full text-left text-sm text-slate-600 border-separate border-spacing-0">
-            <thead className="bg-slate-50 text-slate-500 font-black border-b border-slate-100 sticky top-0 z-10">
+          <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300 border-separate border-spacing-0">
+            <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-black border-b border-slate-100 dark:border-slate-700 sticky top-0 z-10">
               <tr>
-                <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} width="w-48" className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                <SortHeader label={t('table.what')} sortKey="action" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                <SortHeader label={t('table.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                <SortHeader label={t('table.dueDate')} sortKey="date" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                <SortHeader label={t('sidebar.analyses')} sortKey="rcaTitle" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                <th className="px-8 py-5 text-right border-b border-slate-100 text-[10px] uppercase tracking-widest font-black text-slate-400">Ações</th>
+                <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} width="w-48" className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                <SortHeader label={t('table.what')} sortKey="action" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                <SortHeader label={t('table.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                <SortHeader label={t('table.dueDate')} sortKey="date" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                <SortHeader label={t('sidebar.analyses')} sortKey="rcaTitle" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                <th className="px-8 py-5 text-right border-b border-slate-100 dark:border-slate-700 text-[10px] uppercase tracking-widest font-black text-slate-400 dark:text-slate-500">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {filteredActions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(action => (
                 <tr
                   key={action.id}
-                  className="hover:bg-blue-50/30 cursor-pointer transition-all group"
+                  className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 cursor-pointer transition-all group"
                   onClick={() => openEdit(action)}
                 >
                   <td className="px-8 py-6">{getStatusBadge(action.status)}</td>
-                  <td className="px-8 py-6 font-bold text-slate-800 max-w-xs truncate" title={action.action}>{action.action}</td>
-                  <td className="px-8 py-6 font-medium text-slate-500">{action.responsible}</td>
-                  <td className="px-8 py-6 font-mono text-xs font-bold text-slate-400">{formatDate(action.date)}</td>
+                  <td className="px-8 py-6 font-bold text-slate-800 dark:text-slate-100 max-w-xs truncate" title={action.action}>{action.action}</td>
+                  <td className="px-8 py-6 font-medium text-slate-500 dark:text-slate-400">{action.responsible}</td>
+                  <td className="px-8 py-6 font-mono text-xs font-bold text-slate-400 dark:text-slate-500">{formatDate(action.date)}</td>
                   <td className="px-8 py-6">
                     <button
                       onClick={(e) => { e.stopPropagation(); onOpenRca && onOpenRca(action.rca_id); }}
                       className="group text-left focus:outline-none"
                       title={t('common.tooltips.viewDetails')}
                     >
-                      <div className="text-xs font-black text-blue-600 truncate max-w-[200px] flex items-center gap-1.5 group-hover:underline">
+                      <div className="text-xs font-black text-blue-600 dark:text-blue-400 truncate max-w-[200px] flex items-center gap-1.5 group-hover:underline">
                         {action.rcaTitle}
                         <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-all" />
                       </div>
-                      <div className="text-[10px] font-bold text-slate-400 group-hover:text-blue-400 transition-colors mt-0.5">{action.assetName}</div>
+                      <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 group-hover:text-blue-400 transition-colors mt-0.5">{action.assetName}</div>
                     </button>
                   </td>
                   <td className="px-8 py-6 text-right">
@@ -196,10 +196,10 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
               {filteredActions.length === 0 && (
                 <tr>
                   <td colSpan={6} className="p-20 text-center text-slate-400">
-                    <div className="bg-slate-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                      <CheckCircle2 size={40} className="opacity-20" />
+                    <div className="bg-slate-50 dark:bg-slate-800 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                      <CheckCircle2 size={40} className="opacity-20 text-slate-400/50 dark:text-slate-500/50" />
                     </div>
-                    <p className="text-lg font-bold text-slate-300">{t('actionsPage.noActions')}</p>
+                    <p className="text-lg font-bold text-slate-300 dark:text-slate-600">{t('actionsPage.noActions')}</p>
                   </td>
                 </tr>
               )}
@@ -208,15 +208,15 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
 
           {/* Paginação */}
           {filteredActions.length > 0 && (
-            <div className="p-6 flex items-center justify-between border-t border-slate-100 bg-slate-50/50">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                {t('pagination.showing')} <span className="text-slate-900 font-black">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="text-slate-900 font-black">{Math.min(currentPage * itemsPerPage, filteredActions.length)}</span> {t('pagination.of')} <span className="text-slate-900 font-black">{filteredActions.length}</span>
+            <div className="p-6 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+              <div className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                {t('pagination.showing')} <span className="text-slate-900 dark:text-white font-black">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="text-slate-900 dark:text-white font-black">{Math.min(currentPage * itemsPerPage, filteredActions.length)}</span> {t('pagination.of')} <span className="text-slate-900 dark:text-white font-black">{filteredActions.length}</span>
               </div>
               <div className="flex gap-3">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
+                  className="px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 transition-all shadow-sm active:scale-95"
                   title="←"
                 >
                   {t('pagination.previous')}
@@ -224,7 +224,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
                 <button
                   onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredActions.length ? prev + 1 : prev))}
                   disabled={currentPage * itemsPerPage >= filteredActions.length}
-                  className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
+                  className="px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 transition-all shadow-sm active:scale-95"
                   title="→"
                 >
                   {t('pagination.next')}

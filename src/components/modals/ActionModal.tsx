@@ -95,18 +95,18 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
         <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
             <div
                 data-testid="modal-action"
-                className="bg-white rounded-[2rem] shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200 animate-scale-in"
+                className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200 dark:border-slate-800 animate-scale-in"
             >
-                <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white">
+                <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl">
                             <ShieldCheck size={24} />
                         </div>
-                        <h3 className="font-black text-xl text-slate-900 font-display tracking-tight">
+                        <h3 className="font-black text-xl text-slate-900 dark:text-white font-display tracking-tight">
                             {initialData ? t('actionModal.titleEdit') : t('actionModal.titleNew')}
                         </h3>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-50 rounded-full text-slate-400 transition-colors">
+                    <button onClick={onClose} className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full text-slate-400 transition-colors">
                         <X size={20} />
                     </button>
                 </div>
@@ -115,8 +115,8 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                     <div>
                         {fixedRca ? (
                             <div className="space-y-2">
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('actionModal.linkedAnalysis')}</label>
-                                <div className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm text-slate-700 font-bold shadow-inner">
+                                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t('actionModal.linkedAnalysis')}</label>
+                                <div className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 rounded-xl text-sm text-slate-700 dark:text-slate-300 font-bold shadow-inner">
                                     {fixedRca.title}
                                 </div>
                             </div>
@@ -199,12 +199,12 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                         />
                     </div>
 
-                    <div className="flex justify-end gap-4 pt-6 border-t border-slate-50">
+                    <div className="flex justify-end gap-4 pt-6 border-t border-slate-50 dark:border-slate-800">
                         <button
                             type="button"
                             onClick={onClose}
                             data-testid="btn-cancel-action"
-                            className="px-6 py-2.5 text-slate-500 font-bold hover:bg-slate-50 rounded-xl text-sm transition-all border border-transparent hover:border-slate-200"
+                            className="px-6 py-2.5 text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-sm transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
                             title="Esc"
                         >
                             {t('actionModal.cancel')}

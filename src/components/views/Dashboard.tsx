@@ -12,7 +12,7 @@ import { FilterBar, FilterState } from '../layout/FilterBar';
 import { useFilterPersistence } from '../../hooks/useFilterPersistence';
 import { useRcaContext } from '../../context/RcaContext';
 import { translateStatus, translate6M } from '../../utils/statusUtils';
-import { useLanguage } from '../../context/LanguageDefinition'; 
+import { useLanguage } from '../../context/LanguageDefinition';
 import { useFilteredData } from '../../hooks/useFilteredData';
 import { filterAssetsByUsage } from '../../services/utils';
 import { AnimatedCounter } from '../ui/AnimatedCounter';
@@ -38,17 +38,17 @@ const getStableColor = (id: string, mapping?: Record<string, string>) => {
 const CustomTooltip = ({ active, payload, label }: any) => {
     const { t, language } = useLanguage();
     const locale = language === 'pt' ? 'pt-BR' : 'en-US';
-    
+
     if (active && payload && payload.length) {
         const formattedValue = new Intl.NumberFormat(locale).format(payload[0].value);
         return (
-            <div className="bg-white/95 backdrop-blur-sm p-3 border border-slate-200 shadow-lg rounded-lg text-sm z-50">
-                <p className="font-bold text-slate-800 mb-1">{label || payload[0].payload.name}</p>
-                <p className="text-blue-600 font-medium">
-                    {formattedValue} <span className="text-slate-500 text-xs">{t('dashboard.tooltips.records')}</span>
+            <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm p-3 border border-slate-200 dark:border-slate-700 shadow-lg rounded-lg text-sm z-50">
+                <p className="font-bold text-slate-800 dark:text-slate-100 mb-1">{label || payload[0].payload.name}</p>
+                <p className="text-blue-600 dark:text-blue-400 font-medium">
+                    {formattedValue} <span className="text-slate-500 dark:text-slate-400 text-xs">{t('dashboard.tooltips.records')}</span>
                 </p>
                 {payload[0].payload.id && (
-                    <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wide">
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-wide">
                         {t('dashboard.tooltips.clickToFilter')}
                     </p>
                 )}
@@ -74,16 +74,16 @@ const ChartCard: React.FC<{
 }> = ({ title, children, icon, isInteractive, isLoading, tooltip }) => {
     const { t } = useLanguage();
     return (
-        <div title={tooltip} className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-200/60 flex flex-col min-h-[480px] transition-all hover:shadow-xl hover:shadow-blue-500/5 group overflow-hidden cursor-help">
-            <div title={tooltip} className="flex items-center justify-between mb-8 border-b border-slate-50 pb-4 flex-shrink-0">
+        <div title={tooltip} className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] shadow-sm border border-slate-200/60 dark:border-slate-800 flex flex-col min-h-[480px] transition-all hover:shadow-xl hover:shadow-blue-500/5 group overflow-hidden cursor-help">
+            <div title={tooltip} className="flex items-center justify-between mb-8 border-b border-slate-50 dark:border-slate-800 pb-4 flex-shrink-0">
                 <div title={tooltip} className="flex items-center gap-3">
-                    <div className="p-2.5 bg-slate-50 rounded-xl text-slate-400 group-hover:text-blue-600 group-hover:bg-blue-50 transition-all">
+                    <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-400 dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-all">
                         {icon}
                     </div>
-                    <h3 title={tooltip} className="font-black text-slate-700 text-xs uppercase tracking-[0.2em]">{title}</h3>
+                    <h3 title={tooltip} className="font-black text-slate-700 dark:text-slate-200 text-xs uppercase tracking-[0.2em]">{title}</h3>
                 </div>
                 {isInteractive && (
-                    <div title={tooltip} className="opacity-0 group-hover:opacity-100 transition-all text-[10px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-full">
+                    <div title={tooltip} className="opacity-0 group-hover:opacity-100 transition-all text-[10px] font-black uppercase tracking-widest text-blue-500 dark:text-blue-400 flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-full">
                         <MousePointerClick size={12} strokeWidth={3} /> {t('common.filter')}
                     </div>
                 )}
@@ -211,7 +211,7 @@ export const Dashboard: React.FC = () => {
             cat: toChart(counts.cat, id => resolveTaxonomyName('failureCategories', id)),
             root: toChart(counts.root, id => translate6M(id, resolveTaxonomyName('rootCauseMs', id), t))
         };
-    }, [filteredRecords, taxonomy, assetMap, t]); 
+    }, [filteredRecords, taxonomy, assetMap, t]);
 
     const { status: dataStatus, type: dataType, equip: dataEquip, sub: dataSub, comp: dataComp, mode: dataMode, cat: dataCat, root: dataRootCause } = chartData;
 
@@ -241,10 +241,10 @@ export const Dashboard: React.FC = () => {
             {/* Cabeçalho */}
             <div className="flex justify-between items-end animate-in fade-in duration-1000 slide-in-from-top-4">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight font-display flex items-center gap-3">
-                        <Activity className="text-blue-600 w-10 h-10" /> {t('dashboard.title')}
+                    <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display flex items-center gap-3">
+                        <Activity className="text-blue-600 dark:text-blue-500 w-10 h-10" /> {t('dashboard.title')}
                     </h1>
-                    <p className="text-slate-500 mt-2 font-medium text-lg leading-relaxed">{t('dashboard.description')}</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium text-lg leading-relaxed">{t('dashboard.description')}</p>
                 </div>
             </div>
 
@@ -277,12 +277,12 @@ export const Dashboard: React.FC = () => {
             {/* Cartões de KPI */}
             <div ref={kpiRef as any} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {[
-                    { label: t('dashboard.kpi.durationMin'), value: totalDowntimeMin, icon: <Clock size={16} />, color: 'text-blue-600', bgColor: 'bg-blue-50', tooltip: t('dashboard.tooltips.durationMin') },
-                    { label: t('dashboard.kpi.durationHours'), value: Number(totalDowntimeHours.toFixed(1)), icon: <Clock size={16} />, color: 'text-indigo-600', bgColor: 'bg-indigo-50', tooltip: t('dashboard.tooltips.durationHours') },
-                    { label: t('dashboard.kpi.totalCost'), value: totalCost, icon: <TrendingUp size={16} />, color: 'text-emerald-600', bgColor: 'bg-emerald-50', prefix: language === 'pt' ? 'R$ ' : '$', tooltip: t('dashboard.tooltips.totalCost') },
-                    { label: t('dashboard.kpi.totalRcas'), value: filteredRecords.length, icon: <PieIcon size={16} />, color: 'text-slate-600', bgColor: 'bg-slate-50', tooltip: t('dashboard.tooltips.totalRcas') }
+                    { label: t('dashboard.kpi.durationMin'), value: totalDowntimeMin, icon: <Clock size={16} />, color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-50 dark:bg-blue-900/20', tooltip: t('dashboard.tooltips.durationMin') },
+                    { label: t('dashboard.kpi.durationHours'), value: Number(totalDowntimeHours.toFixed(1)), icon: <Clock size={16} />, color: 'text-indigo-600 dark:text-indigo-400', bgColor: 'bg-indigo-50 dark:bg-indigo-900/20', tooltip: t('dashboard.tooltips.durationHours') },
+                    { label: t('dashboard.kpi.totalCost'), value: totalCost, icon: <TrendingUp size={16} />, color: 'text-emerald-600 dark:text-emerald-400', bgColor: 'bg-emerald-50 dark:bg-emerald-900/20', prefix: language === 'pt' ? 'R$ ' : '$', tooltip: t('dashboard.tooltips.totalCost') },
+                    { label: t('dashboard.kpi.totalRcas'), value: filteredRecords.length, icon: <PieIcon size={16} />, color: 'text-slate-600 dark:text-slate-400', bgColor: 'bg-slate-50 dark:bg-slate-800', tooltip: t('dashboard.tooltips.totalRcas') }
                 ].map((kpi, i) => (
-                    <div key={i} title={kpi.tooltip} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200/60 relative overflow-hidden group hover:border-blue-300 hover:shadow-xl hover:shadow-blue-500/5 transition-all cursor-help pointer-events-auto">
+                    <div key={i} title={kpi.tooltip} className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-800 relative overflow-hidden group hover:border-blue-300 dark:hover:border-blue-700/50 hover:shadow-xl hover:shadow-blue-500/5 transition-all cursor-help pointer-events-auto">
                         <div title={kpi.tooltip} className={`flex items-center justify-between mb-6`}>
                             <div className={`p-3 ${kpi.bgColor} ${kpi.color} rounded-2xl shadow-sm transition-transform group-hover:scale-110 duration-300`}>
                                 {kpi.icon}
@@ -292,8 +292,8 @@ export const Dashboard: React.FC = () => {
                             </div>
                         </div>
                         <div title={kpi.tooltip} className="space-y-1">
-                            <div title={kpi.tooltip} className={`text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 group-hover:text-blue-600 transition-colors`}>{kpi.label}</div>
-                            <div title={kpi.tooltip} className="text-4xl font-black text-slate-900 relative z-10 whitespace-nowrap truncate leading-tight tracking-tighter">
+                            <div title={kpi.tooltip} className={`text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}>{kpi.label}</div>
+                            <div title={kpi.tooltip} className="text-4xl font-black text-slate-900 dark:text-white relative z-10 whitespace-nowrap truncate leading-tight tracking-tighter">
                                 {isLoading ? (
                                     <Skeleton className="h-12 w-3/4 rounded-lg" />
                                 ) : (
@@ -309,10 +309,10 @@ export const Dashboard: React.FC = () => {
 
             {/* Grade Principal de Gráficos */}
             <div ref={chartsRef as any} className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <ChartCard 
-                    title={t('dashboard.charts.totalByStatus')} 
-                    icon={<CheckCircle size={16} />} 
-                    isInteractive 
+                <ChartCard
+                    title={t('dashboard.charts.totalByStatus')}
+                    icon={<CheckCircle size={16} />}
+                    isInteractive
                     isLoading={isLoading}
                     tooltip={t('dashboard.tooltips.clickToFilter')}
                 >
@@ -351,9 +351,9 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard 
-                    title={t('dashboard.charts.totalByType')} 
-                    icon={<PieIcon size={16} />} 
+                <ChartCard
+                    title={t('dashboard.charts.totalByType')}
+                    icon={<PieIcon size={16} />}
                     isInteractive
                     tooltip={t('dashboard.tooltips.clickToFilter')}
                 >
@@ -388,9 +388,9 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard 
-                    title={t('dashboard.charts.rootCause6M')} 
-                    icon={<PieIcon size={16} />} 
+                <ChartCard
+                    title={t('dashboard.charts.rootCause6M')}
+                    icon={<PieIcon size={16} />}
                     isInteractive
                     tooltip={t('dashboard.tooltips.clickToFilter')}
                 >
@@ -429,9 +429,9 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard 
-                    title={t('dashboard.charts.topEquipments')} 
-                    icon={<TrendingUp size={16} />} 
+                <ChartCard
+                    title={t('dashboard.charts.topEquipments')}
+                    icon={<TrendingUp size={16} />}
                     isInteractive
                     tooltip={t('dashboard.tooltips.clickToFilter')}
                 >
@@ -452,9 +452,9 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard 
-                    title={t('dashboard.charts.topSubgroups')} 
-                    icon={<TrendingUp size={16} />} 
+                <ChartCard
+                    title={t('dashboard.charts.topSubgroups')}
+                    icon={<TrendingUp size={16} />}
                     isInteractive
                     tooltip={t('dashboard.tooltips.clickToFilter')}
                 >
@@ -475,9 +475,9 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard 
-                    title={t('dashboard.charts.totalByComponent')} 
-                    icon={<AlertCircle size={16} />} 
+                <ChartCard
+                    title={t('dashboard.charts.totalByComponent')}
+                    icon={<AlertCircle size={16} />}
                     isInteractive
                     tooltip={t('dashboard.tooltips.clickToFilter')}
                 >
@@ -502,9 +502,9 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard 
-                    title={t('dashboard.charts.failureMode')} 
-                    icon={<AlertCircle size={16} />} 
+                <ChartCard
+                    title={t('dashboard.charts.failureMode')}
+                    icon={<AlertCircle size={16} />}
                     isInteractive
                     tooltip={t('dashboard.tooltips.clickToFilter')}
                 >
@@ -525,9 +525,9 @@ export const Dashboard: React.FC = () => {
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
 
-                <ChartCard 
-                    title={t('dashboard.charts.failureCategory')} 
-                    icon={<Activity size={16} />} 
+                <ChartCard
+                    title={t('dashboard.charts.failureCategory')}
+                    icon={<Activity size={16} />}
                     isInteractive
                     tooltip={t('dashboard.tooltips.clickToFilter')}
                 >

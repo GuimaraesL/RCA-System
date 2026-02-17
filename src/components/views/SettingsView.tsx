@@ -4,11 +4,11 @@
  */
 
 import React, { useState, useMemo, useId } from 'react';
-import { 
-  Plus, Trash2, Edit2, Check, X, 
-  Settings as SettingsIcon, Lock, 
-  ClipboardList, Activity, Cpu, 
-  ShieldCheck, ChevronRight, 
+import {
+  Plus, Trash2, Edit2, Check, X,
+  Settings as SettingsIcon, Lock,
+  ClipboardList, Activity, Cpu,
+  ShieldCheck, ChevronRight,
   ListTree, AlertCircle
 } from 'lucide-react';
 import { useSettingsLogic } from '../../hooks/useSettingsLogic';
@@ -32,7 +32,7 @@ const ListManager: React.FC<{
   const [newItemName, setNewItemName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
-  const [deleteData, setDeleteData] = useState<{ id: string, name: string } | null>(null); 
+  const [deleteData, setDeleteData] = useState<{ id: string, name: string } | null>(null);
   const idPrefix = useId();
 
   const safeItems = Array.isArray(items) ? items : [];
@@ -55,21 +55,21 @@ const ListManager: React.FC<{
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-slate-200/60 flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-200">
-      <div className="px-8 py-5 border-b border-slate-100 bg-slate-50/50">
-        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{title}</h3>
+    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-200 dark:hover:border-blue-800">
+      <div className="px-8 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+        <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{title}</h3>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-3 p-6 custom-scrollbar">
         {safeItems.map((item) => (
-          <div key={item.id} className="flex items-center justify-between p-4 bg-white rounded-2xl group border border-slate-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-blue-100 hover:-translate-y-0.5">
+          <div key={item.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-2xl group border border-slate-100 dark:border-slate-700 shadow-sm transition-all duration-200 hover:shadow-md hover:border-blue-100 dark:hover:border-blue-800 hover:-translate-y-0.5">
             {editingId === item.id ? (
               <div className="flex-1 flex gap-3 items-center">
                 <input
                   id={`${idPrefix}-edit-${item.id}`}
                   name={`editInput_${item.id}`}
                   autoFocus
-                  className="flex-1 border-2 border-blue-400 rounded-xl px-4 py-2 text-sm outline-none bg-white text-slate-900 shadow-sm font-bold"
+                  className="flex-1 border-2 border-blue-400 rounded-xl px-4 py-2 text-sm outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm font-bold"
                   value={editValue}
                   onChange={(e) => setEditValue(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && saveEdit(item.id)}
@@ -82,8 +82,8 @@ const ListManager: React.FC<{
             ) : (
               <>
                 <div className="flex flex-col">
-                  <span className="text-sm text-slate-700 font-bold group-hover:text-blue-700 transition-colors">{item.name}</span>
-                  <span className="text-[10px] text-slate-400 font-mono flex items-center gap-1.5 mt-1 font-bold"><Lock size={10} className="opacity-50" /> {item.id}</span>
+                  <span className="text-sm text-slate-700 dark:text-slate-200 font-bold group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">{item.name}</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono flex items-center gap-1.5 mt-1 font-bold"><Lock size={10} className="opacity-50" /> {item.id}</span>
                 </div>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
                   <button type="button" aria-label={`${t('common.edit')} - ${item.name}`} onClick={() => startEdit(item.id, item.name)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Edit2 size={16} /></button>
@@ -94,14 +94,14 @@ const ListManager: React.FC<{
           </div>
         ))}
         {safeItems.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-slate-300 border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/30">
+          <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-[2rem] bg-slate-50/30 dark:bg-slate-800/30">
             <AlertCircle size={32} className="mb-4 opacity-20" />
             <span className="text-xs font-black uppercase tracking-widest">{t('settings.emptyList')}</span>
           </div>
         )}
       </div>
 
-      <div className="p-6 bg-slate-50 border-t border-slate-100 mt-auto">
+      <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 mt-auto">
         <div className="flex gap-3">
           <input
             id={`${idPrefix}-new-item`}
@@ -109,7 +109,7 @@ const ListManager: React.FC<{
             type="text"
             placeholder={t('settings.addItemPlaceholder')}
             aria-label={`${t('settings.addItemPlaceholder')} - ${title}`}
-            className="flex-1 border border-slate-200 rounded-xl px-5 py-3 text-sm outline-none bg-white text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm font-bold"
+            className="flex-1 border border-slate-200 dark:border-slate-700 rounded-xl px-5 py-3 text-sm outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm font-bold"
             value={newItemName}
             onChange={e => setNewItemName(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
@@ -178,7 +178,19 @@ export const SettingsView: React.FC = () => {
     { value: 'specialty_id', label: t('fields.specialty') },
     { value: 'failure_mode_id', label: t('fields.failureMode') },
     { value: 'failure_category_id', label: t('fields.failureCategory') },
-    { value: 'participants', label: t('fields.participants') }
+    { value: 'participants', label: t('fields.participants') },
+    // Novos campos (Issue #67)
+    { value: 'os_number', label: t('wizard.step1.osNumber') || 'Número da OS' },
+    { value: 'facilitator', label: t('wizard.step1.facilitator') || 'Facilitador' },
+    { value: 'start_date', label: t('wizard.step1.startDate') || 'Data de Início' },
+    { value: 'completion_date', label: t('wizard.step1.completionDate') || 'Data de Conclusão' },
+    { value: 'analysis_duration_minutes', label: t('wizard.step1.analysisDuration') || 'Duração da Análise' },
+    { value: 'downtime_minutes', label: t('wizard.step3.downtimeMinutes') || 'Tempo de Parada' },
+    { value: 'financial_impact', label: t('wizard.step3.financialImpact') || 'Impacto Financeiro' },
+    { value: 'potential_impacts', label: t('wizard.step2.potentialImpacts') || 'Impactos Potenciais' },
+    { value: 'quality_impacts', label: t('wizard.step2.qualityImpacts') || 'Impactos na Qualidade' },
+    { value: 'lessons_learned', label: t('wizard.step7.lessonsLearned') || 'Lições Aprendidas' },
+    { value: 'precision_maintenance', label: t('wizard.step6.title') || 'Checklist de Precisão' }
   ];
 
   const rcaConclusionFields = [
@@ -229,16 +241,16 @@ export const SettingsView: React.FC = () => {
   const activeCategoryLabel = categories.find(c => c.id === activeCategory)?.label;
 
   return (
-    <div className="h-full flex flex-col bg-slate-50/50 overflow-hidden">
+    <div className="h-full flex flex-col bg-slate-50/50 dark:bg-slate-950/50 overflow-hidden">
       {/* Header Compacto */}
-      <div className="px-10 py-8 flex items-center justify-between border-b border-slate-200/60 bg-white sticky top-0 z-10">
+      <div className="px-10 py-8 flex items-center justify-between border-b border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-10">
         <div className="flex items-center gap-5">
           <div className="p-3 bg-blue-600 shadow-xl shadow-blue-600/20 rounded-2xl text-white">
             <SettingsIcon size={26} />
           </div>
           <div>
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-black text-slate-900 font-display tracking-tight leading-tight uppercase italic">{t('settings.title')}</h1>
+              <h1 className="text-2xl font-black text-slate-900 dark:text-white font-display tracking-tight leading-tight uppercase italic">{t('settings.title')}</h1>
               {isSaving && (
                 <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100 animate-pulse">
                   <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" />
@@ -249,7 +261,7 @@ export const SettingsView: React.FC = () => {
             <p className="text-sm text-slate-400 font-bold mt-1 uppercase tracking-tight">{t('settings.description')}</p>
           </div>
         </div>
-        
+
         {/* Breadcrumb Visual */}
         <div className="hidden md:flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
           <span className="opacity-50">Configurações</span>
@@ -260,23 +272,22 @@ export const SettingsView: React.FC = () => {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar Interna */}
-        <aside className="w-80 border-r border-slate-200/60 bg-white p-8 flex flex-col gap-2 overflow-y-auto custom-scrollbar">
+        <aside className="w-80 border-r border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 flex flex-col gap-2 overflow-y-auto custom-scrollbar">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 px-4">Menu de Sistema</p>
           <div className="space-y-2">
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id as SettingsCategory)}
-                className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${
-                  activeCategory === cat.id 
-                    ? `${cat.bg} ${cat.color} shadow-lg shadow-blue-500/5 ring-1 ring-black/5 font-black scale-[1.02]` 
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                }`}
+                className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeCategory === cat.id
+                  ? `${cat.bg} ${cat.color} shadow-lg shadow-blue-500/5 ring-1 ring-black/5 font-black scale-[1.02]`
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
               >
-                <div className={`p-2 rounded-xl transition-colors ${activeCategory === cat.id ? 'bg-white shadow-sm' : 'bg-slate-100 group-hover:bg-white group-hover:shadow-sm'}`}>
+                <div className={`p-2 rounded-xl transition-colors ${activeCategory === cat.id ? 'bg-white dark:bg-slate-800 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/50 group-hover:bg-white dark:group-hover:bg-slate-800 group-hover:shadow-sm'}`}>
                   <cat.icon size={20} strokeWidth={2.5} />
                 </div>
-                <span className="text-sm truncate uppercase tracking-tight">{cat.label}</span>
+                <span className={`text-sm truncate uppercase tracking-tight ${activeCategory !== cat.id ? 'text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white' : ''}`}>{cat.label}</span>
                 {activeCategory === cat.id && (
                   <div className="ml-auto w-2 h-2 rounded-full bg-current shadow-[0_0_8px_currentColor]" />
                 )}
@@ -284,8 +295,8 @@ export const SettingsView: React.FC = () => {
             ))}
           </div>
 
-          <div className="mt-auto pt-8 border-t border-slate-100">
-            <div className="p-6 bg-slate-50 rounded-3xl border border-slate-200/60 relative overflow-hidden group">
+          <div className="mt-auto pt-8 border-t border-slate-100 dark:border-slate-800">
+            <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-200/60 dark:border-slate-700 relative overflow-hidden group">
               <div className="flex items-center gap-3 text-slate-700 mb-2 relative z-10">
                 <ListTree size={20} className="text-blue-600" />
                 <span className="text-xs font-black uppercase tracking-widest">Taxonomia</span>
@@ -299,9 +310,9 @@ export const SettingsView: React.FC = () => {
         </aside>
 
         {/* Área de Conteúdo Principal */}
-        <main className="flex-1 overflow-y-auto bg-slate-50/50 custom-scrollbar">
+        <main className="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-slate-950/50 custom-scrollbar">
           <div className="p-10 lg:p-16 max-w-7xl mx-auto animate-in fade-in slide-in-from-right-4 duration-700">
-            
+
             {(activeCategory === 'rca-taxonomy' || activeCategory === 'trigger-taxonomy' || activeCategory === 'components') && (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 pb-20">
                 {activeCategory === 'rca-taxonomy' && (

@@ -273,7 +273,11 @@ export const en: TranslationSchema = {
     },
     settings: {
         title: "System Settings",
-        description: "Manage classification lists with unique System IDs.",
+        description: "Configure taxonomy, lists and general parameters",
+        theme: "Theme",
+        themeLight: "Light Mode",
+        themeDark: "Dark Mode",
+        themeSystem: "System Preference",
         analysisTypes: "Analysis Types",
         analysisStatuses: "Analysis Statuses",
         triggerStatuses: "Trigger Statuses",

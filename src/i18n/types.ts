@@ -277,6 +277,10 @@ export interface TranslationSchema {
     settings: {
         title: string;
         description: string;
+        theme: string;
+        themeLight: string;
+        themeDark: string;
+        themeSystem: string;
         analysisTypes: string;
         analysisStatuses: string;
         triggerStatuses: string;

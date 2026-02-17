@@ -49,33 +49,33 @@ export const TriggersList: React.FC<TriggersListProps> = ({
     const { t, formatDate } = useLanguage();
 
     return (
-        <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-700 delay-200">
+        <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-700 delay-200">
             <div className="overflow-auto flex-1 custom-scrollbar">
-                <table className="w-full text-left text-[13px] text-slate-600 border-separate border-spacing-0">
-                    <thead className="bg-slate-50 text-slate-500 font-black border-b border-slate-100 sticky top-0 z-10">
+                <table className="w-full text-left text-[13px] text-slate-600 dark:text-slate-300 border-separate border-spacing-0">
+                    <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-black border-b border-slate-100 dark:border-slate-700 sticky top-0 z-10">
                         <tr>
-                            <SortHeader label={t('triggersPage.table.status')} sortKey="start_date" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                            <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                            <SortHeader label={t('table.date')} sortKey="start_date" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                            <SortHeader label={t('filters.area')} sortKey="area_id" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                            <SortHeader label={t('filters.equipment')} sortKey="equipment_id" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                            <SortHeader label={t('filters.subgroup')} sortKey="subgroup_id" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                            <SortHeader label={t('table.duration')} sortKey="duration_minutes" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                            <SortHeader label={t('triggersPage.table.typeReason')} sortKey="stop_type" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                            <SortHeader label={t('table.type')} sortKey="analysis_type_id" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                            <SortHeader label={t('table.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                            <SortHeader label={t('triggersPage.table.rcaLink')} sortKey="rca_id" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100" />
-                            <th className="px-6 py-5 text-right border-b border-slate-100 font-black text-[10px] uppercase tracking-widest text-slate-400">Ações</th>
+                            <SortHeader label={t('triggersPage.table.status')} sortKey="start_date" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                            <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                            <SortHeader label={t('table.date')} sortKey="start_date" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                            <SortHeader label={t('filters.area')} sortKey="area_id" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                            <SortHeader label={t('filters.equipment')} sortKey="equipment_id" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                            <SortHeader label={t('filters.subgroup')} sortKey="subgroup_id" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                            <SortHeader label={t('table.duration')} sortKey="duration_minutes" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                            <SortHeader label={t('triggersPage.table.typeReason')} sortKey="stop_type" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                            <SortHeader label={t('table.type')} sortKey="analysis_type_id" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                            <SortHeader label={t('table.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                            <SortHeader label={t('triggersPage.table.rcaLink')} sortKey="rca_id" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
+                            <th className="px-6 py-5 text-right border-b border-slate-100 dark:border-slate-700 font-black text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500">Ações</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50">
+                    <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                         {filteredTriggers.length === 0 && (
                             <tr>
-                                <td colSpan={12} className="p-20 text-center text-slate-400">
-                                    <div className="bg-slate-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                                <td colSpan={12} className="p-20 text-center text-slate-400 dark:text-slate-600">
+                                    <div className="bg-slate-50 dark:bg-slate-800 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
                                         <FileText size={40} className="opacity-20" />
                                     </div>
-                                    <p className="text-lg font-bold text-slate-300">{t('triggersPage.noTriggers')}</p>
+                                    <p className="text-lg font-bold text-slate-300 dark:text-slate-500">{t('triggersPage.noTriggers')}</p>
                                 </td>
                             </tr>
                         )}
@@ -91,7 +91,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                             return (
                                 <tr
                                     key={trigger.id}
-                                    className="hover:bg-blue-50/30 cursor-pointer transition-all group"
+                                    className="hover:bg-blue-50/30 dark:hover:bg-slate-800/50 cursor-pointer transition-all group border-b border-slate-50 dark:border-slate-800 last:border-0"
                                     onClick={() => onEdit(trigger)}
                                 >
                                     <td className="px-6 py-5 text-center">
@@ -104,22 +104,22 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                             {statusName}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-5 font-mono text-[11px] font-bold text-slate-400 whitespace-nowrap">{formatDate(trigger.start_date)}</td>
-                                    <td className="px-6 py-5 max-w-[150px] truncate font-bold text-slate-700" title={getAssetName(trigger.area_id, assets)}>{getAssetName(trigger.area_id, assets)}</td>
-                                    <td className="px-6 py-5 max-w-[150px] truncate font-bold text-slate-700" title={getAssetName(trigger.equipment_id, assets)}>{getAssetName(trigger.equipment_id, assets)}</td>
-                                    <td className="px-6 py-5 max-w-[150px] truncate font-bold text-slate-700" title={getAssetName(trigger.subgroup_id, assets)}>{getAssetName(trigger.subgroup_id, assets)}</td>
-                                    <td className="px-6 py-5 font-black text-slate-900 text-sm whitespace-nowrap">{trigger.duration_minutes} <span className="text-[10px] text-slate-400 font-bold tracking-widest">MIN</span></td>
+                                    <td className="px-6 py-5 font-mono text-[11px] font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap">{formatDate(trigger.start_date)}</td>
+                                    <td className="px-6 py-5 max-w-[150px] truncate font-bold text-slate-700 dark:text-slate-200" title={getAssetName(trigger.area_id, assets)}>{getAssetName(trigger.area_id, assets)}</td>
+                                    <td className="px-6 py-5 max-w-[150px] truncate font-bold text-slate-700 dark:text-slate-200" title={getAssetName(trigger.equipment_id, assets)}>{getAssetName(trigger.equipment_id, assets)}</td>
+                                    <td className="px-6 py-5 max-w-[150px] truncate font-bold text-slate-700 dark:text-slate-200" title={getAssetName(trigger.subgroup_id, assets)}>{getAssetName(trigger.subgroup_id, assets)}</td>
+                                    <td className="px-6 py-5 font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">{trigger.duration_minutes} <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold tracking-widest">MIN</span></td>
                                     <td className="px-6 py-5 max-w-[200px]">
-                                        <div className="font-black text-slate-800 uppercase text-[11px] tracking-tight">{trigger.stop_type}</div>
-                                        <div className="truncate text-xs text-slate-400 font-medium" title={trigger.stop_reason}>{trigger.stop_reason}</div>
+                                        <div className="font-black text-slate-800 dark:text-slate-100 uppercase text-[11px] tracking-tight">{trigger.stop_type}</div>
+                                        <div className="truncate text-xs text-slate-400 dark:text-slate-500 font-medium" title={trigger.stop_reason}>{trigger.stop_reason}</div>
                                     </td>
-                                    <td className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-tight">{analysisTypeName}</td>
-                                    <td className="px-6 py-5 text-xs font-medium text-slate-500">{trigger.responsible}</td>
+                                    <td className="px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">{analysisTypeName}</td>
+                                    <td className="px-6 py-5 text-xs font-medium text-slate-500 dark:text-slate-400">{trigger.responsible}</td>
                                     <td className="px-6 py-5">
                                         {trigger.rca_id ? (
                                             <div className="flex items-center gap-2">
                                                 <div
-                                                    className="flex items-center gap-2 text-blue-600 font-black text-[10px] uppercase tracking-widest bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg w-fit cursor-pointer hover:bg-blue-100 transition-all shadow-sm"
+                                                    className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-black text-[10px] uppercase tracking-widest bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 px-3 py-1.5 rounded-lg w-fit cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800 transition-all shadow-sm"
                                                     onClick={(e) => { e.stopPropagation(); onOpenRca(trigger.rca_id!); }}
                                                     title={t('triggersPage.tooltips.openRca')}
                                                 >
@@ -127,14 +127,14 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                                 </div>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onLinkRca(trigger); }}
-                                                    className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                    className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
                                                     title={t('triggersPage.tooltips.linkRca') || 'Trocar Vínculo'}
                                                 >
                                                     <Edit2 size={14} />
                                                 </button>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onUnlinkRca(trigger); }}
-                                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                                                    className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all"
                                                     title={t('common.remove') || 'Remover Vínculo'}
                                                 >
                                                     <X size={14} strokeWidth={3} />
@@ -142,12 +142,12 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                             </div>
                                         ) : (
                                             <div className="flex gap-2">
-                                                <button onClick={(e) => { e.stopPropagation(); onCreateRca(trigger); }} className="text-emerald-600 bg-emerald-50 border border-emerald-100 hover:bg-emerald-100 p-2 rounded-lg transition-all shadow-sm" title={t('triggersPage.tooltips.createRca')}>
+                                                <button onClick={(e) => { e.stopPropagation(); onCreateRca(trigger); }} className="text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-800 p-2 rounded-lg transition-all shadow-sm" title={t('triggersPage.tooltips.createRca')}>
                                                     <Plus size={16} strokeWidth={3} />
                                                 </button>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onLinkRca(trigger); }}
-                                                    className="text-slate-500 bg-white hover:bg-slate-50 border border-slate-200 p-2 rounded-lg transition-all shadow-sm"
+                                                    className="text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 p-2 rounded-lg transition-all shadow-sm"
                                                     title={t('triggersPage.tooltips.linkRca')}
                                                 >
                                                     <Link size={16} strokeWidth={2.5} />
@@ -157,8 +157,8 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                     </td>
                                     <td className="px-6 py-5 text-right">
                                         <div className="flex justify-end gap-2">
-                                            <button onClick={(e) => { e.stopPropagation(); onEdit(trigger); }} className="text-slate-300 hover:text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition-all"><Edit2 size={16} /></button>
-                                            <button onClick={(e) => { e.stopPropagation(); onDelete(trigger.id); }} className="text-slate-300 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition-all"><Trash2 size={16} /></button>
+                                            <button onClick={(e) => { e.stopPropagation(); onEdit(trigger); }} className="text-slate-300 dark:text-slate-600 hover:text-blue-600 dark:hover:text-blue-400 p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all"><Edit2 size={16} /></button>
+                                            <button onClick={(e) => { e.stopPropagation(); onDelete(trigger.id); }} className="text-slate-300 dark:text-slate-600 hover:text-rose-600 dark:hover:text-rose-400 p-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"><Trash2 size={16} /></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -169,15 +169,15 @@ export const TriggersList: React.FC<TriggersListProps> = ({
 
                 {/* Rodapé de Paginação */}
                 {filteredTriggers.length > 0 && (
-                    <div className="p-6 flex items-center justify-between border-t border-slate-100 bg-slate-50/50">
-                        <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                            {t('pagination.showing')} <span className="text-slate-900">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="text-slate-900">{Math.min(currentPage * itemsPerPage, filteredTriggers.length)}</span> {t('pagination.of')} <span className="text-slate-900">{filteredTriggers.length}</span>
+                    <div className="p-6 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                            {t('pagination.showing')} <span className="text-slate-900 dark:text-white">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="text-slate-900 dark:text-white">{Math.min(currentPage * itemsPerPage, filteredTriggers.length)}</span> {t('pagination.of')} <span className="text-slate-900 dark:text-white">{filteredTriggers.length}</span>
                         </div>
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                 disabled={currentPage === 1}
-                                className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
+                                className="px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 transition-all shadow-sm active:scale-95"
                                 title="←"
                             >
                                 {t('pagination.previous')}
@@ -185,7 +185,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                             <button
                                 onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredTriggers.length ? prev + 1 : prev))}
                                 disabled={currentPage * itemsPerPage >= filteredTriggers.length}
-                                className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
+                                className="px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 transition-all shadow-sm active:scale-95"
                                 title="→"
                             >
                                 {t('pagination.next')}

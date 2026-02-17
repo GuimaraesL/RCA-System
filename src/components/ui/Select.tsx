@@ -15,7 +15,7 @@ export const Select: React.FC<SelectProps> = ({ label, options, error, required,
     return (
         <div className="w-full">
             {label && (
-                <label 
+                <label
                     htmlFor={props.id}
                     className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-tight cursor-pointer"
                 >
@@ -26,11 +26,11 @@ export const Select: React.FC<SelectProps> = ({ label, options, error, required,
                 {...props}
                 value={props.value ?? ''}
                 className={`
-                    w-full px-3 py-2 bg-white border rounded-lg text-sm transition-all outline-none cursor-pointer
+                    w-full px-3 py-2 bg-white dark:bg-slate-900 border rounded-lg text-sm transition-all outline-none cursor-pointer
                     ${error
-                        ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-100'
-                        : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'}
-                    ${props.disabled ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'text-slate-900'}
+                        ? 'border-red-500 bg-red-50 dark:bg-red-900/10 focus:ring-2 focus:ring-red-100 dark:focus:ring-red-900/30'
+                        : 'border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/30'}
+                    ${props.disabled ? 'bg-slate-50 dark:bg-slate-800 text-slate-400 cursor-not-allowed' : 'text-slate-900 dark:text-slate-100'}
                     ${className}
                 `}
             >

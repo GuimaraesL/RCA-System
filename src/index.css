@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
 
 @theme {
   /* Brand Colors - Blue base (Primary) */
@@ -35,11 +36,69 @@
 }
 
 /* ============================================
+   Theme Custom Properties (Semantic Tokens)
+   ============================================ */
+:root {
+  --surface-primary: #ffffff;
+  --surface-secondary: #f8fafc;
+  --surface-elevated: #ffffff;
+  --surface-overlay: rgba(0, 0, 0, 0.5);
+  --surface-hover: #f1f5f9;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-inverted: #ffffff;
+
+  --border-primary: #e2e8f0;
+  --border-subtle: #f1f5f9;
+  --border-focus: #3b82f6;
+
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
+
+  --page-gradient: linear-gradient(to bottom right, #f8fafc, #f1f5f9, #eff6ff);
+
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+.dark {
+  --surface-primary: #0f172a;
+  --surface-secondary: #1e293b;
+  --surface-elevated: #1e293b;
+  --surface-overlay: rgba(0, 0, 0, 0.7);
+  --surface-hover: #334155;
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverted: #0f172a;
+
+  --border-primary: #334155;
+  --border-subtle: #1e293b;
+  --border-focus: #60a5fa;
+
+  --scrollbar-thumb: #475569;
+  --scrollbar-thumb-hover: #64748b;
+
+  --page-gradient: linear-gradient(to bottom right, #0f172a, #1e293b, #0f172a);
+
+  --glass-bg: rgba(15, 23, 42, 0.8);
+  --glass-border: rgba(30, 41, 59, 0.5);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
    Global Base Styles
    ============================================ */
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 font-sans antialiased;
+    background: var(--page-gradient);
+    color: var(--text-primary);
+    @apply font-sans antialiased;
+    transition: background 0.3s ease, color 0.3s ease;
   }
 
   h1,
@@ -48,7 +107,8 @@
   h4,
   h5,
   h6 {
-    @apply font-display tracking-tight text-slate-900;
+    color: var(--text-primary);
+    @apply font-display tracking-tight;
   }
 }
 
@@ -67,9 +127,16 @@
     @apply bg-primary-600 text-white hover:bg-primary-700 shadow-sm hover:shadow-md focus:ring-primary-500 border border-transparent;
   }
 
-  /* Variant: Secondary (White/Slate) */
+  /* Variant: Secondary */
   .btn-secondary {
-    @apply bg-white text-slate-700 hover:bg-slate-50 border border-slate-300 shadow-sm focus:ring-slate-500;
+    background: var(--surface-primary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-primary);
+    @apply shadow-sm;
+  }
+
+  .btn-secondary:hover {
+    background: var(--surface-hover);
   }
 
   /* Variant: Danger (Rose) */
@@ -77,9 +144,19 @@
     @apply bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 focus:ring-rose-500;
   }
 
+  .dark .btn-danger {
+    @apply bg-rose-950 text-rose-300 hover:bg-rose-900 border-rose-800;
+  }
+
   /* Variant: Ghost (Transparent) */
   .btn-ghost {
-    @apply bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+    color: var(--text-secondary);
+    @apply bg-transparent;
+  }
+
+  .btn-ghost:hover {
+    background: var(--surface-hover);
+    color: var(--text-primary);
   }
 
   /* Size Variants */
@@ -97,33 +174,60 @@
 
   /* Form Inputs */
   .input-base {
-    @apply w-full h-10 px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all disabled:bg-slate-50 disabled:text-slate-500;
+    background: var(--surface-primary);
+    border: 1px solid var(--border-primary);
+    color: var(--text-primary);
+    @apply w-full h-10 px-3 py-2 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all;
+  }
+
+  .input-base:disabled {
+    background: var(--surface-secondary);
+    color: var(--text-muted);
+  }
+
+  .dark .input-base::placeholder {
+    color: var(--text-muted);
   }
 
   .label-base {
-    @apply block text-sm font-medium text-slate-700 mb-1;
+    color: var(--text-secondary);
+    @apply block text-sm font-medium mb-1;
   }
 
   /* Cards */
   .card {
-    @apply bg-white border border-slate-200/60 rounded-xl shadow-sm p-6;
+    background: var(--surface-primary);
+    border: 1px solid var(--border-primary);
+    @apply rounded-xl shadow-sm p-6;
   }
 
   /* Tables */
   .table-container {
-    @apply w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm;
+    background: var(--surface-primary);
+    border: 1px solid var(--border-primary);
+    @apply w-full overflow-hidden rounded-lg shadow-sm;
   }
 
   .table-header {
-    @apply bg-slate-50 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200;
+    background: var(--surface-secondary);
+    border-bottom: 1px solid var(--border-primary);
+    color: var(--text-muted);
+    @apply text-left text-xs font-semibold uppercase tracking-wider;
   }
 
   .table-row {
-    @apply bg-white hover:bg-slate-50/50 border-b border-slate-100 last:border-0 transition-colors;
+    background: var(--surface-primary);
+    border-bottom: 1px solid var(--border-subtle);
+    @apply last:border-0 transition-colors;
+  }
+
+  .table-row:hover {
+    background: var(--surface-hover);
   }
 
   .table-cell {
-    @apply px-6 py-4 text-sm text-slate-900 whitespace-nowrap;
+    color: var(--text-primary);
+    @apply px-6 py-4 text-sm whitespace-nowrap;
   }
 }
 
@@ -132,9 +236,9 @@
    ============================================ */
 @utility glass {
   backdrop-filter: blur(12px);
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
 @utility glass-dark {
@@ -154,12 +258,23 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--scrollbar-thumb);
   border-radius: 9999px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #94a3b8;
+  background-color: var(--scrollbar-thumb-hover);
+}
+
+/* ============================================
+   Dark Mode Transition
+   ============================================ */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 0.2s;
+  transition-timing-function: ease-in-out;
 }

@@ -4,19 +4,19 @@
  */
 
 import React, { useState, useRef, useMemo, useId } from 'react';
-import { 
-  Upload, Download, FileSpreadsheet, Database, 
-  RefreshCw, CheckCircle, AlertTriangle, FileJson, 
-  Layers, Activity, ClipboardList, ChevronRight,
-  Info, ShieldCheck, Box, Settings, X, Check,
-  FileDown, FileUp, TableProperties
+import {
+    Upload, Download, FileSpreadsheet, Database,
+    RefreshCw, CheckCircle, AlertTriangle, FileJson,
+    Layers, Activity, ClipboardList, ChevronRight,
+    Info, ShieldCheck, Box, Settings, X, Check,
+    FileDown, FileUp, TableProperties
 } from 'lucide-react';
 import { importData, saveAssets, saveActions, saveRecords, saveTriggers, saveTaxonomy } from '../../services/storageService';
 import { fetchAllRecordsFull, importDataToApi, importRecordsToApi, importActionsToApi, importTriggersToApi, importAssetsToApi, importTaxonomyToApi } from '../../services/apiService';
 import { MigrationData, TaxonomyConfig } from '../../types';
 import { CsvEntityType, getCsvTemplate, exportToCsv as exportToCsvService, importFromCsv } from '../../services/csvService';
 import { useRcaContext } from '../../context/RcaContext';
-import { useLanguage } from '../../context/LanguageDefinition'; 
+import { useLanguage } from '../../context/LanguageDefinition';
 
 export const MigrationView: React.FC = () => {
     const { t } = useLanguage();
@@ -65,7 +65,7 @@ export const MigrationView: React.FC = () => {
     ], [t]);
 
     // ... (manter funções auxiliares readFileWithEncoding, downloadFile, handlers JSON/CSV)
-    
+
     /**
      * Lê um arquivo tratando problemas de codificação comuns no Excel/Windows.
      */
@@ -75,7 +75,7 @@ export const MigrationView: React.FC = () => {
 
             reader.onload = (e) => {
                 const content = e.target?.result as string;
-                if (content.includes('\uFFFD')) { 
+                if (content.includes('\uFFFD')) {
                     const retryReader = new FileReader();
                     retryReader.onload = (evt) => resolve(evt.target?.result as string);
                     retryReader.onerror = () => reject(retryReader.error);
@@ -202,20 +202,20 @@ export const MigrationView: React.FC = () => {
     const toggleTaxonomy = (key: string) => setTaxonomySelection(prev => ({ ...prev, [key]: !prev[key] }));
 
     return (
-        <div className="h-full flex flex-col bg-slate-50/50 overflow-hidden">
+        <div className="h-full flex flex-col bg-slate-50/50 dark:bg-black/20 overflow-hidden">
             {/* Header com Seletor de Abas Redesenhado */}
-            <div className="px-10 py-8 flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-slate-200/60 bg-white sticky top-0 z-10">
+            <div className="px-10 py-8 flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-10">
                 <div className="flex items-center gap-5">
                     <div className="p-3 bg-blue-600 shadow-xl shadow-blue-600/20 rounded-2xl text-white">
                         <Database size={26} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900 font-display tracking-tight leading-tight uppercase italic">{t('migration.title')}</h1>
-                        <p className="text-sm text-slate-400 font-bold mt-1 uppercase tracking-tight">{t('migration.description')}</p>
+                        <h1 className="text-2xl font-black text-slate-900 dark:text-white font-display tracking-tight leading-tight uppercase italic">{t('migration.title')}</h1>
+                        <p className="text-sm text-slate-400 dark:text-slate-500 font-bold mt-1 uppercase tracking-tight">{t('migration.description')}</p>
                     </div>
                 </div>
 
-                <div className="inline-flex p-1.5 bg-slate-100 rounded-2xl border border-slate-200/60 self-start md:self-auto shadow-inner">
+                <div className="inline-flex p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700 self-start md:self-auto shadow-inner">
                     {[
                         { id: 'JSON', label: t('migration.backup'), icon: FileJson },
                         { id: 'CSV', label: t('migration.csvTools'), icon: FileSpreadsheet }
@@ -223,11 +223,10 @@ export const MigrationView: React.FC = () => {
                         <button
                             key={tab.id}
                             onClick={() => { setActiveTab(tab.id as any); setMsg(null); }}
-                            className={`flex items-center gap-3 px-8 py-2.5 rounded-xl text-sm font-black transition-all duration-300 ${
-                                activeTab === tab.id 
-                                    ? 'bg-white text-blue-600 shadow-lg ring-1 ring-black/5' 
-                                    : 'text-slate-500 hover:text-slate-800 hover:bg-white/40'
-                            }`}
+                            className={`flex items-center gap-3 px-8 py-2.5 rounded-xl text-sm font-black transition-all duration-300 ${activeTab === tab.id
+                                    ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-lg ring-1 ring-black/5 dark:ring-white/5'
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-slate-700/50'
+                                }`}
                         >
                             <tab.icon size={18} className={activeTab === tab.id ? 'text-blue-600' : 'text-slate-400'} />
                             <span className="uppercase tracking-widest text-[11px]">{tab.label}</span>
@@ -238,15 +237,15 @@ export const MigrationView: React.FC = () => {
 
             <main className="flex-1 overflow-y-auto custom-scrollbar">
                 <div className="p-10 lg:p-16 max-w-[1600px] mx-auto animate-in fade-in pb-32 duration-700">
-                    
+
                     {/* Mensagens de Feedback */}
                     {msg && (
-                        <div className={`mb-10 p-6 rounded-3xl border-2 flex items-center gap-4 animate-in slide-in-from-top-4 duration-500 ${msg.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-xl shadow-emerald-500/5' : 'bg-rose-50 text-rose-700 border-rose-100 shadow-xl shadow-rose-500/5'}`}>
-                            <div className={`p-2 rounded-xl bg-white shadow-sm ${msg.type === 'success' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        <div className={`mb-10 p-6 rounded-3xl border-2 flex items-center gap-4 animate-in slide-in-from-top-4 duration-500 ${msg.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30 shadow-xl shadow-emerald-500/5' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-900/30 shadow-xl shadow-rose-500/5'}`}>
+                            <div className={`p-2 rounded-xl bg-white dark:bg-slate-900 shadow-sm ${msg.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                                 {msg.type === 'success' ? <CheckCircle size={24} /> : <AlertTriangle size={24} />}
                             </div>
                             <span className="text-base font-black tracking-tight">{msg.text}</span>
-                            <button onClick={() => setMsg(null)} className="ml-auto p-2 hover:bg-black/5 rounded-full transition-colors"><X size={20} /></button>
+                            <button onClick={() => setMsg(null)} className="ml-auto p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors"><X size={20} /></button>
                         </div>
                     )}
 
@@ -254,21 +253,21 @@ export const MigrationView: React.FC = () => {
                         <div className="space-y-12">
                             {!previewData && (
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                                    <div className="bg-white p-12 rounded-[3rem] border border-slate-200/60 shadow-sm text-center group hover:border-blue-300 hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-500 relative overflow-hidden">
-                                        <div className="absolute -top-10 -right-10 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform"><Upload size={240} /></div>
-                                        <div className="w-24 h-24 bg-blue-50 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-blue-600 group-hover:scale-110 transition-all duration-500 shadow-inner"><FileJson size={48} /></div>
-                                        <h3 className="text-3xl font-black mb-3 text-slate-900 tracking-tight font-display">{t('migration.restore')}</h3>
-                                        <p className="text-sm text-slate-400 font-bold mb-10 max-w-xs mx-auto leading-relaxed uppercase tracking-widest">{t('migration.json.dragDrop')}</p>
+                                    <div className="bg-white dark:bg-slate-900 p-12 rounded-[3rem] border border-slate-200/60 dark:border-slate-800 shadow-sm text-center group hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-500 relative overflow-hidden">
+                                        <div className="absolute -top-10 -right-10 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform"><Upload size={240} className="dark:text-white" /></div>
+                                        <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-all duration-500 shadow-inner"><FileJson size={48} /></div>
+                                        <h3 className="text-3xl font-black mb-3 text-slate-900 dark:text-white tracking-tight font-display">{t('migration.restore')}</h3>
+                                        <p className="text-sm text-slate-400 dark:text-slate-500 font-bold mb-10 max-w-xs mx-auto leading-relaxed uppercase tracking-widest">{t('migration.json.dragDrop')}</p>
                                         <div className="relative inline-block">
                                             <input type="file" ref={jsonInputRef} onChange={handleJsonFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".json" />
                                             <button className="bg-blue-600 text-white font-black py-4 px-12 rounded-2xl shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all pointer-events-none active:scale-95 uppercase tracking-widest text-xs">{t('migration.json.selectButton')}</button>
                                         </div>
                                     </div>
-                                    <div className="bg-white p-12 rounded-[3rem] border border-slate-200/60 shadow-sm text-center group hover:border-cyan-300 hover:shadow-2xl hover:shadow-cyan-500/5 transition-all duration-500 relative overflow-hidden">
-                                        <div className="absolute -top-10 -right-10 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform"><Download size={240} /></div>
-                                        <div className="w-24 h-24 bg-cyan-50 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-cyan-600 group-hover:scale-110 transition-all duration-500 shadow-inner"><Database size={48} /></div>
-                                        <h3 className="text-3xl font-black mb-3 text-slate-900 tracking-tight font-display">{t('migration.json.createBackup')}</h3>
-                                        <p className="text-sm text-slate-400 font-bold mb-10 max-w-xs mx-auto leading-relaxed uppercase tracking-widest">Gere um arquivo integral contendo Ativos, RCAs, Ações e Taxonomia.</p>
+                                    <div className="bg-white dark:bg-slate-900 p-12 rounded-[3rem] border border-slate-200/60 dark:border-slate-800 shadow-sm text-center group hover:border-cyan-300 dark:hover:border-cyan-700 hover:shadow-2xl hover:shadow-cyan-500/5 transition-all duration-500 relative overflow-hidden">
+                                        <div className="absolute -top-10 -right-10 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform"><Download size={240} className="dark:text-white" /></div>
+                                        <div className="w-24 h-24 bg-cyan-50 dark:bg-cyan-900/20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-cyan-600 dark:text-cyan-400 group-hover:scale-110 transition-all duration-500 shadow-inner"><Database size={48} /></div>
+                                        <h3 className="text-3xl font-black mb-3 text-slate-900 dark:text-white tracking-tight font-display">{t('migration.json.createBackup')}</h3>
+                                        <p className="text-sm text-slate-400 dark:text-slate-500 font-bold mb-10 max-w-xs mx-auto leading-relaxed uppercase tracking-widest">Gere um arquivo integral contendo Ativos, RCAs, Ações e Taxonomia.</p>
                                         <button onClick={handleJsonDownload} className="bg-cyan-600 text-white font-black py-4 px-12 rounded-2xl shadow-xl shadow-cyan-600/20 hover:bg-cyan-700 transition-all active:scale-95 uppercase tracking-widest text-xs">{t('migration.json.downloadButton')}</button>
                                     </div>
                                 </div>
@@ -276,16 +275,16 @@ export const MigrationView: React.FC = () => {
 
                             {previewData && (
                                 <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-                                    <div className="bg-white rounded-[3rem] border border-slate-200/60 shadow-2xl overflow-hidden">
-                                        <div className="bg-slate-50/50 p-10 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                                    <div className="bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-200/60 dark:border-slate-800 shadow-2xl overflow-hidden">
+                                        <div className="bg-slate-50/50 dark:bg-slate-800/50 p-10 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
                                             <div className="flex items-center gap-6">
-                                                <div className="p-5 bg-white rounded-3xl shadow-lg text-blue-600 border border-slate-100"><ClipboardList size={40} /></div>
+                                                <div className="p-5 bg-white dark:bg-slate-800 rounded-3xl shadow-lg text-blue-600 dark:text-blue-400 border border-slate-100 dark:border-slate-700"><ClipboardList size={40} /></div>
                                                 <div>
-                                                    <h3 className="text-2xl font-black text-slate-900 tracking-tight font-display uppercase italic">{t('migration.importConfig')}</h3>
-                                                    <p className="text-xs text-slate-400 font-black uppercase tracking-[0.2em] mt-1">Schema: <span className="text-blue-600">{previewData.metadata?.systemVersion || '17.0'}</span> • Gerado em {new Date(previewData.metadata?.exportDate).toLocaleDateString()}</p>
+                                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight font-display uppercase italic">{t('migration.importConfig')}</h3>
+                                                    <p className="text-xs text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em] mt-1">Schema: <span className="text-blue-600 dark:text-blue-400">{previewData.metadata?.systemVersion || '17.0'}</span> • Gerado em {new Date(previewData.metadata?.exportDate).toLocaleDateString()}</p>
                                                 </div>
                                             </div>
-                                            <button onClick={() => { setPreviewData(null); if (jsonInputRef.current) jsonInputRef.current.value = ''; }} className="px-6 py-3 bg-rose-50 text-rose-600 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-rose-100 transition-all flex items-center gap-2 border border-rose-100 shadow-sm"><X size={18} strokeWidth={3} /> {t('migration.json.changeFile')}</button>
+                                            <button onClick={() => { setPreviewData(null); if (jsonInputRef.current) jsonInputRef.current.value = ''; }} className="px-6 py-3 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-all flex items-center gap-2 border border-rose-100 dark:border-rose-900/30 shadow-sm"><X size={18} strokeWidth={3} /> {t('migration.json.changeFile')}</button>
                                         </div>
                                         <div className="p-12 space-y-16">
                                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
@@ -295,10 +294,10 @@ export const MigrationView: React.FC = () => {
                                                     { label: 'Eventos Gatilho', count: previewData.triggers?.length || 0, icon: Activity, color: 'text-amber-600', bg: 'bg-amber-50' },
                                                     { label: 'Nós de Ativos', count: previewData.assets?.length || 0, icon: Layers, color: 'text-cyan-600', bg: 'bg-cyan-50' },
                                                 ].map((item, i) => (
-                                                    <div key={i} className="p-8 rounded-[2rem] bg-slate-50/30 border border-slate-100 flex flex-col gap-2 transition-all hover:bg-white hover:shadow-xl hover:shadow-blue-500/5 hover:border-slate-200 group">
-                                                        <div className={`w-12 h-12 ${item.bg} ${item.color} rounded-2xl flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform`}><item.icon size={24} strokeWidth={2.5} /></div>
-                                                        <span className="text-4xl font-black text-slate-900 tracking-tighter">{item.count}</span>
-                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{item.label}</span>
+                                                    <div key={i} className="p-8 rounded-[2rem] bg-slate-50/30 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800 flex flex-col gap-2 transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl hover:shadow-blue-500/5 hover:border-slate-200 dark:hover:border-slate-700 group">
+                                                        <div className={`w-12 h-12 ${item.bg} dark:bg-opacity-20 ${item.color} dark:text-opacity-80 rounded-2xl flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform`}><item.icon size={24} strokeWidth={2.5} /></div>
+                                                        <span className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">{item.count}</span>
+                                                        <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{item.label}</span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -357,14 +356,14 @@ export const MigrationView: React.FC = () => {
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
                             {/* Coluna de Configuração CSV */}
                             <div className="lg:col-span-7 space-y-10">
-                                <div className="bg-white p-10 lg:p-12 rounded-[3rem] border border-slate-200/60 shadow-sm h-full">
-                                    <div className="flex items-center gap-5 mb-10 border-b border-slate-100 pb-6">
-                                        <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl shadow-sm border border-emerald-100">
+                                <div className="bg-white dark:bg-slate-900 p-10 lg:p-12 rounded-[3rem] border border-slate-200/60 dark:border-slate-800 shadow-sm h-full">
+                                    <div className="flex items-center gap-5 mb-10 border-b border-slate-100 dark:border-slate-800 pb-6">
+                                        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-2xl shadow-sm border border-emerald-100 dark:border-emerald-900/30">
                                             <FileSpreadsheet size={28} />
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl font-black text-slate-900 tracking-tight font-display uppercase italic">{t('migration.csvTools')}</h3>
-                                            <p className="text-xs text-slate-400 font-black uppercase tracking-widest mt-1">Configurações de Entidade e Lógica</p>
+                                            <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight font-display uppercase italic">{t('migration.csvTools')}</h3>
+                                            <p className="text-xs text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest mt-1">Configurações de Entidade e Lógica</p>
                                         </div>
                                     </div>
 
@@ -379,16 +378,15 @@ export const MigrationView: React.FC = () => {
                                                     <button
                                                         key={opt.value}
                                                         onClick={() => { setCsvType(opt.value); setMsg(null); }}
-                                                        className={`flex items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-300 text-left group ${
-                                                            csvType === opt.value 
-                                                                ? 'bg-white border-blue-600 shadow-xl shadow-blue-500/5 ring-4 ring-blue-500/5' 
-                                                                : 'bg-slate-50/30 border-transparent hover:border-slate-200 hover:bg-white'
-                                                        }`}
+                                                        className={`flex items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-300 text-left group ${csvType === opt.value
+                                                                ? 'bg-white dark:bg-slate-800 border-blue-600 dark:border-blue-500 shadow-xl shadow-blue-500/5 ring-4 ring-blue-500/5'
+                                                                : 'bg-slate-50/30 dark:bg-slate-800/30 border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-800'
+                                                            }`}
                                                     >
-                                                        <div className={`p-3 rounded-xl transition-all duration-300 ${csvType === opt.value ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-slate-400 group-hover:text-blue-500 shadow-sm'}`}>
+                                                        <div className={`p-3 rounded-xl transition-all duration-300 ${csvType === opt.value ? 'bg-blue-600 text-white shadow-lg' : 'bg-white dark:bg-slate-900 text-slate-400 group-hover:text-blue-500 shadow-sm'}`}>
                                                             <opt.icon size={20} strokeWidth={2.5} />
                                                         </div>
-                                                        <span className={`text-xs font-black uppercase tracking-tight ${csvType === opt.value ? 'text-slate-900' : 'text-slate-500'}`}>{opt.label}</span>
+                                                        <span className={`text-xs font-black uppercase tracking-tight ${csvType === opt.value ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>{opt.label}</span>
                                                         {csvType === opt.value && <div className="ml-auto w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.5)]" />}
                                                     </button>
                                                 ))}
@@ -396,8 +394,8 @@ export const MigrationView: React.FC = () => {
                                         </div>
 
                                         {/* Modo de Importação CSV Redesenhado */}
-                                        <div className="p-8 rounded-[2.5rem] bg-slate-50/50 border border-slate-100 space-y-8">
-                                            <div className="flex items-center gap-3 text-slate-800">
+                                        <div className="p-8 rounded-[2.5rem] bg-slate-50/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-8">
+                                            <div className="flex items-center gap-3 text-slate-800 dark:text-slate-200">
                                                 <Settings size={18} className="text-slate-400" />
                                                 <h4 className="text-[10px] font-black uppercase tracking-widest">{t('migration.csv.importOptions')}</h4>
                                             </div>
@@ -410,11 +408,10 @@ export const MigrationView: React.FC = () => {
                                                     <button
                                                         key={mode.id}
                                                         onClick={() => setImportMode(mode.id as any)}
-                                                        className={`p-5 rounded-2xl border-2 text-left transition-all duration-500 ${
-                                                            (importMode === mode.id || (mode.id === 'APPEND' && importMode === 'REPLACE'))
-                                                                ? `bg-white border-${mode.color}-500 shadow-xl ring-4 ring-${mode.color}-500/5` 
-                                                                : 'bg-transparent border-slate-100 hover:border-slate-200'
-                                                        }`}
+                                                        className={`p-5 rounded-2xl border-2 text-left transition-all duration-500 ${(importMode === mode.id || (mode.id === 'APPEND' && importMode === 'REPLACE'))
+                                                                ? `bg-white dark:bg-slate-800 border-${mode.color}-500 shadow-xl ring-4 ring-${mode.color}-500/5`
+                                                                : 'bg-transparent border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'
+                                                            }`}
                                                     >
                                                         <div className="flex items-center gap-3 mb-2">
                                                             <mode.icon size={16} strokeWidth={3} className={importMode === mode.id ? `text-${mode.color}-600` : 'text-slate-400'} />
@@ -450,33 +447,33 @@ export const MigrationView: React.FC = () => {
                             {/* Coluna de Ações de Arquivo CSV */}
                             <div className="lg:col-span-5 space-y-8">
                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 px-2">Ações de Arquivo</label>
-                                
-                                <div className="bg-white rounded-[3rem] border border-slate-200/60 shadow-sm overflow-hidden group/actions">
+
+                                <div className="bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-200/60 dark:border-slate-800 shadow-sm overflow-hidden group/actions">
                                     <div className="p-10 space-y-6">
                                         <button
                                             onClick={handleDownloadTemplate}
-                                            className="w-full flex items-center gap-5 p-6 bg-slate-50/50 border border-slate-100 rounded-[2rem] hover:bg-white hover:shadow-2xl hover:shadow-blue-500/5 hover:border-blue-200 transition-all group text-left"
+                                            className="w-full flex items-center gap-5 p-6 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-[2rem] hover:bg-white dark:hover:bg-slate-800 hover:shadow-2xl hover:shadow-blue-500/5 hover:border-blue-200 dark:hover:border-blue-900 transition-all group text-left"
                                         >
-                                            <div className="p-4 bg-white rounded-2xl shadow-sm text-slate-400 group-hover:text-blue-600 group-hover:scale-110 transition-all border border-slate-50">
+                                            <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm text-slate-400 group-hover:text-blue-600 group-hover:scale-110 transition-all border border-slate-50 dark:border-slate-700">
                                                 <FileDown size={28} />
                                             </div>
                                             <div className="flex-1">
-                                                <span className="block font-black text-slate-800 text-sm uppercase tracking-tight">{t('migration.downloadTemplate')}</span>
-                                                <span className="text-[10px] text-slate-400 uppercase font-black tracking-[0.15em] mt-1 block">Obter modelo estruturado</span>
+                                                <span className="block font-black text-slate-800 dark:text-white text-sm uppercase tracking-tight">{t('migration.downloadTemplate')}</span>
+                                                <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-[0.15em] mt-1 block">Obter modelo estruturado</span>
                                             </div>
                                             <ChevronRight size={20} className="text-slate-300 group-hover:translate-x-2 transition-transform" strokeWidth={3} />
                                         </button>
 
                                         <button
                                             onClick={handleCsvExport}
-                                            className="w-full flex items-center gap-5 p-6 bg-slate-50/50 border border-slate-100 rounded-[2rem] hover:bg-white hover:shadow-2xl hover:shadow-emerald-500/5 hover:border-emerald-200 transition-all group text-left"
+                                            className="w-full flex items-center gap-5 p-6 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-[2rem] hover:bg-white dark:hover:bg-slate-800 hover:shadow-2xl hover:shadow-emerald-500/5 hover:border-emerald-200 dark:hover:border-emerald-900 transition-all group text-left"
                                         >
-                                            <div className="p-4 bg-white rounded-2xl shadow-sm text-slate-400 group-hover:text-emerald-600 group-hover:scale-110 transition-all border border-slate-50">
+                                            <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm text-slate-400 group-hover:text-emerald-600 group-hover:scale-110 transition-all border border-slate-50 dark:border-slate-700">
                                                 <Download size={28} />
                                             </div>
                                             <div className="flex-1">
-                                                <span className="block font-black text-slate-800 text-sm uppercase tracking-tight">{t('migration.exportData')}</span>
-                                                <span className="text-[10px] text-slate-400 uppercase font-black tracking-[0.15em] mt-1 block">Baixar dados existentes</span>
+                                                <span className="block font-black text-slate-800 dark:text-white text-sm uppercase tracking-tight">{t('migration.exportData')}</span>
+                                                <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-[0.15em] mt-1 block">Baixar dados existentes</span>
                                             </div>
                                             <ChevronRight size={20} className="text-slate-300 group-hover:translate-x-2 transition-transform" strokeWidth={3} />
                                         </button>
@@ -503,9 +500,9 @@ export const MigrationView: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <div className="bg-slate-50 p-8 border-t border-slate-100 flex gap-4">
-                                        <div className="p-2 bg-white rounded-lg shadow-sm text-slate-400"><Info size={18} /></div>
-                                        <p className="text-[11px] text-slate-500 leading-relaxed font-bold uppercase tracking-tight">
+                                    <div className="bg-slate-50 dark:bg-slate-800 p-8 border-t border-slate-100 dark:border-slate-800 flex gap-4">
+                                        <div className="p-2 bg-white dark:bg-slate-900 rounded-lg shadow-sm text-slate-400"><Info size={18} /></div>
+                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-bold uppercase tracking-tight">
                                             Nota: Utilize codificação UTF-8 e separador ponto e vírgula (;) para máxima compatibilidade com Excel.
                                         </p>
                                     </div>

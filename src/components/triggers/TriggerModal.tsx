@@ -119,19 +119,19 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
     const hasAssetError = localErrors.area_id || localErrors.equipment_id || localErrors.subgroup_id;
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 bg-slate-900/60 dark:bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
             <div
                 data-testid="modal-trigger"
-                className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-200 animate-scale-in"
+                className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-200 dark:border-slate-800 animate-scale-in"
             >
-                <div className="px-8 py-6 border-b border-slate-100 bg-white flex justify-between items-center flex-shrink-0">
-                    <h3 className="font-black text-xl text-slate-900 font-display tracking-tight uppercase italic">{t('triggerModal.title')}</h3>
-                    <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-50 rounded-full text-slate-400 transition-colors">
+                <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-between items-center flex-shrink-0">
+                    <h3 className="font-black text-xl text-slate-900 dark:text-white font-display tracking-tight uppercase italic">{t('triggerModal.title')}</h3>
+                    <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full text-slate-400 transition-colors">
                         <X size={20} />
                     </button>
                 </div>
 
-                <div className="p-8 space-y-8 overflow-y-auto custom-scrollbar flex-1 bg-slate-50/30">
+                <div className="p-8 space-y-8 overflow-y-auto custom-scrollbar flex-1 bg-slate-50/30 dark:bg-slate-950/30">
                     {/* Dates */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
@@ -156,15 +156,15 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
 
                     {/* Technical Location (Asset Tree) */}
                     <div className="space-y-4">
-                        <span id={`${idPrefix}-asset-label`} className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <span id={`${idPrefix}-asset-label`} className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                             {t('wizard.step1.assetSelectorLabel')}
                             {(isRequired('area_id') || isRequired('equipment_id') || isRequired('subgroup_id')) && <span className="text-rose-500 ml-1">*</span>}
                         </span>
                         <div
                             aria-labelledby={`${idPrefix}-asset-label`}
                             className={`p-1 rounded-[1.5rem] border-2 transition-all ${hasAssetError
-                                ? 'border-rose-300 ring-4 ring-rose-50'
-                                : 'border-slate-100 bg-white'
+                                ? 'border-rose-300 ring-4 ring-rose-50 dark:ring-rose-900/20'
+                                : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900'
                                 }`}>
                             <AssetSelector
                                 assets={assets}
@@ -175,18 +175,18 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                         </div>
                         {hasAssetError && <span className="text-xs text-rose-500 font-bold block animate-in fade-in flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-rose-500"></span>{t('common.requiredField')}</span>}
 
-                        <div className="p-5 bg-white rounded-2xl border border-slate-200 text-sm text-slate-600 space-y-3 shadow-inner">
-                            <div className="flex justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
-                                <strong className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.area')}:</strong>
-                                <span className="font-black text-slate-900">{getAssetName(editingTrigger.area_id, assets) || '-'}</span>
+                        <div className="p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-400 space-y-3 shadow-inner">
+                            <div className="flex justify-between border-b border-slate-50 dark:border-slate-800 pb-2 last:border-0 last:pb-0">
+                                <strong className="text-slate-400 dark:text-slate-500 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.area')}:</strong>
+                                <span className="font-black text-slate-900 dark:text-white">{getAssetName(editingTrigger.area_id, assets) || '-'}</span>
                             </div>
-                            <div className="flex justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
-                                <strong className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.equipment')}:</strong>
-                                <span className="font-black text-slate-900">{getAssetName(editingTrigger.equipment_id, assets) || '-'}</span>
+                            <div className="flex justify-between border-b border-slate-50 dark:border-slate-800 pb-2 last:border-0 last:pb-0">
+                                <strong className="text-slate-400 dark:text-slate-500 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.equipment')}:</strong>
+                                <span className="font-black text-slate-900 dark:text-white">{getAssetName(editingTrigger.equipment_id, assets) || '-'}</span>
                             </div>
-                            <div className="flex justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
-                                <strong className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.subgroup')}:</strong>
-                                <span className="font-black text-slate-900">{getAssetName(editingTrigger.subgroup_id, assets) || '-'}</span>
+                            <div className="flex justify-between border-b border-slate-50 dark:border-slate-800 pb-2 last:border-0 last:pb-0">
+                                <strong className="text-slate-400 dark:text-slate-500 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.subgroup')}:</strong>
+                                <span className="font-black text-slate-900 dark:text-white">{getAssetName(editingTrigger.subgroup_id, assets) || '-'}</span>
                             </div>
                         </div>
                     </div>
@@ -252,11 +252,11 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                     />
                 </div>
 
-                <div className="px-8 py-6 border-t border-slate-100 bg-white flex justify-end gap-4 flex-shrink-0">
+                <div className="px-8 py-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-end gap-4 flex-shrink-0">
                     <button
                         onClick={() => setIsModalOpen(false)}
                         data-testid="btn-cancel-trigger"
-                        className="px-8 py-3 text-slate-500 font-black uppercase tracking-widest text-[11px] hover:bg-slate-50 rounded-2xl transition-all border border-transparent hover:border-slate-200"
+                        className="px-8 py-3 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest text-[11px] hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
                         title="Esc"
                     >
                         {t('triggerModal.cancel')}

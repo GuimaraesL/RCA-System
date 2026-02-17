@@ -125,8 +125,8 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
             {/* Cabeçalho */}
             <div className="flex justify-between items-end flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-700">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 font-display tracking-tight">{t('triggersPage.title')}</h1>
-                    <p className="text-slate-500 mt-2 font-medium">{t('triggersPage.manageDowntime')}</p>
+                    <h1 className="text-4xl font-black text-slate-900 dark:text-white font-display tracking-tight">{t('triggersPage.title')}</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">{t('triggersPage.manageDowntime')}</p>
                 </div>
                 <button onClick={handleNew} accessKey="g" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95" title="Alt+G">
                     <Plus size={20} strokeWidth={3} /><ShortcutLabel text={t('triggersPage.newTrigger')} shortcutLetter="G" />
@@ -180,7 +180,7 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                 />
             </div>
 
-            <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-1000 delay-200">
+            <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-1000 delay-200">
                 <TriggersList
                     filteredTriggers={filteredTriggers}
                     currentPage={currentPage}
@@ -214,7 +214,7 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
 
             {
                 linkModalOpen && triggerToLink && (
-                    <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="fixed inset-0 bg-slate-900/60 dark:bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
                         <div className="w-full max-w-6xl animate-in zoom-in-95 duration-300">
                             <RcaSelector
                                 records={records}

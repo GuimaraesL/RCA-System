@@ -1,6 +1,4 @@
-
-import fs from 'fs';
-import path from 'path';/**
+/**
  * Proposta: Reparar o banco de dados SQL através do reprocessamento do arquivo JSON consolidado da V17.
  * Fluxo: Limpa tabelas existentes -> Carrega JSON de migração -> Insere RCAs preservando UUIDs -> Insere Ações vinculadas -> Commit da transação.
  */
@@ -45,7 +43,7 @@ async function repair() {
     try {
         for (const r of records) {
             // O repositório lida com o mapeamento e salvamento
-            await rcaRepo.save(r); 
+            await rcaRepo.save(r);
             rcaCount++;
         }
         console.log(`✅ RCAs Inseridas: ${rcaCount}`);
