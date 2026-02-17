@@ -2,6 +2,10 @@
  * Proposta: Controlador HTTP para gestão de Gatilhos (Triggers) de parada.
  * Fluxo: Disponibiliza endpoints CRUD para manipulação de gatilhos, delegando a lógica de negócio e persistência ao TriggerService.
  */
+/**
+ * Proposta: Controlador HTTP para gestão de Gatilhos (Triggers) de parada.
+ * Fluxo: Disponibiliza endpoints CRUD para manipulação de gatilhos, delegando a lógica de negócio e persistência ao TriggerService.
+ */
 
 import { Request, Response } from 'express';
 import { TriggerService } from '../../domain/services/TriggerService';

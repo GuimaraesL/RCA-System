@@ -2,6 +2,10 @@
  * Proposta: Controlador HTTP para gestão de Planos de Ação (CAPA).
  * Fluxo: Recebe requisições REST e delega a lógica de persistência e recálculo de status para o ActionService.
  */
+/**
+ * Proposta: Controlador HTTP para gestão de Planos de Ação (CAPA).
+ * Fluxo: Recebe requisições REST e delega a lógica de persistência e recálculo de status para o ActionService.
+ */
 
 import { Request, Response } from 'express';
 import { ActionService } from '../../domain/services/ActionService';

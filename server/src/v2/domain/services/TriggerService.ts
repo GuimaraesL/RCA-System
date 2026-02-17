@@ -1,4 +1,10 @@
+/**
+ * Proposta: Serviço de domínio para gestão de Gatilhos (Triggers).
+ * Fluxo: Gerencia o ciclo de vida dos gatilhos, provendo métodos para criação (com UUID), atualização e importação em massa.
+ */
+
 import { SqlTriggerRepository } from '../../infrastructure/repositories/SqlTriggerRepository';
+
 import { Trigger } from '../types/RcaTypes';
 import { randomUUID } from 'crypto';
 

@@ -2,6 +2,10 @@
  * Proposta: Controlador HTTP para gestão da árvore de Ativos Técnicos.
  * Fluxo: Disponibiliza endpoints para consulta da hierarquia (Tree) e listagem plana (Flat), além de operações CRUD delegadas ao AssetService.
  */
+/**
+ * Proposta: Controlador HTTP para gestão da árvore de Ativos Técnicos.
+ * Fluxo: Disponibiliza endpoints para consulta da hierarquia (Tree) e listagem plana (Flat), além de operações CRUD delegadas ao AssetService.
+ */
 
 import { Request, Response } from 'express';
 import { AssetService } from '../../domain/services/AssetService';

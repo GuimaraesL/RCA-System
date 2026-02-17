@@ -2,6 +2,10 @@
  * Proposta: Controlador HTTP para gestão da Taxonomia e Configurações Globais.
  * Fluxo: Disponibiliza endpoints para leitura e atualização do objeto central de taxonomia, delegando a persistência ao TaxonomyService.
  */
+/**
+ * Proposta: Controlador HTTP para gestão da Taxonomia e Configurações Globais.
+ * Fluxo: Disponibiliza endpoints para leitura e atualização do objeto central de taxonomia, delegando a persistência ao TaxonomyService.
+ */
 
 import { Request, Response } from 'express';
 import { TaxonomyService } from '../../domain/services/TaxonomyService';
