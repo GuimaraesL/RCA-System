@@ -289,6 +289,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                         type="text"
                                         id={`${idPrefix}-search`}
                                         name="filter_search"
+                                        data-shortcut-search
                                         placeholder={t('filters.searchPlaceholder')}
                                         className="w-full pl-4 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder-slate-400 font-medium"
                                         value={localSearch}
@@ -328,8 +329,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                                     key={m.id}
                                                     onClick={() => isAvailable && toggleMonth(m.id)}
                                                     disabled={!isAvailable}
-                                                    className={`px-3.5 py-2 rounded-lg text-xs font-black transition-all border ${
-                                                        !isAvailable 
+                                                    className={`px-3.5 py-2 rounded-lg text-xs font-black transition-all border ${!isAvailable
                                                             ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed opacity-50'
                                                             : isActive
                                                                 ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20 scale-105'

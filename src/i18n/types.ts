@@ -549,7 +549,7 @@ export interface TranslationSchema {
             edit: string;
             delete: string;
         };
-        buttons: { 
+        buttons: {
             new: string;
         };
         alerts: {
@@ -728,5 +728,15 @@ export interface TranslationSchema {
             hraAvailableTitle: string;
             hraAvailableMessage: string;
         };
+    };
+    shortcuts: {
+        title: string;
+        save: string;
+        newRca: string;
+        focusSearch: string;
+        closeModal: string;
+        toggleSidebar: string;
+
+        pressToClose: string;
     };
 }

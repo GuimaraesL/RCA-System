@@ -6,10 +6,11 @@
 import React, { useState, useRef, useCallback, useEffect, useId } from 'react';
 import { AssetNode } from '../../types';
 import { Database, Layers, Plus, Trash2, Edit2, Lock, GripVertical, Info } from 'lucide-react';
+import { ShortcutLabel } from '../ui/ShortcutLabel';
 import { useAssetsLogic } from '../../hooks/useAssetsLogic';
 import { ConfirmModal } from '../modals/ConfirmModal';
 import { AssetTreeNode } from '../selectors/AssetTreeNode';
-import { useLanguage } from '../../context/LanguageDefinition'; 
+import { useLanguage } from '../../context/LanguageDefinition';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 
@@ -144,13 +145,13 @@ export const AssetsManager: React.FC = () => {
                 onClick={() => startEdit(selectedNode)}
                 className="flex items-center justify-center gap-3 bg-white hover:bg-slate-50 text-slate-700 py-4 rounded-2xl font-bold border border-slate-200 transition-all shadow-sm active:scale-95"
               >
-                <Edit2 size={20} /> {t('assets.rename')}
+                <Edit2 size={20} /> <ShortcutLabel text={t('assets.rename')} shortcutLetter="R" />
               </button>
               <button
                 onClick={() => handleDelete(selectedNode)}
                 className="flex items-center justify-center gap-3 bg-rose-50 hover:bg-rose-100 text-rose-600 py-4 rounded-2xl font-bold border border-rose-100 transition-all active:scale-95"
               >
-                <Trash2 size={20} /> {t('assets.delete')}
+                <Trash2 size={20} /> <ShortcutLabel text={t('assets.delete')} shortcutLetter="E" />
               </button>
               {selectedNode.type !== 'SUBGROUP' && (
                 <button
@@ -218,14 +219,16 @@ export const AssetsManager: React.FC = () => {
                 <button
                   onClick={() => setIsEditing(false)}
                   className="flex-1 py-4 border border-slate-200 rounded-2xl text-slate-500 font-bold hover:bg-slate-50 transition-all"
+                  title="Esc"
                 >
                   {t('common.cancel')}
                 </button>
                 <button
                   onClick={parentNode || (!selectedNode && !parentNode) ? handleAddChild : handleUpdate}
                   className="flex-1 py-4 bg-blue-600 rounded-2xl text-white font-black hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+                  title="Ctrl+S"
                 >
-                  {t('common.save')}
+                  <ShortcutLabel text={t('common.save')} shortcutLetter="S" />
                 </button>
               </div>
             </div>
@@ -238,7 +241,7 @@ export const AssetsManager: React.FC = () => {
             <p className="font-black text-xs uppercase tracking-[0.2em]">{t('assets.selectPrompt')}</p>
           </div>
         )}
-        
+
         {/* Elemento Decorativo */}
         <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-blue-50 opacity-0 group-hover/panel:opacity-30 rounded-full transition-all duration-1000 blur-3xl -z-10"></div>
       </div>

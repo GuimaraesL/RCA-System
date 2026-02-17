@@ -3,7 +3,7 @@
  * Fluxo: Renderiza os passos da análise consumindo a lógica centralizada no hook useRcaForm.
  */
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { RcaRecord, ActionRecord } from '../../types';
 import { STATUS_IDS } from '../../constants/SystemConstants';
 import { Save, ArrowLeft, Check, ChevronDown } from 'lucide-react';
@@ -14,6 +14,7 @@ import { translateStatus } from '../../utils/statusUtils';
 import { ConfirmModal } from './ConfirmModal';
 import { getWizardSteps } from '../../constants/WizardSteps';
 import { Button } from '../ui/Button';
+import { ShortcutLabel } from '../ui/ShortcutLabel';
 
 // Importação dos Passos do Wizard
 import { Step1General } from '../steps/Step1General';
@@ -98,13 +99,46 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     const stepsList = getWizardSteps(t);
     const headerId = React.useId();
 
+    // Atalhos de navegação entre steps (Alt+← / Alt+→)
+    const goToPrev = useCallback(() => {
+        setStep(s => {
+            if (s === 8) return 4;
+            return Math.max(1, s - 1);
+        });
+    }, [setStep]);
+
+    const goToNext = useCallback(() => {
+        setStep(s => Math.min(7, s + 1));
+    }, [setStep]);
+
+    useEffect(() => {
+        const isInput = (el: EventTarget | null) => {
+            if (!el || !(el instanceof HTMLElement)) return false;
+            const tag = el.tagName.toLowerCase();
+            return tag === 'input' || tag === 'textarea' || tag === 'select' || el.isContentEditable;
+        };
+
+        const handleStepNav = (e: KeyboardEvent) => {
+            if (isInput(e.target)) return;
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                goToPrev();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                goToNext();
+            }
+        };
+        document.addEventListener('keydown', handleStepNav);
+        return () => document.removeEventListener('keydown', handleStepNav);
+    }, [goToPrev, goToNext]);
+
     return (
-        <div className="bg-white rounded-xl shadow-xl border border-slate-200 flex flex-col h-full w-full max-w-[1600px] mx-auto relative overflow-hidden animate-scale-in"> 
+        <div className="bg-white rounded-xl shadow-xl border border-slate-200 flex flex-col h-full w-full max-w-[1600px] mx-auto relative overflow-hidden animate-scale-in">
             {/* Cabeçalho */}
             <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100 bg-white z-10">
                 <div className="flex items-center gap-4">
-                    <button 
-                        onClick={onClose} 
+                    <button
+                        onClick={onClose}
                         className="p-2 -ml-2 hover:bg-slate-50 rounded-full text-slate-400 hover:text-slate-700 transition-colors focus:ring-2 focus:ring-blue-100 focus:outline-none"
                         data-testid="btn-close-editor"
                     >
@@ -154,9 +188,9 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                         const hasError = hasStepError(s.fields);
 
                         return (
-                            <div 
-                                key={s.id} 
-                                className="flex-1 flex flex-col items-center relative group cursor-pointer select-none" 
+                            <div
+                                key={s.id}
+                                className="flex-1 flex flex-col items-center relative group cursor-pointer select-none"
                                 onClick={() => setStep(s.id)}
                                 data-testid={`step-indicator-${s.id}`}
                             >
@@ -166,9 +200,9 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                                 )}
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300 relative
                                     ${isCompletedStep ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm' :
-                                    isCurrent ? 'bg-blue-600 border-blue-600 text-white shadow-md ring-4 ring-blue-100 scale-110' :
-                                    hasError ? 'bg-white border-rose-500 text-rose-500 shadow-sm' :
-                                    'bg-white border-slate-300 text-slate-400 group-hover:border-blue-400 group-hover:text-blue-500'}`}
+                                        isCurrent ? 'bg-blue-600 border-blue-600 text-white shadow-md ring-4 ring-blue-100 scale-110' :
+                                            hasError ? 'bg-white border-rose-500 text-rose-500 shadow-sm' :
+                                                'bg-white border-slate-300 text-slate-400 group-hover:border-blue-400 group-hover:text-blue-500'}`}
                                     style={{ zIndex: 1 }}
                                 >
                                     {isCompletedStep ? <Check size={16} strokeWidth={3} /> : s.id}
@@ -182,8 +216,8 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                 </div>
                 {showHra && (
                     <div className="flex justify-center mt-6 pt-4 border-t border-slate-200/60 max-w-5xl mx-auto">
-                        <button 
-                            onClick={() => setStep(8)} 
+                        <button
+                            onClick={() => setStep(8)}
                             className={`text-xs font-bold py-1.5 px-4 rounded-full flex items-center gap-2 transition-all border ${step === 8 ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-sm' : 'bg-white text-slate-500 border-slate-200 hover:border-indigo-300 hover:text-indigo-600'}`}
                             data-testid="btn-show-hra"
                         >
@@ -210,10 +244,11 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
 
             {/* Rodapé */}
             <div className="px-8 py-5 border-t border-slate-200 bg-white rounded-b-xl flex justify-between items-center z-20 shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.05)]">
-                <Button 
-                    variant="ghost" 
-                    onClick={onClose} 
+                <Button
+                    variant="ghost"
+                    onClick={onClose}
                     data-testid="btn-cancel-editor"
+                    title="Esc"
                 >
                     {t('common.cancel')}
                 </Button>
@@ -221,31 +256,31 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                     {step > 1 && (
                         <Button
                             variant="secondary"
-                            onClick={() => {
-                                if (step === 8) setStep(4);
-                                else setStep(s => Math.max(1, s - 1));
-                            }} 
+                            onClick={goToPrev}
                             data-testid="btn-prev-step"
+                            title="←"
                         >
                             {t('pagination.previous')}
                         </Button>
                     )}
-                    <Button 
+                    <Button
                         variant="primary"
-                        onClick={handleSave} 
+                        onClick={handleSave}
                         isLoading={isSaving}
                         data-testid="btn-save-rca"
                         className="gap-2"
+                        title="Ctrl+S"
                     >
                         {!isSaving && <Save size={18} />}
-                        {t('common.save')}
+                        <ShortcutLabel text={t('common.save')} shortcutLetter="S" />
                     </Button>
                     {step < 7 && (
-                        <Button 
+                        <Button
                             variant="primary"
-                            onClick={() => setStep(s => Math.min(7, s + 1))} 
+                            onClick={goToNext}
                             data-testid="btn-next-step"
                             className="group gap-2 px-8"
+                            title="→"
                         >
                             {t('pagination.next')}
                             <ArrowLeft size={18} className="rotate-180 group-hover:translate-x-1 transition-transform" />

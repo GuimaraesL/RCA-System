@@ -3,13 +3,14 @@
  * Fluxo: Gerencia o formulário de ações corretivas, permitindo a vinculação com análises existentes, definição de prazos, responsáveis e status de aprovação (Box).
  */
 
-import React, { useState, useEffect, useId } from 'react';
+import React, { useState, useEffect, useId, useCallback } from 'react';
 import { ActionRecord } from '../../types';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { Textarea } from '../ui/Textarea';
 import { X, ShieldCheck } from 'lucide-react';
+import { ShortcutLabel } from '../ui/ShortcutLabel';
 
 interface ActionModalProps {
     isOpen: boolean;
@@ -53,6 +54,23 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
         }
     }, [isOpen, initialData, fixedRca]);
 
+    // Esc fecha o modal, Ctrl+S salva
+    const handleModalKeys = useCallback((e: KeyboardEvent) => {
+        if (!isOpen) return;
+        if (e.key === 'Escape') {
+            onClose();
+        } else if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            const formEl = document.querySelector('[data-testid="modal-action"] form') as HTMLFormElement;
+            if (formEl) formEl.requestSubmit();
+        }
+    }, [isOpen, onClose]);
+
+    useEffect(() => {
+        document.addEventListener('keydown', handleModalKeys);
+        return () => document.removeEventListener('keydown', handleModalKeys);
+    }, [handleModalKeys]);
+
     if (!isOpen) return null;
 
     const validate = () => {
@@ -61,7 +79,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
         if (!form.action.trim()) newErrors.action = true;
         if (!form.responsible.trim()) newErrors.responsible = true;
         if (!form.date) newErrors.date = true;
-        
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -75,7 +93,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
 
     return (
         <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-            <div 
+            <div
                 data-testid="modal-action"
                 className="bg-white rounded-[2rem] shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200 animate-scale-in"
             >
@@ -92,7 +110,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                         <X size={20} />
                     </button>
                 </div>
-                
+
                 <form onSubmit={handleSubmit} className="p-8 space-y-6">
                     <div>
                         {fixedRca ? (
@@ -182,20 +200,22 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                     </div>
 
                     <div className="flex justify-end gap-4 pt-6 border-t border-slate-50">
-                        <button 
-                            type="button" 
-                            onClick={onClose} 
+                        <button
+                            type="button"
+                            onClick={onClose}
                             data-testid="btn-cancel-action"
                             className="px-6 py-2.5 text-slate-500 font-bold hover:bg-slate-50 rounded-xl text-sm transition-all border border-transparent hover:border-slate-200"
+                            title="Esc"
                         >
                             {t('actionModal.cancel')}
                         </button>
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             data-testid="btn-save-action"
                             className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-black shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+                            title="Ctrl+S"
                         >
-                            {t('actionModal.save')}
+                            <ShortcutLabel text={t('actionModal.save')} shortcutLetter="S" />
                         </button>
                     </div>
                 </form>

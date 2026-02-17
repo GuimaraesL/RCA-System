@@ -17,10 +17,10 @@ interface TriggersListProps {
     itemsPerPage: number;
     assets: AssetNode[];
     taxonomy: TaxonomyConfig;
-    records: RcaRecord[]; 
+    records: RcaRecord[];
     onEdit: (t: TriggerRecord) => void;
     onDelete: (id: string) => void;
-    onLinkRca: (t: TriggerRecord) => void; 
+    onLinkRca: (t: TriggerRecord) => void;
     onUnlinkRca: (t: TriggerRecord) => void;
     onCreateRca: (t: TriggerRecord) => void;
     onOpenRca: (rcaId: string) => void;
@@ -79,7 +79,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                 </td>
                             </tr>
                         )}
-                        
+
                         {/* Lógica de Paginação e Renderização de Linhas */}
                         {filteredTriggers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(trigger => {
                             const farol = getFarol(trigger.start_date, trigger.status, taxonomy);
@@ -89,8 +89,8 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                             const statusName = translateTriggerStatus(trigger.status, getTaxonomyName(taxonomy.triggerStatuses || [], trigger.status), t);
 
                             return (
-                                <tr 
-                                    key={trigger.id} 
+                                <tr
+                                    key={trigger.id}
                                     className="hover:bg-blue-50/30 cursor-pointer transition-all group"
                                     onClick={() => onEdit(trigger)}
                                 >
@@ -125,14 +125,14 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                                 >
                                                     <Link size={14} strokeWidth={3} /> {linkedRca?.what ? (linkedRca.what.length > 15 ? linkedRca.what.substring(0, 15) + '...' : linkedRca.what) : `#RCA-${trigger.rca_id.substring(0, 4)}`}
                                                 </div>
-                                                <button 
+                                                <button
                                                     onClick={(e) => { e.stopPropagation(); onLinkRca(trigger); }}
                                                     className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                                                     title={t('triggersPage.tooltips.linkRca') || 'Trocar Vínculo'}
                                                 >
                                                     <Edit2 size={14} />
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={(e) => { e.stopPropagation(); onUnlinkRca(trigger); }}
                                                     className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
                                                     title={t('common.remove') || 'Remover Vínculo'}
@@ -166,7 +166,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                         })}
                     </tbody>
                 </table>
-                
+
                 {/* Rodapé de Paginação */}
                 {filteredTriggers.length > 0 && (
                     <div className="p-6 flex items-center justify-between border-t border-slate-100 bg-slate-50/50">
@@ -178,6 +178,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                 disabled={currentPage === 1}
                                 className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
+                                title="←"
                             >
                                 {t('pagination.previous')}
                             </button>
@@ -185,6 +186,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                 onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredTriggers.length ? prev + 1 : prev))}
                                 disabled={currentPage * itemsPerPage >= filteredTriggers.length}
                                 className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
+                                title="→"
                             >
                                 {t('pagination.next')}
                             </button>

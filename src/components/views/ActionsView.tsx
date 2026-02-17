@@ -7,6 +7,7 @@ import React, { useMemo, useState } from 'react';
 import { useRcaContext } from '../../context/RcaContext';
 import { useActionsLogic } from '../../hooks/useActionsLogic';
 import { Plus, Edit2, Trash2, ExternalLink, CheckCircle2, Clock, ShieldCheck, Award } from 'lucide-react';
+import { ShortcutLabel } from '../ui/ShortcutLabel';
 import { FilterBar, FilterState } from '../layout/FilterBar';
 import { useFilterPersistence } from '../../hooks/useFilterPersistence';
 import { ConfirmModal } from '../modals/ConfirmModal';
@@ -14,6 +15,7 @@ import { ActionModal } from '../modals/ActionModal';
 import { useSorting } from '../../hooks/useSorting';
 import { SortHeader } from '../ui/SortHeader';
 import { useLanguage } from '../../context/LanguageDefinition';
+
 import { useFilteredData } from '../../hooks/useFilteredData';
 import { ACTION_STATUS_IDS } from '../../constants/SystemConstants';
 
@@ -107,11 +109,13 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
           <h1 className="text-4xl font-black text-slate-900 font-display tracking-tight">{t('sidebar.actions')}</h1>
           <p className="text-slate-500 mt-2 font-medium">{t('actionsPage.subtitle')}</p>
         </div>
-        <button 
-          onClick={openNew} 
+        <button
+          onClick={openNew}
+          accessKey="o"
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+          title="Alt+O"
         >
-          <Plus size={20} strokeWidth={3} /> {t('table.actions')}
+          <Plus size={20} strokeWidth={3} /><ShortcutLabel text={t('table.actions')} shortcutLetter="O" />
         </button>
       </div>
 
@@ -213,6 +217,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                   className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
+                  title="←"
                 >
                   {t('pagination.previous')}
                 </button>
@@ -220,6 +225,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
                   onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredActions.length ? prev + 1 : prev))}
                   disabled={currentPage * itemsPerPage >= filteredActions.length}
                   className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
+                  title="→"
                 >
                   {t('pagination.next')}
                 </button>

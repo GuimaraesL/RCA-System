@@ -4,15 +4,16 @@
  */
 
 import React from 'react';
-import { useTriggersLogic } from '../../hooks/useTriggersLogic'; 
+import { useTriggersLogic } from '../../hooks/useTriggersLogic';
 import { TriggersList } from './TriggersList';
 import { TriggerModal } from './TriggerModal';
 import { FilterBar } from '../layout/FilterBar';
 import { TriggerRecord } from '../../types';
-import { Plus } from 'lucide-react';
+import { Trash2, Edit2, Plus, Search, Filter, Download, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
+import { ShortcutLabel } from '../ui/ShortcutLabel';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { RcaSelector } from '../selectors/RcaSelector';
-import { ConfirmModal } from '../modals/ConfirmModal'; 
+import { ConfirmModal } from '../modals/ConfirmModal';
 
 interface TriggersPageProps {
     onCreateRca: (trigger: TriggerRecord) => void;
@@ -127,8 +128,8 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                     <h1 className="text-4xl font-black text-slate-900 font-display tracking-tight">{t('triggersPage.title')}</h1>
                     <p className="text-slate-500 mt-2 font-medium">{t('triggersPage.manageDowntime')}</p>
                 </div>
-                <button onClick={handleNew} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95">
-                    <Plus size={20} strokeWidth={3} /> {t('triggersPage.newTrigger')}
+                <button onClick={handleNew} accessKey="g" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95" title="Alt+G">
+                    <Plus size={20} strokeWidth={3} /><ShortcutLabel text={t('triggersPage.newTrigger')} shortcutLetter="G" />
                 </button>
             </div>
 
@@ -147,7 +148,7 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                         area: 'ALL',
                         equipment: 'ALL',
                         subgroup: 'ALL',
-                        specialty: 'ALL', 
+                        specialty: 'ALL',
                         analysisType: 'ALL',
                         failureMode: 'ALL',
                         failureCategory: 'ALL',
@@ -217,7 +218,7 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                         <div className="w-full max-w-6xl animate-in zoom-in-95 duration-300">
                             <RcaSelector
                                 records={records}
-                                assets={assets} 
+                                assets={assets}
                                 taxonomy={taxonomy}
                                 onSelect={(rcaId) => {
                                     handleLinkRca(triggerToLink, rcaId);

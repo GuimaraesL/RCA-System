@@ -3,7 +3,7 @@
  * Fluxo: Gerencia o formulário de eventos de parada, integrando-se à árvore de ativos e permitindo a vinculação posterior com análises RCA.
  */
 
-import React, { useEffect, useState, useId } from 'react';
+import React, { useEffect, useState, useId, useCallback } from 'react';
 import { TriggerRecord, AssetNode, TaxonomyConfig } from '../../types';
 import { AssetSelector } from '../selectors/AssetSelector';
 import { Input } from '../ui/Input';
@@ -14,6 +14,7 @@ import { translateTriggerStatus } from '../../utils/statusUtils';
 import { generateId } from '../../services/utils';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { X } from 'lucide-react';
+import { ShortcutLabel } from '../ui/ShortcutLabel';
 
 interface TriggerModalProps {
     editingTrigger: TriggerRecord;
@@ -53,10 +54,10 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
     };
 
     // Validation wrapper
-    const onSaveClick = () => {
+    const onSaveClick = useCallback(() => {
         const configLabels = taxonomy.mandatoryFields?.trigger?.save || [];
         const errors: Record<string, boolean> = {};
-        
+
         for (const field of configLabels) {
             const val = editingTrigger[field as keyof TriggerRecord];
             if (!val || (typeof val === 'string' && val.trim() === '')) {
@@ -76,7 +77,22 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
 
         if (!toSave.id) toSave.id = generateId('TRG');
         handleSave(toSave);
-    };
+    }, [editingTrigger, taxonomy, handleSave]);
+
+    // Esc fecha o modal, Ctrl+S salva
+    const handleModalKeys = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            setIsModalOpen(false);
+        } else if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            onSaveClick();
+        }
+    }, [setIsModalOpen, onSaveClick]);
+
+    useEffect(() => {
+        document.addEventListener('keydown', handleModalKeys);
+        return () => document.removeEventListener('keydown', handleModalKeys);
+    }, [handleModalKeys]);
 
     const handleAssetSelect = (node: AssetNode) => {
         const path = findAssetPath(assets, node.id);
@@ -104,7 +120,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-            <div 
+            <div
                 data-testid="modal-trigger"
                 className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-200 animate-scale-in"
             >
@@ -114,7 +130,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                         <X size={20} />
                     </button>
                 </div>
-                
+
                 <div className="p-8 space-y-8 overflow-y-auto custom-scrollbar flex-1 bg-slate-50/30">
                     {/* Dates */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -144,13 +160,12 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             {t('wizard.step1.assetSelectorLabel')}
                             {(isRequired('area_id') || isRequired('equipment_id') || isRequired('subgroup_id')) && <span className="text-rose-500 ml-1">*</span>}
                         </span>
-                        <div 
+                        <div
                             aria-labelledby={`${idPrefix}-asset-label`}
-                            className={`p-1 rounded-[1.5rem] border-2 transition-all ${
-                            hasAssetError
-                            ? 'border-rose-300 ring-4 ring-rose-50' 
-                            : 'border-slate-100 bg-white'
-                        }`}>
+                            className={`p-1 rounded-[1.5rem] border-2 transition-all ${hasAssetError
+                                ? 'border-rose-300 ring-4 ring-rose-50'
+                                : 'border-slate-100 bg-white'
+                                }`}>
                             <AssetSelector
                                 assets={assets}
                                 onSelect={handleAssetSelect}
@@ -159,18 +174,18 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             />
                         </div>
                         {hasAssetError && <span className="text-xs text-rose-500 font-bold block animate-in fade-in flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-rose-500"></span>{t('common.requiredField')}</span>}
-                        
+
                         <div className="p-5 bg-white rounded-2xl border border-slate-200 text-sm text-slate-600 space-y-3 shadow-inner">
                             <div className="flex justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
-                                <strong className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.area')}:</strong> 
+                                <strong className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.area')}:</strong>
                                 <span className="font-black text-slate-900">{getAssetName(editingTrigger.area_id, assets) || '-'}</span>
                             </div>
                             <div className="flex justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
-                                <strong className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.equipment')}:</strong> 
+                                <strong className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.equipment')}:</strong>
                                 <span className="font-black text-slate-900">{getAssetName(editingTrigger.equipment_id, assets) || '-'}</span>
                             </div>
                             <div className="flex justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
-                                <strong className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.subgroup')}:</strong> 
+                                <strong className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.subgroup')}:</strong>
                                 <span className="font-black text-slate-900">{getAssetName(editingTrigger.subgroup_id, assets) || '-'}</span>
                             </div>
                         </div>
@@ -238,19 +253,21 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                 </div>
 
                 <div className="px-8 py-6 border-t border-slate-100 bg-white flex justify-end gap-4 flex-shrink-0">
-                    <button 
-                        onClick={() => setIsModalOpen(false)} 
+                    <button
+                        onClick={() => setIsModalOpen(false)}
                         data-testid="btn-cancel-trigger"
                         className="px-8 py-3 text-slate-500 font-black uppercase tracking-widest text-[11px] hover:bg-slate-50 rounded-2xl transition-all border border-transparent hover:border-slate-200"
+                        title="Esc"
                     >
                         {t('triggerModal.cancel')}
                     </button>
-                    <button 
-                        onClick={onSaveClick} 
+                    <button
+                        onClick={onSaveClick}
                         data-testid="btn-save-trigger"
                         className="px-10 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+                        title="Ctrl+S"
                     >
-                        {t('triggerModal.save')}
+                        <ShortcutLabel text={t('triggerModal.save')} shortcutLetter="S" />
                     </button>
                 </div>
             </div>

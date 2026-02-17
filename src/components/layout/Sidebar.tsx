@@ -3,18 +3,21 @@
  * Fluxo: Controla a alternância entre as visões principais do sistema, gerencia o estado de colapso para desktop e o menu flutuante (drawer) para dispositivos móveis.
  */
 
-import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Siren, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Siren, ChevronLeft, ChevronRight, Menu, CircleHelp } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { LanguageSelector } from './LanguageSelector';
+import { ShortcutLabel } from '../ui/ShortcutLabel';
 import { safeGetItem, safeSetItem } from '../../services/storageService';
 
 interface SidebarProps {
     view: 'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'TRIGGERS' | 'ASSETS' | 'SETTINGS' | 'MIGRATION';
     setView: (view: any) => void;
+    toggleRef?: React.RefObject<(() => void) | null>;
+    onShowHelp?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onShowHelp }) => {
     const { t } = useLanguage();
 
     // Estado para controle de colapso (desktop) e abertura (mobile)
@@ -33,13 +36,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
         safeSetItem('rca_app_v1_pref_sidebar_collapsed', newState);
     };
 
+    // Sincroniza o ref de toggle para controle externo (Ctrl+B)
+    useEffect(() => {
+        if (toggleRef) {
+            toggleRef.current = toggleCollapse;
+        }
+    });
+
     const toggleMobile = () => setIsMobileOpen(!isMobileOpen);
 
-    const NavItem = ({ id, icon: Icon, label }: { id: string, icon: any, label: string }) => (
+    const NavItem = ({ id, icon: Icon, label, shortcutLetter }: { id: string, icon: any, label: string, shortcutLetter?: string }) => (
         <button
             onClick={() => {
                 setView(id);
-                setIsMobileOpen(false); // Fecha o menu mobile ao selecionar um item
+                setIsMobileOpen(false);
             }}
             className={`
                 w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm tracking-tight
@@ -48,10 +58,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
                     : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}
                 ${isCollapsed ? 'justify-center px-2' : ''}
             `}
-            title={isCollapsed ? label : ''}
+            title={isCollapsed ? `${label} (Alt+${shortcutLetter?.toUpperCase() || ''})` : `Alt+${shortcutLetter?.toUpperCase() || ''}`}
         >
             <Icon size={20} className={`flex-shrink-0 ${view === id ? 'text-white' : 'text-slate-500 group-hover:text-blue-400'}`} />
-            {!isCollapsed && <span>{label}</span>}
+            {!isCollapsed && <span className="flex-1 text-left"><ShortcutLabel text={label} shortcutLetter={shortcutLetter} /></span>}
         </button>
     );
 
@@ -92,24 +102,35 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
                 <nav className="flex-1 p-6 space-y-3 overflow-y-auto custom-scrollbar">
                     <div className="space-y-1">
                         {!isCollapsed && <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4 px-4">{t('sidebar.menu') || 'Navegação'}</p>}
-                        <NavItem id="DASHBOARD" icon={LayoutDashboard} label={t('sidebar.dashboard')} />
-                        <NavItem id="TRIGGERS" icon={Siren} label={t('sidebar.triggers')} />
-                        <NavItem id="ANALYSES" icon={List} label={t('sidebar.analyses')} />
-                        <NavItem id="ACTIONS" icon={CheckSquare} label={t('sidebar.actions')} />
-                        <NavItem id="ASSETS" icon={Database} label={t('sidebar.assets')} />
+                        <NavItem id="DASHBOARD" icon={LayoutDashboard} label={t('sidebar.dashboard')} shortcutLetter="D" />
+                        <NavItem id="TRIGGERS" icon={Siren} label={t('sidebar.triggers')} shortcutLetter="T" />
+                        <NavItem id="ANALYSES" icon={List} label={t('sidebar.analyses')} shortcutLetter="A" />
+                        <NavItem id="ACTIONS" icon={CheckSquare} label={t('sidebar.actions')} shortcutLetter="P" />
+                        <NavItem id="ASSETS" icon={Database} label={t('sidebar.assets')} shortcutLetter="H" />
                     </div>
 
                     <div className="pt-6 mt-6 border-t border-slate-800/50 space-y-1">
                         {!isCollapsed && <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4 px-4">{t('sidebar.system') || 'Sistema'}</p>}
-                        <NavItem id="SETTINGS" icon={Settings} label={t('sidebar.settings')} />
-                        <NavItem id="MIGRATION" icon={Upload} label={t('sidebar.migration')} />
+                        <NavItem id="SETTINGS" icon={Settings} label={t('sidebar.settings')} shortcutLetter="C" />
+                        <NavItem id="MIGRATION" icon={Upload} label={t('sidebar.migration')} shortcutLetter="M" />
                     </div>
                 </nav>
 
                 {/* Rodapé e Seletor de Idioma */}
                 <div className={`p-8 border-t border-slate-800/50 bg-slate-950/30 ${isCollapsed ? 'text-center flex flex-col items-center gap-6' : ''}`}>
-                    <div className={isCollapsed ? "w-full flex justify-center" : ""}>
-                        <LanguageSelector compact={isCollapsed} />
+                    <div className={`flex items-center ${isCollapsed ? 'flex-col gap-4' : 'gap-3'}`}>
+                        <div className="flex-1">
+                            <LanguageSelector compact={isCollapsed} />
+                        </div>
+                        {onShowHelp && (
+                            <button
+                                onClick={onShowHelp}
+                                className="p-2 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-white transition-all active:scale-95 border border-transparent hover:border-slate-700"
+                                title={t('sidebar.shortcuts') || 'Atalhos de Teclado'}
+                            >
+                                <CircleHelp size={20} />
+                            </button>
+                        )}
                     </div>
                     {!isCollapsed && (
                         <div className="mt-6 pt-6 border-t border-slate-800/30">

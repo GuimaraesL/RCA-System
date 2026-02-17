@@ -8,6 +8,7 @@ import { RcaRecord, TaxonomyConfig } from '../../types';
 import { STATUS_IDS } from '../../constants/SystemConstants';
 import { Plus, FileText, Trash2 } from 'lucide-react';
 import { SortHeader } from '../ui/SortHeader';
+import { ShortcutLabel } from '../ui/ShortcutLabel';
 import { FilterBar, FilterState } from '../layout/FilterBar';
 import { useFilterPersistence } from '../../hooks/useFilterPersistence';
 import { useSorting } from '../../hooks/useSorting';
@@ -17,7 +18,7 @@ import { ConfirmModal } from '../modals/ConfirmModal';
 import { getAssetName } from '../../utils/triggerHelpers';
 import { translateStatus } from '../../utils/statusUtils';
 import { useFilteredData } from '../../hooks/useFilteredData';
-import { useLanguage } from '../../context/LanguageDefinition'; 
+import { useLanguage } from '../../context/LanguageDefinition';
 
 interface AnalysesViewProps {
     onNew: () => void;
@@ -129,8 +130,9 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                 <button
                     onClick={onNew}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+                    title="Alt+N"
                 >
-                    <Plus size={20} strokeWidth={3} /> {t('analysesPage.newButton')}
+                    <Plus size={20} strokeWidth={3} /><ShortcutLabel text={t('analysesPage.newButton')} shortcutLetter="N" />
                 </button>
             </div>
 
@@ -244,7 +246,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                             })}
                         </tbody>
                     </table>
-                    
+
                     {/* Controles de Paginação */}
                     {filteredRecords.length > 0 && (
                         <div className="p-6 flex items-center justify-between border-t border-slate-100 bg-slate-50/50">
@@ -256,6 +258,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                     disabled={currentPage === 1}
                                     className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
+                                    title="←"
                                 >
                                     {t('pagination.previous')}
                                 </button>
@@ -263,6 +266,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                     onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredRecords.length ? prev + 1 : prev))}
                                     disabled={currentPage * itemsPerPage >= filteredRecords.length}
                                     className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:border-slate-400 transition-all shadow-sm active:scale-95"
+                                    title="→"
                                 >
                                     {t('pagination.next')}
                                 </button>

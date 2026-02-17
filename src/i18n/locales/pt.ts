@@ -750,5 +750,14 @@ export const pt: TranslationSchema = {
             hraAvailableTitle: "Análise de Confiabilidade Humana Disponível",
             hraAvailableMessage: "Uma ou mais causas raízes foram identificadas como Método ou Mão de Obra. A aba \"Human Reliability\" está agora acessível."
         }
+    },
+    shortcuts: {
+        title: "Atalhos de Teclado",
+        save: "Salvar RCA (no editor)",
+        newRca: "Criar Nova Análise RCA",
+        focusSearch: "Focar na Busca Global",
+        closeModal: "Fechar modal ou editor",
+        toggleSidebar: "Alternar Sidebar",
+        pressToClose: "Pressione Esc para fechar"
     }
 };

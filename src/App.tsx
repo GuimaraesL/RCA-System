@@ -4,7 +4,7 @@
  */
 
 import { STATUS_IDS } from './constants/SystemConstants';
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, useRef, useCallback, Suspense, lazy } from 'react';
 import { Loader2 } from 'lucide-react';
 import { RcaRecord, TriggerRecord } from './types';
 
@@ -25,12 +25,16 @@ import { useLanguage } from './context/LanguageDefinition';
 import { Sidebar } from './components/layout/Sidebar';
 import { generateId } from './services/utils';
 import { ConfirmModal } from './components/modals/ConfirmModal';
+import { ShortcutsHelpModal } from './components/modals/ShortcutsHelpModal';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 const AppContent: React.FC = () => {
     const { t } = useLanguage();
     const [view, setView] = useState<'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'TRIGGERS' | 'ASSETS' | 'SETTINGS' | 'MIGRATION'>('DASHBOARD');
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState<RcaRecord | null>(null);
+    const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+    const sidebarToggleRef = useRef<(() => void) | null>(null);
 
     // Estado para Rollback de RCA criada via Gatilho
     const [rollbackTrigger, setRollbackTrigger] = useState<TriggerRecord | null>(null);
@@ -40,6 +44,45 @@ const AppContent: React.FC = () => {
     const [pendingView, setPendingView] = useState<typeof view | null>(null);
 
     const { refreshAll, records, updateTrigger, addRecord, deleteRecord, taxonomy, assets } = useRcaContext();
+
+    // Atalhos de Teclado (Issue #71)
+    const handleToggleShortcutsHelp = useCallback(() => setShowShortcutsHelp(prev => !prev), []);
+
+    useKeyboardShortcuts({
+        onSave: () => {
+            if (isEditorOpen) {
+                handleSaveRca();
+            }
+        },
+        onNewRca: () => {
+            if (!isEditorOpen) {
+                openNew();
+            }
+        },
+        onFocusSearch: () => {
+            const searchInput = document.querySelector<HTMLInputElement>('[data-shortcut-search]');
+            if (searchInput) {
+                searchInput.focus();
+                searchInput.select();
+            }
+        },
+        onEscape: () => {
+            if (showShortcutsHelp) {
+                setShowShortcutsHelp(false);
+            } else if (showNavConfirm) {
+                setShowNavConfirm(false);
+            } else if (isEditorOpen) {
+                handleCancelRca();
+            }
+        },
+        onToggleSidebar: () => {
+            sidebarToggleRef.current?.();
+        },
+
+        onNavigate: (target) => {
+            handleViewChange(target as typeof view);
+        },
+    });
 
     const handleCloseEditor = () => {
         setIsEditorOpen(false);
@@ -63,14 +106,14 @@ const AppContent: React.FC = () => {
             try {
                 console.log('Rollback: Cancelamento detectado. Iniciando rollback para RCA:', editingRecord.id);
                 // 1. Remove o vínculo do gatilho e restaura seu status original
-                await updateTrigger({ 
-                    ...rollbackTrigger, 
-                    rca_id: null 
+                await updateTrigger({
+                    ...rollbackTrigger,
+                    rca_id: null
                 });
-                
+
                 // 2. Exclui o rascunho da RCA persistido
                 await deleteRecord(editingRecord.id);
-                
+
                 console.log('Rollback: Concluído com sucesso');
             } catch (error) {
                 console.error('Rollback Error: Falha ao realizar rollback:', error);
@@ -197,7 +240,7 @@ const AppContent: React.FC = () => {
         try {
             // Persiste o rascunho da RCA antes de vincular ao gatilho (evita erro de FK)
             await addRecord(newRca);
-            
+
             setEditingRecord(newRca);
             setRollbackTrigger(trigger); // Armazena para possível rollback em caso de cancelamento
             setIsEditorOpen(true);
@@ -205,7 +248,7 @@ const AppContent: React.FC = () => {
             // Atualiza o status do gatilho para indicar que o processo de análise iniciou
             const inProgressStatusId = taxonomy.triggerStatuses?.find(s => s.name === 'Em análise' || s.name === 'Em Análise')?.id || trigger.status;
             await updateTrigger({ ...trigger, rca_id: newRca.id, status: inProgressStatusId });
-            
+
             console.log('Context: RCA criada e vinculada ao gatilho com sucesso');
         } catch (error) {
             console.error('Context Error: Falha ao criar RCA a partir do gatilho:', error);
@@ -215,7 +258,7 @@ const AppContent: React.FC = () => {
 
     return (
         <div className="flex h-screen bg-page-gradient font-sans text-slate-900">
-            <Sidebar view={view} setView={handleViewChange} />
+            <Sidebar view={view} setView={handleViewChange} toggleRef={sidebarToggleRef} onShowHelp={handleToggleShortcutsHelp} />
 
             <main className="flex-1 overflow-hidden relative flex flex-col w-full">
                 <Suspense fallback={
@@ -260,6 +303,12 @@ const AppContent: React.FC = () => {
                 onConfirm={confirmNavigation}
                 onCancel={() => setShowNavConfirm(false)}
                 variant="warning"
+            />
+
+            {/* Modal de Ajuda de Atalhos de Teclado (Issue #71) */}
+            <ShortcutsHelpModal
+                isOpen={showShortcutsHelp}
+                onClose={() => setShowShortcutsHelp(false)}
             />
         </div>
     );

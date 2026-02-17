@@ -3,7 +3,7 @@
  * Fluxo: Substitui o uso de window.confirm() (que é bloqueado em ambientes corporativos restritos), provendo uma interface acessível, animada e com suporte a diferentes variantes de severidade (Perigo, Alerta, Info).
  */
 
-import React from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageDefinition';
 
@@ -29,10 +29,26 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     variant = 'danger'
 }) => {
     const { t } = useLanguage();
+    const confirmBtnRef = useRef<HTMLButtonElement>(null);
 
     const finalTitle = title || t('common.confirm');
     const finalConfirmText = confirmText || t('common.confirm');
     const finalCancelText = cancelText || t('common.cancel');
+
+    // Enter confirma, Esc cancela
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            onConfirm();
+        }
+    }, [onConfirm]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        document.addEventListener('keydown', handleKeyDown);
+        requestAnimationFrame(() => confirmBtnRef.current?.focus());
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, handleKeyDown]);
 
     if (!isOpen) return null;
 
@@ -87,13 +103,16 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         onClick={onCancel}
                         data-testid="btn-confirm-no"
                         className="px-6 py-2.5 text-slate-500 font-bold rounded-xl hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-slate-200"
+                        title="Esc"
                     >
                         {finalCancelText}
                     </button>
                     <button
+                        ref={confirmBtnRef}
                         onClick={onConfirm}
                         data-testid="btn-confirm-yes"
                         className={`px-8 py-2.5 text-white font-black rounded-xl shadow-lg transition-all active:scale-95 ${colors.button}`}
+                        title="Enter ↵"
                     >
                         {finalConfirmText}
                     </button>

@@ -764,5 +764,14 @@ export const en: TranslationSchema = {
             hraAvailableTitle: "Human Reliability Analysis Available",
             hraAvailableMessage: "One or more root causes have been identified as Method or Manpower. The \"Human Reliability\" tab is now accessible."
         }
+    },
+    shortcuts: {
+        title: "Keyboard Shortcuts",
+        save: "Save RCA (in editor)",
+        newRca: "Create New RCA Analysis",
+        focusSearch: "Focus Global Search",
+        closeModal: "Close modal or editor",
+        toggleSidebar: "Toggle Sidebar",
+        pressToClose: "Press Esc to close"
     }
 };
