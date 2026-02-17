@@ -15,7 +15,7 @@ export const getWizardSteps = (t: (key: string) => string): WizardStep[] => [
         id: 1, 
         title: t('wizard.stepNames.step1.title'), 
         subtitle: t('wizard.stepNames.step1.subtitle'), 
-        fields: ['subgroup_id', 'component_type', 'failure_date', 'failure_time', 'analysis_type', 'facilitator', 'participants', 'os_number', 'start_date', 'completion_date'] 
+        fields: ['subgroup_id', 'component_type', 'failure_date', 'failure_time', 'analysis_type', 'facilitator', 'participants', 'os_number', 'start_date', 'completion_date', 'analysis_duration_minutes'] 
     },
     { 
         id: 2, 
@@ -45,12 +45,12 @@ export const getWizardSteps = (t: (key: string) => string): WizardStep[] => [
         id: 6, 
         title: t('wizard.stepNames.step6.title'), 
         subtitle: t('wizard.stepNames.step6.subtitle'), 
-        fields: [] 
+        fields: ['precision_maintenance'] 
     },
     { 
         id: 7, 
         title: t('wizard.stepNames.step7.title'), 
         subtitle: t('wizard.stepNames.step7.subtitle'), 
-        fields: [] 
+        fields: ['lessons_learned'] 
     }
 ];

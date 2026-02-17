@@ -44,10 +44,10 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
 
     return (
         <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200/60">
-                <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-                    <h2 className="text-xl font-bold text-slate-900 font-display tracking-tight">{t('wizard.step1.title')}</h2>
-                    <button onClick={onRefreshAssets} className="text-blue-600 text-xs font-semibold flex items-center gap-1.5 hover:text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800">
+                <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display tracking-tight">{t('wizard.step1.title')}</h2>
+                    <button onClick={onRefreshAssets} className="text-blue-600 dark:text-blue-400 text-xs font-semibold flex items-center gap-1.5 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 px-3 py-1.5 rounded-lg transition-colors">
                         <RefreshCw size={14} /> {t('wizard.step1.refreshAssets')}
                     </button>
                 </div>
@@ -58,14 +58,13 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         <span id={`${idPrefix}-asset-selector-label`} className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                             {t('wizard.step1.assetSelectorLabel')} {isFieldRequired('subgroup_id') && <span className="text-rose-500">*</span>}
                         </span>
-                        <div 
-                            id={`${idPrefix}-asset-selector-container`} 
-                            aria-labelledby={`${idPrefix}-asset-selector-label`} 
-                            className={`mb-4 rounded-xl border transition-all overflow-hidden ${
-                                (errors?.subgroup_id || errors?.equipment_id || errors?.area_id) 
-                                ? 'border-rose-300 ring-4 ring-rose-50' 
-                                : 'border-slate-200'
-                            }`}
+                        <div
+                            id={`${idPrefix}-asset-selector-container`}
+                            aria-labelledby={`${idPrefix}-asset-selector-label`}
+                            className={`mb-4 rounded-xl border transition-all overflow-hidden ${(errors?.subgroup_id || errors?.equipment_id || errors?.area_id)
+                                    ? 'border-rose-300 dark:border-rose-700 ring-4 ring-rose-50 dark:ring-rose-900/20'
+                                    : 'border-slate-200 dark:border-slate-700'
+                                }`}
                         >
                             <AssetSelector
                                 assets={assets}
@@ -75,19 +74,19 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                             />
                         </div>
                         {(errors?.subgroup_id || errors?.equipment_id || errors?.area_id) && <span className="text-xs text-rose-500 font-medium block mb-3 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block"></span>{t('common.requiredField')}</span>}
-                        
-                        <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 text-sm text-slate-600 space-y-3 shadow-inner">
-                            <div className="flex justify-between border-b border-slate-200/60 pb-2 last:border-0 last:pb-0">
-                                <strong className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.area')}:</strong> 
-                                <span className="font-black text-slate-900">{getAssetName(data.area_id, assets) || '-'}</span>
+
+                        <div className="p-5 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-sm text-slate-600 dark:text-slate-400 space-y-3 shadow-inner">
+                            <div className="flex justify-between border-b border-slate-200/60 dark:border-slate-700/60 pb-2 last:border-0 last:pb-0">
+                                <strong className="text-slate-500 dark:text-slate-500 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.area')}:</strong>
+                                <span className="font-black text-slate-900 dark:text-white">{getAssetName(data.area_id, assets) || '-'}</span>
                             </div>
-                            <div className="flex justify-between border-b border-slate-200/60 pb-2 last:border-0 last:pb-0">
-                                <strong className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.equipment')}:</strong> 
-                                <span className="font-black text-slate-900">{getAssetName(data.equipment_id, assets) || '-'}</span>
+                            <div className="flex justify-between border-b border-slate-200/60 dark:border-slate-700/60 pb-2 last:border-0 last:pb-0">
+                                <strong className="text-slate-500 dark:text-slate-500 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.equipment')}:</strong>
+                                <span className="font-black text-slate-900 dark:text-white">{getAssetName(data.equipment_id, assets) || '-'}</span>
                             </div>
-                            <div className="flex justify-between border-b border-slate-200/60 pb-2 last:border-0 last:pb-0">
-                                <strong className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.subgroup')}:</strong> 
-                                <span className="font-black text-slate-900">{getAssetName(data.subgroup_id, assets) || '-'}</span>
+                            <div className="flex justify-between border-b border-slate-200/60 dark:border-slate-700/60 pb-2 last:border-0 last:pb-0">
+                                <strong className="text-slate-500 dark:text-slate-500 font-bold uppercase text-[10px] tracking-widest">{t('wizard.step1.subgroup')}:</strong>
+                                <span className="font-black text-slate-900 dark:text-white">{getAssetName(data.subgroup_id, assets) || '-'}</span>
                             </div>
                         </div>
                     </div>
@@ -141,8 +140,8 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
             </div>
 
             {/* Seção de Metadados da Análise */}
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200/60">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-6 border-b border-slate-100 pb-2 flex items-center gap-2">
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800">
+                <h3 className="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-6 border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center gap-2">
                     <span className="w-1 h-4 bg-blue-500 rounded-full"></span>
                     {t('wizard.step1.analysisMetadata')}
                 </h3>
@@ -171,6 +170,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         name="analysis_duration"
                         label={t('wizard.step1.analysisDuration')}
                         type="number"
+                        required={isFieldRequired('analysis_duration_minutes')}
                         placeholder={t('fields.durationPlaceholder')}
                         value={data.analysis_duration_minutes || 0}
                         onChange={(e) => onChange('analysis_duration_minutes', Number(e.target.value))}
@@ -222,7 +222,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                                 />
                             </div>
                             <div className="ml-3 text-sm">
-                                <label htmlFor={`${idPrefix}-opSupport`} className="font-medium text-slate-700 cursor-pointer select-none">
+                                <label htmlFor={`${idPrefix}-opSupport`} className="font-medium text-slate-700 dark:text-slate-300 cursor-pointer select-none">
                                     {t('wizard.step1.requiresOperation')}
                                 </label>
                             </div>
