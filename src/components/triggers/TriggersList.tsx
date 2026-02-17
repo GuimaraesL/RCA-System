@@ -10,6 +10,9 @@ import { SortHeader } from '../ui/SortHeader';
 import { getAssetName, getTaxonomyName, getFarol, getStatusColor } from '../../utils/triggerHelpers';
 import { translateTriggerStatus } from '../../utils/statusUtils';
 import { useLanguage } from '../../context/LanguageDefinition';
+import { Card } from '../ui/Card';
+import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
 
 interface TriggersListProps {
     filteredTriggers: TriggerRecord[];
@@ -49,7 +52,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
     const { t, formatDate } = useLanguage();
 
     return (
-        <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-700 delay-200">
+        <Card padding="none" className="flex-1 flex flex-col min-h-0 animate-in fade-in duration-700 delay-200">
             <div className="overflow-auto flex-1 custom-scrollbar">
                 <table className="w-full text-left text-[13px] text-slate-600 dark:text-slate-300 border-separate border-spacing-0">
                     <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-black border-b border-slate-100 dark:border-slate-700 sticky top-0 z-10">
@@ -100,9 +103,9 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                         </div>
                                     </td>
                                     <td className="px-6 py-5">
-                                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-sm ${getStatusColor(trigger.status, taxonomy)}`}>
+                                        <Badge className={getStatusColor(trigger.status, taxonomy)}>
                                             {statusName}
-                                        </span>
+                                        </Badge>
                                     </td>
                                     <td className="px-6 py-5 font-mono text-[11px] font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap">{formatDate(trigger.start_date)}</td>
                                     <td className="px-6 py-5 max-w-[150px] truncate font-bold text-slate-700 dark:text-slate-200" title={getAssetName(trigger.area_id, assets)}>{getAssetName(trigger.area_id, assets)}</td>
@@ -174,26 +177,30 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                             {t('pagination.showing')} <span className="text-slate-900 dark:text-white">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="text-slate-900 dark:text-white">{Math.min(currentPage * itemsPerPage, filteredTriggers.length)}</span> {t('pagination.of')} <span className="text-slate-900 dark:text-white">{filteredTriggers.length}</span>
                         </div>
                         <div className="flex gap-3">
-                            <button
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                 disabled={currentPage === 1}
-                                className="px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 transition-all shadow-sm active:scale-95"
+                                className="px-5 uppercase tracking-widest"
                                 title="←"
                             >
                                 {t('pagination.previous')}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredTriggers.length ? prev + 1 : prev))}
                                 disabled={currentPage * itemsPerPage >= filteredTriggers.length}
-                                className="px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 transition-all shadow-sm active:scale-95"
+                                className="px-5 uppercase tracking-widest"
                                 title="→"
                             >
                                 {t('pagination.next')}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 )}
             </div>
-        </div>
+        </Card>
     );
 };

@@ -17,6 +17,9 @@ import { MigrationData, TaxonomyConfig } from '../../types';
 import { CsvEntityType, getCsvTemplate, exportToCsv as exportToCsvService, importFromCsv } from '../../services/csvService';
 import { useRcaContext } from '../../context/RcaContext';
 import { useLanguage } from '../../context/LanguageDefinition';
+import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
+import { Badge } from '../ui/Badge';
 
 export const MigrationView: React.FC = () => {
     const { t } = useLanguage();
@@ -63,8 +66,6 @@ export const MigrationView: React.FC = () => {
         { value: 'TAXONOMY_ROOT_CAUSE_MS' as CsvEntityType, label: t('migration.entities.taxonomyRootCauseMs'), icon: TableProperties },
         { value: 'TAXONOMY_TRIGGER_STATUSES' as CsvEntityType, label: t('migration.entities.taxonomyTriggerStatuses'), icon: RefreshCw },
     ], [t]);
-
-    // ... (manter funções auxiliares readFileWithEncoding, downloadFile, handlers JSON/CSV)
 
     /**
      * Lê um arquivo tratando problemas de codificação comuns no Excel/Windows.
@@ -220,17 +221,18 @@ export const MigrationView: React.FC = () => {
                         { id: 'JSON', label: t('migration.backup'), icon: FileJson },
                         { id: 'CSV', label: t('migration.csvTools'), icon: FileSpreadsheet }
                     ].map((tab) => (
-                        <button
+                        <Button
                             key={tab.id}
+                            variant={activeTab === tab.id ? 'secondary' : 'ghost'}
+                            size="sm"
                             onClick={() => { setActiveTab(tab.id as any); setMsg(null); }}
-                            className={`flex items-center gap-3 px-8 py-2.5 rounded-xl text-sm font-black transition-all duration-300 ${activeTab === tab.id
-                                    ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-lg ring-1 ring-black/5 dark:ring-white/5'
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-slate-700/50'
-                                }`}
+                            className={`px-8 h-10 rounded-xl ${activeTab === tab.id
+                                ? 'bg-white dark:bg-slate-700 shadow-lg ring-1 ring-black/5 dark:ring-white/5'
+                                : ''}`}
+                            leftIcon={<tab.icon size={18} className={activeTab === tab.id ? 'text-blue-600' : 'text-slate-400'} />}
                         >
-                            <tab.icon size={18} className={activeTab === tab.id ? 'text-blue-600' : 'text-slate-400'} />
                             <span className="uppercase tracking-widest text-[11px]">{tab.label}</span>
-                        </button>
+                        </Button>
                     ))}
                 </div>
             </div>
@@ -240,52 +242,98 @@ export const MigrationView: React.FC = () => {
 
                     {/* Mensagens de Feedback */}
                     {msg && (
-                        <div className={`mb-10 p-6 rounded-3xl border-2 flex items-center gap-4 animate-in slide-in-from-top-4 duration-500 ${msg.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30 shadow-xl shadow-emerald-500/5' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-900/30 shadow-xl shadow-rose-500/5'}`}>
-                            <div className={`p-2 rounded-xl bg-white dark:bg-slate-900 shadow-sm ${msg.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                                {msg.type === 'success' ? <CheckCircle size={24} /> : <AlertTriangle size={24} />}
+                        <Card
+                            padding="md"
+                            className={`mb-10 border-2 animate-in slide-in-from-top-4 duration-500 ${msg.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-900/30'}`}
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className={`p-2 rounded-xl bg-white dark:bg-slate-900 shadow-sm ${msg.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                    {msg.type === 'success' ? <CheckCircle size={24} /> : <AlertTriangle size={24} />}
+                                </div>
+                                <span className="text-base font-black tracking-tight">{msg.text}</span>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setMsg(null)}
+                                    className="ml-auto rounded-full p-2 h-auto"
+                                >
+                                    <X size={20} />
+                                </Button>
                             </div>
-                            <span className="text-base font-black tracking-tight">{msg.text}</span>
-                            <button onClick={() => setMsg(null)} className="ml-auto p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors"><X size={20} /></button>
-                        </div>
+                        </Card>
                     )}
 
                     {activeTab === 'JSON' ? (
                         <div className="space-y-12">
                             {!previewData && (
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                                    <div className="bg-white dark:bg-slate-900 p-12 rounded-[3rem] border border-slate-200/60 dark:border-slate-800 shadow-sm text-center group hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-500 relative overflow-hidden">
+                                    <Card
+                                        padding="xl"
+                                        className="text-center group hover:border-blue-300 dark:hover:border-blue-700 relative overflow-hidden"
+                                        variant="hoverable"
+                                    >
                                         <div className="absolute -top-10 -right-10 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform"><Upload size={240} className="dark:text-white" /></div>
                                         <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-all duration-500 shadow-inner"><FileJson size={48} /></div>
                                         <h3 className="text-3xl font-black mb-3 text-slate-900 dark:text-white tracking-tight font-display">{t('migration.restore')}</h3>
                                         <p className="text-sm text-slate-400 dark:text-slate-500 font-bold mb-10 max-w-xs mx-auto leading-relaxed uppercase tracking-widest">{t('migration.json.dragDrop')}</p>
                                         <div className="relative inline-block">
                                             <input type="file" ref={jsonInputRef} onChange={handleJsonFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".json" />
-                                            <button className="bg-blue-600 text-white font-black py-4 px-12 rounded-2xl shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all pointer-events-none active:scale-95 uppercase tracking-widest text-xs">{t('migration.json.selectButton')}</button>
+                                            <Button
+                                                variant="primary"
+                                                size="lg"
+                                                className="px-12 pointer-events-none uppercase tracking-widest text-xs"
+                                            >
+                                                {t('migration.json.selectButton')}
+                                            </Button>
                                         </div>
-                                    </div>
-                                    <div className="bg-white dark:bg-slate-900 p-12 rounded-[3rem] border border-slate-200/60 dark:border-slate-800 shadow-sm text-center group hover:border-cyan-300 dark:hover:border-cyan-700 hover:shadow-2xl hover:shadow-cyan-500/5 transition-all duration-500 relative overflow-hidden">
+                                    </Card>
+                                    <Card
+                                        padding="xl"
+                                        className="text-center group hover:border-cyan-300 dark:hover:border-cyan-700 relative overflow-hidden"
+                                        variant="hoverable"
+                                    >
                                         <div className="absolute -top-10 -right-10 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform"><Download size={240} className="dark:text-white" /></div>
                                         <div className="w-24 h-24 bg-cyan-50 dark:bg-cyan-900/20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-cyan-600 dark:text-cyan-400 group-hover:scale-110 transition-all duration-500 shadow-inner"><Database size={48} /></div>
                                         <h3 className="text-3xl font-black mb-3 text-slate-900 dark:text-white tracking-tight font-display">{t('migration.json.createBackup')}</h3>
                                         <p className="text-sm text-slate-400 dark:text-slate-500 font-bold mb-10 max-w-xs mx-auto leading-relaxed uppercase tracking-widest">Gere um arquivo integral contendo Ativos, RCAs, Ações e Taxonomia.</p>
-                                        <button onClick={handleJsonDownload} className="bg-cyan-600 text-white font-black py-4 px-12 rounded-2xl shadow-xl shadow-cyan-600/20 hover:bg-cyan-700 transition-all active:scale-95 uppercase tracking-widest text-xs">{t('migration.json.downloadButton')}</button>
-                                    </div>
+                                        <Button
+                                            variant="secondary"
+                                            size="lg"
+                                            onClick={handleJsonDownload}
+                                            className="px-12 uppercase tracking-widest text-xs h-14 bg-cyan-600 hover:bg-cyan-700 text-white shadow-xl shadow-cyan-600/20 border-0"
+                                        >
+                                            {t('migration.json.downloadButton')}
+                                        </Button>
+                                    </Card>
                                 </div>
                             )}
 
                             {previewData && (
                                 <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-                                    <div className="bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-200/60 dark:border-slate-800 shadow-2xl overflow-hidden">
+                                    <Card padding="none">
                                         <div className="bg-slate-50/50 dark:bg-slate-800/50 p-10 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
                                             <div className="flex items-center gap-6">
                                                 <div className="p-5 bg-white dark:bg-slate-800 rounded-3xl shadow-lg text-blue-600 dark:text-blue-400 border border-slate-100 dark:border-slate-700"><ClipboardList size={40} /></div>
                                                 <div>
                                                     <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight font-display uppercase italic">{t('migration.importConfig')}</h3>
-                                                    <p className="text-xs text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em] mt-1">Schema: <span className="text-blue-600 dark:text-blue-400">{previewData.metadata?.systemVersion || '17.0'}</span> • Gerado em {new Date(previewData.metadata?.exportDate).toLocaleDateString()}</p>
+                                                    <div className="flex items-center gap-3 mt-1">
+                                                        <Badge variant="primary" size="sm" className="font-mono">Schema: {previewData.metadata?.systemVersion || '17.0'}</Badge>
+                                                        <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                                                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest">Gerado em {new Date(previewData.metadata?.exportDate || '').toLocaleDateString()}</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <button onClick={() => { setPreviewData(null); if (jsonInputRef.current) jsonInputRef.current.value = ''; }} className="px-6 py-3 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-all flex items-center gap-2 border border-rose-100 dark:border-rose-900/30 shadow-sm"><X size={18} strokeWidth={3} /> {t('migration.json.changeFile')}</button>
+                                            <Button
+                                                variant="danger"
+                                                size="sm"
+                                                onClick={() => { setPreviewData(null); if (jsonInputRef.current) jsonInputRef.current.value = ''; }}
+                                                className="px-6 rounded-2xl uppercase tracking-widest h-12"
+                                                leftIcon={<X size={18} strokeWidth={3} />}
+                                            >
+                                                {t('migration.json.changeFile')}
+                                            </Button>
                                         </div>
+
                                         <div className="p-12 space-y-16">
                                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
                                                 {[
@@ -294,13 +342,14 @@ export const MigrationView: React.FC = () => {
                                                     { label: 'Eventos Gatilho', count: previewData.triggers?.length || 0, icon: Activity, color: 'text-amber-600', bg: 'bg-amber-50' },
                                                     { label: 'Nós de Ativos', count: previewData.assets?.length || 0, icon: Layers, color: 'text-cyan-600', bg: 'bg-cyan-50' },
                                                 ].map((item, i) => (
-                                                    <div key={i} className="p-8 rounded-[2rem] bg-slate-50/30 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800 flex flex-col gap-2 transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl hover:shadow-blue-500/5 hover:border-slate-200 dark:hover:border-slate-700 group">
+                                                    <Card key={i} padding="md" variant="hoverable" className="bg-slate-50/30 dark:bg-slate-800/30 flex flex-col gap-2 group">
                                                         <div className={`w-12 h-12 ${item.bg} dark:bg-opacity-20 ${item.color} dark:text-opacity-80 rounded-2xl flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform`}><item.icon size={24} strokeWidth={2.5} /></div>
                                                         <span className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">{item.count}</span>
                                                         <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{item.label}</span>
-                                                    </div>
+                                                    </Card>
                                                 ))}
                                             </div>
+
                                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
                                                 <div className="lg:col-span-5 space-y-8">
                                                     <div className="flex items-center gap-3 mb-6"><Settings size={20} className="text-slate-400" /><h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">{t('migration.json.modeTitle')}</h4></div>
@@ -310,45 +359,95 @@ export const MigrationView: React.FC = () => {
                                                             { id: 'UPDATE', label: t('migration.modes.update'), desc: t('migration.json.modeDescriptions.update'), color: 'cyan' },
                                                             { id: 'REPLACE', label: t('migration.modes.replace'), desc: t('migration.json.modeDescriptions.replace'), color: 'rose', warning: true },
                                                         ].map((mode) => (
-                                                            <button key={mode.id} onClick={() => setImportMode(mode.id as any)} className={`p-6 rounded-[2rem] border-2 text-left transition-all duration-500 group ${importMode === mode.id ? `bg-white border-${mode.color === 'rose' ? 'rose' : mode.color}-500 shadow-xl shadow-${mode.color === 'rose' ? 'rose' : mode.color}-500/10 ring-4 ring-${mode.color === 'rose' ? 'rose' : mode.color}-500/5` : 'bg-transparent border-slate-100 hover:border-slate-200'}`}>
-                                                                <div className="flex items-center justify-between mb-2">
-                                                                    <span className={`font-black text-sm uppercase tracking-widest ${importMode === mode.id ? `text-${mode.color === 'rose' ? 'rose' : mode.color}-700` : 'text-slate-500'}`}>{mode.label}</span>
-                                                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${importMode === mode.id ? `bg-${mode.color === 'rose' ? 'rose' : mode.color}-600 border-${mode.color === 'rose' ? 'rose' : mode.color}-600 shadow-lg shadow-${mode.color === 'rose' ? 'rose' : mode.color}-500/20` : 'border-slate-200'}`}>{importMode === mode.id && <Check size={14} className="text-white" strokeWidth={4} />}</div>
+                                                            <Button
+                                                                key={mode.id}
+                                                                variant="ghost"
+                                                                onClick={() => setImportMode(mode.id as any)}
+                                                                className={`p-6 h-auto rounded-[2rem] border-2 text-left transition-all duration-500 block w-full whitespace-normal hover:scale-[1.01] active:scale-95 ${importMode === mode.id ? `bg-white dark:bg-slate-800 border-${mode.color === 'rose' ? 'rose' : mode.color}-500 shadow-xl shadow-${mode.color === 'rose' ? 'rose' : mode.color}-500/10 ring-4 ring-${mode.color === 'rose' ? 'rose' : mode.color}-500/5` : 'bg-transparent border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'}`}
+                                                            >
+                                                                <div className="flex items-center justify-between mb-2 w-full">
+                                                                    <span className={`font-black text-sm uppercase tracking-widest ${importMode === mode.id ? `text-${mode.color === 'rose' ? 'rose' : mode.color}-700 dark:text-${mode.color === 'rose' ? 'rose' : mode.color}-400` : 'text-slate-500'}`}>{mode.label}</span>
+                                                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${importMode === mode.id ? `bg-${mode.color === 'rose' ? 'rose' : mode.color}-600 border-${mode.color === 'rose' ? 'rose' : mode.color}-600 shadow-lg shadow-${mode.color === 'rose' ? 'rose' : mode.color}-500/20` : 'border-slate-200 dark:border-slate-700'}`}>{importMode === mode.id && <Check size={14} className="text-white" strokeWidth={4} />}</div>
                                                                 </div>
-                                                                <p className={`text-[11px] font-bold leading-relaxed ${importMode === mode.id ? `text-${mode.color === 'rose' ? 'rose' : mode.color}-600/80` : 'text-slate-400'}`}>{mode.warning && 'Atenção: '}{mode.desc}</p>
-                                                            </button>
+                                                                <p className={`text-[11px] font-bold leading-relaxed ${importMode === mode.id ? `text-${mode.color === 'rose' ? 'rose' : mode.color}-600/80 dark:text-${mode.color === 'rose' ? 'rose' : mode.color}-400/80` : 'text-slate-400'}`}>{mode.warning && 'Atenção: '}{mode.desc}</p>
+                                                            </Button>
                                                         ))}
                                                     </div>
                                                 </div>
+
                                                 <div className="lg:col-span-7 space-y-8">
-                                                    <div className="flex items-center justify-between mb-6"><div className="flex items-center gap-3"><ShieldCheck size={20} className="text-slate-400" /><h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">{t('migration.json.taxonomyTitle')}</h4></div><div className="flex gap-6"><button onClick={() => setTaxonomySelection(prev => Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: true }), {}))} className="text-[10px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest">{t('migration.json.selectAll')}</button><button onClick={() => setTaxonomySelection(prev => Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: false }), {}))} className="text-[10px] font-black text-slate-400 hover:text-slate-500 uppercase tracking-widest">{t('migration.json.deselectAll')}</button></div></div>
-                                                    <div className="bg-slate-50/50 rounded-[2.5rem] p-8 border border-slate-100"><div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                        {[
-                                                            { key: 'analysisTypes', label: t('settings.analysisTypes'), icon: Activity },
-                                                            { key: 'analysisStatuses', label: t('settings.analysisStatuses'), icon: CheckCircle },
-                                                            { key: 'specialties', label: t('settings.specialties'), icon: Settings },
-                                                            { key: 'failureModes', label: t('settings.failureModes'), icon: AlertTriangle },
-                                                            { key: 'failureCategories', label: t('settings.failureCategories'), icon: Box },
-                                                            { key: 'componentTypes', label: t('settings.componentTypes'), icon: Layers },
-                                                            { key: 'rootCauseMs', label: t('settings.rootCauseMs'), icon: TableProperties },
-                                                            { key: 'triggerStatuses', label: t('settings.triggerStatuses'), icon: RefreshCw }
-                                                        ].map(item => (
-                                                            <label key={item.key} htmlFor={`${idPrefix}-tax-${item.key}`} className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all cursor-pointer ${taxonomySelection[item.key] ? 'bg-white border-blue-500 shadow-lg shadow-blue-500/5 text-blue-700' : 'bg-transparent border-transparent text-slate-500 hover:bg-white/50'}`}>
-                                                                <input id={`${idPrefix}-tax-${item.key}`} type="checkbox" checked={!!taxonomySelection[item.key]} onChange={() => toggleTaxonomy(item.key)} className="w-5 h-5 text-blue-600 rounded-lg border-slate-200 focus:ring-4 focus:ring-blue-500/10 cursor-pointer" />
-                                                                <item.icon size={18} strokeWidth={2.5} className={taxonomySelection[item.key] ? 'text-blue-500' : 'text-slate-300'} />
-                                                                <span className="text-xs font-black uppercase tracking-tight truncate">{item.label}</span>
-                                                            </label>
-                                                        ))}
-                                                    </div></div>
-                                                    <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100 flex gap-4"><Info size={20} className="text-blue-500 flex-shrink-0 mt-0.5" /><p className="text-[11px] text-blue-700 font-bold leading-relaxed">Nota: Conflitos de ID serão resolvidos preservando a integridade da base local existente.</p></div>
+                                                    <div className="flex items-center justify-between mb-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <ShieldCheck size={20} className="text-slate-400" />
+                                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">{t('migration.json.taxonomyTitle')}</h4>
+                                                        </div>
+                                                        <div className="flex gap-6">
+                                                            <Button variant="ghost" size="sm" onClick={() => setTaxonomySelection(prev => Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: true }), {}))} className="text-[10px] font-black text-blue-600 dark:text-blue-400 hover:bg-transparent px-0 uppercase tracking-widest transition-colors">{t('migration.json.selectAll')}</Button>
+                                                            <Button variant="ghost" size="sm" onClick={() => setTaxonomySelection(prev => Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: false }), {}))} className="text-[10px] font-black text-slate-400 dark:text-slate-500 hover:bg-transparent px-0 uppercase tracking-widest transition-colors">{t('migration.json.deselectAll')}</Button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="bg-slate-50/50 dark:bg-slate-800/50 rounded-[2.5rem] p-8 border border-slate-100 dark:border-slate-800">
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                            {[
+                                                                { key: 'analysisTypes', label: t('settings.analysisTypes'), icon: Activity },
+                                                                { key: 'analysisStatuses', label: t('settings.analysisStatuses'), icon: CheckCircle },
+                                                                { key: 'specialties', label: t('settings.specialties'), icon: Settings },
+                                                                { key: 'failureModes', label: t('settings.failureModes'), icon: AlertTriangle },
+                                                                { key: 'failureCategories', label: t('settings.failureCategories'), icon: Box },
+                                                                { key: 'componentTypes', label: t('settings.componentTypes'), icon: Layers },
+                                                                { key: 'rootCauseMs', label: t('settings.rootCauseMs'), icon: TableProperties },
+                                                                { key: 'triggerStatuses', label: t('settings.triggerStatuses'), icon: RefreshCw }
+                                                            ].map(item => (
+                                                                <label
+                                                                    key={item.key}
+                                                                    htmlFor={`${idPrefix}-tax-${item.key}`}
+                                                                    className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all cursor-pointer ${taxonomySelection[item.key]
+                                                                        ? 'bg-white dark:bg-slate-800 border-blue-500 dark:border-blue-500 shadow-lg shadow-blue-500/5 text-blue-700 dark:text-blue-400'
+                                                                        : 'bg-transparent border-transparent text-slate-500 dark:text-slate-500 hover:bg-white/50 dark:hover:bg-slate-700/50'}`}
+                                                                >
+                                                                    <input
+                                                                        id={`${idPrefix}-tax-${item.key}`}
+                                                                        type="checkbox"
+                                                                        checked={!!taxonomySelection[item.key]}
+                                                                        onChange={() => toggleTaxonomy(item.key)}
+                                                                        className="w-5 h-5 text-blue-600 rounded-lg border-slate-200 dark:border-slate-700 focus:ring-4 focus:ring-blue-500/10 cursor-pointer"
+                                                                    />
+                                                                    <item.icon size={18} strokeWidth={2.5} className={taxonomySelection[item.key] ? 'text-blue-500' : 'text-slate-300 dark:text-slate-700'} />
+                                                                    <span className="text-xs font-black uppercase tracking-tight truncate">{item.label}</span>
+                                                                </label>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-6 bg-blue-50/50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-900/30 flex gap-4">
+                                                        <Info size={20} className="text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                                                        <p className="text-[11px] text-blue-700 dark:text-blue-300 font-bold leading-relaxed">Nota: Conflitos de ID serão resolvidos preservando a integridade da base local existente.</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="flex justify-end pt-10 border-t border-slate-100 gap-6">
-                                                <button onClick={() => setPreviewData(null)} className="px-10 py-4 text-slate-400 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-200">{t('migration.cancel')}</button>
-                                                <button onClick={executeImport} className="px-16 py-4 bg-emerald-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-emerald-700 shadow-xl shadow-emerald-600/20 transition-all flex items-center gap-3 active:scale-95"><RefreshCw size={20} strokeWidth={3} />{t('migration.json.initializeButton')}</button>
+
+                                            <div className="flex justify-end pt-10 border-t border-slate-100 dark:border-slate-800 gap-6">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="lg"
+                                                    onClick={() => setPreviewData(null)}
+                                                    className="px-10 rounded-2xl uppercase tracking-widest"
+                                                >
+                                                    {t('migration.cancel')}
+                                                </Button>
+                                                <Button
+                                                    variant="primary"
+                                                    size="lg"
+                                                    onClick={executeImport}
+                                                    className="px-16 bg-emerald-600 hover:bg-emerald-700 shadow-xl shadow-emerald-600/20 rounded-2xl uppercase tracking-widest h-14"
+                                                    leftIcon={<RefreshCw size={20} strokeWidth={3} />}
+                                                >
+                                                    {t('migration.json.initializeButton')}
+                                                </Button>
                                             </div>
                                         </div>
-                                    </div>
+                                    </Card>
                                 </div>
                             )}
                         </div>
@@ -356,7 +455,7 @@ export const MigrationView: React.FC = () => {
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
                             {/* Coluna de Configuração CSV */}
                             <div className="lg:col-span-7 space-y-10">
-                                <div className="bg-white dark:bg-slate-900 p-10 lg:p-12 rounded-[3rem] border border-slate-200/60 dark:border-slate-800 shadow-sm h-full">
+                                <Card padding="xl" className="h-full">
                                     <div className="flex items-center gap-5 mb-10 border-b border-slate-100 dark:border-slate-800 pb-6">
                                         <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-2xl shadow-sm border border-emerald-100 dark:border-emerald-900/30">
                                             <FileSpreadsheet size={28} />
@@ -375,20 +474,23 @@ export const MigrationView: React.FC = () => {
                                             </label>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[32rem] overflow-y-auto pr-4 custom-scrollbar">
                                                 {entityOptions.map(opt => (
-                                                    <button
+                                                    <Button
                                                         key={opt.value}
+                                                        variant="ghost"
                                                         onClick={() => { setCsvType(opt.value); setMsg(null); }}
-                                                        className={`flex items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-300 text-left group ${csvType === opt.value
-                                                                ? 'bg-white dark:bg-slate-800 border-blue-600 dark:border-blue-500 shadow-xl shadow-blue-500/5 ring-4 ring-blue-500/5'
-                                                                : 'bg-slate-50/30 dark:bg-slate-800/30 border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-800'
+                                                        className={`h-auto p-5 rounded-2xl border-2 text-left block w-full whitespace-normal transition-all duration-300 active:scale-[0.98] ${csvType === opt.value
+                                                            ? 'bg-white dark:bg-slate-800 border-blue-600 dark:border-blue-500 shadow-xl shadow-blue-500/5 ring-4 ring-blue-500/5'
+                                                            : 'bg-slate-50/30 dark:bg-slate-800/30 border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-800'
                                                             }`}
                                                     >
-                                                        <div className={`p-3 rounded-xl transition-all duration-300 ${csvType === opt.value ? 'bg-blue-600 text-white shadow-lg' : 'bg-white dark:bg-slate-900 text-slate-400 group-hover:text-blue-500 shadow-sm'}`}>
-                                                            <opt.icon size={20} strokeWidth={2.5} />
+                                                        <div className="flex items-center gap-4 w-full">
+                                                            <div className={`p-3 rounded-xl transition-all duration-300 ${csvType === opt.value ? 'bg-blue-600 text-white shadow-lg' : 'bg-white dark:bg-slate-900 text-slate-400 shadow-sm'}`}>
+                                                                <opt.icon size={20} strokeWidth={2.5} />
+                                                            </div>
+                                                            <span className={`text-xs font-black uppercase tracking-tight ${csvType === opt.value ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>{opt.label}</span>
+                                                            {csvType === opt.value && <div className="ml-auto w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.5)]" />}
                                                         </div>
-                                                        <span className={`text-xs font-black uppercase tracking-tight ${csvType === opt.value ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>{opt.label}</span>
-                                                        {csvType === opt.value && <div className="ml-auto w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.5)]" />}
-                                                    </button>
+                                                    </Button>
                                                 ))}
                                             </div>
                                         </div>
@@ -405,78 +507,83 @@ export const MigrationView: React.FC = () => {
                                                     { id: 'APPEND', label: t('migration.csv.appendLabel'), desc: t('migration.csv.appendHint'), icon: FileUp, color: 'blue' },
                                                     { id: 'UPDATE', label: t('migration.csv.updateLabel'), desc: t('migration.csv.updateHint'), icon: RefreshCw, color: 'cyan' },
                                                 ].map((mode) => (
-                                                    <button
+                                                    <Button
                                                         key={mode.id}
+                                                        variant="ghost"
                                                         onClick={() => setImportMode(mode.id as any)}
-                                                        className={`p-5 rounded-2xl border-2 text-left transition-all duration-500 ${(importMode === mode.id || (mode.id === 'APPEND' && importMode === 'REPLACE'))
-                                                                ? `bg-white dark:bg-slate-800 border-${mode.color}-500 shadow-xl ring-4 ring-${mode.color}-500/5`
-                                                                : 'bg-transparent border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'
+                                                        className={`h-auto p-5 rounded-2xl border-2 text-left block w-full whitespace-normal transition-all duration-500 active:scale-95 ${(importMode === mode.id || (mode.id === 'APPEND' && importMode === 'REPLACE'))
+                                                            ? `bg-white dark:bg-slate-800 border-${mode.color}-500 shadow-xl ring-4 ring-${mode.color}-500/5`
+                                                            : 'bg-transparent border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'
                                                             }`}
                                                     >
                                                         <div className="flex items-center gap-3 mb-2">
                                                             <mode.icon size={16} strokeWidth={3} className={importMode === mode.id ? `text-${mode.color}-600` : 'text-slate-400'} />
-                                                            <span className={`text-xs font-black uppercase tracking-widest ${importMode === mode.id ? `text-${mode.color}-700` : 'text-slate-500'}`}>{mode.label}</span>
+                                                            <span className={`text-xs font-black uppercase tracking-widest ${importMode === mode.id ? `text-${mode.color}-700 dark:text-${mode.color}-400` : 'text-slate-500'}`}>{mode.label}</span>
                                                         </div>
                                                         <p className="text-[10px] font-bold text-slate-400 leading-relaxed">{mode.desc}</p>
-                                                    </button>
+                                                    </Button>
                                                 ))}
                                             </div>
 
                                             {csvType === 'TRIGGERS' && (
-                                                <label htmlFor={`${idPrefix}-csv-inherit`} className="flex items-center gap-5 p-5 rounded-[2rem] bg-blue-50 border border-blue-100 cursor-pointer group transition-all hover:bg-blue-100/50 shadow-sm">
+                                                <label htmlFor={`${idPrefix}-csv-inherit`} className="flex items-center gap-5 p-5 rounded-[2rem] bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 cursor-pointer group transition-all hover:bg-blue-100/50 shadow-sm">
                                                     <div className="relative flex items-center">
                                                         <input
                                                             type="checkbox"
                                                             id={`${idPrefix}-csv-inherit`}
                                                             checked={inheritHierarchy}
                                                             onChange={e => setInheritHierarchy(e.target.checked)}
-                                                            className="w-6 h-6 rounded-xl border-slate-300 text-blue-600 focus:ring-4 focus:ring-blue-500/10 cursor-pointer"
+                                                            className="w-6 h-6 rounded-xl border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-4 focus:ring-blue-500/10 cursor-pointer"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <span className="text-xs font-black text-blue-900 uppercase tracking-tight">{t('migration.csv.inheritHierarchy')}</span>
-                                                        <p className="text-[10px] font-bold text-blue-600/60 leading-relaxed uppercase mt-0.5">{t('migration.csv.inheritHint')}</p>
+                                                        <span className="text-xs font-black text-blue-900 dark:text-blue-300 uppercase tracking-tight">{t('migration.csv.inheritHierarchy')}</span>
+                                                        <p className="text-[10px] font-bold text-blue-600/60 dark:text-blue-400/60 leading-relaxed uppercase mt-0.5">{t('migration.csv.inheritHint')}</p>
                                                     </div>
                                                 </label>
                                             )}
                                         </div>
                                     </div>
-                                </div>
+                                </Card>
                             </div>
 
                             {/* Coluna de Ações de Arquivo CSV */}
                             <div className="lg:col-span-5 space-y-8">
                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 px-2">Ações de Arquivo</label>
 
-                                <div className="bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-200/60 dark:border-slate-800 shadow-sm overflow-hidden group/actions">
+                                <Card padding="none" className="group/actions overflow-hidden">
                                     <div className="p-10 space-y-6">
-                                        <button
+                                        <Button
+                                            variant="ghost"
+                                            size="lg"
                                             onClick={handleDownloadTemplate}
-                                            className="w-full flex items-center gap-5 p-6 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-[2rem] hover:bg-white dark:hover:bg-slate-800 hover:shadow-2xl hover:shadow-blue-500/5 hover:border-blue-200 dark:hover:border-blue-900 transition-all group text-left"
+                                            className="w-full flex items-center gap-5 h-auto p-6 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-[2rem] hover:bg-white dark:hover:bg-slate-800 hover:shadow-2xl hover:shadow-blue-500/5 hover:border-blue-200 dark:hover:border-blue-900 transition-all group/btn text-left"
                                         >
-                                            <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm text-slate-400 group-hover:text-blue-600 group-hover:scale-110 transition-all border border-slate-50 dark:border-slate-700">
+                                            <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm text-slate-400 group-hover/btn:text-blue-600 group-hover/btn:scale-110 transition-all border border-slate-50 dark:border-slate-700">
                                                 <FileDown size={28} />
                                             </div>
                                             <div className="flex-1">
                                                 <span className="block font-black text-slate-800 dark:text-white text-sm uppercase tracking-tight">{t('migration.downloadTemplate')}</span>
                                                 <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-[0.15em] mt-1 block">Obter modelo estruturado</span>
                                             </div>
-                                            <ChevronRight size={20} className="text-slate-300 group-hover:translate-x-2 transition-transform" strokeWidth={3} />
-                                        </button>
+                                            <ChevronRight size={20} className="text-slate-300 group-hover/btn:translate-x-2 transition-transform" strokeWidth={3} />
+                                        </Button>
 
-                                        <button
+                                        <Button
+                                            variant="ghost"
+                                            size="lg"
                                             onClick={handleCsvExport}
-                                            className="w-full flex items-center gap-5 p-6 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-[2rem] hover:bg-white dark:hover:bg-slate-800 hover:shadow-2xl hover:shadow-emerald-500/5 hover:border-emerald-200 dark:hover:border-emerald-900 transition-all group text-left"
+                                            className="w-full flex items-center gap-5 h-auto p-6 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-[2rem] hover:bg-white dark:hover:bg-slate-800 hover:shadow-2xl hover:shadow-emerald-500/5 hover:border-emerald-200 dark:hover:border-emerald-900 transition-all group/btn text-left"
                                         >
-                                            <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm text-slate-400 group-hover:text-emerald-600 group-hover:scale-110 transition-all border border-slate-50 dark:border-slate-700">
+                                            <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm text-slate-400 group-hover/btn:text-emerald-600 group-hover/btn:scale-110 transition-all border border-slate-50 dark:border-slate-700">
                                                 <Download size={28} />
                                             </div>
                                             <div className="flex-1">
                                                 <span className="block font-black text-slate-800 dark:text-white text-sm uppercase tracking-tight">{t('migration.exportData')}</span>
                                                 <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-[0.15em] mt-1 block">Baixar dados existentes</span>
                                             </div>
-                                            <ChevronRight size={20} className="text-slate-300 group-hover:translate-x-2 transition-transform" strokeWidth={3} />
-                                        </button>
+                                            <ChevronRight size={20} className="text-slate-300 group-hover/btn:translate-x-2 transition-transform" strokeWidth={3} />
+                                        </Button>
 
                                         <div className="relative group pt-6">
                                             <input
@@ -487,16 +594,20 @@ export const MigrationView: React.FC = () => {
                                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                                 accept=".csv"
                                             />
-                                            <div className="flex items-center gap-6 p-10 bg-blue-600 rounded-[2.5rem] shadow-2xl shadow-blue-600/20 group-hover:bg-blue-700 group-hover:scale-[1.02] transition-all text-left">
+                                            <Button
+                                                variant="primary"
+                                                size="lg"
+                                                className="w-full flex items-center gap-6 p-10 h-auto bg-blue-600 rounded-[2.5rem] shadow-2xl shadow-blue-600/20 hover:bg-blue-700 hover:scale-[1.02] transition-all text-left border-0"
+                                            >
                                                 <div className="p-5 bg-white/10 rounded-[1.5rem] text-white shadow-inner">
                                                     <FileUp size={36} strokeWidth={2.5} />
                                                 </div>
                                                 <div className="flex-1">
                                                     <span className="block font-black text-white text-xl tracking-tight uppercase italic">{t('migration.importCsv')}</span>
-                                                    <span className="text-[10px] text-blue-100 font-black uppercase tracking-widest opacity-70 mt-1 block tracking-[0.2em]">Clique para selecionar</span>
+                                                    <span className="text-[10px] text-blue-100 font-black uppercase tracking-[0.2em] opacity-70 mt-1 block">Clique para selecionar</span>
                                                 </div>
                                                 <ChevronRight size={24} className="text-blue-200 group-hover:translate-x-2 transition-transform" strokeWidth={3} />
-                                            </div>
+                                            </Button>
                                         </div>
                                     </div>
 
@@ -506,7 +617,7 @@ export const MigrationView: React.FC = () => {
                                             Nota: Utilize codificação UTF-8 e separador ponto e vírgula (;) para máxima compatibilidade com Excel.
                                         </p>
                                     </div>
-                                </div>
+                                </Card>
                             </div>
                         </div>
                     )}

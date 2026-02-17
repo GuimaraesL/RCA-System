@@ -11,6 +11,8 @@ import { Select } from '../ui/Select';
 import { Textarea } from '../ui/Textarea';
 import { X, ShieldCheck } from 'lucide-react';
 import { ShortcutLabel } from '../ui/ShortcutLabel';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
 
 interface ActionModalProps {
     isOpen: boolean;
@@ -93,9 +95,10 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
 
     return (
         <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-            <div
+            <Card
                 data-testid="modal-action"
-                className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200 dark:border-slate-800 animate-scale-in"
+                padding="none"
+                className="w-full max-w-xl animate-scale-in"
             >
                 <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900">
                     <div className="flex items-center gap-3">
@@ -106,9 +109,14 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                             {initialData ? t('actionModal.titleEdit') : t('actionModal.titleNew')}
                         </h3>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full text-slate-400 transition-colors">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onClose}
+                        className="rounded-full p-2 h-auto text-slate-400"
+                    >
                         <X size={20} />
-                    </button>
+                    </Button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-8 space-y-6">
@@ -200,26 +208,25 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                     </div>
 
                     <div className="flex justify-end gap-4 pt-6 border-t border-slate-50 dark:border-slate-800">
-                        <button
+                        <Button
                             type="button"
+                            variant="ghost"
                             onClick={onClose}
                             data-testid="btn-cancel-action"
-                            className="px-6 py-2.5 text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-sm transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
                             title="Esc"
                         >
                             {t('actionModal.cancel')}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="submit"
                             data-testid="btn-save-action"
-                            className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-black shadow-lg shadow-blue-600/20 transition-all active:scale-95"
                             title="Ctrl+S"
                         >
                             <ShortcutLabel text={t('actionModal.save')} shortcutLetter="S" />
-                        </button>
+                        </Button>
                     </div>
                 </form>
-            </div>
+            </Card>
         </div>
     );
 };

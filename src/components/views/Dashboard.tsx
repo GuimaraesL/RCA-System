@@ -19,6 +19,8 @@ import { AnimatedCounter } from '../ui/AnimatedCounter';
 import { useEnterAnimation } from '../../hooks/useEnterAnimation';
 import { Skeleton } from '../ui/Skeleton';
 import { SafeResponsiveContainer } from '../ui/SafeResponsiveContainer';
+import { Card } from '../ui/Card';
+import { Badge } from '../ui/Badge';
 import { Info } from 'lucide-react';
 
 /**
@@ -74,7 +76,12 @@ const ChartCard: React.FC<{
 }> = ({ title, children, icon, isInteractive, isLoading, tooltip }) => {
     const { t } = useLanguage();
     return (
-        <div title={tooltip} className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] shadow-sm border border-slate-200/60 dark:border-slate-800 flex flex-col min-h-[480px] transition-all hover:shadow-xl hover:shadow-blue-500/5 group overflow-hidden cursor-help">
+        <Card
+            title={tooltip}
+            variant="hoverable"
+            padding="lg"
+            className="flex flex-col min-h-[480px] transition-all hover:shadow-blue-500/5 group cursor-help"
+        >
             <div title={tooltip} className="flex items-center justify-between mb-8 border-b border-slate-50 dark:border-slate-800 pb-4 flex-shrink-0">
                 <div title={tooltip} className="flex items-center gap-3">
                     <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-400 dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-all">
@@ -83,9 +90,9 @@ const ChartCard: React.FC<{
                     <h3 title={tooltip} className="font-black text-slate-700 dark:text-slate-200 text-xs uppercase tracking-[0.2em]">{title}</h3>
                 </div>
                 {isInteractive && (
-                    <div title={tooltip} className="opacity-0 group-hover:opacity-100 transition-all text-[10px] font-black uppercase tracking-widest text-blue-500 dark:text-blue-400 flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-full">
+                    <Badge variant="primary" className="opacity-0 group-hover:opacity-100 transition-all">
                         <MousePointerClick size={12} strokeWidth={3} /> {t('common.filter')}
-                    </div>
+                    </Badge>
                 )}
             </div>
             <div className="flex-1 w-full relative">
@@ -100,7 +107,7 @@ const ChartCard: React.FC<{
                     </div>
                 ) : children}
             </div>
-        </div>
+        </Card>
     );
 };
 
@@ -282,7 +289,12 @@ export const Dashboard: React.FC = () => {
                     { label: t('dashboard.kpi.totalCost'), value: totalCost, icon: <TrendingUp size={16} />, color: 'text-emerald-600 dark:text-emerald-400', bgColor: 'bg-emerald-50 dark:bg-emerald-900/20', prefix: language === 'pt' ? 'R$ ' : '$', tooltip: t('dashboard.tooltips.totalCost') },
                     { label: t('dashboard.kpi.totalRcas'), value: filteredRecords.length, icon: <PieIcon size={16} />, color: 'text-slate-600 dark:text-slate-400', bgColor: 'bg-slate-50 dark:bg-slate-800', tooltip: t('dashboard.tooltips.totalRcas') }
                 ].map((kpi, i) => (
-                    <div key={i} title={kpi.tooltip} className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-800 relative overflow-hidden group hover:border-blue-300 dark:hover:border-blue-700/50 hover:shadow-xl hover:shadow-blue-500/5 transition-all cursor-help pointer-events-auto">
+                    <Card
+                        key={i}
+                        title={kpi.tooltip}
+                        variant="hoverable"
+                        className="relative group cursor-help pointer-events-auto"
+                    >
                         <div title={kpi.tooltip} className={`flex items-center justify-between mb-6`}>
                             <div className={`p-3 ${kpi.bgColor} ${kpi.color} rounded-2xl shadow-sm transition-transform group-hover:scale-110 duration-300`}>
                                 {kpi.icon}
@@ -303,7 +315,7 @@ export const Dashboard: React.FC = () => {
                         </div>
                         {/* Efeito de fundo decorativo */}
                         <div className={`absolute -right-4 -bottom-4 w-24 h-24 ${kpi.bgColor} opacity-0 group-hover:opacity-20 rounded-full transition-all duration-500 blur-3xl`}></div>
-                    </div>
+                    </Card>
                 ))}
             </div>
 

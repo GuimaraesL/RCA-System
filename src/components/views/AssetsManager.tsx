@@ -13,6 +13,9 @@ import { AssetTreeNode } from '../selectors/AssetTreeNode';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
+import { Card } from '../ui/Card';
+import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
 
 export const AssetsManager: React.FC = () => {
   const { t } = useLanguage();
@@ -81,13 +84,15 @@ export const AssetsManager: React.FC = () => {
       >
         <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
           <h2 className="font-black text-slate-700 dark:text-slate-300 text-xs uppercase tracking-[0.2em]">{t('assets.hierarchy')}</h2>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => { setSelectedNode(null); startAdd(null); }}
-            className="p-2 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-all active:scale-95"
+            className="rounded-xl border border-slate-200 dark:border-slate-700 h-10 w-10 p-0"
             title={t('assets.tooltips.addRootArea')}
           >
             <Plus size={20} strokeWidth={3} />
-          </button>
+          </Button>
         </div>
         <div className="flex-1 overflow-y-auto overflow-x-auto p-4 custom-scrollbar">
           {assets.map(asset => (
@@ -128,11 +133,12 @@ export const AssetsManager: React.FC = () => {
         {!isEditing && selectedNode ? (
           <div className="h-full flex flex-col animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="mb-12">
-              <span className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase mb-4 inline-block border shadow-sm tracking-widest
-                ${selectedNode.type === 'AREA' ? 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700' :
-                  selectedNode.type === 'EQUIPMENT' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/30' : 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 border-cyan-100 dark:border-cyan-900/30'}`}>
+              <Badge
+                className={`mb-4 ${selectedNode.type === 'AREA' ? 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700' :
+                  selectedNode.type === 'EQUIPMENT' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/30' : 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 border-cyan-100 dark:border-cyan-900/30'}`}
+              >
                 {t(`assets.types.${selectedNode.type}`) || selectedNode.type}
-              </span>
+              </Badge>
               <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-4 tracking-tighter font-display">{selectedNode.name}</h1>
               <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500 font-mono text-xs bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-xl w-fit border border-slate-100 dark:border-slate-700">
                 <Lock size={14} className="opacity-50" />
@@ -141,25 +147,34 @@ export const AssetsManager: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-auto">
-              <button
+              <Button
+                variant="outline"
+                size="lg"
                 onClick={() => startEdit(selectedNode)}
-                className="flex items-center justify-center gap-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 py-4 rounded-2xl font-bold border border-slate-200 dark:border-slate-700 transition-all shadow-sm active:scale-95"
+                className="h-16 rounded-2xl"
+                leftIcon={<Edit2 size={20} />}
               >
-                <Edit2 size={20} /> <ShortcutLabel text={t('assets.rename')} shortcutLetter="R" />
-              </button>
-              <button
+                <ShortcutLabel text={t('assets.rename')} shortcutLetter="R" />
+              </Button>
+              <Button
+                variant="danger"
+                size="lg"
                 onClick={() => handleDelete(selectedNode)}
-                className="flex items-center justify-center gap-3 bg-rose-50 dark:bg-rose-900/10 hover:bg-rose-100 dark:hover:bg-rose-900/20 text-rose-600 dark:text-rose-400 py-4 rounded-2xl font-bold border border-rose-100 dark:border-rose-900/30 transition-all active:scale-95"
+                className="h-16 rounded-2xl"
+                leftIcon={<Trash2 size={20} />}
               >
-                <Trash2 size={20} /> <ShortcutLabel text={t('assets.delete')} shortcutLetter="E" />
-              </button>
+                <ShortcutLabel text={t('assets.delete')} shortcutLetter="E" />
+              </Button>
               {selectedNode.type !== 'SUBGROUP' && (
-                <button
+                <Button
+                  variant="primary"
+                  size="lg"
                   onClick={() => startAdd(selectedNode)}
-                  className="sm:col-span-2 flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-2xl font-black transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]"
+                  className="sm:col-span-2 h-20 rounded-2xl"
+                  leftIcon={<Plus size={22} strokeWidth={3} />}
                 >
-                  <Plus size={22} strokeWidth={3} /> {t('assets.addChild')} ({selectedNode.type === 'AREA' ? t('filters.equipment') : t('filters.subgroup')})
-                </button>
+                  {t('assets.addChild')} ({selectedNode.type === 'AREA' ? t('filters.equipment') : t('filters.subgroup')})
+                </Button>
               )}
             </div>
           </div>
@@ -216,20 +231,24 @@ export const AssetsManager: React.FC = () => {
               )}
 
               <div className="flex gap-4 pt-8">
-                <button
+                <Button
+                  variant="ghost"
+                  size="lg"
                   onClick={() => setIsEditing(false)}
-                  className="flex-1 py-4 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+                  className="flex-1 h-14 rounded-2xl"
                   title="Esc"
                 >
                   {t('common.cancel')}
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="primary"
+                  size="lg"
                   onClick={parentNode || (!selectedNode && !parentNode) ? handleAddChild : handleUpdate}
-                  className="flex-1 py-4 bg-blue-600 rounded-2xl text-white font-black hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+                  className="flex-1 h-14 rounded-2xl"
                   title="Ctrl+S"
                 >
                   <ShortcutLabel text={t('common.save')} shortcutLetter="S" />
-                </button>
+                </Button>
               </div>
             </div>
           </div>

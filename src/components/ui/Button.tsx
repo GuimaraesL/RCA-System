@@ -1,51 +1,55 @@
-/**
- * Proposta: Componente de botão (Button) padronizado com variantes de estilo.
- */
-
 import React from 'react';
 import { Loader2 } from 'lucide-react';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline';
     size?: 'sm' | 'md' | 'lg';
     isLoading?: boolean;
+    leftIcon?: React.ReactNode;
+    rightIcon?: React.ReactNode;
 }
 
-export const Button: React.FC<ButtonProps> = ({
-    variant = 'primary',
-    size = 'md',
-    isLoading = false,
-    className = '',
-    children,
-    ...props
-}) => {
-    const baseStyles = 'inline-flex items-center justify-center font-bold transition-all rounded-lg disabled:opacity-50 disabled:cursor-not-allowed active:scale-95';
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+    ({ className = '', variant = 'primary', size = 'md', isLoading, leftIcon, rightIcon, children, disabled, ...props }, ref) => {
 
-    const variants = {
-        primary: 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-600/10',
-        secondary: 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400',
-        ghost: 'text-slate-500 hover:bg-slate-100',
-        danger: 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-100'
-    };
+        const baseStyles = 'inline-flex items-center justify-center font-bold tracking-tight transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100';
 
-    const sizes = {
-        sm: 'px-3 py-1.5 text-xs',
-        md: 'px-6 py-2.5 text-sm',
-        lg: 'px-8 py-3.5 text-base'
-    };
+        const variants = {
+            primary: 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/20',
+            secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-50 dark:hover:bg-slate-700',
+            outline: 'border-2 border-slate-200 bg-transparent hover:bg-slate-100 hover:text-slate-900 dark:border-slate-800 dark:hover:bg-slate-800 dark:hover:text-slate-50',
+            ghost: 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800/50',
+            danger: 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-900/30',
+        };
 
-    return (
-        <button
-            {...props}
-            disabled={props.disabled || isLoading}
-            className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
-        >
-            {isLoading ? (
-                <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    <span>{typeof children === 'string' ? children : '...'}</span>
-                </>
-            ) : children}
-        </button>
-    );
-};
+        const sizes = {
+            sm: 'h-8 px-3 text-xs rounded-lg',
+            md: 'h-11 px-6 py-2.5 text-sm rounded-xl',
+            lg: 'h-14 px-10 py-3.5 text-base rounded-2xl',
+        };
+
+        return (
+            <button
+                ref={ref}
+                className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+                disabled={disabled || isLoading}
+                {...props}
+            >
+                {isLoading ? (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <span>{typeof children === 'string' ? children : '...'}</span>
+                    </>
+                ) : (
+                    <>
+                        {leftIcon && <span className="mr-2">{leftIcon}</span>}
+                        {children}
+                        {rightIcon && <span className="ml-2">{rightIcon}</span>}
+                    </>
+                )}
+            </button>
+        );
+    }
+);
+
+Button.displayName = 'Button';
