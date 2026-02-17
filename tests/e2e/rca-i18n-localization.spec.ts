@@ -4,7 +4,7 @@
  * Proposta: Validar a internacionalização (i18n) do sistema, garantindo a tradução correta da UI e a persistência do idioma.
  * Ações: Comutação entre Português e Inglês, verificação de labels em diferentes páginas e teste de persistência após recarregamento.
  * Execução: Playwright E2E.
- * Fluxo: 1. Verifica idioma inicial -> 2. Troca para Inglês -> 3. Valida Dashboard e Sidebar -> 4. Recarrega página -> 5. Valida persistência -> 6. Troca para Português -> 7. Valida retorno.
+ * Fluxo: Verifica idioma inicial (PT) -> Troca para Inglês -> Valida Dashboard e Sidebar -> Recarrega página -> Valida persistência -> Troca para Português -> Valida retorno.
  */
 
 import { test, expect } from '@playwright/test';

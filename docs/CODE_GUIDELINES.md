@@ -60,7 +60,19 @@ O projeto utiliza testes estáticos para garantir que a estrutura de pastas e im
 - **PROIBIÇÃO DE EMOJIS:** Não utilize emojis em comentários de código ou documentação técnica para manter a sobriedade profissional.
 
 ### 3.2. Cabeçalho de Arquivos Críticos
-Arquivos de serviço ou teste devem conter um pequeno bloco informativo no topo:
+Arquivos de serviço ou teste devem conter um bloco informativo no topo. Para arquivos de teste, utilize o padrão estendido:
+```typescript
+/**
+ * Teste: [nome_do_arquivo.test.ts]
+ * 
+ * Proposta: [O que este teste valida]
+ * Ações: [Breve descrição das interações/testes realizados]
+ * Execução: [Ambiente de execução: Frontend Vitest / Backend Vitest / Playwright E2E]
+ * Fluxo: [Passo a passo resumido do teste]
+ */
+```
+
+Para arquivos de lógica ou serviço, utilize o padrão simplificado:
 ```typescript
 /**
  * Proposta: [O que este arquivo resolve]

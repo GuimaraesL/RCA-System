@@ -1,6 +1,10 @@
 /**
- * Proposta: Teste de Acessibilidade para o Passo 1 do Wizard RCA.
- * Fluxo: Renderiza o componente Step1General e verifica se todos os inputs possuem labels associados corretamente, garantindo conformidade com WCAG.
+ * Teste: Step1Accessibility.test.tsx
+ * 
+ * Proposta: Validar a acessibilidade específica da primeira etapa (Dados Gerais) do Wizard RCA.
+ * Ações: Renderização do componente Step1General e verificação de que todos os inputs possuem labels associados e o seletor de ativos é acessível.
+ * Execução: Frontend Vitest com React Testing Library.
+ * Fluxo: Renderiza o passo 1 -> Verifica associação label + input para cada campo (Tipo de Componente, Datas, Facilitador, etc.) -> Valida label descritivo do seletor de ativos.
  */
 
 import { render, screen } from '@testing-library/react';

@@ -1,7 +1,16 @@
+/**
+ * Teste: rca-i18n-debug.spec.ts
+ * 
+ * Proposta: Depurar a funcionalidade de tradução em tempo real na interface do usuário.
+ * Ações: Alternância de idioma para Inglês e verificação de que os componentes do Wizard e botões de ação refletem a mudança imediatamente.
+ * Execução: Playwright E2E.
+ * Fluxo: Carrega aplicação -> Muda para EN -> Navega até o Editor -> Verifica textos de cabeçalho e botões (General Data, Add Why).
+ */
+
 import { test, expect } from '@playwright/test';
 import { TaxonomyFactory, SystemFactory } from '../factories/rcaFactory';
 
-test('Debug I18N Translation Function', async ({ page }) => {
+test('Deve depurar a função de tradução I18N', async ({ page }) => {
     // INTERCEPTAÇÃO DA API
     await page.route('**/api/**', async route => {
         const url = route.request().url();

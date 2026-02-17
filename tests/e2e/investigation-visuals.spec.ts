@@ -2,7 +2,9 @@
  * Teste: investigation-visuals.spec.ts
  * 
  * Proposta: Validar os elementos visuais da etapa de Investigação (Passo 4).
- * Metodologia: Seletores contextualizados por container e tratamento de textos dinâmicos (Adicionar vs Adicionar Porquê).
+ * Ações: Verificação de renderização do Diagrama de Ishikawa e interação com a ferramenta de 5 Porquês utilizando seletores contextualizados.
+ * Execução: Playwright E2E.
+ * Fluxo: Acessa Editor RCA -> Navega para Investigação -> Adiciona item em Ishikawa -> Verifica card -> Adiciona pergunta nos 5 Porquês -> Valida inputs.
  */
 
 import { test, expect } from '@playwright/test';

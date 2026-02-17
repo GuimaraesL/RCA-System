@@ -1,17 +1,16 @@
+/**
+ * Teste: rca-i18n-crawler.spec.ts
+ * 
+ * Proposta: Auditar a internacionalização do sistema através de uma varredura profunda (crawler) na interface.
+ * Ações: Detecção de chaves brutas, sentenças em Português remanescentes no modo Inglês e vazamento de acentos.
+ * Execução: Playwright E2E.
+ * Fluxo: Configura mocks neutros -> Altera idioma para EN -> Navega por todos os módulos e passos do Wizard -> Analisa o texto do container 'main' em busca de violações.
+ */
+
 import { test, expect } from '@playwright/test';
 import { en } from '../../src/i18n/locales/en';
 import { pt } from '../../src/i18n/locales/pt';
 import { TaxonomyFactory, SystemFactory } from '../factories/rcaFactory';
-
-/**
- * RCA System - I18N Advanced Crawler (V8 - Full Coverage & Enforcement)
- * 
- * Este teste é o guardião final da internacionalização.
- * Ele detecta:
- * 1. Chaves brutas (ex: checklists.precision.chk_clean)
- * 2. Sentenças em Português remanescentes.
- * 3. Vazamento de acentos em qualquer lugar da UI.
- */
 
 test.describe('I18N Guardião - Varredura Profunda', () => {
 

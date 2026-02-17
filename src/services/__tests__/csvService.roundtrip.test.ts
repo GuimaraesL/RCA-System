@@ -1,9 +1,18 @@
+/**
+ * Teste: csvService.roundtrip.test.ts
+ * 
+ * Proposta: Validar a integridade de dados no fluxo completo de Exportação seguido de Importação (Round-trip).
+ * Ações: Exportação de um registro complexo de RCA para CSV e reimportação imediata, comparando o resultado com o original e validando contra o schema Zod.
+ * Execução: Frontend Vitest.
+ * Fluxo: Criação de registro mock complexo -> Exportação para string CSV -> Importação para objeto JSON -> Validação de tipos e campos obrigatórios (Causas, 5 Porquês, Ishikawa).
+ */
+
 import { describe, it, expect } from 'vitest';
 import { exportToCsv, importFromCsv } from '../csvService';
 import { RcaRecord, TaxonomyConfig } from '../../types';
 import { z } from 'zod';
 
-// Minimal schema mimic from backend to validate data types
+// Mock minimalista do schema do backend para validar tipos de dados
 const jsonStruct = z.union([z.record(z.string(), z.any()), z.array(z.any()), z.null()]).optional();
 const rcaSchema = z.object({
     id: z.string().optional(),
@@ -22,7 +31,7 @@ const rcaSchema = z.object({
     lessons_learned: jsonStruct
 });
 
-describe('csvService Round-trip Validation', () => {
+describe('csvService - Validação de Fluxo Completo (Round-trip)', () => {
     const mockTaxonomy: TaxonomyConfig = {
         analysisTypes: [{ id: 'T1', name: 'Mini RCA' }],
         analysisStatuses: [{ id: 'STATUS-03', name: 'Concluída' }],
@@ -64,7 +73,7 @@ describe('csvService Round-trip Validation', () => {
         five_whys_chains: [],
         precision_maintenance: [],
         containment_actions: [],
-        additionalInfo: { historicalInfo: 'Some notes' }
+        additionalInfo: { historicalInfo: 'Algumas notas' }
     };
 
     it('deve exportar e importar uma RCA mantendo a integridade dos campos de status', () => {
@@ -73,9 +82,6 @@ describe('csvService Round-trip Validation', () => {
             records: [originalRecord],
             taxonomy: mockTaxonomy 
         });
-
-        console.log('--- GENERATED CSV ---');
-        console.log(csvContent);
 
         // 2. Importar de volta
         const result = importFromCsv('RECORDS_SUMMARY', csvContent, {
@@ -88,9 +94,6 @@ describe('csvService Round-trip Validation', () => {
 
         // 3. Simular Validação da API (Zod)
         const parse = rcaSchema.safeParse(imported);
-        if (!parse.success) {
-            console.error('❌ Zod Validation Failed:', JSON.stringify(parse.error.format(), null, 2));
-        }
         expect(parse.success).toBe(true);
 
         // 4. Validações Críticas para o Motor de Status
@@ -119,12 +122,12 @@ describe('csvService Round-trip Validation', () => {
     it('deve lidar com campos vazios/null sem quebrar o schema do backend', () => {
         const emptyRecord: any = {
             id: 'RCA-EMPTY',
-            what: 'Empty Fields Test',
+            what: 'Teste de Campos Vazios',
             participants: [],
             root_causes: [],
             five_whys: [],
             ishikawa: {},
-            downtime_minutes: null, // Test null to number conversion
+            downtime_minutes: null, // Testa conversão de null para número
             financial_impact: undefined
         };
 
@@ -141,9 +144,7 @@ describe('csvService Round-trip Validation', () => {
         const imported = result.data[0];
         const parse = rcaSchema.safeParse(imported);
         
-        if (!parse.success) {
-            console.error('❌ Empty Fields Validation Failed:', JSON.stringify(parse.error.format(), null, 2));
-        }
         expect(parse.success).toBe(true);
     });
 });
+

@@ -1,64 +1,60 @@
 
 import fs from 'fs';
+import path from 'path';/**
+ * Proposta: Reparar o banco de dados SQL através do reprocessamento do arquivo JSON consolidado da V17.
+ * Fluxo: Limpa tabelas existentes -> Carrega JSON de migração -> Insere RCAs preservando UUIDs -> Insere Ações vinculadas -> Commit da transação.
+ */
+
+import fs from 'fs';
 import path from 'path';
 import { DatabaseConnection } from '../server/src/v2/infrastructure/database/DatabaseConnection';
 import { SqlRcaRepository } from '../server/src/v2/infrastructure/repositories/SqlRcaRepository';
 import { SqlActionRepository } from '../server/src/v2/infrastructure/repositories/SqlActionRepository';
 
 async function repair() {
-    console.log('Starting Repair Process...');
+    console.log('Iniciando Processo de Reparo...');
     const db = DatabaseConnection.getInstance();
     await db.initialize();
 
-    // 1. Wipe DB
-    console.log('🧹 Wiping Database...');
+    // 1. Limpa o banco
+    console.log('🧹 Limpando Banco de Dados...');
     db.execute('DELETE FROM actions');
     db.execute('DELETE FROM triggers');
-    db.execute('DELETE FROM rcas'); // Order matters
+    db.execute('DELETE FROM rcas'); // A ordem importa para integridade referencial
 
-    // 2. Load JSON
+    // 2. Carrega JSON
     const jsonPath = path.resolve(__dirname, '../tests/data/rca_migration_v17_consolidated.json');
-    console.log(`📂 Loading JSON from ${jsonPath}`);
+    console.log(`📂 Carregando JSON de ${jsonPath}`);
     const rawData = fs.readFileSync(jsonPath, 'utf8');
     const data = JSON.parse(rawData);
 
     const records = data.records || [];
     const actions = data.actions || [];
 
-    console.log(`📊 Found ${records.length} records and ${actions.length} actions.`);
+    console.log(`📊 Encontrados ${records.length} registros e ${actions.length} ações.`);
 
     const rcaRepo = new SqlRcaRepository();
-    const actionRepo = new SqlActionRepository(); // We might need to use raw queries if repo enforces auto-id? 
-    // SqlRcaRepository.create usually takes an entity. If entity has ID, it uses it?
-    // Let's check repository logic. Usually Insert respects ID if present.
 
-    // 3. Insert Records (UUIDs should be preserved by JSON)
-    console.log('🔄 Inserting RCAs...');
+    // 3. Insere Registros (UUIDs preservados do JSON)
+    console.log('🔄 Inserindo RCAs...');
     let rcaCount = 0;
 
-    // Use transaction
+    // Inicia transação
     db.execute('BEGIN TRANSACTION');
 
     try {
         for (const r of records) {
-            // Ensure valid ID or use existing (JSON has UUIDs)
-            await rcaRepo.save(r); // save usually handles update/insert. create is better?
+            // O repositório lida com o mapeamento e salvamento
+            await rcaRepo.save(r); 
             rcaCount++;
         }
-        console.log(`✅ RCAs Inserted: ${rcaCount}`);
+        console.log(`✅ RCAs Inseridas: ${rcaCount}`);
 
-        // 4. Insert Actions
-        console.log('🔄 Inserting Actions...');
+        // 4. Insere Ações
+        console.log('🔄 Inserindo Ações...');
         let actionCount = 0;
         for (const a of actions) {
-            // Logic: `rca_id` in JSON is UUID. `id` in JSON is UUID.
-            // Since RCAs were inserted with UUIDs, these actions should link perfectly.
-
-            // Note: DB Insert might expect specific column names matching JSON?
-            // ActionRecord interface matches JSON usually.
-            // But we need to be careful about `created_at` etc.
-
-            // We use raw INSERT for speed and avoiding repository validation overhead/mismatches
+            // Como as RCAs foram inseridas com UUIDs, as ações vinculadas manterão a integridade
             const stmt = db.prepare(`
                 INSERT INTO actions (id, rca_id, action, responsible, date, status, moc_number)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -67,20 +63,20 @@ async function repair() {
                 a.id,
                 a.rca_id,
                 a.action,
-                a.responsible || 'Unknown',
+                a.responsible || 'Desconhecido',
                 a.date,
                 a.status,
                 a.moc_number
             ]);
             actionCount++;
         }
-        console.log(`✅ Actions Inserted: ${actionCount}`);
+        console.log(`✅ Ações Inseridas: ${actionCount}`);
 
         db.execute('COMMIT');
-        console.log('✅ COMMIT Success.');
+        console.log('✅ COMMIT realizado com sucesso.');
 
     } catch (e) {
-        console.error('❌ Error during import:', e);
+        console.error('❌ Erro durante a importação:', e);
         db.execute('ROLLBACK');
     }
 }

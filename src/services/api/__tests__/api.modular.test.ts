@@ -1,8 +1,16 @@
+/**
+ * Teste: api.modular.test.ts
+ * 
+ * Proposta: Validar as funções de comunicação com a API REST de forma isolada.
+ * Ações: Mocking do fetch global para simular respostas bem-sucedidas e falhas da API em diferentes endpoints (Assets, RCAs).
+ * Execução: Frontend Vitest.
+ * Fluxo: Configuração do mock de fetch -> Chamada da função de serviço (fetchAssets, fetchRecords) -> Verificação de mapeamento de dados e tratamento de erros HTTP.
+ */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as api from '../index';
 
-// Mock global fetch
+// Mock do fetch global
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
@@ -11,7 +19,7 @@ describe('API Service Modularizado', () => {
         vi.clearAllMocks();
     });
 
-    describe('Assets', () => {
+    describe('Assets (Ativos)', () => {
         it('deve buscar ativos com sucesso', async () => {
             const mockAssets = [{ id: '1', name: 'Asset 1', type: 'AREA' }];
             mockFetch.mockResolvedValueOnce({
@@ -25,7 +33,7 @@ describe('API Service Modularizado', () => {
         });
     });
 
-    describe('RCAs', () => {
+    describe('RCAs (Análises)', () => {
         it('deve buscar registros com sucesso', async () => {
             const mockRecords = [{ id: 'R1', what: 'Problem' }];
             mockFetch.mockResolvedValueOnce({
@@ -39,7 +47,7 @@ describe('API Service Modularizado', () => {
         });
     });
 
-    describe('Error Handling', () => {
+    describe('Error Handling (Tratamento de Erros)', () => {
         it('deve lançar erro descritivo em falha da API', async () => {
             mockFetch.mockResolvedValueOnce({
                 ok: false,
@@ -51,3 +59,4 @@ describe('API Service Modularizado', () => {
         });
     });
 });
+

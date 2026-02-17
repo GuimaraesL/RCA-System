@@ -1,41 +1,42 @@
+/**
+ * Proposta: Validar a consistência de dados entre a ponte V1 e V2 do banco de dados.
+ * Fluxo: Inicializa banco V1 -> Obtém instância V2 -> Realiza o bridging -> Compara contagem de registros entre as duas versões.
+ */
+
 const { initDatabase, getDatabase } = require('./server/dist/db/database');
 const { DatabaseConnection } = require('./server/dist/v2/infrastructure/database/DatabaseConnection');
 
-// Since this is a script, we use the compiled JS if it exists, 
-// or we use ts-node wrapper.
-// Let's use the actual code logic.
-
 async function check() {
     try {
-        console.log('--- CONSISTENCY CHECK ---');
+        console.log('--- VERIFICAÇÃO DE CONSISTÊNCIA ---');
 
-        // 1. Initialize V1
+        // 1. Inicializa V1
         const v1Db = await initDatabase();
         const v1Count = v1Db.exec('SELECT COUNT(*) FROM rcas')[0].values[0][0];
-        console.log('V1 RCA Count:', v1Count);
+        console.log('Contagem RCA V1:', v1Count);
 
-        // 2. Initialize V2 singleton
+        // 2. Inicializa singleton V2
         const v2 = DatabaseConnection.getInstance();
 
-        // Check if v2 already has a db (it shouldn't unless it auto-initialized)
-        console.log('V2 has DB before bridge:', !!v2.db);
+        // Verifica se V2 já possui banco
+        console.log('V2 possui DB antes da ponte:', !!v2.db);
 
-        // 3. Bridge V1 -> V2
+        // 3. Ponte V1 -> V2
         v2.setRawDatabase(v1Db);
-        console.log('V2 has DB after bridge:', !!v2.db);
+        console.log('V2 possui DB após a ponte:', !!v2.db);
 
-        // 4. Check V2 count
+        // 4. Verifica contagem V2
         const v2Count = v2.query('SELECT COUNT(*) FROM rcas')[0]['COUNT(*)'];
-        console.log('V2 RCA Count:', v2Count);
+        console.log('Contagem RCA V2:', v2Count);
 
         if (v1Count === v2Count) {
-            console.log('✅ Counts match!');
+            console.log('✅ Contagens coincidem!');
         } else {
-            console.log('❌ Counts MISMATCH!');
+            console.log('❌ DIVERGÊNCIA nas contagens!');
         }
 
     } catch (e) {
-        console.error('Check failed:', e);
+        console.error('Falha na verificação:', e);
     }
 }
 

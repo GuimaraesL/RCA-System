@@ -1,7 +1,10 @@
 /**
- * Proposta: Teste de Acessibilidade Global para o RCA System.
- * Fluxo: Itera sobre os principais componentes da interface, validando a associação de labels, 
- * atributos ARIA e conformidade com o item 2.3 das diretrizes de código.
+ * Teste: GlobalAccessibility.test.tsx
+ * 
+ * Proposta: Validar a acessibilidade global do RCA System através da verificação de labels e atributos ARIA.
+ * Ações: Renderização de múltiplos componentes (Input, Select, Modais, Wizard) e verificação da associação correta de labels via IDs únicos.
+ * Execução: Frontend Vitest com React Testing Library.
+ * Fluxo: Itera sobre os principais componentes da interface -> Valida a associação de labels -> Verifica atributos ARIA e conformidade com as diretrizes de código.
  */
 
 import { render, screen } from '@testing-library/react';
@@ -402,3 +405,4 @@ describe('Acessibilidade Global - Associação de Labels', () => {
         });
     });
 });
+

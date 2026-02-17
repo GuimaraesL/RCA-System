@@ -1,3 +1,11 @@
+/**
+ * Teste: ActionServiceStatusRecalculation.test.ts
+ * 
+ * Proposta: Validar o disparo automático de recálculo de status da RCA após operações em massa no plano de ação.
+ * Ações: Simulação de importação em massa (bulkImport) de ações e verificação se o serviço de RCA é notificado para atualizar o status das análises afetadas.
+ * Execução: Backend Vitest.
+ * Fluxo: Mock de repositórios -> Configuração de RCA de teste -> Execução de bulkImport de ações vinculadas -> Verificação de chamada ao método updateRca do RcaService.
+ */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ActionService } from '../ActionService';
@@ -6,12 +14,12 @@ import { SqlRcaRepository } from '../../../infrastructure/repositories/SqlRcaRep
 import { SqlTaxonomyRepository } from '../../../infrastructure/repositories/SqlTaxonomyRepository';
 import { RcaService } from '../RcaService';
 
-// Mock repositories
+// Mock de repositórios
 vi.mock('../../../infrastructure/repositories/SqlActionRepository');
 vi.mock('../../../infrastructure/repositories/SqlRcaRepository');
 vi.mock('../../../infrastructure/repositories/SqlTaxonomyRepository');
 
-describe('ActionService Status Recalculation', () => {
+describe('ActionService - Recálculo de Status', () => {
     let actionService: ActionService;
     let mockActionRepo: any;
     let mockRcaRepo: any;
@@ -23,7 +31,7 @@ describe('ActionService Status Recalculation', () => {
         mockRcaRepo = new SqlRcaRepository();
         mockTaxonomyRepo = new SqlTaxonomyRepository();
         
-        // Setup initial taxonomy
+        // Configuração inicial da taxonomia
         mockTaxonomyRepo.getTaxonomy.mockReturnValue({
             analysisStatuses: [
                 { id: 'STATUS-01', name: 'Em Andamento' },
@@ -49,8 +57,6 @@ describe('ActionService Status Recalculation', () => {
             id: rcaId,
             status: 'STATUS-02',
             what: 'O que',
-            // ... outros campos obrigatórios seriam necessários para o motor real,
-            // mas aqui o motor vai rodar via RcaService.updateRca
         };
 
         mockRcaRepo.findById.mockReturnValue(mockRca);
@@ -66,3 +72,4 @@ describe('ActionService Status Recalculation', () => {
         expect(updateRcaSpy).toHaveBeenCalledWith(rcaId, expect.anything(), expect.anything());
     });
 });
+

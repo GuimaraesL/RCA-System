@@ -1,3 +1,12 @@
+/**
+ * Teste: architecture.test.ts
+ * 
+ * Proposta: Garantir a integridade arquitetural do projeto através da validação de imports.
+ * Ações: Varredura recursiva de arquivos .ts e .tsx para verificar se todos os caminhos de importação relativa existem.
+ * Execução: Frontend Vitest.
+ * Fluxo: Lista todos os arquivos -> Extrai caminhos de importação -> Resolve caminhos no sistema de arquivos -> Reporta imports quebrados.
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { describe, it, expect } from 'vitest';
@@ -22,8 +31,8 @@ function getAllFiles(dirPath: string, arrayOfFiles: string[] = []) {
     return arrayOfFiles;
 }
 
-describe('Architecture & Integrity', () => {
-    it('should have valid relative imports in all source files', () => {
+describe('Arquitetura e Integridade', () => {
+    it('deve possuir imports relativos válidos em todos os arquivos fonte', () => {
         const srcDir = path.join(PROJECT_ROOT, 'src');
         const files = getAllFiles(srcDir);
         
@@ -60,14 +69,14 @@ describe('Architecture & Integrity', () => {
                     // Ignora assets estáticos
                     if (!importPath.match(/\.(png|svg|jpg|css)$/)) {
                         const relativeFile = path.relative(PROJECT_ROOT, filePath);
-                        errors.push(`File: ${relativeFile} -> Import not found: '${importPath}'`);
+                        errors.push(`Arquivo: ${relativeFile} -> Import não encontrado: '${importPath}'`);
                     }
                 }
             }
         }
 
         if (errors.length > 0) {
-            console.error('\n❌ Broken Imports Found:\n' + errors.join('\n'));
+            console.error('\n❌ Imports Quebrados Encontrados:\n' + errors.join('\n'));
         }
 
         expect(errors).toHaveLength(0);

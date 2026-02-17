@@ -1,6 +1,15 @@
+/**
+ * Teste: reproduce_chart_error.spec.ts
+ * 
+ * Proposta: Validar a estabilidade dos gráficos (Recharts) e prevenir erros de redimensionamento (width/height 0).
+ * Ações: Monitoramento de logs de erro e avisos no console do navegador durante a renderização inicial da dashboard.
+ * Execução: Playwright E2E.
+ * Fluxo: Injeta script de supressão de animações -> Navega para Dashboard -> Aguarda renderização dos gráficos -> Verifica ausência de erros de dimensões no console.
+ */
+
 import { test, expect } from '@playwright/test';
 
-test('Dashboard should not have Recharts width/height errors', async ({ page }) => {
+test('Dashboard não deve apresentar erros de dimensões nos gráficos Recharts', async ({ page }) => {
     // Inject flag to disable animations
     await page.addInitScript(() => {
         (window as any).isPlaywright = true;

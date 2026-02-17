@@ -1,3 +1,11 @@
+/**
+ * Teste: useRcaLogic.test.tsx
+ * 
+ * Proposta: Validar as regras de negócio e validação de formulários do Wizard RCA via hook customizado.
+ * Ações: Simulação de salvamento com campos obrigatórios ausentes em diferentes passos do Wizard.
+ * Execução: Frontend Vitest com React Testing Library.
+ * Fluxo: Renderização do hook com wrapper de contexto -> Preenchimento de dados parciais -> Chamada do método handleSave -> Verificação de erros de validação capturados.
+ */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';

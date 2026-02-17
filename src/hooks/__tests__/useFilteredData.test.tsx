@@ -1,6 +1,10 @@
 /**
- * Proposta: Testes unitários para o hook useFilteredData.
- * Fluxo: Valida a lógica de filtragem cruzada e a geração de opções disponíveis (availableOptions) com base nos critérios selecionados.
+ * Teste: useFilteredData.test.tsx
+ * 
+ * Proposta: Validar a lógica de filtragem cruzada e a geração dinâmica de opções de filtro (availableOptions).
+ * Ações: Renderização do hook com dados mockados e aplicação de diferentes combinações de filtros (Área, Status, etc.).
+ * Execução: Frontend Vitest.
+ * Fluxo: Configuração de registros de teste -> Aplicação de filtros via hook -> Verificação da redução do conjunto de dados e atualização das opções de filtro disponíveis no dashboard.
  */
 
 import { renderHook } from '@testing-library/react';
