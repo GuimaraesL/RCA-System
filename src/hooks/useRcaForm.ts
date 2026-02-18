@@ -9,6 +9,7 @@ import { generateId, getStandardHraStruct, getStandardPrecisionItems } from '../
 import { useRcaContext } from '../context/RcaContext';
 import { STATUS_IDS, ROOT_CAUSE_M_IDS } from '../constants/SystemConstants';
 import { updateDeep } from '../utils/objectUtils';
+import { useToast } from '../context/ToastContext';
 
 export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () => void) => {
     const { assets, taxonomy, actions, addRecord, updateRecord, addAction, updateAction, deleteAction, refreshAll } = useRcaContext();
@@ -66,7 +67,7 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
 
         if (initialRecord) {
             const merged = { ...defaultRca, ...initialRecord };
-            
+
             // Garantir integridade de estruturas críticas
             if (!merged.precision_maintenance || merged.precision_maintenance.length === 0) {
                 merged.precision_maintenance = defaultRca.precision_maintenance;
@@ -123,9 +124,9 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
 
     const isFieldEmpty = useCallback((field: string, value: any): boolean => {
         if (value === undefined || value === null) return true;
-        
+
         if (typeof value === 'string') return value.trim() === '';
-        
+
         if (typeof value === 'number') return false; // 0 é valor válido. Null/Undefined pego acima.
 
         if (Array.isArray(value)) {
@@ -134,12 +135,12 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
             if (field === 'five_whys') return value.filter(w => w.answer && w.answer.trim()).length < 3; // Regra de negócio específica dos 5 Porquês
             if (field === 'root_causes') return value.length === 0; // Basta ter uma causa
             if (field === 'lessons_learned') return value.every(l => typeof l === 'string' && l.trim() === ''); // Array de strings vazio ou só strings vazias
-            
+
             // Validação de Checklist de Precisão
             if (field === 'precision_maintenance') {
                 // Se obrigatório, exige que TODOS os itens tenham status definido (EXECUTED, NOT_EXECUTED, NOT_APPLICABLE)
                 // Ou pelo menos que não esteja "em branco". Vamos exigir 100% de preenchimento se for obrigatório.
-                return value.some(item => !item.status); 
+                return value.some(item => !item.status);
             }
 
             return false;
@@ -166,16 +167,16 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
 
     const validateForm = useCallback((): Record<string, boolean> => {
         const errors: Record<string, boolean> = {};
-        
+
         // Determina quais regras aplicar baseado no status atual (Conclusão vs Salvamento/Criação)
         const rules = taxonomy?.mandatoryFields;
         if (!rules) return {};
 
         const isConcluded = formData.status === STATUS_IDS.CONCLUDED;
-        
+
         // Se estiver concluindo, aplica ambas as listas (Create + Conclude)
         // Se estiver salvando rascunho, aplica apenas Create
-        const fieldsToValidate = isConcluded 
+        const fieldsToValidate = isConcluded
             ? [...new Set([...rules.rca.create, ...rules.rca.conclude])]
             : rules.rca.create;
 
@@ -189,17 +190,24 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
         return errors;
     }, [formData, taxonomy, isFieldEmpty]);
 
+    const toast = useToast();
+
     const handleSave = async () => {
         const errors = validateForm();
-        if (Object.keys(errors).length > 0) return;
+        if (Object.keys(errors).length > 0) {
+            toast.error('Preencha os campos obrigatórios antes de salvar.');
+            return;
+        }
 
         setIsSaving(true);
         try {
             if (initialRecord) await updateRecord(formData);
             else await addRecord(formData);
+            toast.success('Análise RCA salva com sucesso!');
             onSaveSuccess();
         } catch (error) {
             console.error('Erro ao salvar RCA:', error);
+            toast.error('Erro ao salvar RCA. Tente novamente.');
         } finally {
             setIsSaving(false);
         }
@@ -211,8 +219,10 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
         try {
             if (actions.find(a => a.id === action.id)) await updateAction(action);
             else await addAction(action);
+            toast.success('Ação salva com sucesso!');
         } catch (error) {
             console.error('Erro ao salvar ação:', error);
+            toast.error('Erro ao salvar ação.');
         }
     };
 

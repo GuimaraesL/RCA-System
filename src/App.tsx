@@ -22,6 +22,7 @@ import { RcaProvider, useRcaContext } from './context/RcaContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { FilterProvider } from './context/FilterContext';
+import { ToastProvider } from './context/ToastContext';
 import { useLanguage } from './context/LanguageDefinition';
 import { Sidebar } from './components/layout/Sidebar';
 import { generateId } from './services/utils';
@@ -321,7 +322,9 @@ export default function App() {
             <LanguageProvider>
                 <FilterProvider>
                     <RcaProvider>
-                        <AppContent />
+                        <ToastProvider>
+                            <AppContent />
+                        </ToastProvider>
                     </RcaProvider>
                 </FilterProvider>
             </LanguageProvider>
