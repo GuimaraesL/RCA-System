@@ -11,6 +11,8 @@ import { SqlRcaRepository } from '../../infrastructure/repositories/SqlRcaReposi
 
 import { SqlTaxonomyRepository } from '../../infrastructure/repositories/SqlTaxonomyRepository';
 
+import { logger } from '../../infrastructure/logger';
+
 import { z } from 'zod';
 
 import { rcaSchema } from '../schemas/validation';
@@ -85,7 +87,7 @@ export class RcaController {
 
         } catch (error) {
 
-            console.error('[V2] Erro ao listar RCAs:', error);
+            logger.error('[V2] Erro ao listar RCAs:', { error });
 
             res.status(500).json({ error: 'Erro interno do servidor' });
 
@@ -113,7 +115,7 @@ export class RcaController {
 
         } catch (error) {
 
-            console.error('[V2] Erro ao buscar RCA por ID:', error);
+            logger.error('[V2] Erro ao buscar RCA por ID:', { error });
 
             res.status(500).json({ error: 'Erro interno do servidor' });
 
@@ -157,7 +159,7 @@ export class RcaController {
 
         } catch (error) {
 
-            console.error('[V2] Erro ao criar RCA:', error);
+            logger.error('[V2] Erro ao criar RCA:', { error });
 
             res.status(500).json({ error: 'Erro interno do servidor' });
 
@@ -201,13 +203,13 @@ export class RcaController {
 
                 statusReason: result.statusReason,
 
-                ...result.rca 
+                ...result.rca
 
             });
 
         } catch (error) {
 
-            console.error('[V2] Erro ao atualizar RCA:', error);
+            logger.error('[V2] Erro ao atualizar RCA:', { error });
 
             res.status(500).json({ error: 'Erro interno do servidor' });
 
@@ -229,7 +231,7 @@ export class RcaController {
 
         } catch (error) {
 
-            console.error('[V2] Erro ao excluir RCA:', error);
+            logger.error('[V2] Erro ao excluir RCA:', { error });
 
             res.status(500).json({ error: 'Erro interno do servidor' });
 
@@ -293,7 +295,7 @@ export class RcaController {
 
         } catch (error) {
 
-            console.error('[V2] Erro na importação em massa:', error);
+            logger.error('[V2] Erro na importação em massa:', { error });
 
             res.status(500).json({ error: 'Erro interno do servidor' });
 
@@ -317,7 +319,7 @@ export class RcaController {
 
 
 
-            console.log(`[V2] Excluindo ${ids.length} análises em lote...`);
+            logger.info(`[V2] Excluindo ${ids.length} análises em lote...`);
 
             this.rcaRepo.bulkDelete(ids);
 
@@ -327,7 +329,7 @@ export class RcaController {
 
         } catch (error) {
 
-            console.error('[V2] Erro na exclusão em massa:', error);
+            logger.error('[V2] Erro na exclusão em massa:', { error });
 
             res.status(500).json({ error: 'Erro interno do servidor' });
 

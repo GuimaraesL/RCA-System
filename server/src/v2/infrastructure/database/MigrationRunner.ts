@@ -6,6 +6,7 @@
 import { DatabaseConnection } from './DatabaseConnection';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import { logger } from '../logger';
 
 export class MigrationRunner {
     private db: DatabaseConnection;
@@ -15,12 +16,12 @@ export class MigrationRunner {
     }
 
     public async run(): Promise<void> {
-        console.log('[V2] 🔄 Verificando migrações e integridade do schema...');
+        logger.info('[V2] 🔄 Verificando migrações e integridade do schema...');
 
         await this.ensureBaseSchema();
         await this.runVersionedMigrations();
 
-        console.log('[V2] ✅ Verificação de migrações concluída');
+        logger.info('[V2] ✅ Verificação de migrações concluída');
     }
 
     /**
@@ -33,7 +34,7 @@ export class MigrationRunner {
             const schema = readFileSync(schemaPath, 'utf-8');
             this.db.exec(schema);
         } else {
-            console.error(`[V2] ❌ Arquivo de schema não encontrado em: ${schemaPath}`);
+            logger.error(`[V2] ❌ Arquivo de schema não encontrado em: ${schemaPath}`, { schemaPath });
             throw new Error('Arquivo de schema base ausente');
         }
     }

@@ -84,9 +84,13 @@ Para arquivos de lógica ou serviço, utilize o padrão simplificado:
 
 ## 4. Tratamento de Erros e Logs
 
-- **Logs de Console:** Devem ser em **Português (PT-BR)** e incluir prefixos identificadores:
-  - `console.log('✅ Context: RCA salva com sucesso')`
-  - `console.error('❌ API Error [GET /rcas]:', error)`
+- **Logs de Console:** Devem ser evitados.
+- **Logger Estruturado:** Utilize obrigariamente o `logger` importado de `@/infrastructure/logger` para todo log de aplicação.
+  - `logger.info`: Informações gerais de fluxo.
+  - `logger.error`: Erros que precisam de atenção.
+  - `logger.warn`: Situações que não são erros mas merecem atenção.
+  - `logger.debug`: Informações detalhadas para desenvolvimento (não aparece em prod).
+- **Formato:** O logger já formata automaticamente com Timestamps e Cores (Dev) ou JSON (Prod).
 - **Validação:** Utilize sempre **Zod** no backend e no frontend para garantir que contratos de dados não sejam quebrados.
 - **UI Feedback:** Nunca deixe o usuário sem resposta. Use o estado de erro para mostrar alertas visuais em vermelho.
 

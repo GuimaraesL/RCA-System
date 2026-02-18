@@ -112,6 +112,7 @@ A separação em camadas garante que a lógica de negócios não dependa de deta
 3.  **Infrastructure (`/infrastructure`):**
     - **Repositories:** Implementam a persistência de dados. Abstraem o acesso ao banco.
     - **Database Connection:** Gerencia a conexão com o SQLite.
+    - **Logger:** Serviço centralizado de logs (Winston) com suporte a múltiplos transports e formatação por ambiente.
     - **Responsabilidade:** Persistir e recuperar dados.
 
 ---

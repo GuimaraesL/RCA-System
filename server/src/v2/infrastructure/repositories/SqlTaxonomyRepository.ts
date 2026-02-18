@@ -5,6 +5,7 @@
 
 import { DatabaseConnection } from '../database/DatabaseConnection';
 import { TaxonomyConfig } from '../../domain/types/RcaTypes';
+import { logger } from '../logger';
 
 export class SqlTaxonomyRepository {
     private db: DatabaseConnection;
@@ -29,7 +30,7 @@ export class SqlTaxonomyRepository {
                 };
                 return config;
             } catch (e) {
-                console.error('[V2] Falha ao processar configuração da taxonomia:', e);
+                logger.error('[V2] Falha ao processar configuração da taxonomia:', { error: e });
             }
         }
 

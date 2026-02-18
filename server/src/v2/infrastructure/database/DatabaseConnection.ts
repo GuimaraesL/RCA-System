@@ -6,6 +6,7 @@
 import initSqlJs, { Database, QueryExecResult } from 'sql.js';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
+import { logger } from '../logger';
 
 export class DatabaseConnection {
     private static instance: DatabaseConnection;
@@ -16,10 +17,10 @@ export class DatabaseConnection {
         // Resolução do caminho: server/data/rca.db (ou rca_test.db em modo de teste)
         const isTest = process.env.NODE_ENV === 'test' || process.env.CI === 'true';
         const dbFileName = isTest ? 'rca_test.db' : 'rca.db';
-        
+
         const DATA_DIR = join(__dirname, '..', '..', '..', '..', 'data');
         this.dbPath = this.resolveDbPath(DATA_DIR, dbFileName);
-        console.log(`[V2] 💾 Base de dados resolvida (${isTest ? 'TESTE' : 'PRODUÇÃO'}): ${this.dbPath}`);
+        logger.info(`[V2] 💾 Base de dados resolvida (${isTest ? 'TESTE' : 'PRODUÇÃO'}): ${this.dbPath}`);
     }
 
     public static getInstance(): DatabaseConnection {
@@ -36,7 +37,7 @@ export class DatabaseConnection {
         let path = join(dataDir, fileName);
 
         if (!existsSync(dirname(path))) {
-            console.warn(`[V2] ⚠️ Diretório de dados não encontrado em ${dirname(path)}, tentando contexto de trabalho (CWD)...`);
+            logger.warn(`[V2] ⚠️ Diretório de dados não encontrado em ${dirname(path)}, tentando contexto de trabalho (CWD)...`);
             const cwd = process.cwd();
             if (cwd.endsWith('server')) {
                 path = join(cwd, 'data', fileName);
@@ -126,7 +127,7 @@ export class DatabaseConnection {
             writeFileSync(this.dbPath, buffer);
             this.saveTimeout = null;
         } catch (err) {
-            console.error(`[V2] ❌ Falha ao persistir base de dados:`, err);
+            logger.error(`[V2] ❌ Falha ao persistir base de dados:`, { error: err });
         }
     }
 
@@ -183,7 +184,7 @@ export class DatabaseConnection {
     public transaction(callback: () => void): void {
         const db = this.getRawDatabase();
         if (this.inTransaction) {
-            console.warn('[V2] ⚠️ Transação aninhada detectada (achatamento aplicado).');
+            logger.warn('[V2] ⚠️ Transação aninhada detectada (achatamento aplicado).');
             callback();
             return;
         }
@@ -193,16 +194,16 @@ export class DatabaseConnection {
             db.exec('BEGIN TRANSACTION');
             callback();
             db.exec('COMMIT');
-            this.inTransaction = false; 
+            this.inTransaction = false;
             this.save();
         } catch (error) {
-            this.inTransaction = false; 
+            this.inTransaction = false;
             try {
                 db.exec('ROLLBACK');
             } catch (rbError) {
-                console.error('[V2] ❌ Falha no Rollback (transação provavelmente já encerrada):', rbError);
+                logger.error('[V2] ❌ Falha no Rollback (transação provavelmente já encerrada):', { error: rbError });
             }
-            throw error; 
+            throw error;
         }
     }
 }

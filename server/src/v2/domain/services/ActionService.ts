@@ -8,6 +8,7 @@ import { SqlRcaRepository } from '../../infrastructure/repositories/SqlRcaReposi
 import { SqlTaxonomyRepository } from '../../infrastructure/repositories/SqlTaxonomyRepository';
 import { RcaService } from './RcaService';
 import { Action } from '../types/RcaTypes';
+import { logger } from '../../infrastructure/logger';
 
 export class ActionService {
     private actionRepo: SqlActionRepository;
@@ -62,13 +63,13 @@ export class ActionService {
             actions.map(a => a.rca_id).filter(id => id && id.trim().length > 0)
         ));
 
-        console.log(`[ActionService] 🔄 Disparando recálculo para ${affectedRcaIds.length} RCAs após importação em massa.`);
-        
+        logger.info(`[ActionService] 🔄 Disparando recálculo para ${affectedRcaIds.length} RCAs após importação em massa.`);
+
         for (const rcaId of affectedRcaIds) {
             try {
                 this.triggerRcaRecalculation(rcaId);
             } catch (error) {
-                console.warn(`[ActionService] ⚠️ Falha ao recalcular status da RCA ${rcaId}:`, error);
+                logger.warn(`[ActionService] ⚠️ Falha ao recalcular status da RCA ${rcaId}:`, { error });
             }
         }
     }

@@ -15,6 +15,7 @@ app.use(express.json({ limit: '50mb' }));
 
 // Montagem das Rotas da API
 import v2Router from './v2/routes';
+import { logger } from './v2/infrastructure/logger';
 app.use('/api', v2Router); // Centraliza todos os endpoints (RCAs, Gatilhos, Ações, etc.) na arquitetura V2
 
 // Endpoint de verificação de saúde do sistema
@@ -31,24 +32,24 @@ const startServer = async () => {
         // Inicialização da Conexão com o Banco de Dados
         const { DatabaseConnection } = await import('./v2/infrastructure/database/DatabaseConnection');
         await DatabaseConnection.getInstance().initialize();
-        console.log('✅ Conexão com o banco de dados inicializada');
+        logger.info('✅ Conexão com o banco de dados inicializada');
 
         // Execução de Migrações (Criação de tabelas e atualizações de schema)
         const { MigrationRunner } = await import('./v2/infrastructure/database/MigrationRunner');
         await new MigrationRunner().run();
 
         app.listen(PORT, () => {
-            console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
-            console.log(`📡 Endpoints disponíveis:`);
-            console.log(`   GET  /api/health`);
-            console.log(`   CRUD /api/rcas`);
-            console.log(`   CRUD /api/triggers`);
-            console.log(`   CRUD /api/actions`);
-            console.log(`   GET/PUT /api/taxonomy`);
-            console.log(`   CRUD /api/assets`);
+            logger.info(`🚀 Servidor rodando em http://localhost:${PORT}`);
+            logger.info(`📡 Endpoints disponíveis:`);
+            logger.info(`   GET  /api/health`);
+            logger.info(`   CRUD /api/rcas`);
+            logger.info(`   CRUD /api/triggers`);
+            logger.info(`   CRUD /api/actions`);
+            logger.info(`   GET/PUT /api/taxonomy`);
+            logger.info(`   CRUD /api/assets`);
         });
     } catch (error) {
-        console.error('❌ Erro crítico ao iniciar servidor:', error);
+        logger.error('❌ Erro crítico ao iniciar servidor:', { error });
         process.exit(1);
     }
 };
@@ -58,14 +59,14 @@ const startServer = async () => {
  * Garante que dados em memória (debounce de escrita) sejam persistidos no disco antes de encerrar o processo.
  */
 const handleShutdown = () => {
-    console.log('\n[Servidor] 🛑 Encerrando processo...');
+    logger.info('\n[Servidor] 🛑 Encerrando processo...');
     try {
         const { DatabaseConnection } = require('./v2/infrastructure/database/DatabaseConnection');
         DatabaseConnection.getInstance().flush();
-        console.log('[Servidor] ✅ Base de dados persistida com sucesso.');
+        logger.info('[Servidor] ✅ Base de dados persistida com sucesso.');
         process.exit(0);
     } catch (err) {
-        console.error('[Servidor] ❌ Erro ao persistir base de dados no encerramento:', err);
+        logger.error('[Servidor] ❌ Erro ao persistir base de dados no encerramento:', { error: err });
         process.exit(1);
     }
 };
