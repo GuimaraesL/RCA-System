@@ -40,7 +40,7 @@ test.describe('RCA Editor - Ferramentas de Investigação (POM + Mock)', () => {
     await editor.open();
 
     // 1. Ishikawa
-    await editor.goToTab(/Investigação|Investigation/i);
+    await editor.goToTab(4); // Investigação
     await editor.fillIshikawa(0, 'Falha no procedimento operacional');
     await editor.fillIshikawa(1, 'Desgaste excessivo');
     await expect(page.getByText('Falha no procedimento operacional')).toBeVisible();
@@ -50,7 +50,7 @@ test.describe('RCA Editor - Ferramentas de Investigação (POM + Mock)', () => {
     await expect(page.getByText('Superaquecimento')).toBeVisible();
 
     // 3. HRA
-    await editor.goToTab(/Confiabilidade Humana|Human Reliability/i);
+    await page.getByTestId('btn-show-hra').click();
     // Nota: O preenchimento do HRA depende da estrutura de perguntas mockada na factory
     const hraQuestion = page.locator('tbody tr').first();
     await expect(hraQuestion).toBeVisible();

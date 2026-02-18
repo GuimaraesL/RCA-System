@@ -15,15 +15,14 @@ export class TriggerModalPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.modal = page.locator('div.fixed.inset-0.z-50');
-    // Updated to target footer button specifically
-    this.saveBtn = page.locator('div.border-t button', { hasText: /Salvar Gatilho|Save Trigger/i });
-    this.cancelBtn = page.getByRole('button', { name: /Cancelar|Cancel/i }); // This might need update if in footer too
+    this.modal = page.getByTestId('modal-trigger');
+    this.saveBtn = page.getByTestId('btn-save-trigger');
+    this.cancelBtn = page.getByTestId('btn-cancel-trigger');
     this.newTriggerBtn = page.getByRole('button', { name: /Novo Gatilho|New Trigger/i });
   }
 
   async open() {
-    await this.page.getByRole('button', { name: /Gatilhos|Triggers/i }).click();
+    await this.page.keyboard.press('Alt+T'); // Atalho para Gatilhos
 
     // Aguarda carregar a view de gatilhos (Lazy Loaded)
     await expect(this.page.getByTestId('app-suspense-loading')).not.toBeVisible();

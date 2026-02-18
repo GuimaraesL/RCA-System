@@ -260,7 +260,13 @@ const AppContent: React.FC = () => {
 
     return (
         <div className="flex h-screen bg-page-gradient font-sans text-slate-900 dark:text-slate-100">
-            <Sidebar view={view} setView={handleViewChange} toggleRef={sidebarToggleRef} onShowHelp={handleToggleShortcutsHelp} />
+            <Sidebar
+                view={view}
+                setView={handleViewChange}
+                toggleRef={sidebarToggleRef}
+                onShowHelp={handleToggleShortcutsHelp}
+                isBlocked={isEditorOpen}
+            />
 
             <main className="flex-1 overflow-hidden relative flex flex-col w-full">
                 <Suspense fallback={
@@ -271,17 +277,7 @@ const AppContent: React.FC = () => {
                         </div>
                     </div>
                 }>
-                    {isEditorOpen ? (
-                        <div className="absolute inset-0 bg-slate-50 dark:bg-slate-900 p-0 z-20 overflow-hidden flex flex-col">
-                            <div className="flex-1 p-6 overflow-hidden">
-                                <RcaEditor
-                                    existingRecord={editingRecord}
-                                    onClose={handleCancelRca}
-                                    onSave={handleSaveRca}
-                                />
-                            </div>
-                        </div>
-                    ) : (
+                    <div className="flex-1 relative overflow-hidden flex flex-col">
                         <div key={view} className={`flex-1 overflow-auto bg-slate-50/50 dark:bg-slate-900/50 ${(window as any).isPlaywright ? '' : 'animate-in fade-in slide-in-from-bottom-2 duration-300'}`}>
                             {view === 'DASHBOARD' && <Dashboard />}
                             {view === 'TRIGGERS' && <TriggersView onCreateRca={handleCreateRcaFromTrigger} onOpenRca={handleOpenRca} />}
@@ -291,9 +287,25 @@ const AppContent: React.FC = () => {
                             {view === 'SETTINGS' && <SettingsView />}
                             {view === 'MIGRATION' && <MigrationView />}
                         </div>
-                    )}
+                    </div>
                 </Suspense>
             </main>
+
+            {/* Overlay Global do Editor - Cobre Sidebar e Main (z-50) */}
+            {isEditorOpen && (
+                <div
+                    className="fixed inset-0 bg-slate-50 dark:bg-slate-900 p-0 z-50 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200"
+                    data-testid="rca-editor-overlay"
+                >
+                    <div className="flex-1 p-6 overflow-hidden">
+                        <RcaEditor
+                            existingRecord={editingRecord}
+                            onClose={handleCancelRca}
+                            onSave={handleSaveRca}
+                        />
+                    </div>
+                </div>
+            )}
 
             {/* Modal de Confirmação de Saída do Editor */}
             <ConfirmModal
@@ -323,7 +335,9 @@ export default function App() {
                 <FilterProvider>
                     <RcaProvider>
                         <ToastProvider>
-                            <AppContent />
+                            <div data-testid="app-ready">
+                                <AppContent />
+                            </div>
                         </ToastProvider>
                     </RcaProvider>
                 </FilterProvider>

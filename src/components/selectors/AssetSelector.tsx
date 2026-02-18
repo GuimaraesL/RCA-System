@@ -50,13 +50,15 @@ const AssetTreeNode: React.FC<{
     <div className="select-none">
       <div
         className={`flex items-center py-2 px-3 rounded-xl transition-all duration-200 group ${isSelected ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' :
-            isSelectable ? 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer border border-transparent hover:border-slate-100 dark:hover:border-slate-700' : 'text-slate-500 dark:text-slate-500 cursor-default'
+          isSelectable ? 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer border border-transparent hover:border-slate-100 dark:hover:border-slate-700' : 'text-slate-500 dark:text-slate-500 cursor-default'
           }`}
         style={{ marginLeft: `${depth * 20}px` }}
         onClick={handleClick}
+        data-testid={`asset-node-${node.id}`}
       >
         <div
           onClick={hasChildren ? handleToggle : undefined}
+          data-testid={`asset-toggle-${node.id}`}
           className={`mr-2 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer ${hasChildren ? 'visible' : 'invisible'}`}
         >
           {isOpen ? <ChevronDown size={14} className={isSelected ? "text-white" : "text-slate-400 dark:text-slate-500"} /> : <ChevronRight size={14} className={isSelected ? "text-white" : "text-slate-400 dark:text-slate-500"} />}

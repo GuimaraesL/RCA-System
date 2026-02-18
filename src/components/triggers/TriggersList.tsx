@@ -53,8 +53,8 @@ export const TriggersList: React.FC<TriggersListProps> = ({
 
     return (
         <Card padding="none" className="flex-1 flex flex-col min-h-0 animate-in fade-in duration-700 delay-200">
-            <div className="overflow-auto flex-1 custom-scrollbar">
-                <table className="w-full text-left text-[13px] text-slate-600 dark:text-slate-300 border-separate border-spacing-0">
+            <div className="overflow-auto flex-1 custom-scrollbar" data-testid="rca-table-container">
+                <table className="w-full text-left text-[13px] text-slate-600 dark:text-slate-300 border-separate border-spacing-0" data-testid="rca-table">
                     <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-black border-b border-slate-100 dark:border-slate-700 sticky top-0 z-10">
                         <tr>
                             <SortHeader label={t('triggersPage.table.status')} sortKey="start_date" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />

@@ -43,7 +43,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
     const { showFilters, setShowFilters, filters, setFilters, handleReset, isGlobal, toggleGlobal } = useFilterPersistence(
         'rca_analyses_view_v3',
         defaultFilters,
-        true
+        false
     );
 
     // Hook de filtragem inteligente (Cross-Filtering)
@@ -168,8 +168,8 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
 
             {/* Tabela de Dados */}
             <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 overflow-hidden flex flex-col min-h-0 animate-in fade-in duration-1000 delay-200">
-                <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
-                    <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300 border-separate border-spacing-0">
+                <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar" data-testid="rca-table-container">
+                    <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300 border-separate border-spacing-0" data-testid="rca-table">
                         <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-black border-b border-slate-100 dark:border-slate-700 sticky top-0 z-10">
                             <tr>
                                 <SortHeader label={t('table.id') + " / " + t('table.type')} sortKey="id" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
@@ -213,10 +213,10 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                         </td>
                                         <td className="px-8 py-6">
                                             <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${r.status === STATUS_IDS.CONCLUDED ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30' :
-                                                    r.status === STATUS_IDS.CANCELLED ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-900/30' :
-                                                        r.status === STATUS_IDS.WAITING_VERIFICATION ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-900/30' :
-                                                            r.status === STATUS_IDS.IN_PROGRESS ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-900/30' :
-                                                                'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                                r.status === STATUS_IDS.CANCELLED ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-900/30' :
+                                                    r.status === STATUS_IDS.WAITING_VERIFICATION ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-900/30' :
+                                                        r.status === STATUS_IDS.IN_PROGRESS ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-900/30' :
+                                                            'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                                                 }`}>
                                                 {statusName}
                                             </span>

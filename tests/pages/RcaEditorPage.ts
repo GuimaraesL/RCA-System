@@ -15,8 +15,8 @@ export class RcaEditorPage {
   constructor(page: Page) {
     this.page = page;
     this.editorHeader = page.getByText(/Nova Análise|New Analysis/i);
-    this.saveBtn = page.locator('button:has(.lucide-save)');
-    this.concludeBtn = page.locator('button:has(.lucide-check)');
+    this.saveBtn = page.getByTestId('btn-save-rca');
+    this.concludeBtn = page.getByTestId('btn-save-rca'); // Ambos usam o mesmo botão agora
   }
 
   async open() {
@@ -24,34 +24,57 @@ export class RcaEditorPage {
     await expect(this.page.locator('.animate-pulse')).not.toBeVisible({ timeout: 15000 });
 
     await this.page.getByRole('button', { name: /Análises|Analyses/i }).click();
-    
+
     // Aguarda carregar a view de análises
     await expect(this.page.getByTestId('app-suspense-loading')).not.toBeVisible();
 
     await this.page.getByRole('button', { name: /Nova Análise|New Analysis/i }).click();
-    
+
     // Aguarda carregar o editor
     await expect(this.page.getByTestId('app-suspense-loading')).not.toBeVisible();
     await expect(this.editorHeader.first()).toBeVisible();
   }
 
-  async goToTab(tabName: string | RegExp) {
-    await this.page.getByText(tabName).click();
+  async goToTab(stepId: number) {
+    await this.page.getByTestId(`step-indicator-${stepId}`).click();
+  }
+
+  // --- Passo 1: Informações Gerais ---
+  async fillGeneralInfo(date: string, typeIndex: number) {
+    await this.page.getByTestId('input-failure-date').fill(date);
+    await this.page.getByTestId('select-analysis-type').selectOption({ index: typeIndex });
+  }
+
+  async selectSubgroup(subgroupId: string, parentIds: string[] = []) {
+    // Expande os pais se necessário
+    for (const parentId of parentIds) {
+      const toggle = this.page.getByTestId(`asset-toggle-${parentId}`);
+      if (await toggle.isVisible()) {
+        await toggle.click();
+      }
+    }
+    // Seleciona o subgrupo
+    await this.page.getByTestId(`asset-node-${subgroupId}`).click();
+  }
+
+  // --- Passo 2: Descrição do Problema ---
+  async fillProblemDescription(what: string) {
+    await this.page.getByTestId('input-what').fill(what);
   }
 
   // --- Ferramentas de Investigação ---
   async fillIshikawa(categoryIndex: number, text: string) {
     await this.page.locator('#ishikawa_category').selectOption({ index: categoryIndex });
-    await this.page.locator('#ishikawa_new_item').fill(text);
-    await this.page.getByRole('button', { name: /Adicionar|Add/i }).filter({ has: this.page.locator('svg.lucide-plus') }).first().click({ force: true });
+    await this.page.getByTestId('input-ishikawa-new-item').fill(text);
+    await this.page.getByTestId('btn-add-ishikawa-item').click({ force: true });
   }
 
   async addFiveWhys(why: string, because: string) {
-    await this.page.getByRole('button', { name: /Adicionar Porquê|Add Why/i }).click();
-    // Localiza o último par de inputs adicionados (que tem o ID contendo five_whys)
-    const whyInput = this.page.locator('input[id*="question"]').last();
-    const answerInput = this.page.locator('input[id*="answer"]').last();
-    
+    await this.page.getByTestId('btn-add-why').click();
+    // Localiza o último par de inputs adicionados
+    const whyInput = this.page.getByTestId(/input-five-why-question-/).last();
+    const answerInput = this.page.getByTestId(/input-five-why-answer-/).last();
+
     await whyInput.fill(why);
     await answerInput.fill(because);
   }
@@ -65,5 +88,13 @@ export class RcaEditorPage {
 
   async takeSnapshot(name: string) {
     await expect(this.page).toHaveScreenshot(`${name}.png`);
+  }
+
+  async saveAndClose() {
+    await this.saveBtn.click();
+    // ESSENCIAL: Aguarda o overlay sumir do DOM para garantir que o estado reativo limpou o editor
+    await expect(this.page.getByTestId('rca-editor-overlay')).not.toBeVisible({ timeout: 15000 });
+    // YOLO: Pequena pausa para garantir que o React processou o fechamento e habilitou a Sidebar
+    await this.page.waitForTimeout(500);
   }
 }

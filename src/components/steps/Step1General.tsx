@@ -62,8 +62,8 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                             id={`${idPrefix}-asset-selector-container`}
                             aria-labelledby={`${idPrefix}-asset-selector-label`}
                             className={`mb-4 rounded-xl border transition-all overflow-hidden ${(errors?.subgroup_id || errors?.equipment_id || errors?.area_id)
-                                    ? 'border-rose-300 dark:border-rose-700 ring-4 ring-rose-50 dark:ring-rose-900/20'
-                                    : 'border-slate-200 dark:border-slate-700'
+                                ? 'border-rose-300 dark:border-rose-700 ring-4 ring-rose-50 dark:ring-rose-900/20'
+                                : 'border-slate-200 dark:border-slate-700'
                                 }`}
                         >
                             <AssetSelector
@@ -113,6 +113,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                                 value={data.failure_date}
                                 onChange={(e) => onChange('failure_date', e.target.value)}
                                 error={errors?.failure_date}
+                                data-testid="input-failure-date"
                             />
                             <Input
                                 id={`${idPrefix}-failure_time`}
@@ -123,6 +124,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                                 value={data.failure_time}
                                 onChange={(e) => onChange('failure_time', e.target.value)}
                                 error={errors?.failure_time}
+                                data-testid="input-failure-time"
                             />
                         </div>
 
@@ -134,6 +136,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                             onChange={(e) => onChange('os_number', e.target.value)}
                             required={isFieldRequired('os_number')}
                             error={errors?.os_number}
+                            data-testid="input-os-number"
                         />
                     </div>
                 </div>
@@ -155,6 +158,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         value={data.analysis_type}
                         onChange={(e) => onChange('analysis_type', e.target.value)}
                         error={errors?.analysis_type}
+                        data-testid="select-analysis-type"
                     />
                     <Input
                         id={`${idPrefix}-facilitator`}

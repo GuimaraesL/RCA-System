@@ -62,3 +62,5 @@ playwright-report/
 docs/issues/
 *.txt
 *.diff
+.playwright-mcp
+docs/reports/

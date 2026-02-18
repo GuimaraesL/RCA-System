@@ -47,7 +47,7 @@ test.describe('RCA Editor - Regras de Validação e Erros', () => {
 
   test('Deve exibir erros de validação ao tentar salvar campos obrigatórios vazios', async ({ page }) => {
     // 1. Tenta salvar rascunho sem preencher nada
-    const saveBtn = page.locator('button:has(.lucide-save)');
+    const saveBtn = page.getByTestId('btn-save-rca');
     await saveBtn.click();
 
     // 2. Verificar se a seção de Ativos (Passo 1) está com erro
@@ -55,14 +55,14 @@ test.describe('RCA Editor - Regras de Validação e Erros', () => {
     await expect(assetContainer).toHaveClass(/border-red-500/);
 
     // 3. Ir para o Passo 2 (Problema) e verificar o campo 'what'
-    await page.getByText(/Problema|Problem/i).click();
+    await page.getByTestId('step-indicator-2').click();
     const whatInput = page.locator('#what');
     await expect(whatInput).toHaveClass(/border-red-500/);
   });
 
   test('Deve permitir salvar após preencher campos obrigatórios dinâmicos', async ({ page }) => {
     // 1. Preencher Ativo (Passo 1)
-    await page.getByText(/Gerais|General/i).click();
+    await page.getByTestId('step-indicator-1').click();
     // Navega na árvore e seleciona o subgrupo
     await page.getByText('Área Teste').click();
     await page.getByText('Equipamento Teste').click();
@@ -75,11 +75,11 @@ test.describe('RCA Editor - Regras de Validação e Erros', () => {
     await page.locator('#analysis_type').selectOption({ index: 1 });
 
     // 4. Preencher 'O que ocorreu' (Passo 2)
-    await page.getByText(/Problema|Problem/i).click();
+    await page.getByTestId('step-indicator-2').click();
     await page.locator('#what').fill('Falha de teste controlada via E2E');
 
     // 5. Salvar
-    const saveBtn = page.locator('button:has(.lucide-save)');
+    const saveBtn = page.getByTestId('btn-save-rca');
     await saveBtn.click();
 
     // Se salvou, os erros de validação devem desaparecer

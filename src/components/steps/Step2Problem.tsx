@@ -39,6 +39,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                         value={data.who}
                         onChange={(e) => onChange('who', e.target.value)}
                         error={errors?.who}
+                        data-testid="input-who"
                     />
 
                     <Input
@@ -50,6 +51,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                         value={data.when}
                         onChange={(e) => onChange('when', e.target.value)}
                         error={errors?.when}
+                        data-testid="input-when"
                     />
 
                     <div className="md:col-span-2">
@@ -62,6 +64,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                             value={data.where_description}
                             onChange={(e) => onChange('where_description', e.target.value)}
                             error={errors?.where_description}
+                            data-testid="input-where"
                         />
                     </div>
                 </div>
@@ -76,6 +79,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                         value={data.what || ''}
                         onChange={(e) => onChange('what', e.target.value)}
                         error={errors?.what}
+                        data-testid="input-what"
                     />
 
                     <Input
@@ -87,6 +91,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                         value={data.potential_impacts || ''}
                         onChange={(e) => onChange('potential_impacts', e.target.value)}
                         error={errors?.potential_impacts}
+                        data-testid="input-impacts"
                     />
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -99,6 +104,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                             value={data.problem_description || ''}
                             onChange={(e) => onChange('problem_description', e.target.value)}
                             error={errors?.problem_description}
+                            data-testid="input-problem-description"
                         />
 
                         <Textarea

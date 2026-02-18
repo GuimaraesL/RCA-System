@@ -47,7 +47,7 @@ O output da migração segue a estrutura esperada pelo endpoint `POST /api/rcas`
 
 ## 4. Estratégia de Rastreamento (ID Injection)
 
-Uma parte crítica da lógica de migração é a garantiade unicidade e rastreabilidade dos arquivos Excel.
+Uma parte crítica da lógica de migração é a garantia de unicidade e rastreabilidade dos arquivos Excel.
 
 ### 4.1 Injeção de Metadados
 O sistema **modifica o arquivo original** para injetar um identificador único (UUID).

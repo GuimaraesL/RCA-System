@@ -87,6 +87,7 @@ Durante a execução de testes no modo visível, a interface pode travar ou fica
 **Solução Padrão:**
 - Viewport estático de 1280x720 no `playwright.config.ts`.
 - Aguardar o desaparecimento de `data-testid="app-suspense-loading"`.
+- **Sincronização de Overlay**: Aguardar explicitamente `data-testid="rca-editor-overlay"` para garantir que o React montou o portal de edição.
 - Garantir mocks completos via Factories.
 
 ### 4.2. Instabilidade do DOM (Element Detachment)
@@ -94,9 +95,16 @@ Re-renderizações agressivas podem fazer com que o Playwright perca a referênc
 - **Estratégia:** Aguardar estado `networkidle` e visibilidade de containers principais antes de interagir.
 - **Page Object Model (POM):** Centralizar seletores em `tests/pages/`.
 
-### 4.3. Intercepção de Ponteiro (Z-Index)
-Inputs invisíveis podem bloquear cliques em botões reais.
-- **Workaround:** Utilizar `{ force: true }` ou `dispatchEvent('click')` enquanto ajustes de CSS não forem aplicados.
+### 4.3. Intercepção de Ponteiro e Modals (Z-Index)
+Inputs invisíveis ou elementos de fundo podem bloquear cliques.
+- **Estrutura Overlay**: O editor utiliza `z-50` e container `fixed` para isolamento total.
+- **Bloqueio de Sidebar**: Quando o editor está aberto, a Sidebar é bloqueada (`isBlocked`) para evitar hovers acidentais que disparam o `NavigationGuard`.
+- **Workaround**: Utilizar `{ force: true }` apenas se ajustes de Z-Index falharem.
+
+### 4.4. Sincronização de Fechamento (Race Conditions)
+O Playwright pode tentar interagir com a lista antes que o estado do React "limpe" o editor.
+- **Page Object Model (POM)**: O método `saveAndClose()` deve aguardar que o overlay perca a visibilidade (`expect(overlay).not.toBeVisible()`) e incluir um pequeno timeout de segurança (ex: 500ms) para refletir o `refreshAll`.
+- **Estado Mandatório**: Garantir que as regras de taxonomia (campos `rca.conclude`) sejam preenchidas no teste, permitindo que a lógica de salvamento ocorra com sucesso e feche o modal.
 
 ---
 

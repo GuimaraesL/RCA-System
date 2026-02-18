@@ -16,6 +16,7 @@ interface SidebarProps {
     setView: (view: any) => void;
     toggleRef?: React.RefObject<(() => void) | null>;
     onShowHelp?: () => void;
+    isBlocked?: boolean;
 }
 
 const ThemeToggle = () => {
@@ -47,7 +48,7 @@ const ThemeToggle = () => {
     );
 };
 
-export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onShowHelp }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onShowHelp, isBlocked }) => {
     const { t } = useLanguage();
 
     // Estado para controle de colapso (desktop) e abertura (mobile)
@@ -87,8 +88,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onSh
                     ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
                     : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}
                 ${isCollapsed ? 'justify-center px-2' : ''}
+                disabled:opacity-20 disabled:cursor-not-allowed
             `}
             title={isCollapsed ? `${label} (Alt+${shortcutLetter?.toUpperCase() || ''})` : `Alt+${shortcutLetter?.toUpperCase() || ''}`}
+            data-testid={`nav-${id}`}
+            disabled={isBlocked}
         >
             <Icon size={20} className={`flex-shrink-0 ${view === id ? 'text-white' : 'text-slate-500 group-hover:text-blue-400'}`} />
             {!isCollapsed && <span className="flex-1 text-left"><ShortcutLabel text={label} shortcutLetter={shortcutLetter} /></span>}

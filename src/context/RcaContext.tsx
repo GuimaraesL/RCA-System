@@ -65,7 +65,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => {
     const checkApi = async () => {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000); 
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
 
       try {
         const response = await fetch('http://localhost:3001/api/health', {
@@ -94,7 +94,10 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     console.log('Sincronizando dados... (Modo API:', useApi, ')');
     setIsLoading(true);
     try {
-      if (useApi === null) return;
+      if (useApi === null) {
+        setIsLoading(false);
+        return;
+      }
 
       if (useApi) {
         const [recs, assts, acts, trigs, tax] = await Promise.all([
@@ -104,11 +107,11 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           api.fetchTriggers(),
           api.fetchTaxonomy()
         ]);
-        setRecords(recs);
-        setAssets(assts);
-        setActions(acts);
-        setTriggers(trigs);
-        setTaxonomy(tax);
+        setRecords(recs || []);
+        setAssets(assts || []);
+        setActions(acts || []);
+        setTriggers(trigs || []);
+        setTaxonomy(tax || emptyTaxonomy);
         console.log('Sincronização completa via API');
       } else {
         setRecords(storage.LEGACY_getRecords());
@@ -126,8 +129,9 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setActions(storage.LEGACY_getActions());
       setTriggers(storage.LEGACY_getTriggers());
       setTaxonomy(storage.LEGACY_getTaxonomy());
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, [useApi]);
 
   useEffect(() => {
@@ -142,7 +146,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const handleStorageChange = (event: StorageEvent) => {
       // Verifica se a mudança ocorreu em chaves relevantes para o sistema (prefixo padronizado ou legadas)
       const isRelevantKey = event.key && (event.key.startsWith('rca_app_v1_') || event.key.startsWith('rca_'));
-      
+
       if (isRelevantKey) {
         console.log('Storage alterado externamente (outra aba). Sincronizando...', event.key);
         refreshAll();

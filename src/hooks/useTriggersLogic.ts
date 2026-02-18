@@ -37,7 +37,7 @@ export const useTriggersLogic = () => {
     const { showFilters, setShowFilters, filters, setFilters, handleReset, isGlobal, toggleGlobal } = useFilterPersistence(
         'rca_triggers_view_v1',
         defaultFilters,
-        true
+        false
     );
 
     // Hook de filtragem inteligente (Cross-Filtering)

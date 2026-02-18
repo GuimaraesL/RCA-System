@@ -4,8 +4,17 @@ export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
   reporter: 'html',
+  timeout: 60000, // Global timeout to handle slower startup
+  webServer: {
+    command: 'npm run preview -- --port 3005',
+    url: 'http://localhost:3005',
+    reuseExistingServer: false,
+    timeout: 120 * 1000,
+    stdout: 'pipe',
+    stderr: 'pipe',
+  },
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:3005',
     trace: 'on-first-retry',
     launchOptions: {
       args: ['--disable-web-security']
@@ -19,7 +28,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { 
+      use: {
         ...devices['Desktop Chrome'],
       },
     },

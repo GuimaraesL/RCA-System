@@ -219,7 +219,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                                     variant="secondary"
                                     size="sm"
                                     className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"
-                                    data-testid="btn-add-why-footer"
+                                    data-testid="btn-add-why"
                                 >
                                     <Plus size={16} className="mr-1" /> {t('wizard.step4.addWhy')}
                                 </Button>
