@@ -146,30 +146,25 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
         const actionsToImportRaw = data.actions || [];
         const triggersToImportRaw = data.triggers || [];
 
-        const idMap = new Map<string, string>(); 
+        const idMap = new Map<string, string>();
 
         if (mode === 'APPEND') {
-            console.log('API: MODO ANEXAR - Gerando novos IDs (preservando UUIDs)...');
-            const shouldPreserve = (id: string, type: string) => {
-                return id && id.length > 30 && !id.startsWith(type + '-');
-            };
-
+            console.log('API: MODO ANEXAR - Gerando novos IDs (ignorando originais para evitar update)...');
+            // No modo APPEND, forçamos a geração de novos IDs para tudo, garantindo inserção como novos registros
             rcasToImportRaw.forEach((r: any) => {
-                idMap.set(r.id, shouldPreserve(r.id, 'RCA') ? r.id : generateId('RCA'));
+                if (r.id) idMap.set(r.id, generateId('RCA'));
             });
             actionsToImportRaw.forEach((a: any) => {
-                idMap.set(a.id, shouldPreserve(a.id, 'ACT') ? a.id : generateId('ACT'));
+                if (a.id) idMap.set(a.id, generateId('ACT'));
             });
             triggersToImportRaw.forEach((t: any) => {
-                idMap.set(t.id, shouldPreserve(t.id, 'TRG') ? t.id : generateId('TRG'));
+                if (t.id) idMap.set(t.id, generateId('TRG'));
             });
         }
 
         const resolveId = (oldId: string, type: 'RCA' | 'ACT' | 'TRG') => {
-            if (oldId && oldId.length > 30 && !oldId.startsWith('RCA-') && !oldId.startsWith('TRG-') && !oldId.startsWith('ACT-')) {
-                return oldId;
-            }
             if (mode !== 'APPEND') return oldId;
+            // Se estamos no modo APPEND, preferimos o ID gerado no mapa. Se não existir, geramos um agora.
             return idMap.get(oldId) || generateId(type);
         };
 
