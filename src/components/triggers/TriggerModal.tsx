@@ -142,6 +142,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             error={localErrors.start_date}
                             value={editingTrigger.start_date || ''}
                             onChange={e => setEditingTrigger({ ...editingTrigger, start_date: e.target.value })}
+                            data-testid="input-trigger-start-date"
                         />
                         <Input
                             id="trigger_end_date"
@@ -151,6 +152,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             error={localErrors.end_date}
                             value={editingTrigger.end_date || ''}
                             onChange={e => setEditingTrigger({ ...editingTrigger, end_date: e.target.value })}
+                            data-testid="input-trigger-end-date"
                         />
                     </div>
 
@@ -200,6 +202,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             error={localErrors.stop_type}
                             value={editingTrigger.stop_type || ''}
                             onChange={e => setEditingTrigger({ ...editingTrigger, stop_type: e.target.value })}
+                            data-testid="input-trigger-stop-type"
                         />
                         <Input
                             id="trigger_stop_reason"
@@ -208,6 +211,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             error={localErrors.stop_reason}
                             value={editingTrigger.stop_reason || ''}
                             onChange={e => setEditingTrigger({ ...editingTrigger, stop_reason: e.target.value })}
+                            data-testid="input-trigger-stop-reason"
                         />
                     </div>
 
@@ -220,6 +224,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             value={editingTrigger.analysis_type_id || ''}
                             onChange={e => setEditingTrigger({ ...editingTrigger, analysis_type_id: e.target.value })}
                             options={[{ value: '', label: t('triggerModal.selectPlaceholder') }, ...(taxonomy.analysisTypes || []).map(t => ({ value: t.id, label: t.name }))]}
+                            data-testid="select-trigger-analysis-type"
                         />
                         <Input
                             id="trigger_responsible"
@@ -228,6 +233,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                             error={localErrors.responsible}
                             value={editingTrigger.responsible || ''}
                             onChange={e => setEditingTrigger({ ...editingTrigger, responsible: e.target.value })}
+                            data-testid="input-trigger-responsible"
                         />
                     </div>
 
@@ -239,6 +245,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                         value={editingTrigger.status || ''}
                         onChange={e => setEditingTrigger({ ...editingTrigger, status: e.target.value as any })}
                         options={[{ value: '', label: t('triggerModal.selectPlaceholder') }, ...(taxonomy.triggerStatuses || []).map(s => ({ value: s.id, label: translateTriggerStatus(s.id, s.name, t) }))]}
+                        data-testid="select-trigger-status"
                     />
 
                     <Textarea
@@ -249,6 +256,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                         value={editingTrigger.comments || ''}
                         onChange={e => setEditingTrigger({ ...editingTrigger, comments: e.target.value })}
                         rows={4}
+                        data-testid="input-trigger-comments"
                     />
                 </div>
 

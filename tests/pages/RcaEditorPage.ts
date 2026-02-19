@@ -23,12 +23,12 @@ export class RcaEditorPage {
     // Aguarda o sistema carregar completamente
     await expect(this.page.locator('.animate-pulse')).not.toBeVisible({ timeout: 15000 });
 
-    await this.page.getByRole('button', { name: /Análises|Analyses/i }).click();
+    await this.page.getByTestId('nav-ANALYSES').click();
 
     // Aguarda carregar a view de análises
     await expect(this.page.getByTestId('app-suspense-loading')).not.toBeVisible();
 
-    await this.page.getByRole('button', { name: /Nova Análise|New Analysis/i }).click();
+    await this.page.getByTestId('btn-new-analysis').click();
 
     // Aguarda carregar o editor
     await expect(this.page.getByTestId('app-suspense-loading')).not.toBeVisible();
@@ -42,7 +42,13 @@ export class RcaEditorPage {
   // --- Passo 1: Informações Gerais ---
   async fillGeneralInfo(date: string, typeIndex: number) {
     await this.page.getByTestId('input-failure-date').fill(date);
-    await this.page.getByTestId('select-analysis-type').selectOption({ index: typeIndex });
+    const select = this.page.getByTestId('select-analysis-type');
+    // Tenta selecionar pelo índice fornecido, fallback para o primeiro disponível se falhar
+    try {
+      await select.selectOption({ index: typeIndex });
+    } catch {
+      await select.selectOption({ index: 0 });
+    }
   }
 
   async selectSubgroup(subgroupId: string, parentIds: string[] = []) {

@@ -14,7 +14,7 @@ test.describe('RCA System - Stress Testing (Frontend)', () => {
 
   test('Deve carregar 1.000 registros e manter a interatividade', async ({ page }) => {
     // Gerar 1.000 registros fictícios
-    const largeDataSet = Array.from({ length: 1000 }).map((_, i) => 
+    const largeDataSet = Array.from({ length: 1000 }).map((_, i) =>
       RcaFactory.create({ id: `STRESS-${i}`, what: `Performance Test Item #${i}` })
     );
 
@@ -31,7 +31,11 @@ test.describe('RCA System - Stress Testing (Frontend)', () => {
 
     const startTime = Date.now();
     await page.goto('/');
-    await page.getByRole('button', { name: /Análises|Analyses/i }).click();
+    await page.waitForLoadState('networkidle');
+    await page.getByTestId('app-ready').waitFor({ timeout: 15000 });
+    await expect(page.getByTestId('app-suspense-loading')).not.toBeVisible({ timeout: 15000 });
+
+    await page.getByTestId('nav-ANALYSES').click();
 
     // Validação de Tempo de Carregamento (Deve ser < 3s para 1.000 itens mockados)
     await expect(page.getByText('Performance Test Item #0')).toBeVisible();

@@ -116,6 +116,7 @@ export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, e
                             value={data.quality_impacts || ''}
                             onChange={(e) => onChange('quality_impacts', e.target.value)}
                             error={errors?.quality_impacts}
+                            data-testid="input-quality-impacts"
                         />
                     </div>
                 </div>

@@ -60,6 +60,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         </span>
                         <div
                             id={`${idPrefix}-asset-selector-container`}
+                            data-testid="asset-selector-container"
                             aria-labelledby={`${idPrefix}-asset-selector-label`}
                             className={`mb-4 rounded-xl border transition-all overflow-hidden ${(errors?.subgroup_id || errors?.equipment_id || errors?.area_id)
                                 ? 'border-rose-300 dark:border-rose-700 ring-4 ring-rose-50 dark:ring-rose-900/20'
@@ -101,6 +102,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                             value={data.component_type}
                             onChange={(e) => onChange('component_type', e.target.value)}
                             error={errors?.component_type}
+                            data-testid="select-component-type"
                         />
 
                         <div className="grid grid-cols-2 gap-6">
@@ -168,6 +170,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         onChange={(e) => onChange('facilitator', e.target.value)}
                         required={isFieldRequired('facilitator')}
                         error={errors?.facilitator}
+                        data-testid="input-facilitator"
                     />
                     <Input
                         id={`${idPrefix}-analysis_duration`}
@@ -179,6 +182,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         value={data.analysis_duration_minutes || 0}
                         onChange={(e) => onChange('analysis_duration_minutes', Number(e.target.value))}
                         error={errors?.analysis_duration_minutes}
+                        data-testid="input-analysis-duration"
                     />
                     <div className="md:col-span-3">
                         <Input
@@ -190,6 +194,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                             value={(data.participants || []).join(', ')}
                             onChange={(e) => handleParticipantsChange(e.target.value)}
                             error={errors?.participants}
+                            data-testid="input-participants"
                         />
                     </div>
                 </div>
@@ -203,6 +208,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         onChange={(e) => onChange('start_date', e.target.value)}
                         required={isFieldRequired('start_date')}
                         error={errors?.start_date}
+                        data-testid="input-start-date"
                     />
                     <Input
                         id={`${idPrefix}-completion_date`}
@@ -213,6 +219,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                         onChange={(e) => onChange('completion_date', e.target.value)}
                         required={isFieldRequired('completion_date')}
                         error={errors?.completion_date}
+                        data-testid="input-completion-date"
                     />
                     <div className="flex items-center pt-8">
                         <div className="relative flex items-start">

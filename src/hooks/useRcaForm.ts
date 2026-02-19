@@ -193,20 +193,24 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
     const toast = useToast();
 
     const handleSave = async () => {
+        console.log('HOOK: handleSave called');
         const errors = validateForm();
         if (Object.keys(errors).length > 0) {
+            console.log('HOOK: Validation errors:', JSON.stringify(errors));
             toast.error('Preencha os campos obrigatórios antes de salvar.');
             return;
         }
 
         setIsSaving(true);
         try {
+            console.log('HOOK: Calling updateRecord/addRecord');
             if (initialRecord) await updateRecord(formData);
             else await addRecord(formData);
             toast.success('Análise RCA salva com sucesso!');
+            console.log('HOOK: Save success');
             onSaveSuccess();
         } catch (error) {
-            console.error('Erro ao salvar RCA:', error);
+            console.error('HOOK: Error saving RCA:', error);
             toast.error('Erro ao salvar RCA. Tente novamente.');
         } finally {
             setIsSaving(false);

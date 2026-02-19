@@ -8,6 +8,8 @@ import { RcaRecord, ActionRecord } from '../../types';
 import { STATUS_IDS } from '../../constants/SystemConstants';
 import { Save, ArrowLeft, Check, ChevronDown } from 'lucide-react';
 import { useRcaForm } from '../../hooks/useRcaForm';
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+
 import { ActionModal } from './ActionModal';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { translateStatus } from '../../utils/statusUtils';
@@ -57,6 +59,14 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         taxonomy,
         refreshAssets
     } = useRcaForm(existingRecord || null, onSave);
+
+    // Atalhos de Teclado Locais do Editor
+    useKeyboardShortcuts({
+        onSave: handleSave,
+        onEscape: onClose
+    });
+
+    // ... (rest of component)
 
     // Controle de modais internos de Ação (UI Only)
     const [isActionModalOpen, setIsActionModalOpen] = useState(false);

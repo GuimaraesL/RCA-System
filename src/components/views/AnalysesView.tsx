@@ -129,6 +129,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                 </div>
                 <button
                     onClick={onNew}
+                    data-testid="btn-new-analysis"
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
                     title="Alt+N"
                 >

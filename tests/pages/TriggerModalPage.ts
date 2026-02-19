@@ -18,7 +18,7 @@ export class TriggerModalPage {
     this.modal = page.getByTestId('modal-trigger');
     this.saveBtn = page.getByTestId('btn-save-trigger');
     this.cancelBtn = page.getByTestId('btn-cancel-trigger');
-    this.newTriggerBtn = page.getByRole('button', { name: /Novo Gatilho|New Trigger/i });
+    this.newTriggerBtn = page.getByTestId('btn-new-trigger');
   }
 
   async open() {
@@ -32,8 +32,8 @@ export class TriggerModalPage {
   }
 
   async fillDates(start: string, end: string) {
-    await this.modal.locator('#trigger_start_date').fill(start);
-    await this.modal.locator('#trigger_end_date').fill(end);
+    await this.page.getByTestId('input-trigger-start-date').fill(start);
+    await this.page.getByTestId('input-trigger-end-date').fill(end);
   }
 
   async selectFirstAsset() {
@@ -46,9 +46,9 @@ export class TriggerModalPage {
   }
 
   async fillDetails(type: string, reason: string, responsible: string) {
-    await this.modal.locator('#trigger_stop_type').fill(type);
-    await this.modal.locator('#trigger_stop_reason').fill(reason);
-    await this.modal.locator('#trigger_responsible').fill(responsible);
+    await this.page.getByTestId('input-trigger-stop-type').fill(type);
+    await this.page.getByTestId('input-trigger-stop-reason').fill(reason);
+    await this.page.getByTestId('input-trigger-responsible').fill(responsible);
   }
 
   async save() {

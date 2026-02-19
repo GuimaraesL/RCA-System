@@ -3,12 +3,12 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
-  reporter: 'html',
+  reporter: [['list'], ['html', { open: 'never' }]],
   timeout: 60000, // Global timeout to handle slower startup
   webServer: {
     command: 'npm run preview -- --port 3005',
     url: 'http://localhost:3005',
-    reuseExistingServer: false,
+    reuseExistingServer: true,
     timeout: 120 * 1000,
     stdout: 'pipe',
     stderr: 'pipe',
@@ -30,6 +30,7 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
+        viewport: { width: 1920, height: 1080 },
       },
     },
   ],

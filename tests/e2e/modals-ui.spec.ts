@@ -42,13 +42,10 @@ test.describe('Fluxos de Modais Unificados', () => {
       return route.fulfill({ status: 200, body: JSON.stringify([]) });
     });
 
-    await page.goto('http://localhost:3000/', { waitUntil: 'networkidle' });
-
-    // Aguarda o fim do carregamento inicial (Suspense)
-    const loader = page.getByTestId('app-suspense-loading');
-    if (await loader.isVisible()) {
-      await expect(loader).not.toBeVisible({ timeout: 15000 });
-    }
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.getByTestId('app-ready').waitFor({ timeout: 15000 });
+    await expect(page.getByTestId('app-suspense-loading')).not.toBeVisible({ timeout: 15000 });
   });
 
   /**
@@ -59,7 +56,7 @@ test.describe('Fluxos de Modais Unificados', () => {
 
     await triggerModal.open();
     await triggerModal.save();
-    
+
     // Deve permanecer aberto devido a erros de validação
     await expect(triggerModal.modal).toBeVisible();
 
@@ -73,9 +70,9 @@ test.describe('Fluxos de Modais Unificados', () => {
    * 2. Fluxo do Editor de RCA
    */
   test('Editor de RCA - Ciclo Completo', async ({ page }) => {
-    await page.getByRole('button', { name: /Análises|Analyses/i }).click();
-    await page.getByRole('button', { name: /Nova Análise|New Analysis/i }).click();
-    
+    await page.getByTestId('nav-ANALYSES').click();
+    await page.getByTestId('btn-new-analysis').click();
+
     const editorHeader = page.getByRole('heading', { name: /Nova Análise|New Analysis/i });
     await expect(editorHeader).toBeVisible();
 
@@ -87,7 +84,7 @@ test.describe('Fluxos de Modais Unificados', () => {
     // Navegação entre abas via rodapé
     await page.getByRole('button', { name: /Próxim[ao]|Next/i }).click();
     await page.getByRole('button', { name: /Anterior|Previous/i }).click();
-    
+
     await expect(whatInput).toHaveValue('TESTE DE FLUXO DE MODAL');
 
     // Fechamento
@@ -99,7 +96,7 @@ test.describe('Fluxos de Modais Unificados', () => {
    * 3. Fluxo do Modal de Plano de Ação
    */
   test('Plano de Ação - Ciclo Completo', async ({ page }) => {
-    await page.getByRole('button', { name: /Planos de Ação|Action Plans/i }).click();
+    await page.getByTestId('nav-ACTIONS').click();
 
     await page.locator('main button').filter({ has: page.locator('svg.lucide-plus') }).click();
     const modalTitle = page.getByText(/Novo Plano de Ação|New Action Plan/i);
@@ -117,7 +114,7 @@ test.describe('Fluxos de Modais Unificados', () => {
    * 4. Fluxo do Modal de Confirmação
    */
   test('Confirmação de Exclusão - Fluxo', async ({ page }) => {
-    await page.getByRole('button', { name: /Análises|Analyses/i }).click();
+    await page.getByTestId('nav-ANALYSES').click();
 
     const tableBody = page.locator('tbody');
     await tableBody.waitFor({ state: 'visible', timeout: 10000 });
@@ -143,15 +140,15 @@ test.describe('Fluxos de Modais Unificados', () => {
    * 5. Fluxo de Salvamento de Gatilho (Regressão)
    */
   test('Modal de Gatilhos - Interação de Salvamento', async ({ page }) => {
-    await page.getByRole('button', { name: /Gatilhos|Triggers/i }).click();
-    await page.getByRole('button', { name: /Novo Gatilho|New Trigger/i }).click();
-    
+    await page.getByTestId('nav-TRIGGERS').click();
+    await page.getByTestId('btn-new-trigger').click();
+
     const modal = page.locator('div.fixed.inset-0.z-50');
     await expect(modal).toBeVisible();
 
-    await modal.locator('#trigger_start_date').fill('2026-02-01T12:00');
-    await modal.locator('#trigger_responsible').fill('Testador Automatizado');
-    await modal.locator('#trigger_status').selectOption({ index: 1 });
+    await page.getByTestId('input-trigger-start-date').fill('2026-02-01T12:00');
+    await page.getByTestId('input-trigger-responsible').fill('Testador Automatizado');
+    await page.getByTestId('select-trigger-status').selectOption({ index: 1 });
 
     const saveBtn = page.locator('div.border-t button', { hasText: /Salvar Gatilho|Save Trigger/i });
     await saveBtn.click();

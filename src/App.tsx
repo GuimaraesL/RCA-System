@@ -51,11 +51,6 @@ const AppContent: React.FC = () => {
     const handleToggleShortcutsHelp = useCallback(() => setShowShortcutsHelp(prev => !prev), []);
 
     useKeyboardShortcuts({
-        onSave: () => {
-            if (isEditorOpen) {
-                handleSaveRca();
-            }
-        },
         onNewRca: () => {
             if (!isEditorOpen) {
                 openNew();

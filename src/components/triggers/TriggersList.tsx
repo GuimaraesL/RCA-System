@@ -145,7 +145,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                             </div>
                                         ) : (
                                             <div className="flex gap-2">
-                                                <button onClick={(e) => { e.stopPropagation(); onCreateRca(trigger); }} className="text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-800 p-2 rounded-lg transition-all shadow-sm" title={t('triggersPage.tooltips.createRca')}>
+                                                <button onClick={(e) => { e.stopPropagation(); onCreateRca(trigger); }} data-testid="btn-convert-trigger-to-rca" className="text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-800 p-2 rounded-lg transition-all shadow-sm" title={t('triggersPage.tooltips.createRca')}>
                                                     <Plus size={16} strokeWidth={3} />
                                                 </button>
                                                 <button

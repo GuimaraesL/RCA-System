@@ -54,7 +54,7 @@ export const TriggerFactory = {
       id: `TRG-${Math.random().toString(36).substr(2, 9)}`,
       area_id: 'AREA-01',
       equipment_id: 'EQUIP-01',
-      subgroup_id: 'SUB-01',
+      // subgroup_id removido daqui pois já existe na linha 67
       start_date: new Date().toISOString().substring(0, 16),
       end_date: new Date().toISOString().substring(0, 16),
       duration_minutes: 60,
@@ -65,6 +65,7 @@ export const TriggerFactory = {
       status: 'T-STATUS-01',
       responsible: 'QA Engine',
       rca_id: null,
+      subgroup_id: 'SUB-01', // Garante consistência com subgrupo mockado
       ...overrides
     };
   }

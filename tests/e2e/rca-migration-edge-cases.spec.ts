@@ -13,7 +13,6 @@ import * as path from 'path';
 import { TaxonomyFactory } from '../factories/rcaFactory';
 
 test.describe('RCA System - Migration Edge Cases', () => {
-
   test.beforeEach(async ({ page }) => {
     // API SHADOWING
     await page.route('**/api/**', async route => {
@@ -24,6 +23,11 @@ test.describe('RCA System - Migration Edge Cases', () => {
       }
       return route.fulfill({ status: 200, body: JSON.stringify([]) });
     });
+
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.getByTestId('app-ready').waitFor({ timeout: 15000 });
+    await expect(page.getByTestId('app-suspense-loading')).not.toBeVisible({ timeout: 15000 });
   });
 
   const tempDir = path.resolve('tests/data/temp');
@@ -36,7 +40,6 @@ test.describe('RCA System - Migration Edge Cases', () => {
     const corruptedJsonPath = path.join(tempDir, 'corrupted.json');
     fs.writeFileSync(corruptedJsonPath, '{ "invalid": json content ... ');
 
-    await page.goto('/');
     await page.getByRole('button', { name: /Migração|Migration/i }).click();
 
     // Upload do arquivo
@@ -52,7 +55,6 @@ test.describe('RCA System - Migration Edge Cases', () => {
     // O sistema espera ';' mas enviamos ','
     fs.writeFileSync(invalidCsvPath, 'id,name,type\nAREA-01,Test Area,AREA');
 
-    await page.goto('/');
     await page.getByRole('button', { name: /Migração|Migration/i }).click();
     await page.getByRole('button', { name: /Ferramentas CSV|CSV Tools/i }).click();
 

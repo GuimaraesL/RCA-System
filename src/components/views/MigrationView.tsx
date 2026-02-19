@@ -223,6 +223,7 @@ export const MigrationView: React.FC = () => {
                     ].map((tab) => (
                         <Button
                             key={tab.id}
+                            data-testid={`tab-${tab.id.toLowerCase()}`}
                             variant={activeTab === tab.id ? 'secondary' : 'ghost'}
                             size="sm"
                             onClick={() => { setActiveTab(tab.id as any); setMsg(null); }}
@@ -264,7 +265,7 @@ export const MigrationView: React.FC = () => {
                     )}
 
                     {activeTab === 'JSON' ? (
-                        <div className="space-y-12">
+                        <div className="space-y-12" data-testid="migration-json-view">
                             {!previewData && (
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                                     <Card
@@ -274,10 +275,10 @@ export const MigrationView: React.FC = () => {
                                     >
                                         <div className="absolute -top-10 -right-10 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform"><Upload size={240} className="dark:text-white" /></div>
                                         <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-all duration-500 shadow-inner"><FileJson size={48} /></div>
-                                        <h3 className="text-3xl font-black mb-3 text-slate-900 dark:text-white tracking-tight font-display">{t('migration.restore')}</h3>
+                                        <h3 data-testid="title-restore-backup" className="text-3xl font-black mb-3 text-slate-900 dark:text-white tracking-tight font-display">{t('migration.restore')}</h3>
                                         <p className="text-sm text-slate-400 dark:text-slate-500 font-bold mb-10 max-w-xs mx-auto leading-relaxed uppercase tracking-widest">{t('migration.json.dragDrop')}</p>
                                         <div className="relative inline-block">
-                                            <input type="file" ref={jsonInputRef} onChange={handleJsonFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".json" />
+                                            <input data-testid="input-restore-json" type="file" ref={jsonInputRef} onChange={handleJsonFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".json" />
                                             <Button
                                                 variant="primary"
                                                 size="lg"
@@ -452,7 +453,7 @@ export const MigrationView: React.FC = () => {
                             )}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start" data-testid="migration-csv-view">
                             {/* Coluna de Configuração CSV */}
                             <div className="lg:col-span-7 space-y-10">
                                 <Card padding="xl" className="h-full">
@@ -476,6 +477,7 @@ export const MigrationView: React.FC = () => {
                                                 {entityOptions.map(opt => (
                                                     <Button
                                                         key={opt.value}
+                                                        data-testid={`entity-option-${opt.value}`}
                                                         variant="ghost"
                                                         onClick={() => { setCsvType(opt.value); setMsg(null); }}
                                                         className={`h-auto p-5 rounded-2xl border-2 text-left block w-full whitespace-normal transition-all duration-300 active:scale-[0.98] ${csvType === opt.value
@@ -597,6 +599,7 @@ export const MigrationView: React.FC = () => {
                                             <Button
                                                 variant="primary"
                                                 size="lg"
+                                                data-testid="btn-import-csv"
                                                 className="w-full flex items-center gap-6 p-10 h-auto bg-blue-600 rounded-[2.5rem] shadow-2xl shadow-blue-600/20 hover:bg-blue-700 hover:scale-[1.02] transition-all text-left border-0"
                                             >
                                                 <div className="p-5 bg-white/10 rounded-[1.5rem] text-white shadow-inner">
