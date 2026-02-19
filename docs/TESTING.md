@@ -25,6 +25,11 @@ O projeto segue uma estrutura de testes dividida em três camadas principais:
 - **Localização:** `tests/e2e/*.spec.ts`
 - **Ferramenta:** Playwright.
 
+### 1.4. Análise Estática AST (via Playwright)
+- **Escopo:** Verificação rigorosa contra vazamentos de Internacionalização (I18N). O Linter varre a Árvore Sintática Abstrata (AST) do ecossistema React mapeando usos ilegais de texto cru em Português-BR (em `JSXText` ou `StringLiteral` dentro de Atributos JSX).
+- **Localização:** `tests/e2e/rca-i18n.spec.ts`
+- **Ferramenta:** TypeScript Compiler API (`ts.createSourceFile`) injetado dentro da Pipeline E2E.
+
 ---
 
 ## 2. Execução via CLI
@@ -106,12 +111,23 @@ O Playwright pode tentar interagir com a lista antes que o estado do React "limp
 - **Page Object Model (POM)**: O método `saveAndClose()` deve aguardar que o overlay perca a visibilidade (`expect(overlay).not.toBeVisible()`) e incluir um pequeno timeout de segurança (ex: 500ms) para refletir o `refreshAll`.
 - **Estado Mandatório**: Garantir que as regras de taxonomia (campos `rca.conclude`) sejam preenchidas no teste, permitindo que a lógica de salvamento ocorra com sucesso e feche o modal.
 
+### 4.5. Testes de Desempenho Front-end (Stress Testing)
+Para testar o comportamento do aplicativo sob carga volumosa de dados, é mais eficiente injetar artificialmente grandes massas de registros no navegador do que depender de chamadas com rede real.
+- **Injeção de LocalStorage**: Use `page.evaluate()` para depositar os registros de mock na chave do `localStorage` correta antes do recarregamento da página (e.g., `rca_app_v1_records`).
+- **Timeouts Customizados**: Ao envolver testes com renderização pesada (1000+ componentes na DOM), configure explicitamente `expect(elemento).toBeVisible({ timeout: 15000 })` e não dependa exclusivamente do timeout padrão do Playwright.
+
+### 4.6. Teste de Traduções Rigorosas (I18N Leaks)
+Para testar profundamente a internacionalização, criei um *Crawler* que inspeciona o `innerText` global da tela principal, assegurando-se de que nada vazou à conversão.
+- Busque por chaves de objetos cruas e palavras soltas `hardcoded`, configurando `expect(leaks).toHaveLength(0)`.
+- Use a função `t('chave', 'Fallback em inglês')` inclusive dentro das propriedades dos seus componentes, e confira o idioma do projeto no setup geral.
+
 ---
 
 ## 5. Protocolo de Criação de Novos Testes
 
-1. **Page Objects:** Nunca use seletores CSS diretos nos arquivos `.spec.ts`. Use as classes em `tests/pages/`.
-2. **Monitoramento:** Ative a captura de erros de console (`page.on('pageerror', ...)`) para diagnosticar falhas.
+1. **Page Objects e Test IDs:** Nunca use seletores CSS diretos ou fracos (ex: `page.locator('select')`) nos arquivos `.spec.ts`. Use atributos `data-testid` (ex: `page.getByTestId('meu-elemento')`) para interagir com a aplicação ou as classes em `tests/pages/`, tornando os testes imunes a mudanças visuais de classe e estrutura HTML.
+2. **Navegação Consistente:** Não utilize URLs "hardcoded" exclusivas para o host local nos scripts (`page.goto('http://localhost:3000')`). Sempre dependa da infraestrutura de BaseURL configurada no Playwright via rotas relativas (e.g. `page.goto('/')`).
+3. **Monitoramento:** Ative a captura de erros de console (`page.on('pageerror', ...)`) para diagnosticar falhas.
 3. **Bilíngue (i18n):** Use Regex para busca de botões (ex: `/Salvar|Save/i`).
 4. **Idioma e Padrão:**
    - Todos os comentários e nomes de testes devem ser em **Português (PT-BR)**.

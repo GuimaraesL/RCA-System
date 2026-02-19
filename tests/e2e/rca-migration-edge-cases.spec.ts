@@ -59,7 +59,7 @@ test.describe('RCA System - Migration Edge Cases', () => {
     await page.getByRole('button', { name: /Ferramentas CSV|CSV Tools/i }).click();
 
     // Selecionar entidade ANTES do upload
-    await page.locator('select').selectOption({ value: 'ASSETS' });
+    await page.getByTestId('entity-option-ASSETS').click();
 
     // O setInputFiles dispara onChange automaticamente - não precisa clicar no botão
     await page.setInputFiles('input[accept=".csv"]', invalidCsvPath);

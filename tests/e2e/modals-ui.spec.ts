@@ -77,13 +77,14 @@ test.describe('Fluxos de Modais Unificados', () => {
     await expect(editorHeader).toBeVisible();
 
     // Edição de campo (5W1H)
-    await page.getByText(/Problema|Problem/i).click();
-    const whatInput = page.getByPlaceholder(/Descrição sucinta|Brief description/i);
+    // Usa um seletor mais específico para o título da aba ou indicador de progresso
+    await page.getByTestId('step-indicator-2').click();
+    const whatInput = page.getByTestId('input-what');
     await whatInput.fill('TESTE DE FLUXO DE MODAL');
 
     // Navegação entre abas via rodapé
-    await page.getByRole('button', { name: /Próxim[ao]|Next/i }).click();
-    await page.getByRole('button', { name: /Anterior|Previous/i }).click();
+    await page.getByTestId('btn-next-step').click();
+    await page.getByTestId('btn-prev-step').click();
 
     await expect(whatInput).toHaveValue('TESTE DE FLUXO DE MODAL');
 
@@ -102,9 +103,9 @@ test.describe('Fluxos de Modais Unificados', () => {
     const modalTitle = page.getByText(/Novo Plano de Ação|New Action Plan/i);
     await expect(modalTitle).toBeVisible();
 
-    await page.locator('#action_description').fill('Ação Corretiva E2E');
-    await page.locator('#action_responsible').fill('Responsável E2E');
-    await page.locator('#action_date').fill('2024-12-31');
+    await page.getByLabel(/Descrição da Ação|Action Description/i).fill('Ação Corretiva E2E');
+    await page.getByLabel(/Responsável|Responsible/i).fill('Responsável E2E');
+    await page.getByLabel(/Prazo|Due Date/i).fill('2024-12-31');
 
     await page.getByRole('button', { name: /Cancelar|Cancel/i }).click();
     await expect(modalTitle).not.toBeVisible();

@@ -158,7 +158,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
                 <SortHeader label={t('table.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
                 <SortHeader label={t('table.dueDate')} sortKey="date" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
                 <SortHeader label={t('sidebar.analyses')} sortKey="rcaTitle" currentSort={sortConfig} onSort={handleSort} className="px-8 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
-                <th className="px-8 py-5 text-right border-b border-slate-100 dark:border-slate-700 text-[10px] uppercase tracking-widest font-black text-slate-400 dark:text-slate-500">Ações</th>
+                <th className="px-8 py-5 text-right border-b border-slate-100 dark:border-slate-700 text-[10px] uppercase tracking-widest font-black text-slate-400 dark:text-slate-500">{t('table.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">

@@ -103,7 +103,7 @@ export const MigrationView: React.FC = () => {
     const handleJsonFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        setMsg({ type: 'success', text: 'Analisando integridade do JSON...' });
+        setMsg({ type: 'success', text: t('migration.json.analyzing') });
         setPreviewData(null);
         try {
             const content = await readFileWithEncoding(file);
@@ -112,13 +112,13 @@ export const MigrationView: React.FC = () => {
             setMsg(null);
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
-            setMsg({ type: 'error', text: `Erro ao processar arquivo: ${errorMsg}` });
+            setMsg({ type: 'error', text: `${t('migration.csv.errorProcessing')}${errorMsg}` });
         }
     };
 
     const executeImport = async () => {
         if (!previewData) return;
-        setMsg({ type: 'success', text: 'Executando importação...' });
+        setMsg({ type: 'success', text: t('migration.json.importing') });
         try {
             const selectedTaxonomies = Object.entries(taxonomySelection)
                 .filter(([_, selected]) => selected).map(([key]) => key);
@@ -130,22 +130,22 @@ export const MigrationView: React.FC = () => {
                 if (jsonInputRef.current) jsonInputRef.current.value = '';
             }
         } catch (error) {
-            setMsg({ type: 'error', text: 'Falha na importação.' });
+            setMsg({ type: 'error', text: t('migration.json.importFailed') });
         }
     };
 
     const handleJsonDownload = async () => {
-        setMsg({ type: 'success', text: 'Preparando carga total de dados...' });
+        setMsg({ type: 'success', text: t('migration.json.preparingBackup') });
         try {
             const fullRecords = useApi ? await fetchAllRecordsFull() : records;
             const exportObj: MigrationData = {
-                metadata: { systemVersion: '17.0', exportDate: new Date().toISOString(), recordCount: fullRecords.length, description: 'Backup Integral do Sistema' },
+                metadata: { systemVersion: '17.0', exportDate: new Date().toISOString(), recordCount: fullRecords.length, description: t('migration.json.backupDescriptionOrigin') },
                 assets, records: fullRecords, actions, triggers, taxonomy
             };
             downloadFile(JSON.stringify(exportObj, null, 2), `rca_backup_v17_${new Date().toISOString().split('T')[0]}.json`, 'application/json');
-            setMsg({ type: 'success', text: 'Backup gerado e baixado com sucesso.' });
+            setMsg({ type: 'success', text: t('migration.json.backupSuccess') });
         } catch (error) {
-            setMsg({ type: 'error', text: 'Falha ao gerar backup.' });
+            setMsg({ type: 'error', text: t('migration.json.backupFailed') });
         }
     };
 
@@ -155,21 +155,21 @@ export const MigrationView: React.FC = () => {
     };
 
     const handleCsvExport = async () => {
-        setMsg({ type: 'success', text: 'Preparando exportação CSV...' });
+        setMsg({ type: 'success', text: t('migration.csv.preparingExport') });
         try {
             const exportRecords = (useApi && csvType === 'RECORDS_SUMMARY') ? await fetchAllRecordsFull() : records;
             const data = exportToCsvService(csvType, { assets, actions, triggers, records: exportRecords, taxonomy });
             downloadFile('\uFEFF' + data, `export_${csvType.toLowerCase()}_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8;');
-            setMsg({ type: 'success', text: 'Exportação concluída.' });
+            setMsg({ type: 'success', text: t('migration.csv.exportSuccess') });
         } catch (error) {
-            setMsg({ type: 'error', text: 'Falha na exportação.' });
+            setMsg({ type: 'error', text: t('migration.csv.exportFailed') });
         }
     };
 
     const handleCsvImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        setMsg({ type: 'success', text: 'Processando arquivo CSV...' });
+        setMsg({ type: 'success', text: t('migration.csv.processingFile') });
         try {
             const content = await readFileWithEncoding(file);
             const safeMode = importMode === 'REPLACE' ? 'APPEND' : importMode;
@@ -296,7 +296,7 @@ export const MigrationView: React.FC = () => {
                                         <div className="absolute -top-10 -right-10 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform"><Download size={240} className="dark:text-white" /></div>
                                         <div className="w-24 h-24 bg-cyan-50 dark:bg-cyan-900/20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-cyan-600 dark:text-cyan-400 group-hover:scale-110 transition-all duration-500 shadow-inner"><Database size={48} /></div>
                                         <h3 className="text-3xl font-black mb-3 text-slate-900 dark:text-white tracking-tight font-display">{t('migration.json.createBackup')}</h3>
-                                        <p className="text-sm text-slate-400 dark:text-slate-500 font-bold mb-10 max-w-xs mx-auto leading-relaxed uppercase tracking-widest">Gere um arquivo integral contendo Ativos, RCAs, Ações e Taxonomia.</p>
+                                        <p className="text-sm text-slate-400 dark:text-slate-500 font-bold mb-10 max-w-xs mx-auto leading-relaxed uppercase tracking-widest">{t('migration.json.createBackupDesc')}</p>
                                         <Button
                                             variant="secondary"
                                             size="lg"
@@ -318,9 +318,9 @@ export const MigrationView: React.FC = () => {
                                                 <div>
                                                     <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight font-display uppercase italic">{t('migration.importConfig')}</h3>
                                                     <div className="flex items-center gap-3 mt-1">
-                                                        <Badge variant="primary" size="sm" className="font-mono">Schema: {previewData.metadata?.systemVersion || '17.0'}</Badge>
+                                                        <Badge variant="primary" size="sm" className="font-mono">{t('migration.schema')}: {previewData.metadata?.systemVersion || '17.0'}</Badge>
                                                         <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-                                                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest">Gerado em {new Date(previewData.metadata?.exportDate || '').toLocaleDateString()}</span>
+                                                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest">{t('migration.json.generatedAt')} {new Date(previewData.metadata?.exportDate || '').toLocaleDateString()}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -338,10 +338,10 @@ export const MigrationView: React.FC = () => {
                                         <div className="p-12 space-y-16">
                                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
                                                 {[
-                                                    { label: 'Análises RCA', count: previewData.records?.length || 0, icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50' },
-                                                    { label: 'Planos de Ação', count: previewData.actions?.length || 0, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                                                    { label: 'Eventos Gatilho', count: previewData.triggers?.length || 0, icon: Activity, color: 'text-amber-600', bg: 'bg-amber-50' },
-                                                    { label: 'Nós de Ativos', count: previewData.assets?.length || 0, icon: Layers, color: 'text-cyan-600', bg: 'bg-cyan-50' },
+                                                    { label: t('sidebar.analyses'), count: previewData.records?.length || 0, icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50' },
+                                                    { label: t('sidebar.actions'), count: previewData.actions?.length || 0, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                                                    { label: t('sidebar.triggers'), count: previewData.triggers?.length || 0, icon: Activity, color: 'text-amber-600', bg: 'bg-amber-50' },
+                                                    { label: t('sidebar.assets'), count: previewData.assets?.length || 0, icon: Layers, color: 'text-cyan-600', bg: 'bg-cyan-50' },
                                                 ].map((item, i) => (
                                                     <Card key={i} padding="md" variant="hoverable" className="bg-slate-50/30 dark:bg-slate-800/30 flex flex-col gap-2 group">
                                                         <div className={`w-12 h-12 ${item.bg} dark:bg-opacity-20 ${item.color} dark:text-opacity-80 rounded-2xl flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform`}><item.icon size={24} strokeWidth={2.5} /></div>
@@ -423,7 +423,7 @@ export const MigrationView: React.FC = () => {
 
                                                     <div className="p-6 bg-blue-50/50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-900/30 flex gap-4">
                                                         <Info size={20} className="text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                                                        <p className="text-[11px] text-blue-700 dark:text-blue-300 font-bold leading-relaxed">Nota: Conflitos de ID serão resolvidos preservando a integridade da base local existente.</p>
+                                                        <p className="text-[11px] text-blue-700 dark:text-blue-300 font-bold leading-relaxed">{t('migration.json.idConflictNote')}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -435,7 +435,7 @@ export const MigrationView: React.FC = () => {
                                                     onClick={() => setPreviewData(null)}
                                                     className="px-10 rounded-2xl uppercase tracking-widest"
                                                 >
-                                                    {t('migration.cancel')}
+                                                    {t('common.cancel')}
                                                 </Button>
                                                 <Button
                                                     variant="primary"
@@ -463,7 +463,18 @@ export const MigrationView: React.FC = () => {
                                         </div>
                                         <div>
                                             <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight font-display uppercase italic">{t('migration.csvTools')}</h3>
-                                            <p className="text-xs text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest mt-1">Configurações de Entidade e Lógica</p>
+                                            <p className="text-xs text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest mt-1">{t('migration.csv.entityConfig')}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4 p-5 md:p-6 bg-amber-50 dark:bg-amber-900/10 rounded-2xl md:rounded-[2rem] border border-amber-100 dark:border-amber-900/20 items-start">
+                                        <div className="p-2 bg-amber-100 dark:bg-amber-900/40 rounded-xl">
+                                            <AlertTriangle size={20} className="text-amber-600 dark:text-amber-500" strokeWidth={2.5} />
+                                        </div>
+                                        <div>
+                                            <h5 className="text-xs font-black text-amber-800 dark:text-amber-400 uppercase tracking-widest mb-1">{t('common.attention')}</h5>
+                                            <p className="text-[11px] font-bold text-amber-700/80 dark:text-amber-500/80 leading-relaxed">
+                                                {t('migration.systemIdsNote')}
+                                            </p>
                                         </div>
                                     </div>
 
@@ -551,7 +562,7 @@ export const MigrationView: React.FC = () => {
 
                             {/* Coluna de Ações de Arquivo CSV */}
                             <div className="lg:col-span-5 space-y-8">
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 px-2">Ações de Arquivo</label>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 px-2">{t('migration.fileActions')}</label>
 
                                 <Card padding="none" className="group/actions overflow-hidden">
                                     <div className="p-10 space-y-6">
@@ -566,7 +577,7 @@ export const MigrationView: React.FC = () => {
                                             </div>
                                             <div className="flex-1">
                                                 <span className="block font-black text-slate-800 dark:text-white text-sm uppercase tracking-tight">{t('migration.downloadTemplate')}</span>
-                                                <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-[0.15em] mt-1 block">Obter modelo estruturado</span>
+                                                <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-[0.15em] mt-1 block">{t('migration.csv.downloadTemplateHint')}</span>
                                             </div>
                                             <ChevronRight size={20} className="text-slate-300 group-hover/btn:translate-x-2 transition-transform" strokeWidth={3} />
                                         </Button>
@@ -582,7 +593,7 @@ export const MigrationView: React.FC = () => {
                                             </div>
                                             <div className="flex-1">
                                                 <span className="block font-black text-slate-800 dark:text-white text-sm uppercase tracking-tight">{t('migration.exportData')}</span>
-                                                <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-[0.15em] mt-1 block">Baixar dados existentes</span>
+                                                <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-[0.15em] mt-1 block">{t('migration.exportDataHint')}</span>
                                             </div>
                                             <ChevronRight size={20} className="text-slate-300 group-hover/btn:translate-x-2 transition-transform" strokeWidth={3} />
                                         </Button>
@@ -607,7 +618,7 @@ export const MigrationView: React.FC = () => {
                                                 </div>
                                                 <div className="flex-1">
                                                     <span className="block font-black text-white text-xl tracking-tight uppercase italic">{t('migration.importCsv')}</span>
-                                                    <span className="text-[10px] text-blue-100 font-black uppercase tracking-[0.2em] opacity-70 mt-1 block">Clique para selecionar</span>
+                                                    <span className="text-[10px] text-blue-100 font-black uppercase tracking-[0.2em] opacity-70 mt-1 block">{t('migration.clickToSelect')}</span>
                                                 </div>
                                                 <ChevronRight size={24} className="text-blue-200 group-hover:translate-x-2 transition-transform" strokeWidth={3} />
                                             </Button>
@@ -617,7 +628,7 @@ export const MigrationView: React.FC = () => {
                                     <div className="bg-slate-50 dark:bg-slate-800 p-8 border-t border-slate-100 dark:border-slate-800 flex gap-4">
                                         <div className="p-2 bg-white dark:bg-slate-900 rounded-lg shadow-sm text-slate-400"><Info size={18} /></div>
                                         <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-bold uppercase tracking-tight">
-                                            Nota: Utilize codificação UTF-8 e separador ponto e vírgula (;) para máxima compatibilidade com Excel.
+                                            {t('migration.csv.encodingNote')}
                                         </p>
                                     </div>
                                 </Card>

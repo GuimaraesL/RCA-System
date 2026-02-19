@@ -10,33 +10,33 @@
 import { test, expect } from '@playwright/test';
 
 test('Dashboard não deve apresentar erros de dimensões nos gráficos Recharts', async ({ page }) => {
-    // Inject flag to disable animations
+    // Injeta flag para desabilitar animações
     await page.addInitScript(() => {
         (window as any).isPlaywright = true;
     });
 
     const consoleErrors: string[] = [];
 
-    // Listen for console errors
+    // Escuta por erros de console
     page.on('console', msg => {
         if (msg.type() === 'error' || msg.type() === 'warning') {
             const text = msg.text();
             if (text.includes('width') && text.includes('height') && text.includes('chart')) {
                 consoleErrors.push(text);
-                console.log(`Caught relevant console message: ${text}`);
+                console.log(`Mensagem de console relevante capturada: ${text}`);
             }
         }
     });
 
-    // Navigate to dashboard
-    await page.goto('http://localhost:3000');
+    // Navega para a dashboard
+    await page.goto('/');
 
-    // Wait for dashboard to load (look for a known element)
+    // Aguarda o carregamento da dashboard (procura por um elemento conhecido)
     await page.waitForSelector('h1', { timeout: 10000 });
 
-    // Wait a bit for charts to render and potential resize events
+    // Aguarda um momento para a renderização dos gráficos e possíveis eventos de redimensionamento
     await page.waitForTimeout(3000);
 
-    // Assert no errors were found
-    expect(consoleErrors, `Found Recharts errors: ${consoleErrors.join('\n')}`).toHaveLength(0);
+    // Verifica se nenhum erro foi encontrado
+    expect(consoleErrors, `Erros Recharts encontrados: ${consoleErrors.join('\n')}`).toHaveLength(0);
 });

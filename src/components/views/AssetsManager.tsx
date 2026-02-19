@@ -142,7 +142,7 @@ export const AssetsManager: React.FC = () => {
               <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-4 tracking-tighter font-display">{selectedNode.name}</h1>
               <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500 font-mono text-xs bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-xl w-fit border border-slate-100 dark:border-slate-700">
                 <Lock size={14} className="opacity-50" />
-                <span className="font-bold">SYSTEM ID:</span> {selectedNode.id}
+                <span className="font-bold">{t('assets.systemId')}:</span> {selectedNode.id}
               </div>
             </div>
 

@@ -74,7 +74,7 @@ const ListManager: React.FC<{
                   onChange={(e) => setEditValue(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && saveEdit(item.id)}
                   onKeyDownCapture={e => e.key === 'Escape' && setEditingId(null)}
-                  aria-label={`${t('settings.editItemLabel') || 'Editar item'} - ${item.name}`}
+                  aria-label={`${t('settings.editItemLabel')} - ${item.name}`}
                 />
                 <button type="button" aria-label={t('common.save')} onClick={() => saveEdit(item.id)} className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-colors shadow-sm"><Check size={18} strokeWidth={3} /></button>
                 <button type="button" aria-label={t('common.cancel')} onClick={() => setEditingId(null)} className="p-2.5 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-100 transition-colors shadow-sm"><X size={18} strokeWidth={3} /></button>
@@ -154,10 +154,10 @@ export const SettingsView: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<SettingsCategory>('rca-taxonomy');
 
   const categories = useMemo(() => [
-    { id: 'rca-taxonomy', label: t('settings.categories.rcaTaxonomy') || 'Taxonomia RCA', icon: ClipboardList, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { id: 'trigger-taxonomy', label: t('settings.categories.triggerTaxonomy') || 'Taxonomia de Gatilhos', icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { id: 'components', label: t('settings.categories.components') || 'Componentes', icon: Cpu, color: 'text-cyan-600', bg: 'bg-cyan-50' },
-    { id: 'validation', label: t('settings.categories.validation') || 'Regras de Validação', icon: ShieldCheck, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { id: 'rca-taxonomy', label: t('settings.categories.rcaTaxonomy'), icon: ClipboardList, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { id: 'trigger-taxonomy', label: t('settings.categories.triggerTaxonomy'), icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { id: 'components', label: t('settings.categories.components'), icon: Cpu, color: 'text-cyan-600', bg: 'bg-cyan-50' },
+    { id: 'validation', label: t('settings.categories.validation'), icon: ShieldCheck, color: 'text-blue-600', bg: 'bg-blue-50' },
   ], [t]);
 
   if (!taxonomy) {
@@ -180,17 +180,17 @@ export const SettingsView: React.FC = () => {
     { value: 'failure_category_id', label: t('fields.failureCategory') },
     { value: 'participants', label: t('fields.participants') },
     // Novos campos (Issue #67)
-    { value: 'os_number', label: t('wizard.step1.osNumber') || 'Número da OS' },
-    { value: 'facilitator', label: t('wizard.step1.facilitator') || 'Facilitador' },
-    { value: 'start_date', label: t('wizard.step1.startDate') || 'Data de Início' },
-    { value: 'completion_date', label: t('wizard.step1.completionDate') || 'Data de Conclusão' },
-    { value: 'analysis_duration_minutes', label: t('wizard.step1.analysisDuration') || 'Duração da Análise' },
-    { value: 'downtime_minutes', label: t('wizard.step3.downtimeMinutes') || 'Tempo de Parada' },
-    { value: 'financial_impact', label: t('wizard.step3.financialImpact') || 'Impacto Financeiro' },
-    { value: 'potential_impacts', label: t('wizard.step2.potentialImpacts') || 'Impactos Potenciais' },
-    { value: 'quality_impacts', label: t('wizard.step2.qualityImpacts') || 'Impactos na Qualidade' },
-    { value: 'lessons_learned', label: t('wizard.step7.lessonsLearned') || 'Lições Aprendidas' },
-    { value: 'precision_maintenance', label: t('wizard.step6.title') || 'Checklist de Precisão' }
+    { value: 'os_number', label: t('wizard.step1.osNumber') },
+    { value: 'facilitator', label: t('wizard.step1.facilitator') },
+    { value: 'start_date', label: t('wizard.step1.startDate') },
+    { value: 'completion_date', label: t('wizard.step1.completionDate') },
+    { value: 'analysis_duration_minutes', label: t('wizard.step1.analysisDuration') },
+    { value: 'downtime_minutes', label: t('wizard.step3.downtimeMinutes') },
+    { value: 'financial_impact', label: t('wizard.step3.financialImpact') },
+    { value: 'potential_impacts', label: t('wizard.step2.potentialImpacts') },
+    { value: 'quality_impacts', label: t('wizard.step2.qualityImpacts') },
+    { value: 'lessons_learned', label: t('wizard.step7.lessonsLearned') },
+    { value: 'precision_maintenance', label: t('wizard.step6.title') }
   ];
 
   const rcaConclusionFields = [
@@ -254,7 +254,7 @@ export const SettingsView: React.FC = () => {
               {isSaving && (
                 <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100 animate-pulse">
                   <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Sincronizando</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">{t('settings.syncing')}</span>
                 </div>
               )}
             </div>
@@ -264,7 +264,7 @@ export const SettingsView: React.FC = () => {
 
         {/* Breadcrumb Visual */}
         <div className="hidden md:flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-          <span className="opacity-50">Configurações</span>
+          <span className="opacity-50">{t('settings.title')}</span>
           <ChevronRight size={14} className="text-slate-300" />
           <span className="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">{activeCategoryLabel}</span>
         </div>
@@ -273,7 +273,7 @@ export const SettingsView: React.FC = () => {
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar Interna */}
         <aside className="w-80 border-r border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 flex flex-col gap-2 overflow-y-auto custom-scrollbar">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 px-4">Menu de Sistema</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 px-4">{t('settings.systemMenu')}</p>
           <div className="space-y-2">
             {categories.map((cat) => (
               <button
@@ -299,10 +299,10 @@ export const SettingsView: React.FC = () => {
             <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-200/60 dark:border-slate-700 relative overflow-hidden group">
               <div className="flex items-center gap-3 text-slate-700 mb-2 relative z-10">
                 <ListTree size={20} className="text-blue-600" />
-                <span className="text-xs font-black uppercase tracking-widest">Taxonomia</span>
+                <span className="text-xs font-black uppercase tracking-widest">{t('settings.taxonomy') || 'Taxonomy'}</span>
               </div>
               <p className="text-[11px] text-slate-500 leading-relaxed font-bold relative z-10">
-                IDs de sistema são gerados automaticamente para garantir integridade absoluta dos dados.
+                {t('settings.taxonomyIntegrity')}
               </p>
               <div className="absolute -right-4 -bottom-4 w-20 h-24 bg-blue-100/50 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
             </div>

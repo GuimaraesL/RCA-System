@@ -11,6 +11,9 @@
  */
 
 import { test, expect } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as ts from 'typescript';
 import { en } from '../../src/i18n/locales/en';
 import { TaxonomyFactory, SystemFactory } from '../factories/rcaFactory';
 
@@ -52,14 +55,14 @@ test.describe('RCA System - I18N Mastery Suite', () => {
         const mainText = await page.innerText('main');
         const leaks: string[] = [];
 
-        // A) Chaves cruas (ex: "checklists.precision.chk_clean")
-        const rawKeyRegex = /[a-z0-9_]+\.[a-z0-9_]+\.[a-z0-9_]+/gi;
+        // A) Chaves cruas (ex: "checklists.precision.chk_clean" ou "settings.taxonomy")
+        const rawKeyRegex = /[a-z0-9_]+\.[a-z0-9_]+(?:\.[a-z0-9_]+)*/gi;
         const foundKeys = mainText.match(rawKeyRegex) || [];
         // Filtra falsos positivos comuns se houver
         leaks.push(...foundKeys);
 
         // B) Palavras Hardcoded em PT-BR proibidas quando em modo EN
-        const ptForbidden = ['Salvar', 'Cancelar', 'Excluir', 'Editar', 'Novo', 'Ação', 'Gatilho', 'Análise'];
+        const ptForbidden = ['Salvar', 'Cancelar', 'Excluir', 'Editar', 'Novo', 'Ação', 'Gatilho', 'Análise', 'Taxonomia', 'gerados'];
         for (const word of ptForbidden) {
             // Regex boundary para evitar matches parciais
             if (new RegExp(`\\b${word}\\b`, 'i').test(mainText)) leaks.push(`HARDCODED_PT: ${word}`);
@@ -126,6 +129,9 @@ test.describe('RCA System - I18N Mastery Suite', () => {
 
         // 7. Retorno para PT
         await page.getByRole('button', { name: 'PT' }).click();
+
+        // Garante navegação para Dashboard antes de verificar título
+        await page.getByTestId('nav-DASHBOARD').click();
         await expect(dashboardTitle).toContainText('Painel de Controle');
     });
 
@@ -160,7 +166,8 @@ test.describe('RCA System - I18N Mastery Suite', () => {
         await page.getByRole('button', { name: /Next|Próximo/i }).click(); // Vai para Step 4
 
         // --- Auditoria 2: Componentes Dinâmicos (5 Whys) ---
-        await expect(page.getByText(/5 Whys/i)).toBeVisible();
+        // Usa seletor específico para o título da seção
+        await expect(page.getByRole('heading', { name: /5 Whys|5 Porquês/i }).first()).toBeVisible();
 
         // Adicionar Why e verificar labels
         await page.getByTestId('section-five-whys').waitFor();
@@ -169,19 +176,110 @@ test.describe('RCA System - I18N Mastery Suite', () => {
         await addWhy.click();
 
         // Validação relaxada para evitar timeouts em placeholders
-        await expect(page.locator('input[placeholder*="Question"], input[placeholder*="Pergunta"]').first()).toBeVisible();
+        await expect(page.getByTestId(/input-five-why-question-/).first()).toBeVisible();
 
         await checkLeaks(page, 'Wizard - Step 4 (Investigation)');
 
         // --- Auditoria 3: Módulos Laterais ---
-        // Sai do Wizard (volta para dashboard ou clica fora)
+        // Tenta fechar o editor
+        await page.getByTestId('btn-close-editor').click();
+        await expect(page.getByTestId('rca-editor-overlay')).not.toBeVisible();
+
         await page.getByTestId('nav-SETTINGS').click();
-        await page.getByTestId('confirm-modal-confirm').click(); // Confirma sair sem salvar
 
         await checkLeaks(page, 'Module - Settings');
 
         await page.getByTestId('nav-MIGRATION').click();
         await checkLeaks(page, 'Module - Migration');
+    });
+
+    test('AST Static Analysis: Deve detectar textos JSX hardcoded que não utilizam t()', async () => {
+        const leaks: { file: string, text: string }[] = [];
+
+        const walkDir = (dir: string) => {
+            const files = fs.readdirSync(dir);
+            for (const file of files) {
+                const filepath = path.join(dir, file);
+                if (fs.statSync(filepath).isDirectory()) {
+                    walkDir(filepath);
+                } else if (filepath.endsWith('.tsx')) {
+                    checkFile(filepath);
+                }
+            }
+        };
+
+        const checkFile = (filepath: string) => {
+            const content = fs.readFileSync(filepath, 'utf8');
+            const sourceFile = ts.createSourceFile(filepath, content, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+
+            const walkAst = (node: ts.Node) => {
+                if (node.kind === ts.SyntaxKind.JsxText) {
+                    const text = node.getText().trim();
+                    // Regras para falso-positivos: 
+                    // Deve conter 2+ letras consecutivas
+                    // Ignorar entitades HTML e símbolos pontuais
+                    if (/[a-zA-ZÀ-ÿ]{2,}/.test(text) && !text.includes('&')) {
+                        leaks.push({ file: path.basename(filepath), text });
+                    }
+                }
+
+                // Nova regra apontada por usuário: StringLiterals que possuem língua natural e escapam do t()
+                if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const text = (node as any).text.trim();
+                    // Heurística de Linguagem Natural: Contém espaço e caracteres alfabéticos suficientes (para não pegar chaves de tradução como "settings.title" ou classes tailwind)
+                    if (/[a-zA-ZÀ-ÿ]{3,}\s+[a-zA-ZÀ-ÿ]{2,}/.test(text)) {
+                        let current = node.parent;
+                        let isWrappedInT = false;
+                        let isException = false;
+
+                        while (current) {
+                            if (ts.isCallExpression(current)) {
+                                const expr = current.expression;
+                                if (ts.isIdentifier(expr)) {
+                                    if (expr.text === 't') {
+                                        isWrappedInT = true;
+                                        break;
+                                    }
+                                    if (['Error', 'expect', 'test', 'describe'].includes(expr.text)) {
+                                        isException = true;
+                                        break;
+                                    }
+                                } else if (ts.isPropertyAccessExpression(expr)) {
+                                    if (ts.isIdentifier(expr.expression) && ['console', 'Console'].includes(expr.expression.text)) {
+                                        isException = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (ts.isJsxAttribute(current) && current.name.getText() === 'className') {
+                                isException = true;
+                                break;
+                            }
+                            current = current.parent;
+                        }
+
+                        if (!isWrappedInT && !isException) {
+                            leaks.push({ file: path.basename(filepath), text });
+                        }
+                    }
+                }
+                ts.forEachChild(node, walkAst);
+            };
+
+            walkAst(sourceFile);
+        };
+
+        const componentsDir = path.resolve(process.cwd(), 'src/components/views');
+        if (fs.existsSync(componentsDir)) {
+            walkDir(componentsDir);
+        }
+
+        if (leaks.length > 0) {
+            console.warn('[I18N STATIC AUDIT FAILED] Textos vazados diretamente no JSX (sem t()):', leaks);
+        }
+
+        expect(leaks, `Vazamentos detectados por análise estática na UI`).toHaveLength(0);
     });
 
 });

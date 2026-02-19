@@ -146,9 +146,10 @@ export interface TranslationSchema {
         title: string;
         subtitle: string;
         newButton: string;
-        saveButton: string;
-        newTitle: string;
-        noRecords: string;
+        chartMode: string;
+        tableMode: string;
+        minTotal: string;
+        noRegisters: string;
         tooltips: {
             deleteRca: string;
         };
@@ -200,6 +201,8 @@ export interface TranslationSchema {
     migration: {
         title: string;
         description: string;
+        systemIdsNote: string;
+        schema: string;
         backup: string;
         csvTools: string;
         restore: string;
@@ -209,7 +212,10 @@ export interface TranslationSchema {
         initialize: string;
         downloadTemplate: string;
         exportData: string;
+        exportDataHint: string;
         importCsv: string;
+        clickToSelect: string;
+        fileActions: string;
         targetEntity: string;
         entities: {
             assets: string;
@@ -242,7 +248,17 @@ export interface TranslationSchema {
             deselectAll: string;
             initializeButton: string;
             createBackup: string;
+            createBackupDesc: string;
             downloadButton: string;
+            generatedAt: string;
+            idConflictNote: string;
+            analyzing: string;
+            importing: string;
+            importFailed: string;
+            preparingBackup: string;
+            backupDescriptionOrigin: string;
+            backupSuccess: string;
+            backupFailed: string;
             modeDescriptions: {
                 append: string;
                 update: string;
@@ -251,6 +267,14 @@ export interface TranslationSchema {
         };
         csv: {
             description: string;
+            entityConfig: string;
+            downloadTemplateHint: string;
+            encodingNote: string;
+            preparingExport: string;
+            exportSuccess: string;
+            exportFailed: string;
+            processingFile: string;
+            errorProcessing: string;
             importOptions: string;
             modeLabel: string;
             appendLabel: string;
@@ -277,6 +301,8 @@ export interface TranslationSchema {
     settings: {
         title: string;
         description: string;
+        systemMenu: string;
+        syncing: string;
         theme: string;
         themeLight: string;
         themeDark: string;
@@ -295,6 +321,9 @@ export interface TranslationSchema {
         emptyList: string;
         deleteItemTitle: string;
         deleteItemMessage: string;
+        taxonomy: string;
+        taxonomyDesc: string;
+        taxonomyIntegrity: string;
         tabs: {
             general: string;
             validation: string;
