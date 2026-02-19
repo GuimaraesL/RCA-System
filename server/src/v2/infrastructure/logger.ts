@@ -8,7 +8,7 @@ import winston from 'winston';
 const { combine, timestamp, printf, colorize, json } = winston.format;
 
 // Formato customizado para desenvolvimento (legível)
-const devFormat = printf(({ level, message, timestamp, ...metadata }) => {
+const devFormat = printf(({ level, message, timestamp, ...metadata }: winston.Logform.TransformableInfo) => {
     let msg = `${timestamp} [${level}]: ${message}`;
     if (Object.keys(metadata).length > 0) {
         msg += ` ${JSON.stringify(metadata)}`;
