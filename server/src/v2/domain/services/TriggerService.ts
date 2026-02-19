@@ -4,12 +4,21 @@
  */
 
 import { SqlTriggerRepository } from '../../infrastructure/repositories/SqlTriggerRepository';
+import { SqlRcaRepository } from '../../infrastructure/repositories/SqlRcaRepository';
+import { STATUS_IDS, TRIGGER_STATUS_IDS } from '../constants';
 
 import { Trigger } from '../types/RcaTypes';
 import { randomUUID } from 'crypto';
 
 export class TriggerService {
-    constructor(private triggerRepo: SqlTriggerRepository) { }
+    private rcaRepo: SqlRcaRepository;
+
+    constructor(
+        private triggerRepo: SqlTriggerRepository,
+        rcaRepo?: SqlRcaRepository
+    ) { 
+        this.rcaRepo = rcaRepo || new SqlRcaRepository();
+    }
 
     public getAll(): Trigger[] {
         return this.triggerRepo.findAll();
@@ -25,7 +34,7 @@ export class TriggerService {
             ...triggerData,
             id,
             start_date: triggerData.start_date || new Date().toISOString(),
-            status: triggerData.status || 'STATUS-01',
+            status: triggerData.status || TRIGGER_STATUS_IDS.NEW,
         } as Trigger;
 
         this.triggerRepo.create(trigger);
@@ -37,6 +46,22 @@ export class TriggerService {
         if (!existing) throw new Error('Trigger not found');
 
         const updated = { ...existing, ...triggerData };
+
+        // Sincronização automática de status se houver RCA vinculada (Issue #77)
+        if (updated.rca_id) {
+            const rca = this.rcaRepo.findById(updated.rca_id);
+            if (rca) {
+                if (rca.status === STATUS_IDS.CONCLUDED) {
+                    updated.status = TRIGGER_STATUS_IDS.ARCHIVED;
+                } else {
+                    updated.status = TRIGGER_STATUS_IDS.IN_ANALYSIS;
+                }
+            }
+        } else if (existing.rca_id && !updated.rca_id) {
+            // Se o vínculo foi removido, volta para o status inicial (Novo)
+            updated.status = TRIGGER_STATUS_IDS.NEW;
+        }
+
         this.triggerRepo.update(updated);
     }
 

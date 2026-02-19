@@ -22,6 +22,11 @@ export class SqlTriggerRepository {
         return rows.length > 0 ? rows[0] : null;
     }
 
+    public findByRcaId(rcaId: string): Trigger | null {
+        const rows = this.db.query('SELECT * FROM triggers WHERE rca_id = ?', [rcaId]);
+        return rows.length > 0 ? rows[0] : null;
+    }
+
     public create(trigger: Trigger): void {
         const sql = `
             INSERT INTO triggers (

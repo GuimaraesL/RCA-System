@@ -67,6 +67,11 @@ describe('Import/Export Data Validation', () => {
             responsible TEXT, date TEXT, status TEXT, moc_number TEXT
         )`);
 
+        db.run(`CREATE TABLE IF NOT EXISTS triggers (
+            id TEXT PRIMARY KEY, rca_id TEXT, status TEXT,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id)
+        )`);
+
         repo = new SqlRcaRepository();
         service = new RcaService(repo);
 

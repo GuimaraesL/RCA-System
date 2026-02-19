@@ -104,13 +104,11 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
     };
 
     const handleLinkRca = (trigger: TriggerRecord, rcaId: string) => {
-        const doneStatus = taxonomy.triggerStatuses?.find(s => s.name === 'Concluída')?.id || trigger.status;
-        updateTrigger({ ...trigger, rca_id: rcaId, status: doneStatus });
+        updateTrigger({ ...trigger, rca_id: rcaId });
     };
 
     const handleUnlinkRca = (trigger: TriggerRecord) => {
-        const defaultStatus = taxonomy.triggerStatuses?.[0]?.id || trigger.status;
-        updateTrigger({ ...trigger, rca_id: '', status: defaultStatus });
+        updateTrigger({ ...trigger, rca_id: '' });
     };
 
     const handleCreateRca = (trigger: TriggerRecord) => {

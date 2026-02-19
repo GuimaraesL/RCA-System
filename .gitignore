@@ -64,3 +64,4 @@ docs/issues/
 *.diff
 .playwright-mcp
 docs/reports/
+.agent/workflows/commit.md

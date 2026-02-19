@@ -242,9 +242,8 @@ const AppContent: React.FC = () => {
             setRollbackTrigger(trigger); // Armazena para possível rollback em caso de cancelamento
             setIsEditorOpen(true);
 
-            // Atualiza o status do gatilho para indicar que o processo de análise iniciou
-            const inProgressStatusId = taxonomy.triggerStatuses?.find(s => s.name === 'Em análise' || s.name === 'Em Análise')?.id || trigger.status;
-            await updateTrigger({ ...trigger, rca_id: newRca.id, status: inProgressStatusId });
+            // Vincula a RCA ao gatilho. O backend agora gerencia o status automaticamente (Issue #77)
+            await updateTrigger({ ...trigger, rca_id: newRca.id });
 
             console.log('Context: RCA criada e vinculada ao gatilho com sucesso');
         } catch (error) {

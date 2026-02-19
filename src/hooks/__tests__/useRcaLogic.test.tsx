@@ -10,48 +10,54 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useRcaLogic } from '../useRcaLogic';
-import { RcaProvider } from '../../context/RcaContext';
 import React from 'react';
 
 // Mock do Contexto para isolar o hook
-vi.mock('../../context/RcaContext', async () => {
-    const actual = await vi.importActual('../../context/RcaContext');
-    return {
-        ...actual,
-        useRcaContext: () => ({
-            assets: [],
-            taxonomy: {
-                analysisStatuses: [{ id: 'STATUS-01', name: 'Open' }],
-                analysisTypes: [],
-                specialties: [],
-                failureModes: [],
-                failureCategories: [],
-                componentTypes: [],
-                rootCauseMs: [],
-                triggerStatuses: [],
-                mandatoryFields: {
-                    rca: {
-                        create: ['what'],
-                        conclude: ['root_causes']
-                    },
-                    trigger: { save: [] }
-                }
+const mockContext = {
+    assets: [],
+    taxonomy: {
+        analysisStatuses: [
+            { id: 'STATUS-01', name: 'Open' },
+            { id: 'STATUS-03', name: 'Concluded' }
+        ],
+        analysisTypes: [],
+        specialties: [],
+        failureModes: [],
+        failureCategories: [],
+        componentTypes: [],
+        rootCauseMs: [],
+        triggerStatuses: [],
+        mandatoryFields: {
+            rca: {
+                create: ['what'],
+                conclude: ['root_causes']
             },
-            actions: [],
-            updateRecord: vi.fn(),
-            addRecord: vi.fn()
-        })
-    };
-});
+            trigger: { save: [] }
+        }
+    },
+    actions: [],
+    updateRecord: vi.fn(),
+    addRecord: vi.fn(),
+    refreshAll: vi.fn()
+};
 
-const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <RcaProvider>{children}</RcaProvider>
-);
+vi.mock('../../context/RcaContext', () => ({
+    useRcaContext: () => mockContext
+}));
+
+vi.mock('../../context/ToastContext', () => ({
+    useToast: () => ({
+        error: vi.fn(),
+        success: vi.fn(),
+        info: vi.fn(),
+        warning: vi.fn()
+    })
+}));
 
 describe('useRcaLogic - Tiered Validation', () => {
     it('deve bloquear salvamento se campo de CRIAÇÃO estiver faltando (Passo 1)', async () => {
         const onSave = vi.fn();
-        const { result } = renderHook(() => useRcaLogic(null, onSave), { wrapper });
+        const { result } = renderHook(() => useRcaLogic(null, onSave));
 
         // Tenta salvar com 'what' vazio
         await act(async () => {
@@ -64,7 +70,7 @@ describe('useRcaLogic - Tiered Validation', () => {
 
     it('deve permitir salvamento no início se campo de CONCLUSÃO estiver faltando', async () => {
         const onSave = vi.fn();
-        const { result } = renderHook(() => useRcaLogic(null, onSave), { wrapper });
+        const { result } = renderHook(() => useRcaLogic(null, onSave));
 
         // Preenche campo de criação
         act(() => {
@@ -82,7 +88,7 @@ describe('useRcaLogic - Tiered Validation', () => {
 
     it('deve BLOQUEAR salvamento no Passo 4 se campo de CONCLUSÃO estiver faltando', async () => {
         const onSave = vi.fn();
-        const { result } = renderHook(() => useRcaLogic(null, onSave), { wrapper });
+        const { result } = renderHook(() => useRcaLogic(null, onSave));
 
         // Preenche criação, define status como Concluída e vai para o Passo 4
         act(() => {

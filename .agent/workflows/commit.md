@@ -30,6 +30,7 @@ Antes de qualquer commit, realize uma auditoria básica:
 
 ### 3. Identificação de Issues
 Identifique quais issues estão sendo resolvidos:
+-utilize o github cli com o comando gh issue view para localizar os issues atuais.
 - Procure por números de issues no contexto da conversa ou no histórico de tarefas (`{task-slug}.md`).
 - Se não encontrar, peça ao usuário: "Quais issues este commit encerra?"
 
@@ -82,7 +83,7 @@ git commit -m "feat(dashboard): adiciona gráfico de categorias e resolve exibi�
 
 Closes #44
 Closes #52"
-git push origin main
+
 ```
 
 ---

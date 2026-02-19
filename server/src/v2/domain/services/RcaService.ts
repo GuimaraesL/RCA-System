@@ -6,19 +6,23 @@
 import { Rca, Action, TaxonomyConfig } from '../types/RcaTypes';
 import { SqlRcaRepository } from '../../infrastructure/repositories/SqlRcaRepository';
 import { SqlActionRepository } from '../../infrastructure/repositories/SqlActionRepository';
+import { SqlTriggerRepository } from '../../infrastructure/repositories/SqlTriggerRepository';
 import { randomUUID } from 'crypto';
-import { STATUS_IDS } from '../constants';
+import { STATUS_IDS, TRIGGER_STATUS_IDS } from '../constants';
 
 export class RcaService {
     private rcaRepo: SqlRcaRepository;
     private actionRepo: SqlActionRepository;
+    private triggerRepo: SqlTriggerRepository;
 
     constructor(
         rcaRepo?: SqlRcaRepository,
-        actionRepo?: SqlActionRepository
+        actionRepo?: SqlActionRepository,
+        triggerRepo?: SqlTriggerRepository
     ) {
         this.rcaRepo = rcaRepo || new SqlRcaRepository();
         this.actionRepo = actionRepo || new SqlActionRepository();
+        this.triggerRepo = triggerRepo || new SqlTriggerRepository();
     }
 
     // --- Métodos Públicos de Negócio ---
@@ -48,6 +52,9 @@ export class RcaService {
         // 4. Persistência
         this.rcaRepo.create(rca);
 
+        // 5. Sincronização de Gatilho (Issue #77)
+        this.syncLinkedTrigger(rca);
+
         return { rca, statusReason: statusResult.reason };
     }
 
@@ -72,6 +79,9 @@ export class RcaService {
 
         // 5. Atualização
         this.rcaRepo.update(rca);
+
+        // 6. Sincronização de Gatilho (Issue #77)
+        this.syncLinkedTrigger(rca);
 
         return {
             rca,
@@ -122,10 +132,37 @@ export class RcaService {
         // 4. Persistência em massa via transação
         this.rcaRepo.bulkCreate(processed);
 
+        // 5. Sincronização de Gatilhos em massa (Issue #77)
+        for (const rca of processed) {
+            this.syncLinkedTrigger(rca);
+        }
+
         return { count: processed.length };
     }
 
     // --- Lógica de Domínio ---
+
+    /**
+     * Sincroniza o status do gatilho vinculado com o estado atual da RCA.
+     * Regras:
+     * - RCA Concluída -> Gatilho Arquivado (T-STATUS-04)
+     * - RCA Em Andamento / Aguardando -> Gatilho Em Análise (T-STATUS-02)
+     */
+    private syncLinkedTrigger(rca: Rca): void {
+        const trigger = this.triggerRepo.findByRcaId(rca.id);
+        if (trigger) {
+            let newStatus = TRIGGER_STATUS_IDS.IN_ANALYSIS;
+
+            if (rca.status === STATUS_IDS.CONCLUDED) {
+                newStatus = TRIGGER_STATUS_IDS.ARCHIVED;
+            }
+
+            if (trigger.status !== newStatus) {
+                trigger.status = newStatus;
+                this.triggerRepo.update(trigger);
+            }
+        }
+    }
 
     public migrateRcaData(rca: any): Rca {
         const migrated = { ...rca };

@@ -68,6 +68,11 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
             responsible TEXT, date TEXT, status TEXT, moc_number TEXT
         )`);
 
+        db.run(`CREATE TABLE IF NOT EXISTS triggers (
+            id TEXT PRIMARY KEY, rca_id TEXT, status TEXT,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id)
+        )`);
+
         rcaRepo = new SqlRcaRepository();
         actionRepo = new SqlActionRepository();
         service = new RcaService(rcaRepo, actionRepo);

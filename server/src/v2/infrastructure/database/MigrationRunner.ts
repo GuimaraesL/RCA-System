@@ -72,6 +72,10 @@ export class MigrationRunner {
                     UPDATE rcas SET status = 'STATUS-01' WHERE status IN ('Em Andamento', 'Em andamento');
                     UPDATE rcas SET status = 'STATUS-02' WHERE status IN ('Aguardando Verificação', 'Ag. Verif', 'STATUS-WAITING');
                 `
+            },
+            {
+                name: 'v2.1: Limpar vínculos órfãos de triggers para garantir integridade',
+                up: "UPDATE triggers SET rca_id = NULL WHERE rca_id IS NOT NULL AND rca_id NOT IN (SELECT id FROM rcas)"
             }
         ];
 

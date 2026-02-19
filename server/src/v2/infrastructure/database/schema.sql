@@ -88,7 +88,8 @@ CREATE TABLE IF NOT EXISTS triggers (
     rca_id TEXT,
     file_path TEXT,
     created_at TEXT DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now'))
+    updated_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY(rca_id) REFERENCES rcas(id)
 );
 
 CREATE TABLE IF NOT EXISTS taxonomy (

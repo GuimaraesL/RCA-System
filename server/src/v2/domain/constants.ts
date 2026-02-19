@@ -18,3 +18,10 @@ export enum ROOT_CAUSE_M_IDS {
     MEASUREMENT = 'M5',
     ENVIRONMENT = 'M6'
 }
+
+export enum TRIGGER_STATUS_IDS {
+    NEW = 'T-STATUS-01',
+    IN_ANALYSIS = 'T-STATUS-02',
+    CONVERTED = 'T-STATUS-03',
+    ARCHIVED = 'T-STATUS-04'
+}

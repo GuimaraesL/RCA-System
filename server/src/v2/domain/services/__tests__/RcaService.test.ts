@@ -11,12 +11,14 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { RcaService } from '../RcaService';
 import { SqlRcaRepository } from '../../../infrastructure/repositories/SqlRcaRepository';
 import { SqlActionRepository } from '../../../infrastructure/repositories/SqlActionRepository';
+import { SqlTriggerRepository } from '../../../infrastructure/repositories/SqlTriggerRepository';
 import { TaxonomyConfig } from '../../../domain/types/RcaTypes';
 
 describe('RcaService', () => {
     let service: RcaService;
     let rcaRepoMock: any;
     let actionRepoMock: any;
+    let triggerRepoMock: any;
 
     const mockTaxonomy: TaxonomyConfig = {
         analysisStatuses: [
@@ -50,10 +52,16 @@ describe('RcaService', () => {
             findByRcaId: vi.fn().mockReturnValue([])
         };
 
+        triggerRepoMock = {
+            findByRcaId: vi.fn().mockReturnValue(null),
+            update: vi.fn()
+        };
+
         // Injeta mocks
         service = new RcaService(
             rcaRepoMock as unknown as SqlRcaRepository,
-            actionRepoMock as unknown as SqlActionRepository
+            actionRepoMock as unknown as SqlActionRepository,
+            triggerRepoMock as unknown as SqlTriggerRepository
         );
     });
 

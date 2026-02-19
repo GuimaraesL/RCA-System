@@ -32,6 +32,15 @@ vi.mock('../../context/RcaContext', () => ({
     useRcaContext: () => mockContext
 }));
 
+vi.mock('../../context/ToastContext', () => ({
+    useToast: () => ({
+        error: vi.fn(),
+        success: vi.fn(),
+        info: vi.fn(),
+        warning: vi.fn()
+    })
+}));
+
 describe('useRcaForm - Validação de Campos (Issue #67)', () => {
     it('deve aceitar o valor 0 para campos numéricos obrigatórios', async () => {
         const { result } = renderHook(() => useRcaForm(null, vi.fn()));
