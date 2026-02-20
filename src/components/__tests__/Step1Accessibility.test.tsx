@@ -50,6 +50,13 @@ vi.mock('../../context/LanguageDefinition', () => ({
     })
 }));
 
+vi.mock('../../context/RcaContext', () => ({
+    useRcaContext: () => ({
+        triggers: [],
+        updateTrigger: vi.fn()
+    })
+}));
+
 describe('Acessibilidade do Step1General', () => {
     it('todos os inputs devem ter um label associado', () => {
         render(
@@ -83,7 +90,7 @@ describe('Acessibilidade do Step1General', () => {
         expectedLabels.forEach(labelText => {
             const label = screen.getByText(labelText);
             expect(label).toBeTruthy();
-            
+
             // Verifica se o label tem o atributo 'for' (no DOM é 'htmlFor')
             const htmlFor = label.getAttribute('for');
             expect(htmlFor).toBeTruthy();
@@ -112,11 +119,11 @@ describe('Acessibilidade do Step1General', () => {
 
         const assetLabel = screen.getByText(/wizard.step1.assetSelectorLabel/i);
         expect(assetLabel).toBeTruthy();
-        
+
         // Verifica se o container ou input associado existe e é acessível via aria-labelledby
         const labelId = assetLabel.getAttribute('id');
         expect(labelId).toBeTruthy();
-        
+
         if (labelId) {
             const container = document.querySelector(`[aria-labelledby="${labelId}"]`);
             expect(container).toBeTruthy();

@@ -31,6 +31,11 @@ export default defineConfig(({ mode }) => {
     test: {
       globals: true,
       environment: 'jsdom',
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'json-summary'],
+        reportsDirectory: './coverage'
+      },
       include: [
         'src/**/__tests__/**/*.{test,spec}.{ts,tsx}',
         'src/**/*.{test,spec}.{ts,tsx}',
