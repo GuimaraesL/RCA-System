@@ -20,19 +20,11 @@ export class TaxonomyController {
     }
 
     public get = (req: Request, res: Response): void => {
-        try {
-            res.json(this.taxonomyService.getTaxonomy());
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
-        }
+        res.json(this.taxonomyService.getTaxonomy());
     };
 
     public update = (req: Request, res: Response): void => {
-        try {
-            this.taxonomyService.updateTaxonomy(req.body);
-            res.json({ message: 'Taxonomia atualizada com sucesso' });
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
-        }
+        this.taxonomyService.updateTaxonomy(req.body);
+        res.json({ message: 'Taxonomia atualizada com sucesso' });
     };
 }

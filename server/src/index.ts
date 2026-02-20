@@ -16,7 +16,10 @@ app.use(express.json({ limit: '50mb' }));
 // Montagem das Rotas da API
 import v2Router from './v2/routes';
 import { logger } from './v2/infrastructure/logger';
+import { errorHandler } from './v2/infrastructure/middlewares/errorHandler';
+
 app.use('/api', v2Router); // Centraliza todos os endpoints (RCAs, Gatilhos, Ações, etc.) na arquitetura V2
+app.use(errorHandler); // Intercepta erros lancados de forma sincrona do V2 Router
 
 // Endpoint de verificação de saúde do sistema
 app.get('/api/health', (req, res) => {

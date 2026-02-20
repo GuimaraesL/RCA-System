@@ -17,6 +17,7 @@ import { z } from 'zod';
 
 import { rcaSchema } from '../schemas/validation';
 
+import { NotFoundError, ValidationError } from '../../infrastructure/errors/AppError';
 
 
 export class RcaController {
@@ -43,53 +44,43 @@ export class RcaController {
 
     public getAll = (req: Request, res: Response) => {
 
-        try {
+        const page = parseInt(req.query.page as string) || 1;
 
-            const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 0; // 0 = retorna todos (compatibilidade)
 
-            const limit = parseInt(req.query.limit as string) || 0; // 0 = retorna todos (compatibilidade)
-
-            const full = req.query.full === 'true';
+        const full = req.query.full === 'true';
 
 
 
-            if (limit > 0) {
+        if (limit > 0) {
 
-                const result = this.rcaService.getAllRcas(page, limit);
+            const result = this.rcaService.getAllRcas(page, limit);
 
-                res.json({
+            res.json({
 
-                    data: result.data,
+                data: result.data,
 
-                    meta: {
+                meta: {
 
-                        page,
+                    page,
 
-                        limit,
+                    limit,
 
-                        total: result.total,
+                    total: result.total,
 
-                        totalPages: Math.ceil(result.total / limit)
+                    totalPages: Math.ceil(result.total / limit)
 
-                    }
+                }
 
-                });
+            });
 
-            } else {
+        } else {
 
-                // Retorna todos os registros. Utiliza versão completa ou resumida baseado no parâmetro 'full'.
+            // Retorna todos os registros. Utiliza versão completa ou resumida baseado no parâmetro 'full'.
 
-                const rcas = full ? this.rcaRepo.findAll() : this.rcaRepo.findAllSummary();
+            const rcas = full ? this.rcaRepo.findAll() : this.rcaRepo.findAllSummary();
 
-                res.json(rcas);
-
-            }
-
-        } catch (error) {
-
-            logger.error('[V2] Erro ao listar RCAs:', { error });
-
-            res.status(500).json({ error: 'Erro interno do servidor' });
+            res.json(rcas);
 
         }
 
@@ -99,27 +90,17 @@ export class RcaController {
 
     public getById = (req: Request, res: Response) => {
 
-        try {
+        const { id } = req.params;
 
-            const { id } = req.params;
+        const rca = this.rcaRepo.findById(id);
 
-            const rca = this.rcaRepo.findById(id);
+        if (!rca) {
 
-            if (!rca) {
-
-                return res.status(404).json({ error: 'Análise não encontrada' });
-
-            }
-
-            res.json(rca);
-
-        } catch (error) {
-
-            logger.error('[V2] Erro ao buscar RCA por ID:', { error });
-
-            res.status(500).json({ error: 'Erro interno do servidor' });
+            throw new NotFoundError('Análise não encontrada');
 
         }
+
+        res.json(rca);
 
     }
 
@@ -127,43 +108,33 @@ export class RcaController {
 
     public create = (req: Request, res: Response) => {
 
-        try {
+        const parse = rcaSchema.safeParse(req.body);
 
-            const parse = rcaSchema.safeParse(req.body);
+        if (!parse.success) {
 
-            if (!parse.success) {
-
-                return res.status(400).json({ error: 'Dados inválidos', details: parse.error.format() });
-
-            }
-
-
-
-            const taxonomy = this.taxonomyRepo.getTaxonomy();
-
-            const result = this.rcaService.createRca(parse.data as any, taxonomy);
-
-
-
-            res.status(201).json({
-
-                message: 'Análise criada com sucesso',
-
-                status: result.rca.status,
-
-                statusReason: result.statusReason,
-
-                ...result.rca
-
-            });
-
-        } catch (error) {
-
-            logger.error('[V2] Erro ao criar RCA:', { error });
-
-            res.status(500).json({ error: 'Erro interno do servidor' });
+            throw new ValidationError('Dados inválidos', parse.error.format());
 
         }
+
+
+
+        const taxonomy = this.taxonomyRepo.getTaxonomy();
+
+        const result = this.rcaService.createRca(parse.data as any, taxonomy);
+
+
+
+        res.status(201).json({
+
+            message: 'Análise criada com sucesso',
+
+            status: result.rca.status,
+
+            statusReason: result.statusReason,
+
+            ...result.rca
+
+        });
 
     }
 
@@ -171,49 +142,39 @@ export class RcaController {
 
     public update = (req: Request, res: Response) => {
 
-        try {
+        const { id } = req.params;
 
-            const { id } = req.params;
+        const parse = rcaSchema.safeParse(req.body);
 
-            const parse = rcaSchema.safeParse(req.body);
+        if (!parse.success) {
 
-            if (!parse.success) {
-
-                return res.status(400).json({ error: 'Dados inválidos', details: parse.error.format() });
-
-            }
-
-
-
-            const taxonomy = this.taxonomyRepo.getTaxonomy();
-
-            // O serviço gerencia o recálculo de status e a persistência no repositório
-
-            const result = this.rcaService.updateRca(id, parse.data, taxonomy);
-
-
-
-            res.json({
-
-                message: 'Análise atualizada com sucesso',
-
-                status: result.rca.status,
-
-                statusChanged: result.statusChanged,
-
-                statusReason: result.statusReason,
-
-                ...result.rca
-
-            });
-
-        } catch (error) {
-
-            logger.error('[V2] Erro ao atualizar RCA:', { error });
-
-            res.status(500).json({ error: 'Erro interno do servidor' });
+            throw new ValidationError('Dados inválidos', parse.error.format());
 
         }
+
+
+
+        const taxonomy = this.taxonomyRepo.getTaxonomy();
+
+        // O serviço gerencia o recálculo de status e a persistência no repositório
+
+        const result = this.rcaService.updateRca(id, parse.data, taxonomy);
+
+
+
+        res.json({
+
+            message: 'Análise atualizada com sucesso',
+
+            status: result.rca.status,
+
+            statusChanged: result.statusChanged,
+
+            statusReason: result.statusReason,
+
+            ...result.rca
+
+        });
 
     }
 
@@ -221,21 +182,11 @@ export class RcaController {
 
     public delete = (req: Request, res: Response) => {
 
-        try {
+        const { id } = req.params;
 
-            const { id } = req.params;
+        this.rcaRepo.delete(id);
 
-            this.rcaRepo.delete(id);
-
-            res.json({ message: 'Análise excluída com sucesso' });
-
-        } catch (error) {
-
-            logger.error('[V2] Erro ao excluir RCA:', { error });
-
-            res.status(500).json({ error: 'Erro interno do servidor' });
-
-        }
+        res.json({ message: 'Análise excluída com sucesso' });
 
     }
 
@@ -243,63 +194,51 @@ export class RcaController {
 
     public bulkImport = (req: Request, res: Response) => {
 
-        try {
+        const body = req.body;
 
-            const body = req.body;
+        let rcasRaw: any[] = [];
 
-            let rcasRaw: any[] = [];
-
-            let actionsRaw: any[] = [];
+        let actionsRaw: any[] = [];
 
 
 
-            // Suporte a dois formatos: Array direto ou objeto estruturado { records: [], actions: [] }
+        // Suporte a dois formatos: Array direto ou objeto estruturado { records: [], actions: [] }
 
-            if (Array.isArray(body)) {
+        if (Array.isArray(body)) {
 
-                rcasRaw = body;
+            rcasRaw = body;
 
-            } else if (body && Array.isArray(body.records)) {
+        } else if (body && Array.isArray(body.records)) {
 
-                rcasRaw = body.records;
+            rcasRaw = body.records;
 
-                actionsRaw = Array.isArray(body.actions) ? body.actions : [];
+            actionsRaw = Array.isArray(body.actions) ? body.actions : [];
 
-            } else {
+        } else {
 
-                return res.status(400).json({ error: 'Formato de corpo inválido. Esperado array ou { records: [] }' });
-
-            }
-
-
-
-            const parse = z.array(rcaSchema).safeParse(rcasRaw);
-
-            if (!parse.success) {
-
-                return res.status(400).json({ error: 'Dados inválidos no lote de importação', details: parse.error.format() });
-
-            }
-
-
-
-            const taxonomy = this.taxonomyRepo.getTaxonomy();
-
-            const result = this.rcaService.bulkImport(parse.data as any[], taxonomy, actionsRaw);
-
-
-
-            res.json({ message: `Importação de ${result.count} análises concluída com cálculo dinâmico de status` });
-
-
-
-        } catch (error) {
-
-            logger.error('[V2] Erro na importação em massa:', { error });
-
-            res.status(500).json({ error: 'Erro interno do servidor' });
+            throw new ValidationError('Formato de corpo inválido. Esperado array ou { records: [] }');
 
         }
+
+
+
+        const parse = z.array(rcaSchema).safeParse(rcasRaw);
+
+        if (!parse.success) {
+
+            throw new ValidationError('Dados inválidos no lote de importação', parse.error.format());
+
+        }
+
+
+
+        const taxonomy = this.taxonomyRepo.getTaxonomy();
+
+        const result = this.rcaService.bulkImport(parse.data as any[], taxonomy, actionsRaw);
+
+
+
+        res.json({ message: `Importação de ${result.count} análises concluída com cálculo dinâmico de status` });
 
     }
 
@@ -307,33 +246,23 @@ export class RcaController {
 
     public bulkDelete = (req: Request, res: Response) => {
 
-        try {
+        const { ids } = req.body;
 
-            const { ids } = req.body;
+        if (!ids || !Array.isArray(ids)) {
 
-            if (!ids || !Array.isArray(ids)) {
-
-                return res.status(400).json({ error: 'O corpo deve conter um array de "ids"' });
-
-            }
-
-
-
-            logger.info(`[V2] Excluindo ${ids.length} análises em lote...`);
-
-            this.rcaRepo.bulkDelete(ids);
-
-
-
-            res.json({ message: `${ids.length} análises excluídas com sucesso` });
-
-        } catch (error) {
-
-            logger.error('[V2] Erro na exclusão em massa:', { error });
-
-            res.status(500).json({ error: 'Erro interno do servidor' });
+            throw new ValidationError('O corpo deve conter um array de "ids"');
 
         }
+
+
+
+        logger.info(`[V2] Excluindo ${ids.length} análises em lote...`);
+
+        this.rcaRepo.bulkDelete(ids);
+
+
+
+        res.json({ message: `${ids.length} análises excluídas com sucesso` });
 
     }
 

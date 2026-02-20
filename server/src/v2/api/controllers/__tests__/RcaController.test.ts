@@ -109,7 +109,7 @@ describe('RcaController Integration', () => {
             statusChanged: true,
             statusReason: 'Complete'
         });
-        mocks.mockFindById.mockReset(); 
+        mocks.mockFindById.mockReset();
 
         controller = new RcaController();
         jsonMock = vi.fn();
@@ -124,10 +124,12 @@ describe('RcaController Integration', () => {
         // Simula um corpo de requisição inválido para o schema Zod
         mockReq = { body: "invalid-string-body" };
 
-        await controller.create(mockReq as unknown as any, mockRes as unknown as any);
-
-        expect(statusMock).toHaveBeenCalledWith(400);
-        expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ error: expect.stringMatching(/Dados inválidos/i) }));
+        try {
+            controller.create(mockReq as any, mockRes as any);
+            expect.fail('Deveria ter lançado um erro');
+        } catch (error: any) {
+            expect(error.message).toBe('Dados inválidos');
+        }
     });
 
     it('deve retornar 201 para dados de criação válidos', async () => {
@@ -152,8 +154,12 @@ describe('RcaController Integration', () => {
             mocks.mockFindById.mockReturnValue(null);
 
             mockReq = { params: { id: 'NOT-FOUND' } };
-            await controller.getById(mockReq as any, mockRes as any);
-            expect(statusMock).toHaveBeenCalledWith(404);
+            try {
+                controller.getById(mockReq as any, mockRes as any);
+                expect.fail('Deveria ter lançado um erro');
+            } catch (error: any) {
+                expect(error.message).toBe('Análise não encontrada');
+            }
         });
     });
 
@@ -166,8 +172,12 @@ describe('RcaController Integration', () => {
 
         it('deve retornar 400 para dados de atualização inválidos', async () => {
             mockReq = { params: { id: 'R1' }, body: "invalid" };
-            await controller.update(mockReq as any, mockRes as any);
-            expect(statusMock).toHaveBeenCalledWith(400);
+            try {
+                controller.update(mockReq as any, mockRes as any);
+                expect.fail('Deveria ter lançado um erro');
+            } catch (error: any) {
+                expect(error.message).toBe('Dados inválidos');
+            }
         });
     });
 
@@ -205,8 +215,12 @@ describe('RcaController Integration', () => {
 
         it('deve retornar 400 para importação em massa inválida (não é um array)', async () => {
             mockReq = { body: { not: 'an-array' } };
-            await controller.bulkImport(mockReq as any, mockRes as any);
-            expect(statusMock).toHaveBeenCalledWith(400);
+            try {
+                controller.bulkImport(mockReq as any, mockRes as any);
+                expect.fail('Deveria ter lançado um erro');
+            } catch (error: any) {
+                expect(error.message).toMatch(/Formato de corpo|dados inválidos/i);
+            }
         });
 
         it('deve retornar 200 para exclusão em massa válida', async () => {
@@ -217,8 +231,12 @@ describe('RcaController Integration', () => {
 
         it('deve retornar 400 para exclusão em massa inválida (IDs ausentes)', async () => {
             mockReq = { body: {} };
-            await controller.bulkDelete(mockReq as any, mockRes as any);
-            expect(statusMock).toHaveBeenCalledWith(400);
+            try {
+                controller.bulkDelete(mockReq as any, mockRes as any);
+                expect.fail('Deveria ter lançado um erro');
+            } catch (error: any) {
+                expect(error.message).toBe('O corpo deve conter um array de "ids"');
+            }
         });
     });
 });

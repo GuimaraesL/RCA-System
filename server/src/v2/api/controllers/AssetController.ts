@@ -10,6 +10,7 @@
 import { Request, Response } from 'express';
 import { AssetService } from '../../domain/services/AssetService';
 import { SqlAssetRepository } from '../../infrastructure/repositories/SqlAssetRepository';
+import { NotFoundError, ValidationError } from '../../infrastructure/errors/AppError';
 
 export class AssetController {
     private assetService: AssetService;
@@ -20,81 +21,47 @@ export class AssetController {
     }
 
     public getTree = (req: Request, res: Response): void => {
-        try {
-            res.json(this.assetService.getAssetTree());
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
-        }
+        res.json(this.assetService.getAssetTree());
     };
 
     public getFlat = (req: Request, res: Response): void => {
-        try {
-            res.json(this.assetService.getFlatAssets());
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
-        }
+        res.json(this.assetService.getFlatAssets());
     };
 
     public getById = (req: Request, res: Response): void => {
-        try {
-            const asset = this.assetService.getById(req.params.id);
-            if (asset) {
-                res.json(asset);
-            } else {
-                res.status(404).json({ error: 'Ativo não encontrado' });
-            }
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+        const asset = this.assetService.getById(req.params.id);
+        if (!asset) {
+            throw new NotFoundError('Ativo não encontrado');
         }
+        res.json(asset);
     };
 
     public create = (req: Request, res: Response): void => {
-        try {
-            const asset = this.assetService.createAsset(req.body);
-            res.status(201).json(asset);
-        } catch (error: any) {
-            res.status(400).json({ error: error.message });
-        }
+        const asset = this.assetService.createAsset(req.body);
+        res.status(201).json(asset);
     };
 
     public update = (req: Request, res: Response): void => {
-        try {
-            this.assetService.updateAsset(req.params.id, req.body);
-            res.json({ message: 'Ativo atualizado com sucesso' });
-        } catch (error: any) {
-            res.status(400).json({ error: error.message });
-        }
+        this.assetService.updateAsset(req.params.id, req.body);
+        res.json({ message: 'Ativo atualizado com sucesso' });
     };
 
     public delete = (req: Request, res: Response): void => {
-        try {
-            this.assetService.deleteAsset(req.params.id);
-            res.json({ message: 'Ativo excluído com sucesso' });
-        } catch (error: any) {
-            res.status(400).json({ error: error.message });
-        }
+        this.assetService.deleteAsset(req.params.id);
+        res.json({ message: 'Ativo excluído com sucesso' });
     };
 
     public bulkImport = (req: Request, res: Response): void => {
-        try {
-            this.assetService.bulkImport(req.body);
-            res.json({ message: 'Ativos importados com sucesso' });
-        } catch (error: any) {
-            res.status(400).json({ error: error.message });
-        }
+        this.assetService.bulkImport(req.body);
+        res.json({ message: 'Ativos importados com sucesso' });
     };
 
     public bulkDelete = (req: Request, res: Response): void => {
-        try {
-            const { ids } = req.body;
-            if (!ids || !Array.isArray(ids)) {
-                res.status(400).json({ error: 'O corpo da requisição deve conter um array de "ids"' });
-                return;
-            }
-            this.assetService.bulkDelete(ids);
-            res.json({ message: `${ids.length} ativos excluídos com sucesso` });
-        } catch (error: any) {
-            res.status(500).json({ error: error.message });
+        const { ids } = req.body;
+        if (!ids || !Array.isArray(ids)) {
+            throw new ValidationError('O corpo da requisição deve conter um array de "ids"');
         }
+        this.assetService.bulkDelete(ids);
+        res.json({ message: `${ids.length} ativos excluídos com sucesso` });
     };
 }
