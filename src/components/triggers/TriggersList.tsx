@@ -30,6 +30,11 @@ interface TriggersListProps {
     sortConfig: { key: string; direction: 'asc' | 'desc' } | null;
     handleSort: (key: string) => void;
     setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+    // Selecao multipla (Issue #80)
+    selectedTriggerIds: Set<string>;
+    onToggleSelect: (id: string) => void;
+    onSelectAll: () => void;
+    canSelectTrigger: (t: TriggerRecord) => boolean;
 }
 
 export const TriggersList: React.FC<TriggersListProps> = ({
@@ -47,7 +52,11 @@ export const TriggersList: React.FC<TriggersListProps> = ({
     onOpenRca,
     sortConfig,
     handleSort,
-    setCurrentPage
+    setCurrentPage,
+    selectedTriggerIds,
+    onToggleSelect,
+    onSelectAll,
+    canSelectTrigger
 }) => {
     const { t, formatDate } = useLanguage();
 
@@ -57,6 +66,15 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                 <table className="w-full text-left text-[13px] text-slate-600 dark:text-slate-300 border-separate border-spacing-0" data-testid="rca-table">
                     <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-black border-b border-slate-100 dark:border-slate-700 sticky top-0 z-10">
                         <tr>
+                            <th className="px-4 py-5 text-center border-b border-slate-100 dark:border-slate-700 w-12">
+                                <input
+                                    type="checkbox"
+                                    className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                    onChange={(e) => { e.stopPropagation(); onSelectAll(); }}
+                                    checked={filteredTriggers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).filter(t => canSelectTrigger(t)).length > 0 && filteredTriggers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).filter(t => canSelectTrigger(t)).every(t => selectedTriggerIds.has(t.id))}
+                                    data-testid="checkbox-select-all"
+                                />
+                            </th>
                             <SortHeader label={t('triggersPage.table.status')} sortKey="start_date" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
                             <SortHeader label={t('table.status')} sortKey="status" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
                             <SortHeader label={t('table.date')} sortKey="start_date" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
@@ -68,13 +86,13 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                             <SortHeader label={t('table.type')} sortKey="analysis_type_id" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
                             <SortHeader label={t('table.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
                             <SortHeader label={t('triggersPage.table.rcaLink')} sortKey="rca_id" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
-                            <th className="px-6 py-5 text-right border-b border-slate-100 dark:border-slate-700 font-black text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500">Ações</th>
+                            <th className="px-6 py-5 text-right border-b border-slate-100 dark:border-slate-700 font-black text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500">{t('table.actions') || 'Acoes'}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                         {filteredTriggers.length === 0 && (
                             <tr>
-                                <td colSpan={12} className="p-20 text-center text-slate-400 dark:text-slate-600">
+                                <td colSpan={13} className="p-20 text-center text-slate-400 dark:text-slate-600">
                                     <div className="bg-slate-50 dark:bg-slate-800 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
                                         <FileText size={40} className="opacity-20" />
                                     </div>
@@ -90,13 +108,25 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                             const analysisTypeName = getTaxonomyName(taxonomy.analysisTypes || [], trigger.analysis_type_id);
                             const linkedRca = records?.find(r => r.id === trigger.rca_id);
                             const statusName = translateTriggerStatus(trigger.status, getTaxonomyName(taxonomy.triggerStatuses || [], trigger.status), t);
+                            const isSelectable = canSelectTrigger(trigger);
+                            const isSelected = selectedTriggerIds.has(trigger.id);
 
                             return (
                                 <tr
                                     key={trigger.id}
-                                    className="hover:bg-blue-50/30 dark:hover:bg-slate-800/50 cursor-pointer transition-all group border-b border-slate-50 dark:border-slate-800 last:border-0"
+                                    className={`hover:bg-blue-50/30 dark:hover:bg-slate-800/50 cursor-pointer transition-all group border-b border-slate-50 dark:border-slate-800 last:border-0 ${isSelected ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
                                     onClick={() => onEdit(trigger)}
                                 >
+                                    <td className="px-4 py-5 text-center" onClick={(e) => e.stopPropagation()}>
+                                        <input
+                                            type="checkbox"
+                                            className={`h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 ${isSelectable ? 'cursor-pointer' : 'cursor-not-allowed opacity-30'}`}
+                                            checked={isSelected}
+                                            disabled={!isSelectable && !isSelected}
+                                            onChange={() => onToggleSelect(trigger.id)}
+                                            data-testid={`checkbox-trigger-${trigger.id}`}
+                                        />
+                                    </td>
                                     <td className="px-6 py-5 text-center">
                                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs shadow-sm border ${farol.color}`}>
                                             {farol.days === 'CHECK' ? <Check size={18} strokeWidth={3} /> : farol.days}

@@ -3,20 +3,20 @@
  * Fluxo: Gerencia a listagem de eventos, criação de novos gatilhos, conversão para RCA e orquestração de modais de edição e vinculação.
  */
 
-import React from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useTriggersLogic } from '../../hooks/useTriggersLogic';
 import { TriggersList } from './TriggersList';
 import { TriggerModal } from './TriggerModal';
 import { FilterBar } from '../layout/FilterBar';
 import { TriggerRecord } from '../../types';
-import { Trash2, Edit2, Plus, Search, Filter, Download, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Plus, Layers } from 'lucide-react';
 import { ShortcutLabel } from '../ui/ShortcutLabel';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { RcaSelector } from '../selectors/RcaSelector';
 import { ConfirmModal } from '../modals/ConfirmModal';
 
 interface TriggersPageProps {
-    onCreateRca: (trigger: TriggerRecord) => void;
+    onCreateRca: (triggers: TriggerRecord[]) => void;
     onOpenRca: (rcaId: string) => void;
 }
 
@@ -38,6 +38,78 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
         sortConfig, handleSort,
         availableTriggerOptions
     } = useTriggersLogic();
+
+    // --- Estado de Seleção Múltipla (Issue #80) ---
+    const [selectedTriggerIds, setSelectedTriggerIds] = useState<Set<string>>(new Set());
+
+    // Valida se um trigger pode ser selecionado com base no ativo do primeiro selecionado
+    const selectionConstraint = useMemo(() => {
+        if (selectedTriggerIds.size === 0) return null;
+        const firstId = Array.from(selectedTriggerIds)[0];
+        // Busca na lista master para não perder a referência caso o usuário mude filtros/páginas
+        const firstTrigger = triggers.find(t => t.id === firstId);
+        if (!firstTrigger) return null;
+        return firstTrigger.equipment_id;
+    }, [selectedTriggerIds, triggers]);
+
+    const canSelectTrigger = useCallback((trigger: TriggerRecord): boolean => {
+        // Triggers já vinculados a uma RCA não podem ser selecionados
+        if (trigger.rca_id) return false;
+
+        // Se a constraint existe (tem equipamento), compara
+        if (selectionConstraint != null) {
+            return trigger.equipment_id === selectionConstraint;
+        }
+
+        return true;
+    }, [selectionConstraint]);
+
+    const handleToggleSelect = useCallback((triggerId: string) => {
+        setSelectedTriggerIds(prev => {
+            const next = new Set(prev);
+            if (next.has(triggerId)) {
+                next.delete(triggerId);
+            } else {
+                next.add(triggerId);
+            }
+            return next;
+        });
+    }, []);
+
+    const handleSelectAll = useCallback(() => {
+        let currentConstraint = selectionConstraint;
+        const newSelected = new Set(selectedTriggerIds);
+
+        const pageTriggers = filteredTriggers
+            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+            .filter(t => !t.rca_id); // Filtra logo os que já estão vinculados
+
+        // Determina se vamos selecionar ou desselecionar os itens válidos da página atual
+        const selectablePage = pageTriggers.filter(t => {
+            if (currentConstraint == null) return true;
+            return t.equipment_id === currentConstraint;
+        });
+
+        const allSelected = selectablePage.length > 0 && selectablePage.every(t => selectedTriggerIds.has(t.id));
+
+        if (allSelected) {
+            // Deselecionar todos da página atual
+            selectablePage.forEach(t => newSelected.delete(t.id));
+        } else {
+            // Selecionar todos os válidos da página atual
+            pageTriggers.forEach(t => {
+                if (currentConstraint == null) {
+                    // O primeiro selecionado define a restrição para os demais!
+                    currentConstraint = t.equipment_id;
+                    newSelected.add(t.id);
+                } else if (t.equipment_id === currentConstraint) {
+                    newSelected.add(t.id);
+                }
+            });
+        }
+
+        setSelectedTriggerIds(newSelected);
+    }, [filteredTriggers, currentPage, itemsPerPage, selectionConstraint, selectedTriggerIds]);
 
     // --- Orquestradores de Interface ---
 
@@ -76,7 +148,6 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
         if (!triggerToDelete) return;
         try {
             await deleteTrigger(triggerToDelete);
-            console.log('Contexto: Gatilho excluído com sucesso');
         } catch (error) {
             console.error('Erro ao excluir gatilho:', error);
         }
@@ -111,8 +182,17 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
         updateTrigger({ ...trigger, rca_id: '' });
     };
 
-    const handleCreateRca = (trigger: TriggerRecord) => {
-        onCreateRca(trigger);
+    // Criação individual (botão '+' na linha) - encapsula em array para compatibilidade
+    const handleCreateRcaSingle = (trigger: TriggerRecord) => {
+        onCreateRca([trigger]);
+    };
+
+    // Criação em lote a partir dos selecionados (Issue #80)
+    const handleCreateRcaBatch = () => {
+        const selected = filteredTriggers.filter(t => selectedTriggerIds.has(t.id));
+        if (selected.length === 0) return;
+        onCreateRca(selected);
+        setSelectedTriggerIds(new Set());
     };
 
     // Verificação de segurança para garantir carga de dados base
@@ -120,18 +200,30 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
 
     return (
         <div className="p-8 lg:p-12 max-w-[1600px] mx-auto h-full flex flex-col relative space-y-8">
-            {/* Cabeçalho */}
+            {/* Cabecalho */}
             <div className="flex justify-between items-end flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-700">
                 <div>
                     <h1 className="text-4xl font-black text-slate-900 dark:text-white font-display tracking-tight">{t('triggersPage.title')}</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">{t('triggersPage.manageDowntime')}</p>
                 </div>
-                <button onClick={handleNew} data-testid="btn-new-trigger" accessKey="g" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95" title="Alt+G">
-                    <Plus size={20} strokeWidth={3} /><ShortcutLabel text={t('triggersPage.newTrigger')} shortcutLetter="G" />
-                </button>
+                <div className="flex items-center gap-3">
+                    {selectedTriggerIds.size > 0 && (
+                        <button
+                            onClick={handleCreateRcaBatch}
+                            data-testid="btn-batch-create-rca"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition-all active:scale-95 animate-in fade-in zoom-in-95 duration-200"
+                        >
+                            <Layers size={20} strokeWidth={3} />
+                            {t('triggersPage.createRcaBatch') || `Criar RCA (${selectedTriggerIds.size})`}
+                        </button>
+                    )}
+                    <button onClick={handleNew} data-testid="btn-new-trigger" accessKey="g" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95" title="Alt+G">
+                        <Plus size={20} strokeWidth={3} /><ShortcutLabel text={t('triggersPage.newTrigger')} shortcutLetter="G" />
+                    </button>
+                </div>
             </div>
 
-            {/* Seção de Filtros */}
+            {/* Secao de Filtros */}
             <div className="animate-in fade-in slide-in-from-top-4 duration-700 delay-100">
                 <FilterBar
                     isOpen={showFilters}
@@ -190,11 +282,15 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                     onDelete={handleDelete}
                     onLinkRca={openLinkModal}
                     onUnlinkRca={handleUnlinkRca}
-                    onCreateRca={handleCreateRca}
+                    onCreateRca={handleCreateRcaSingle}
                     onOpenRca={onOpenRca}
                     sortConfig={sortConfig}
                     handleSort={handleSort}
                     setCurrentPage={setCurrentPage}
+                    selectedTriggerIds={selectedTriggerIds}
+                    onToggleSelect={handleToggleSelect}
+                    onSelectAll={handleSelectAll}
+                    canSelectTrigger={canSelectTrigger}
                 />
             </div>
 

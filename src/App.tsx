@@ -45,7 +45,7 @@ const AppContent: React.FC = () => {
     const [showNavConfirm, setShowNavConfirm] = useState(false);
     const [pendingView, setPendingView] = useState<typeof view | null>(null);
 
-    const { refreshAll, records, updateTrigger, addRecord, deleteRecord, taxonomy, assets } = useRcaContext();
+    const { refreshAll, records, triggers, updateTrigger, addRecord, deleteRecord, taxonomy, assets } = useRcaContext();
 
     // Atalhos de Teclado (Issue #71)
     const handleToggleShortcutsHelp = useCallback(() => setShowShortcutsHelp(prev => !prev), []);
@@ -101,17 +101,16 @@ const AppContent: React.FC = () => {
     const handleCancelRca = async () => {
         if (rollbackTrigger && editingRecord) {
             try {
-                console.log('Rollback: Cancelamento detectado. Iniciando rollback para RCA:', editingRecord.id);
-                // 1. Remove o vínculo do gatilho e restaura seu status original
-                await updateTrigger({
-                    ...rollbackTrigger,
-                    rca_id: null
-                });
+                // Desvincula TODOS os triggers associados (suporta N:1 - Issue #80)
+                const idsToRollback = editingRecord.trigger_ids || [rollbackTrigger.id];
+                for (const trigId of idsToRollback) {
+                    const trig = triggers.find(t => t.id === trigId);
+                    if (trig) {
+                        await updateTrigger({ ...trig, rca_id: '' });
+                    }
+                }
 
-                // 2. Exclui o rascunho da RCA persistido
                 await deleteRecord(editingRecord.id);
-
-                console.log('Rollback: Concluído com sucesso');
             } catch (error) {
                 console.error('Rollback Error: Falha ao realizar rollback:', error);
             }
@@ -135,7 +134,14 @@ const AppContent: React.FC = () => {
         if (pendingView) {
             if (rollbackTrigger && editingRecord) {
                 try {
-                    await updateTrigger({ ...rollbackTrigger, rca_id: null });
+                    // Desvincula TODOS os triggers associados (suporta N:1 - Issue #80)
+                    const idsToRollback = editingRecord.trigger_ids || [rollbackTrigger.id];
+                    for (const trigId of idsToRollback) {
+                        const trig = triggers.find(t => t.id === trigId);
+                        if (trig) {
+                            await updateTrigger({ ...trig, rca_id: '' });
+                        }
+                    }
                     await deleteRecord(editingRecord.id);
                 } catch (e) {
                     console.error('Erro no rollback durante navegação:', e);
@@ -191,28 +197,41 @@ const AppContent: React.FC = () => {
      * Converte um Gatilho de parada em uma nova Análise RCA.
      * Realiza a herança automática de dados do evento e vinculação técnica.
      */
-    const handleCreateRcaFromTrigger = async (trigger: TriggerRecord) => {
-        const primaryAssetId = trigger.subgroup_id || trigger.equipment_id || trigger.area_id;
+    const handleCreateRcaFromTriggers = async (triggers: TriggerRecord[]) => {
+        if (triggers.length === 0) return;
+
+        // Ordena por data de início para pegar o mais antigo primeiro
+        const sorted = [...triggers].sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+        const primary = sorted[0];
+
+        const primaryAssetId = primary.subgroup_id || primary.equipment_id || primary.area_id;
         const assetName = primaryAssetId ? getAssetName(primaryAssetId, assets) : '';
+
+        // Consolidação de dados dos múltiplos triggers
+        const totalDowntime = sorted.reduce((sum, t) => sum + (t.duration_minutes || 0), 0);
+        const descriptions = sorted.map(t => `${t.stop_type} - ${t.stop_reason}${t.comments ? `. ${t.comments}` : ''}`).join('\n');
+        const triggerIds = sorted.map(t => t.id);
 
         const newRca: RcaRecord = {
             id: generateId('RCA'),
             version: '1.0',
             status: STATUS_IDS.IN_PROGRESS,
-            failure_date: trigger.start_date.split('T')[0],
-            failure_time: trigger.start_date.split('T')[1]?.substring(0, 5) || '00:00',
-            downtime_minutes: trigger.duration_minutes || 0,
+            failure_date: primary.start_date.split('T')[0],
+            failure_time: primary.start_date.split('T')[1]?.substring(0, 5) || '00:00',
+            downtime_minutes: totalDowntime,
             financial_impact: 0,
             os_number: '',
-            area_id: trigger.area_id,
-            equipment_id: trigger.equipment_id,
-            subgroup_id: trigger.subgroup_id,
+            area_id: primary.area_id,
+            equipment_id: primary.equipment_id,
+            subgroup_id: primary.subgroup_id,
             asset_name_display: assetName,
             component_type: '',
-            analysis_type: trigger.analysis_type_id,
-            what: `${t('common.failurePrefix')}: ${trigger.stop_reason}`,
-            problem_description: `${trigger.stop_type} - ${trigger.stop_reason}. ${trigger.comments || ''}`,
-            facilitator: trigger.responsible,
+            analysis_type: primary.analysis_type_id,
+            what: triggers.length === 1
+                ? `${t('common.failurePrefix')}: ${primary.stop_reason}`
+                : `${t('common.failurePrefix')}: ${triggers.length} eventos agrupados`,
+            problem_description: descriptions,
+            facilitator: primary.responsible,
             participants: [],
             root_causes: [],
             five_whys: [],
@@ -221,33 +240,36 @@ const AppContent: React.FC = () => {
             containment_actions: [],
             lessons_learned: [],
             additionalInfo: {
-                historicalInfo: `Gerado a partir do Gatilho ID: ${trigger.id}`
+                historicalInfo: `Gerado a partir de ${triggers.length} Gatilho(s): ${triggerIds.join(', ')}`
             },
             analysis_date: new Date().toISOString().split('T')[0],
             analysis_duration_minutes: 0,
             specialty_id: '',
             failure_mode_id: '',
             failure_category_id: '',
-            who: trigger.responsible,
-            when: trigger.start_date,
+            who: primary.responsible,
+            when: primary.start_date,
             where_description: assetName,
-            potential_impacts: ''
+            potential_impacts: '',
+            trigger_ids: triggerIds
         };
 
         try {
-            // Persiste o rascunho da RCA antes de vincular ao gatilho (evita erro de FK)
+            // 1. Persiste a RCA primeiro (necessario para vincular os triggers)
             await addRecord(newRca);
 
+            // 2. Vincula todos os triggers ANTES de abrir o editor
+            //    Evita condicao de corrida onde o editor abre antes da vinculacao completar
+            for (const trig of sorted) {
+                await updateTrigger({ ...trig, rca_id: newRca.id });
+            }
+
+            // 3. Abre o editor somente apos todas as vinculacoes estarem persistidas
             setEditingRecord(newRca);
-            setRollbackTrigger(trigger); // Armazena para possível rollback em caso de cancelamento
+            setRollbackTrigger(primary);
             setIsEditorOpen(true);
-
-            // Vincula a RCA ao gatilho. O backend agora gerencia o status automaticamente (Issue #77)
-            await updateTrigger({ ...trigger, rca_id: newRca.id });
-
-            console.log('Context: RCA criada e vinculada ao gatilho com sucesso');
         } catch (error) {
-            console.error('Context Error: Falha ao criar RCA a partir do gatilho:', error);
+            console.error('Context Error: Falha ao criar RCA a partir dos gatilhos:', error);
             alert('Erro ao criar RCA. Verifique a conexão com o servidor.');
         }
     };
@@ -274,7 +296,7 @@ const AppContent: React.FC = () => {
                     <div className="flex-1 relative overflow-hidden flex flex-col">
                         <div key={view} className={`flex-1 overflow-auto bg-slate-50/50 dark:bg-slate-900/50 ${(window as any).isPlaywright ? '' : 'animate-in fade-in slide-in-from-bottom-2 duration-300'}`}>
                             {view === 'DASHBOARD' && <Dashboard />}
-                            {view === 'TRIGGERS' && <TriggersView onCreateRca={handleCreateRcaFromTrigger} onOpenRca={handleOpenRca} />}
+                            {view === 'TRIGGERS' && <TriggersView onCreateRca={handleCreateRcaFromTriggers} onOpenRca={handleOpenRca} />}
                             {view === 'ANALYSES' && <AnalysesView onNew={openNew} onEdit={openEdit} />}
                             {view === 'ACTIONS' && <ActionsView onOpenRca={handleOpenRca} />}
                             {view === 'ASSETS' && <AssetsManager />}

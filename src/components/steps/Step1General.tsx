@@ -3,13 +3,16 @@
  * Fluxo: Gerencia a seleção de ativos na árvore, metadados da análise (facilitador, participantes) e dados cronológicos do evento.
  */
 
-import React, { useId } from 'react';
+import React, { useId, useMemo, useState } from 'react';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
-import { AssetNode, RcaRecord, TaxonomyConfig } from '../../types';
+import { AssetNode, RcaRecord, TaxonomyConfig, TriggerRecord } from '../../types';
 import { AssetSelector } from '../selectors/AssetSelector';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Zap } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageDefinition';
+import { useRcaContext } from '../../context/RcaContext';
+import { LinkedTriggersTable } from '../triggers/LinkedTriggersTable';
+import { TriggerModal } from '../triggers/TriggerModal';
 
 interface Step1Props {
     data: RcaRecord;
@@ -24,7 +27,29 @@ interface Step1Props {
 
 export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, taxonomy, onAssetSelect, onRefreshAssets, errors, isFieldRequired }) => {
     const { t } = useLanguage();
+    const { triggers, updateTrigger } = useRcaContext();
     const idPrefix = useId();
+
+    // Estado local para o modal de edicao de trigger
+    const [editingTrigger, setEditingTrigger] = useState<TriggerRecord | null>(null);
+    const [isTriggerModalOpen, setIsTriggerModalOpen] = useState(false);
+
+    // Busca triggers vinculados a esta RCA pela relacao inversa (trigger.rca_id === rca.id)
+    const linkedTriggers = useMemo(() => {
+        if (!data.id) return [];
+        return triggers.filter(trig => trig.rca_id === data.id);
+    }, [data.id, triggers]);
+
+    const handleEditTrigger = (trigger: TriggerRecord) => {
+        setEditingTrigger(trigger);
+        setIsTriggerModalOpen(true);
+    };
+
+    const handleSaveTrigger = async (trigger: TriggerRecord) => {
+        await updateTrigger(trigger);
+        setIsTriggerModalOpen(false);
+        setEditingTrigger(null);
+    };
 
     const getAssetName = (id: string, nodes: AssetNode[]): string => {
         for (const node of nodes) {
@@ -241,6 +266,35 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                     </div>
                 </div>
             </div>
+
+            {/* Seção de Gatilhos Vinculados (Issue #80 - Relação N:1) */}
+            {linkedTriggers.length > 0 && (
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800">
+                    <h3 className="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-6 border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center gap-2">
+                        <span className="w-1 h-4 bg-amber-500 rounded-full"></span>
+                        <Zap size={14} className="text-amber-500" />
+                        {t('wizard.step1.linkedTriggers')} ({linkedTriggers.length})
+                    </h3>
+                    <LinkedTriggersTable
+                        triggers={linkedTriggers}
+                        assets={assets}
+                        taxonomy={taxonomy}
+                        onEdit={handleEditTrigger}
+                    />
+                </div>
+            )}
+
+            {/* Modal de edicao de trigger vinculado */}
+            {isTriggerModalOpen && editingTrigger && (
+                <TriggerModal
+                    editingTrigger={editingTrigger}
+                    setEditingTrigger={setEditingTrigger}
+                    setIsModalOpen={setIsTriggerModalOpen}
+                    handleSave={handleSaveTrigger}
+                    assets={assets}
+                    taxonomy={taxonomy}
+                />
+            )}
         </div>
     );
 };

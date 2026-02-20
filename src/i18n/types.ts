@@ -24,6 +24,7 @@ export interface TranslationSchema {
         runningOn: string;
         failurePrefix: string;
         requiredField: string;
+        total: string;
         version: string;
         noDescription: string;
         box: string;
@@ -568,6 +569,7 @@ export interface TranslationSchema {
         manageDowntime: string;
         noTriggers: string;
         newTrigger: string;
+        createRcaBatch: string;
         linkTrigger: string;
         table: {
             status: string;
@@ -626,6 +628,7 @@ export interface TranslationSchema {
             startDate: string;
             completionDate: string;
             requiresOperation: string;
+            linkedTriggers: string;
         };
         step2: {
             title: string;

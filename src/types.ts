@@ -34,7 +34,7 @@ export interface TaxonomyConfig {
   failureCategories: TaxonomyItem[];
   componentTypes: TaxonomyItem[];
   rootCauseMs: TaxonomyItem[];
-  triggerStatuses: TaxonomyItem[]; 
+  triggerStatuses: TaxonomyItem[];
   mandatoryFields?: MandatoryFieldsConfig;
 }
 
@@ -168,7 +168,7 @@ export interface HraQuestion {
   id: string;
   category: string;
   question: string;
-  question_snapshot?: string; 
+  question_snapshot?: string;
   answer: 'YES' | 'NO' | '';
   comment: string;
 }
@@ -214,7 +214,7 @@ export interface RcaRecord {
   analysis_duration_minutes: number;
   analysis_type: string;
   status: string;
-  participants: string[]; 
+  participants: string[];
   facilitator: string;
 
   start_date?: string;
@@ -247,11 +247,11 @@ export interface RcaRecord {
   where_description: string;
   problem_description: string;
   potential_impacts: string;
-  quality_impacts?: string; 
+  quality_impacts?: string;
 
   // 6. Investigação e Causa Raiz
   five_whys: FiveWhy[];
-  five_whys_chains?: FiveWhyChain[]; 
+  five_whys_chains?: FiveWhyChain[];
   ishikawa: IshikawaDiagram;
   root_causes: RootCauseItem[];
 
@@ -264,13 +264,14 @@ export interface RcaRecord {
   // 9. Planos e Lições
   containment_actions: ContainmentAction[];
   lessons_learned: string[];
-  general_moc_number?: string; 
+  general_moc_number?: string;
 
   // 10. Informações Adicionais
   additionalInfo?: AdditionalInfo;
 
   // 11. Metadados de Arquivo
-  file_path?: string; 
+  file_path?: string;
+  trigger_ids?: string[]; // IDs dos Gatilhos vinculados (Issue #80 - Relação N:1)
 }
 
 /**

@@ -21,6 +21,7 @@ export const pt: TranslationSchema = {
         runningOn: "Rodando no",
         failurePrefix: "Falha",
         requiredField: "Campo obrigatório",
+        total: "Total",
         version: "Ver:",
         noDescription: "Sem descrição (O que)",
         box: "Box",
@@ -579,6 +580,7 @@ export const pt: TranslationSchema = {
         manageDowntime: "Gerencie eventos de parada ou falhas potenciais que requerem RCAs.",
         noTriggers: "Nenhum gatilho encontrado com os critérios atuais.",
         newTrigger: "Novo Gatilho",
+        createRcaBatch: "Criar RCA",
         linkTrigger: "Vincular...",
         table: {
             status: "Farol",
@@ -636,7 +638,8 @@ export const pt: TranslationSchema = {
             participantsPlaceholder: "Ademir, Lucas, Paulo (Separados por vírgula)",
             startDate: "Data Início",
             completionDate: "Data Conclusão",
-            requiresOperation: "Necessário operação na AF?"
+            requiresOperation: "Necessário operação na AF?",
+            linkedTriggers: "Gatilhos Vinculados",
         },
         step2: {
             title: "1. Definição do Problema (5W1H)",

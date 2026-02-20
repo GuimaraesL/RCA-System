@@ -17,7 +17,7 @@ const jsonStruct = z.union([z.record(z.string(), z.any()), z.array(z.any()), z.n
 export const rcaSchema = z.object({
     id: z.string().optional(),
     version: z.union([z.string(), z.number()]).optional(),
-    analysis_date: z.string().nullish(), 
+    analysis_date: z.string().nullish(),
     analysis_duration_minutes: z.coerce.number().optional().default(0),
     analysis_type: z.string().nullish(),
     status: z.string().optional(),
@@ -70,7 +70,7 @@ export const rcaSchema = z.object({
 
     general_moc_number: z.string().nullish(),
     additional_info: jsonStruct,
-    additionalInfo: jsonStruct, 
+    additionalInfo: jsonStruct,
     file_path: z.string().nullish()
 });
 
@@ -79,20 +79,20 @@ export const rcaSchema = z.object({
  * Validação estrutural básica. Regras de obrigatoriedade são definidas dinamicamente nas configurações do sistema.
  */
 export const triggerSchema = z.object({
-    id: z.string().optional(), 
+    id: z.string().optional(),
     area_id: z.string().nullish(), // Relaxado: Obrigigatoriedade vem da config
     equipment_id: z.string().nullish(),
-    subgroup_id: z.string().nullish(), 
+    subgroup_id: z.string().nullish(),
 
     start_date: z.string().nullish(), // Relaxado
     end_date: z.string().nullish(),   // Relaxado
     duration_minutes: z.coerce.number().optional().default(0),
 
-    stop_type: z.string().optional(),
-    stop_reason: z.string().optional(),
+    stop_type: z.string().nullish(),
+    stop_reason: z.string().nullish(),
 
     comments: z.string().nullish(),
-    analysis_type_id: z.string().nullish(), 
+    analysis_type_id: z.string().nullish(),
     status: z.string().nullish(),
     responsible: z.string().nullish(),
     rca_id: z.string().nullish(),

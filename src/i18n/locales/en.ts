@@ -21,6 +21,7 @@ export const en: TranslationSchema = {
         runningOn: "Running on",
         failurePrefix: "Failure",
         requiredField: "Required field",
+        total: "Total",
         version: "Ver:",
         noDescription: "No description (What)",
         box: "Box",
@@ -584,6 +585,7 @@ export const en: TranslationSchema = {
         manageDowntime: "Manage downtime events or potential failures requiring RCAs.",
         noTriggers: "No triggers found matching your criteria.",
         newTrigger: "New Trigger",
+        createRcaBatch: "Create RCA",
         linkTrigger: "Link...",
         table: {
             status: "Status",
@@ -641,7 +643,8 @@ export const en: TranslationSchema = {
             participantsPlaceholder: "John, Jane, Paul (Separated by comma)",
             startDate: "Start Date",
             completionDate: "Completion Date",
-            requiresOperation: "Requires operation in FA?"
+            requiresOperation: "Requires operation in FA?",
+            linkedTriggers: "Linked Triggers",
         },
         step2: {
             title: "1. Problem Definition (5W1H)",
