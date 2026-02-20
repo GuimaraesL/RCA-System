@@ -45,14 +45,39 @@ const mockRecords = [
 vi.mock('../../context/RcaContext', () => ({
     useRcaContext: () => ({
         records: mockRecords,
-        triggers: [],
+        triggers: [
+            {
+                id: 'T1',
+                stop_reason: 'Falha Crítica',
+                area_id: 'AREA_1',
+                status: 'OPEN',
+                start_date: '2023-01-05'
+            },
+            {
+                id: 'T2',
+                stop_reason: 'Manutenção',
+                area_id: 'AREA_2',
+                status: 'CLOSED',
+                start_date: '2023-05-10'
+            }
+        ],
         assets: []
     })
 }));
 
 vi.mock('../useActionsLogic', () => ({
     useActionsLogic: () => ({
-        actions: []
+        actions: [
+            {
+                id: 'ACT1',
+                action: 'Reparar motor',
+                searchContext: 'reparar motor responsavel 1 analise 1',
+                status: 'OPEN',
+                areaId: 'AREA_1',
+                yearStr: '2023',
+                monthStr: '01'
+            }
+        ]
     })
 }));
 
@@ -104,7 +129,7 @@ describe('useFilteredData', () => {
 
         // Deve retornar apenas Análise 1 e 3
         expect(result.current.filteredRCAs).toHaveLength(2);
-        
+
         // AREA_1 possui apenas status OPEN (Análise 1 e 3)
         expect(result.current.availableOptions.status.has('OPEN')).toBe(true);
         expect(result.current.availableOptions.status.has('CLOSED')).toBe(false); // CLOSED está na AREA_2
@@ -139,5 +164,99 @@ describe('useFilteredData', () => {
         // CLOSED existe apenas na AREA_2
         expect(result.current.availableOptions.area.has('AREA_2')).toBe(true);
         expect(result.current.availableOptions.area.has('AREA_1')).toBe(false);
+    });
+
+    it('deve filtrar Gatilhos (Triggers) corretamente', () => {
+        const filters = {
+            searchTerm: 'Falha',
+            year: '',
+            months: [],
+            status: 'ALL',
+            area: 'ALL',
+            equipment: 'ALL',
+            subgroup: 'ALL',
+            specialty: 'ALL',
+            analysisType: 'ALL',
+            failureMode: 'ALL',
+            failureCategory: 'ALL',
+            componentType: 'ALL',
+            rootCause6M: 'ALL'
+        };
+
+        const { result } = renderHook(() => useFilteredData(filters));
+
+        expect(result.current.filteredTriggers).toHaveLength(1);
+        expect(result.current.filteredTriggers[0].id).toBe('T1');
+    });
+
+    it('deve filtrar Ações (Actions) corretamente', () => {
+        const filters = {
+            searchTerm: 'reparar',
+            year: '2023',
+            months: ['01'],
+            status: 'OPEN',
+            area: 'AREA_1',
+            equipment: 'ALL',
+            subgroup: 'ALL',
+            specialty: 'ALL',
+            analysisType: 'ALL',
+            failureMode: 'ALL',
+            failureCategory: 'ALL',
+            componentType: 'ALL',
+            rootCause6M: 'ALL'
+        };
+
+        const { result } = renderHook(() => useFilteredData(filters));
+
+        expect(result.current.filteredActions).toHaveLength(1);
+        expect(result.current.filteredActions[0].id).toBe('ACT1');
+    });
+
+    it('deve suportar busca normalizada (sem acentos)', () => {
+        const filters = {
+            searchTerm: 'Analise', // Procura por "Análise"
+            year: '',
+            months: [],
+            status: 'ALL',
+            area: 'ALL',
+            equipment: 'ALL',
+            subgroup: 'ALL',
+            specialty: 'ALL',
+            analysisType: 'ALL',
+            failureMode: 'ALL',
+            failureCategory: 'ALL',
+            componentType: 'ALL',
+            rootCause6M: 'ALL'
+        };
+
+        const { result } = renderHook(() => useFilteredData(filters));
+
+        // Todas as 3 análises possuem a palavra "Análise" no what
+        expect(result.current.filteredRCAs).toHaveLength(3);
+    });
+
+    it('deve gerar opções disponíveis para Gatilhos (availableTriggerOptions)', () => {
+        const filters = {
+            searchTerm: '',
+            year: '',
+            months: [],
+            status: 'ALL',
+            area: 'ALL',
+            equipment: 'ALL',
+            subgroup: 'ALL',
+            specialty: 'ALL',
+            analysisType: 'ALL',
+            failureMode: 'ALL',
+            failureCategory: 'ALL',
+            componentType: 'ALL',
+            rootCause6M: 'ALL'
+        };
+
+        const { result } = renderHook(() => useFilteredData(filters));
+
+        expect(result.current.availableTriggerOptions.status.has('OPEN')).toBe(true);
+        expect(result.current.availableTriggerOptions.status.has('CLOSED')).toBe(true);
+        expect(result.current.availableTriggerOptions.area.has('AREA_1')).toBe(true);
+        expect(result.current.availableTriggerOptions.area.has('AREA_2')).toBe(true);
     });
 });

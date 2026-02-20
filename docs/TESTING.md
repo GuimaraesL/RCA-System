@@ -25,7 +25,14 @@ O projeto segue uma estrutura de testes dividida em três camadas principais:
 - **Localização:** `tests/e2e/*.spec.ts`
 - **Ferramenta:** Playwright.
 
-### 1.4. Análise Estática AST (via Playwright)
+### 1.4. Testes de Hooks e Utilitários de Domínio (Vitest)
+- **Escopo:** Validação isolada de lógicas complexas de data, parsing de arquivos Excel, filtragem cruzada dinâmica e orquestração de formulários no Frontend.
+- **Localização:** 
+  - `src/hooks/__tests__/*.test.ts(x)`
+  - `src/utils/__tests__/*.test.ts(x)`
+- **Ferramenta:** Vitest com `@testing-library/react` (método `renderHook`).
+
+### 1.5. Análise Estática AST (via Playwright)
 - **Escopo:** Verificação rigorosa contra vazamentos de Internacionalização (I18N). O Linter varre a Árvore Sintática Abstrata (AST) do ecossistema React mapeando usos ilegais de texto cru em Português-BR (em `JSXText` ou `StringLiteral` dentro de Atributos JSX).
 - **Localização:** `tests/e2e/rca-i18n.spec.ts`
 - **Ferramenta:** TypeScript Compiler API (`ts.createSourceFile`) injetado dentro da Pipeline E2E.
