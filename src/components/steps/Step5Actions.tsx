@@ -211,12 +211,6 @@ export const Step5Actions: React.FC<Step5Props> = ({
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end gap-3">
                                             <button
-                                                onClick={(e) => { e.stopPropagation(); onEditActionPlan(act); }}
-                                                className="text-slate-400 hover:text-blue-600 p-1.5 hover:bg-blue-50 rounded-lg transition-all"
-                                            >
-                                                <Edit2 size={16} />
-                                            </button>
-                                            <button
                                                 onClick={(e) => { e.stopPropagation(); onDeleteActionPlan(act.id); }}
                                                 className="text-slate-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition-all"
                                             >
