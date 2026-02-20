@@ -46,6 +46,8 @@ Testam funções isoladas e utilitários.
 
 | Arquivo (`.test.ts`) | Descrição |
 | :--- | :--- |
+| **context/RcaContext** | Valida lógicas de estado global, fallback de armazenamento off-line e multi-tabs. |
+| **services/api/api.modular** | Valida todos os HTTP Methods REST e middlewares de erro para a API através do `fetch`. |
 | **services/csvService** | Valida parsing e geração de CSVs (incluindo casos de borda e roundtrip). |
 | **utils/statusUtils** | Testa funções auxiliares de formatação de status. |
 | **utils/triggerUtils** | Testa helpers de manipulação de triggers. |
