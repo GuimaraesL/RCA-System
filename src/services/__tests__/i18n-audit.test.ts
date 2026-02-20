@@ -10,9 +10,11 @@
 import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
+import { pt } from '../../i18n/locales/pt';
+import { en } from '../../i18n/locales/en';
 
 describe('Auditoria de Internacionalização (Anti-Hardcoded)', () => {
-  
+
   // Função simples para varredura recursiva (sem depender de bibliotecas externas no runtime do teste)
   const getAllFiles = (dir: string, fileList: string[] = []): string[] => {
     const files = fs.readdirSync(dir);
@@ -23,12 +25,12 @@ describe('Auditoria de Internacionalização (Anti-Hardcoded)', () => {
         if (!['node_modules', 'dist', 'locales', '__tests__', 'coverage', '.agent'].includes(file)) {
           getAllFiles(filePath, fileList);
         }
-      } else if ((filePath.endsWith('.tsx') || filePath.endsWith('.ts')) && 
-                 !filePath.includes('.test.') && 
-                 !filePath.includes('.spec.') &&
-                 !filePath.endsWith('types.ts') &&
-                 !filePath.endsWith('en.ts') && // Exclusão explícita do dicionário EN
-                 !filePath.endsWith('pt.ts')) { // Exclusão explícita do dicionário PT
+      } else if ((filePath.endsWith('.tsx') || filePath.endsWith('.ts')) &&
+        !filePath.includes('.test.') &&
+        !filePath.includes('.spec.') &&
+        !filePath.endsWith('types.ts') &&
+        !filePath.endsWith('en.ts') && // Exclusão explícita do dicionário EN
+        !filePath.endsWith('pt.ts')) { // Exclusão explícita do dicionário PT
         fileList.push(filePath);
       }
     });
@@ -60,8 +62,8 @@ describe('Auditoria de Internacionalização (Anti-Hardcoded)', () => {
     if (violations.length > 0) {
       console.log(' VIOLAÇÕES DE ATRIBUTOS HARDCODED FOUND:\n' + violations.join('\n'));
     }
-    
-    expect(violations.length).toBeLessThanOrEqual(50); 
+
+    expect(violations.length).toBeLessThanOrEqual(50);
   });
 
   it('Nenhum componente deve conter texto puro entre tags JSX', () => {
@@ -77,8 +79,8 @@ describe('Auditoria de Internacionalização (Anti-Hardcoded)', () => {
         while ((match = jsxTextRegex.exec(line)) !== null) {
           const text = match[1].trim();
           if (
-            text.length > 1 && 
-            !text.startsWith('{') && 
+            text.length > 1 &&
+            !text.startsWith('{') &&
             !text.endsWith('}') &&
             !text.includes('className') &&
             !text.includes('Version')
@@ -93,7 +95,52 @@ describe('Auditoria de Internacionalização (Anti-Hardcoded)', () => {
       console.log(' TEXTO JSX HARDCODED FOUND:\n' + violations.join('\n'));
     }
 
-    expect(violations.length).toBeLessThanOrEqual(100); 
+    expect(violations.length).toBeLessThanOrEqual(100);
+  });
+
+  it('Todas as chaves usadas via t() devem existir nos dicionários pt e en (Issue #105)', () => {
+    const ptDict = pt;
+    const enDict = en;
+
+    // Função auxiliar para resolver caminhos aninhados (ex: 'common.attention')
+    const resolveKey = (obj: Record<string, any>, keyPath: string): any => {
+      return keyPath.split('.').reduce((acc, part) => acc?.[part], obj);
+    };
+
+    const violations: string[] = [];
+    // Regex: captura chamadas t('namespace.chave') — exigindo pelo menos um ponto
+    const tCallRegex = /\bt\(\s*['"]([a-zA-Z][a-zA-Z0-9_]*\.[a-zA-Z0-9_.]+)['"]\s*\)/g;
+
+    files.forEach(file => {
+      const content = fs.readFileSync(file, 'utf-8');
+      const lines = content.split('\n');
+
+      lines.forEach(line => {
+        // Ignora linhas com template literals dinâmicos (contém ${...})
+        if (line.includes('${')) return;
+        // Ignora comentários
+        if (line.trimStart().startsWith('//') || line.trimStart().startsWith('*')) return;
+
+        let match;
+        while ((match = tCallRegex.exec(line)) !== null) {
+          const key = match[1];
+          const ptValue = resolveKey(ptDict, key);
+          const enValue = resolveKey(enDict, key);
+
+          if (ptValue === undefined) {
+            violations.push(`${path.relative(process.cwd(), file)} -> Chave '${key}' ausente no dicionário PT`);
+          }
+          if (enValue === undefined) {
+            violations.push(`${path.relative(process.cwd(), file)} -> Chave '${key}' ausente no dicionário EN`);
+          }
+        }
+      });
+    });
+
+    if (violations.length > 0) {
+      console.log('\n🔑 CHAVES DE TRADUÇÃO SOLTAS:\n' + violations.join('\n'));
+    }
+
+    expect(violations).toEqual([]);
   });
 });
-

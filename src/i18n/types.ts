@@ -28,6 +28,8 @@ export interface TranslationSchema {
         version: string;
         noDescription: string;
         box: string;
+        attention: string;
+        remove: string;
         tooltips: {
             deleteKey: string;
             resize: string;
@@ -35,6 +37,7 @@ export interface TranslationSchema {
         };
     };
     filters: {
+        title: string;
         searchPlaceholder: string;
         searchLabel: string;
         year: string;
@@ -80,6 +83,7 @@ export interface TranslationSchema {
         assets: string;
         settings: string;
         migration: string;
+        shortcuts: string;
         menu: string;
         system: string;
     };
@@ -436,11 +440,55 @@ export interface TranslationSchema {
         viewModelsLabel: string;
         noDescription: string;
         box: string;
+        footer: string;
         labels: {
             rcaRecord: string;
             contextApi: string;
             viewModels: string;
-        }
+        };
+        architecture: {
+            p1: string;
+            entitiesTitle: string;
+            rcaRecordLabel: string;
+            rcaRecord: string;
+            assetNodeLabel: string;
+            assetNode: string;
+            actionRecordLabel: string;
+            actionRecord: string;
+            stateTitle: string;
+            contextApiLabel: string;
+            contextApi: string;
+            viewModelsLabel: string;
+            viewModels: string;
+        };
+        workflow: {
+            step1Title: string;
+            step1Desc: string;
+            step2Title: string;
+            step2Desc: string;
+            step3Title: string;
+            validationTitle: string;
+            hraTag: string;
+            draftTag: string;
+            linkTag: string;
+        };
+        integrations: {
+            geminiTitle: string;
+            geminiDesc: string;
+            geminiItem1: string;
+            geminiItem2: string;
+            geminiItem3: string;
+            jsonTitle: string;
+            jsonDesc: string;
+            jsonItem1: string;
+            jsonItem2: string;
+            jsonItem3: string;
+            csvTitle: string;
+            csvDesc: string;
+            csvItem1: string;
+            csvItem2: string;
+            csvItem3: string;
+        };
     },
     workflow: {
         step1Title: string;

@@ -220,7 +220,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                                 <span className="text-[10px] text-slate-400 dark:text-slate-500 mr-1">{language === 'pt' ? 'R$' : '$'}</span>
                                                 {r.financial_impact?.toLocaleString()}
                                             </div>
-                                            <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{r.downtime_minutes} {t('analyses.minTotal')}</div>
+                                            <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{r.downtime_minutes} {t('analysesPage.minTotal')}</div>
                                         </td>
                                         <td className="px-8 py-6 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
                                             {formatDate(r.failure_date)}
