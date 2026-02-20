@@ -41,6 +41,9 @@ jobs:
     - name: Executar Testes de Lógica (Vitest - Backend)
       run: cd server && npm run test
 
+    - name: Build da Aplicação
+      run: npm run build
+
     - name: Instalar Navegadores Playwright
       run: npx playwright install --with-deps
 

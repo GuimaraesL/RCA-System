@@ -6,7 +6,7 @@ export default defineConfig({
   reporter: [['list'], ['html', { open: 'never' }]],
   timeout: 60000, // Global timeout to handle slower startup
   webServer: {
-    command: 'npm run preview -- --port 3005',
+    command: 'npm run preview -- --port 3005 --host',
     url: 'http://localhost:3005',
     reuseExistingServer: true,
     timeout: 120 * 1000,
