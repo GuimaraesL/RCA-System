@@ -144,10 +144,12 @@ export const en: TranslationSchema = {
         title: "Failure Analyses",
         subtitle: "Manage, search, and edit reliability records.",
         newButton: "New Analysis",
+        newTitle: "New Analysis",
         chartMode: "Chart Mode",
         tableMode: "Table Mode",
         minTotal: "total min",
         noRegisters: "No records found for the current configuration.",
+        noRecords: "No analyses found matching your criteria.",
         tooltips: {
             deleteRca: "Delete RCA"
         }

@@ -144,10 +144,12 @@ export const pt: TranslationSchema = {
         title: "Análise de Falhas",
         subtitle: "Gerencie, pesquise e edite registros de confiabilidade.",
         newButton: "Nova Análise",
+        newTitle: "Nova Análise",
         chartMode: "Modo Gráfico",
         tableMode: "Modo Tabela",
         minTotal: "min total",
         noRegisters: "Nenhum registro encontrado para a configuração atual.",
+        noRecords: "Nenhuma análise encontrada com os filtros atuais.",
         tooltips: {
             deleteRca: "Excluir RCA"
         }

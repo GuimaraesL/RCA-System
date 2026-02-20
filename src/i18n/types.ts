@@ -147,10 +147,12 @@ export interface TranslationSchema {
         title: string;
         subtitle: string;
         newButton: string;
+        newTitle: string;
         chartMode: string;
         tableMode: string;
         minTotal: string;
         noRegisters: string;
+        noRecords: string;
         tooltips: {
             deleteRca: string;
         };
