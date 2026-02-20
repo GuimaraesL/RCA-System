@@ -188,7 +188,6 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                     </td>
                                     <td className="px-6 py-5 text-right">
                                         <div className="flex justify-end gap-2">
-                                            <button onClick={(e) => { e.stopPropagation(); onEdit(trigger); }} className="text-slate-300 dark:text-slate-600 hover:text-blue-600 dark:hover:text-blue-400 p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all"><Edit2 size={16} /></button>
                                             <button onClick={(e) => { e.stopPropagation(); onDelete(trigger.id); }} className="text-slate-300 dark:text-slate-600 hover:text-rose-600 dark:hover:text-rose-400 p-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"><Trash2 size={16} /></button>
                                         </div>
                                     </td>

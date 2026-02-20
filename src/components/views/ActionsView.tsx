@@ -187,7 +187,6 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
                   </td>
                   <td className="px-8 py-6 text-right">
                     <div className="flex justify-end gap-2">
-                      <button onClick={(e) => { e.stopPropagation(); openEdit(action); }} className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Edit2 size={16} /></button>
                       <button onClick={(e) => { e.stopPropagation(); handleDelete(action.id); }} className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"><Trash2 size={16} /></button>
                     </div>
                   </td>
