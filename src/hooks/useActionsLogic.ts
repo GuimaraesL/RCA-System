@@ -40,7 +40,7 @@ export const useActionsLogic = () => {
     // Mapeia IDs de RCA para títulos para uso em seletores (dropdowns)
     setRcaList(records.map(r => ({
       id: r.id,
-      title: r.what || r.id 
+      title: r.what || r.id
     })));
 
     // Criação do ViewModel (Dados enriquecidos para a interface)
@@ -78,9 +78,9 @@ export const useActionsLogic = () => {
       const aDate = new Date(a.date);
       const yearStr = isNaN(aDate.getTime()) ? '' : aDate.getFullYear().toString();
       const monthStr = isNaN(aDate.getTime()) ? '' : (aDate.getMonth() + 1).toString().padStart(2, '0');
-      
-      // Normalização de texto para busca insensível a acentos e caixa alta
-      const searchContext = `${a.action || ''} ${a.responsible || ''} ${rcaTitle}`
+
+      // Normalização de texto para busca insensível a acentos e caixa alta (Issue #106)
+      const searchContext = `${a.action || ''} ${a.responsible || ''} ${rcaTitle} ${a.moc_number || ''} ${assetName} ${a.date || ''}`
         .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");

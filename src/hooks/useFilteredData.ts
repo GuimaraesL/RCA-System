@@ -29,9 +29,22 @@ export const useFilteredData = (filters: FilterState, overrideRecords?: RcaRecor
     // --- FILTRAGEM DE ANÁLISES (RCAs) ---
     const filteredRCAs = useMemo(() => {
         return records.filter(r => {
-            // 1. Filtro de Texto (O Que, Quem, Problema, ID)
+            // 1. Filtro de Texto Ampliado (Issue #106)
             if (searchLower) {
-                const context = normalize(`${r.what} ${r.facilitator} ${r.problem_description} ${r.id} ${r.os_number}`);
+                // Campos primários
+                const primary = `${r.what} ${r.facilitator} ${r.problem_description} ${r.id} ${r.os_number} ${r.participants?.join(' ') || ''}`;
+                // Campos 5W2H
+                const w5h2 = `${r.who} ${r.when} ${r.where_description} ${r.potential_impacts} ${r.quality_impacts || ''}`;
+                // 5 Porquês (perguntas e respostas)
+                const whys = r.five_whys?.map(w => `${w.why_question} ${w.answer}`).join(' ') || '';
+                // Causas Raiz
+                const roots = r.root_causes?.map(rc => rc.cause).join(' ') || '';
+                // Lições Aprendidas
+                const lessons = r.lessons_learned?.join(' ') || '';
+                // Info Adicional
+                const extra = `${r.additionalInfo?.comments || ''} ${r.additionalInfo?.meetingNotes || ''} ${r.additionalInfo?.historicalInfo || ''}`;
+
+                const context = normalize(`${primary} ${w5h2} ${whys} ${roots} ${lessons} ${extra}`);
                 if (!context.includes(searchLower)) return false;
             }
 
@@ -68,8 +81,9 @@ export const useFilteredData = (filters: FilterState, overrideRecords?: RcaRecor
     // --- FILTRAGEM DE GATILHOS (TRIGGERS) ---
     const filteredTriggers = useMemo(() => {
         return triggers.filter(t => {
+            // Filtro de Texto Ampliado (Issue #106)
             if (searchLower) {
-                const context = normalize(`${t.stop_reason} ${t.comments} ${t.responsible} ${t.id}`);
+                const context = normalize(`${t.stop_reason} ${t.comments} ${t.responsible} ${t.id} ${t.stop_type} ${t.file_path || ''}`);
                 if (!context.includes(searchLower)) return false;
             }
 
@@ -132,7 +146,7 @@ export const useFilteredData = (filters: FilterState, overrideRecords?: RcaRecor
             if (r.failure_mode_id) options.failureMode.add(r.failure_mode_id);
             if (r.failure_category_id) options.failureCategory.add(r.failure_category_id);
             if (r.component_type) options.componentType.add(r.component_type);
-            
+
             if (r.area_id) options.area.add(r.area_id);
             if (r.equipment_id) options.equipment.add(r.equipment_id);
             if (r.subgroup_id) options.subgroup.add(r.subgroup_id);
@@ -171,7 +185,7 @@ export const useFilteredData = (filters: FilterState, overrideRecords?: RcaRecor
         filteredTriggers.forEach(t => {
             if (t.status) options.status.add(t.status);
             if (t.analysis_type_id) options.analysisType.add(t.analysis_type_id);
-            
+
             if (t.area_id) options.area.add(t.area_id);
             if (t.equipment_id) options.equipment.add(t.equipment_id);
             if (t.subgroup_id) options.subgroup.add(t.subgroup_id);
