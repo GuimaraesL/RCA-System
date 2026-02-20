@@ -49,15 +49,15 @@ jobs:
 
     - name: Executar Testes Funcionais (Playwright - Mocks)
       run: |
-        npx playwright test tests/e2e/modals-ui.spec.ts 
-                          tests/e2e/rca-editor-deep-dive.spec.ts 
-                          tests/e2e/rca-i18n-localization.spec.ts 
+        npx playwright test tests/e2e/modals-ui.spec.ts \
+                          tests/e2e/rca-validation-rules.spec.ts \
+                          tests/e2e/rca-i18n.spec.ts \
                           tests/e2e/rca-performance-stress.spec.ts
       env:
         CI: true
 
     - name: Executar Testes de Integração Real (Playwright - Real API)
-      run: npx playwright test tests/e2e/full-app-flow.spec.ts
+      run: npx playwright test tests/e2e/rca-workflow-state.spec.ts
       env:
         CI: true
 
