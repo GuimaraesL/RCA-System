@@ -97,20 +97,20 @@ describe('triggerHelpers', () => {
             }
         };
 
-        it('deve retornar azul para IN_PROGRESS', () => {
+        it('deve retornar azul para T-STATUS-01 (NEW)', () => {
             expect(getStatusColor('T-STATUS-01', mockTaxonomy)).toContain('bg-blue-50');
         });
 
-        it('deve retornar indigo para WAITING_VERIFICATION e legacy STATUS-02', () => {
-            expect(getStatusColor('STATUS-02', mockTaxonomy)).toContain('bg-indigo-100');
+        it('deve retornar amber para T-STATUS-02 (IN_ANALYSIS)', () => {
+            expect(getStatusColor('T-STATUS-02', mockTaxonomy)).toContain('bg-amber-50');
         });
 
-        it('deve retornar verde para CONCLUDED', () => {
+        it('deve retornar emerald para T-STATUS-03 (CONVERTED)', () => {
             expect(getStatusColor('T-STATUS-03', mockTaxonomy)).toContain('bg-emerald-50');
         });
 
-        it('deve retornar cinza para status desconhecido', () => {
-            expect(getStatusColor('UNKNOWN', mockTaxonomy)).toContain('bg-gray-50');
+        it('deve retornar slate para status desconhecido', () => {
+            expect(getStatusColor('UNKNOWN', mockTaxonomy)).toContain('bg-slate-50');
         });
     });
 

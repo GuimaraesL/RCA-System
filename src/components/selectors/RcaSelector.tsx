@@ -4,7 +4,7 @@ import { RcaRecord, AssetNode, TaxonomyConfig } from '../../types';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { translateStatus } from '../../utils/statusUtils';
 import { AssetSelector } from './AssetSelector';
-import { STATUS_IDS } from '../../constants/SystemConstants';
+import { StatusBadge } from '../ui/StatusBadge';
 import { filterAssetsByUsage } from '../../services/utils';
 import { useFilteredData } from '../../hooks/useFilteredData';
 
@@ -22,7 +22,7 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
 
     // Proteção contra taxonomia indefinida (Issue #83 Fix)
     if (!taxonomy) return null;
-    
+
     // --- Local Selection State ---
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -96,15 +96,6 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
         return filteredRecords.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
     }, [filteredRecords, currentPage]);
 
-    const getStatusStyles = (status: string) => {
-        switch (status) {
-            case STATUS_IDS.CONCLUDED: return 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-sm';
-            case STATUS_IDS.IN_PROGRESS: return 'bg-blue-50 text-blue-700 border-blue-100 shadow-sm';
-            case STATUS_IDS.CANCELLED: return 'bg-rose-50 text-rose-700 border-rose-100 line-through opacity-60';
-            case STATUS_IDS.WAITING_VERIFICATION: return 'bg-amber-50 text-amber-700 border-amber-100 shadow-sm';
-            default: return 'bg-slate-50 text-slate-600 border-slate-200';
-        }
-    };
 
     const formatDate = (dateStr: string) => {
         if (!dateStr) return '-';
@@ -167,7 +158,7 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                         <div className="p-3 bg-white rounded-2xl border border-blue-100 shadow-sm flex items-center justify-between animate-in slide-in-from-left-2">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-blue-600 shadow-sm shadow-blue-600/40"></div>
-                                <span 
+                                <span
                                     className="text-[11px] font-black text-blue-700 truncate max-w-[180px] uppercase tracking-tight"
                                     title={selectedAsset.name}
                                 >
@@ -184,7 +175,7 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                 {/* Classificação */}
                 <div className="space-y-6">
                     <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('filters.sections.classification')}</h4>
-                    
+
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">{t('filters.status')}</label>
                         <select
@@ -290,7 +281,7 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                             autoFocus
                         />
                         {searchTerm && (
-                            <button 
+                            <button
                                 onClick={() => setSearchTerm('')}
                                 className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 bg-slate-200 text-slate-500 rounded-full hover:bg-slate-300 transition-colors"
                             >
@@ -322,9 +313,7 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                                 >
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-4">
-                                            <span className={`text-[9px] font-black px-3 py-1.5 rounded-lg border uppercase tracking-widest ${getStatusStyles(rca.status)}`}>
-                                                {translateStatus(rca.status, statusName, t)}
-                                            </span>
+                                            <StatusBadge statusId={rca.status} label={translateStatus(rca.status, statusName, t)} size="sm" />
                                             <div className="flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
                                                 <span className="font-mono text-[11px] font-black text-slate-400 group-hover:text-blue-500 transition-colors uppercase tracking-widest">#RCA-{rca.id.substring(0, 8)}</span>
@@ -344,7 +333,7 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                                         <div className="flex flex-wrap items-center gap-6">
                                             <div className="flex items-center gap-2">
                                                 <div className="p-1.5 bg-slate-100 rounded-lg text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors"><Database size={14} /></div>
-                                                <div 
+                                                <div
                                                     className="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate max-w-[200px]"
                                                     title={rca.asset_name_display || ''}
                                                 >

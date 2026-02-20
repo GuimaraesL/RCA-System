@@ -7,11 +7,11 @@ import React from 'react';
 import { TriggerRecord, AssetNode, TaxonomyConfig, RcaRecord } from '../../types';
 import { Plus, Edit2, Trash2, Link, FileText, Check, X } from 'lucide-react';
 import { SortHeader } from '../ui/SortHeader';
-import { getAssetName, getTaxonomyName, getFarol, getStatusColor } from '../../utils/triggerHelpers';
+import { getAssetName, getTaxonomyName, getFarol } from '../../utils/triggerHelpers';
 import { translateTriggerStatus } from '../../utils/statusUtils';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { Card } from '../ui/Card';
-import { Badge } from '../ui/Badge';
+import { StatusBadge } from '../ui/StatusBadge';
 import { Button } from '../ui/Button';
 
 interface TriggersListProps {
@@ -133,9 +133,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                         </div>
                                     </td>
                                     <td className="px-6 py-5">
-                                        <Badge className={getStatusColor(trigger.status, taxonomy)}>
-                                            {statusName}
-                                        </Badge>
+                                        <StatusBadge statusId={trigger.status} label={statusName} />
                                     </td>
                                     <td className="px-6 py-5 font-mono text-[11px] font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap">{formatDate(trigger.start_date)}</td>
                                     <td className="px-6 py-5 max-w-[150px] truncate font-bold text-slate-700 dark:text-slate-200" title={getAssetName(trigger.area_id, assets)}>{getAssetName(trigger.area_id, assets)}</td>

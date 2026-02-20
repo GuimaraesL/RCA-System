@@ -5,7 +5,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { RcaRecord, TaxonomyConfig } from '../../types';
-import { STATUS_IDS } from '../../constants/SystemConstants';
+import { StatusBadge } from '../ui/StatusBadge';
 import { Plus, FileText, Trash2 } from 'lucide-react';
 import { SortHeader } from '../ui/SortHeader';
 import { ShortcutLabel } from '../ui/ShortcutLabel';
@@ -213,14 +213,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                             <div className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest">{getName('componentTypes', r.component_type)}</div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${r.status === STATUS_IDS.CONCLUDED ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30' :
-                                                r.status === STATUS_IDS.CANCELLED ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-900/30' :
-                                                    r.status === STATUS_IDS.WAITING_VERIFICATION ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-900/30' :
-                                                        r.status === STATUS_IDS.IN_PROGRESS ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-900/30' :
-                                                            'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
-                                                }`}>
-                                                {statusName}
-                                            </span>
+                                            <StatusBadge statusId={r.status} label={statusName} />
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="text-slate-900 dark:text-white font-black text-base">
