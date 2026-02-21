@@ -47,3 +47,4 @@ docs/issues/
 .playwright-mcp
 docs/reports/
 .agent/workflows/commit.md
+issues_list.json
