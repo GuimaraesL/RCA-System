@@ -1,36 +1,38 @@
-# Proposta: Servidor FastAPI para orquestração da IA (RCA Detective).
-# Fluxo: Recebe requisições do sistema principal, interage com o Agno para processamento RAG e retorna insights técnicos.
+# AI Service - Entrypoint
+# Ponto de entrada principal que inicializa o microserviço FastAPI e a ponte MCP.
 
-from fastapi import FastAPI, HTTPException, Header
-from pydantic import BaseModel
-from typing import Optional, List
-import os
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from mcp import ClientSession
+import uvicorn
 
-app = FastAPI(title="RCA System AI Service")
+from mcp_bridge import mcp_bridge
+from api.routes import router as api_router
 
-# Verificação de Chave Interna (Security Layer)
-INTERNAL_AUTH_KEY = os.getenv("INTERNAL_AUTH_KEY", "dev-key-change-it")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("🚀 Starting AI Service...")
+    try:
+        mcp_context = await mcp_bridge.connect()
+        async with mcp_context as (read_stream, write_stream):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+                mcp_bridge.set_session(session)
+                print("✅ MCP Bridge ready.")
+                yield
+    except Exception as e:
+        print(f"⚠️ MCP connection failed: {e}")
+        yield
+    finally:
+        print("🛑 AI Service stopping.")
 
-class AnalysisRequest(BaseModel):
-    rca_id: str
-    context: Optional[str] = None
+app = FastAPI(
+    title="RCA AI Service",
+    version="1.1.0",
+    lifespan=lifespan
+)
 
-@app.get("/health")
-async def health_check():
-    return {"status": "alive", "service": "rca-ai-agno"}
-
-@app.post("/analyze")
-async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(None)):
-    if x_internal_key != INTERNAL_AUTH_KEY:
-        raise HTTPException(status_code=403, detail="Forbidden: Invalid Internal Key")
-    
-    # Placeholder para integração futura com Agno Framework
-    return {
-        "rca_id": request.rca_id,
-        "ai_insight": "Serviço de IA inicializado com sucesso. Aguardando conexão com banco via MCP.",
-        "status": "ready"
-    }
+app.include_router(api_router)
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -6,20 +6,27 @@ Este documento descreve os requisitos técnicos, configuração de ambiente e es
 
 ## 1. Requisitos de Ambiente
 
-O serviço de IA roda de forma isolada do Backend Node.js para garantir escalabilidade e eficiência no processamento vetorial.
+O serviço de IA roda de forma isolada do Backend Node.js para garantir escalabilidade e eficiência no processamento de linguagem natural.
 
 - **Linguagem:** Python 3.11+.
-- **Runtime:** Contêiner Docker Linux-based.
-- **Porta Padrão:** 8000 (FastAPI).
+- **Framework:** FastAPI (Backend) e Agno (Agentes).
+- **Porta Padrão:** 8000.
+
+### Estrutura Modular
+O serviço está organizado seguindo princípios de responsabilidade única:
+- `agent/`: Configurações, prompts e ferramentas do RCA Detective.
+- `api/`: Rotas FastAPI e modelos Pydantic.
+- `config.py`: Gestão de configurações e ambiente.
+- `mcp_bridge.py`: Ponte de comunicação com o servidor MCP.
+- `main.py`: Entrypoint e gestão de lifespan.
 
 ---
 
 ## 2. Setup de Execução (Docker)
 
-O serviço deve ser instanciado utilizando a imagem oficial estável do Python.
+O serviço é conteinerizado para garantir paridade entre ambientes.
 
 ```dockerfile
-# Exemplo de estrutura base
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -27,49 +34,43 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
+EXPOSE 8000
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
 ### Dependências Core (requirements.txt)
-- `fastapi`, `uvicorn` (Servidor).
-- `agno` (Framework de Agentes).
-- `chromadb` ou `sqlite-vec` (Vector Database).
-- `mcp` (SDK de comunicação).
+As principais bibliotecas utilizadas são:
+- `agno`: Framework para orquestração de agentes.
+- `fastapi`, `uvicorn`: Servidor web assíncrono.
+- `google-generativeai`: Integração com o modelo Gemini.
+- `mcp`: SDK para o Model Context Protocol.
 
 ---
 
 ## 3. Variáveis de Ambiente (.env)
 
-Configurações obrigatórias para o funcionamento do motor de IA.
-
-| Variável | Descrição |
-| :--- | :--- |
-| `LLM_PROVIDER` | `google` (dev) ou `azure` (prod). |
-| `AZURE_OPENAI_API_KEY` | Chave de acesso ao serviço Azure. |
-| `AZURE_OPENAI_ENDPOINT` | URL do endpoint Azure. |
-| `MCP_SERVER_URL` | URL de comunicação com o Backend Node.js. |
-| `VECTOR_DB_PATH` | Caminho persistente para o banco de dados vetorial. |
+| Variável | Descrição | Padrão |
+| :--- | :--- | :--- |
+| `GOOGLE_API_KEY` | Chave da API do Google Gemini. | (Obrigatório) |
+| `MCP_SERVER_URL` | URL do servidor MCP (Node.js). | `http://localhost:3001/api/mcp/sse` |
+| `INTERNAL_AUTH_KEY` | Chave para autenticação entre serviços. | `dev-key-change-it` |
 
 ---
 
 ## 4. Resiliência e Fallback
 
-Para evitar degradação da experiência do usuário em caso de falha na IA:
+O microserviço foi desenhado para ser resiliente a falhas de conexão externa:
 
-### 4.1. Timeouts e Circuit Breaker
-- **Timeout MCP:** O Backend Node.js deve aguardar no máximo 5 segundos por uma resposta do servidor MCP antes de retornar um fallback.
-- **Degradação Graciosa:** Se o serviço de IA estiver offline, o Frontend deve ocultar ou desabilitar o botão "Assistir com IA", permitindo que o usuário prossiga com a análise manual normal de RCA.
-
-### 4.2. Tratamento de Erros de Fluxo
-- **Erro de Contexto:** Caso a IA não encontre casos similares, deve retornar uma mensagem amigável: "Nenhuma falha similar encontrada no histórico recente".
+### 4.1. Conexão MCP
+- **Startup:** O serviço inicia mesmo se o servidor MCP estiver offline, reportando um aviso no log.
+- **Runtime:** Se a ponte MCP cair, o endpoint `/analyze` retornará erro `503 Service Unavailable`, permitindo que o sistema principal trate a falha graciosamente.
 
 ---
 
 ## 5. Segurança do Microserviço
 
-- **Auth entre Serviços:** O microserviço Python exigirá uma `INTERNAL_AUTH_KEY` no cabeçalho das requisições provenientes do Node.js.
-- **Isolamento de Volume:** O volume de dados do Vector DB deve ser acessível apenas pelo contêiner de IA.
+- **Auth entre Serviços:** Todas as requisições ao `/analyze` devem incluir o cabeçalho `x-internal-key` correspondente à `INTERNAL_AUTH_KEY`.
 
 ---
 
-> **Nota de Implementação:** A persistência dos embeddings deve ser realizada em volumes Docker para garantir que o conhecimento não seja perdido em restarts do serviço.
+> **Nota de Implementação:** A arquitetura modular permite a fácil expansão para novos agentes ou ferramentas sem afetar o core do serviço.

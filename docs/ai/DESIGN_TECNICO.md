@@ -27,45 +27,42 @@ O Backend exporá as seguintes capacidades para o Agente Agno:
 
 ## 2. Arquitetura do Sistema (Layers)
 
-A separação segue o princípio de que a IA é um **agente externo especializado**, não uma extensão direta do banco de dados.
+A arquitetura do microserviço Python foi desenhada para separar o protocolo de comunicação (MCP) da inteligência do agente e da interface API.
+
+### 2.1 Visão Geral das Camadas
+A separação segue o princípio de que a IA é um **agente externo especializado**, orquestrado pelo framework **Agno (antiga Phidata)**.
 
 ```mermaid
 graph TD
     subgraph "Frontend (React)"
         UI["Editor de RCA"]
-        WS["Cliente WebSocket"]
     end
 
-    subgraph "Backend Node.js (Arquitetura Limpa)"
-        API["Controlador Express"]
-        UC["Casos de Uso / Regras de Negócio"]
+    subgraph "Backend Node.js (Core)"
         MCPS["Adaptador de Servidor MCP"]
-        REP["Camada de Repositório"]
-        SQL[("SQLite / Postgres")]
+        SQL[("SQLite")]
     end
 
-    subgraph "Serviço de IA Python (Agno)"
-        FA["Roteador FastAPI"]
-        AGN["Motor de Agente Agno"]
-        MCPC["Cliente MCP"]
-        VEC["Vector Store (Memória Sidecar)"]
+    subgraph "Serviço de IA Python (Modular)"
+        API["FastAPI Layer (api/routes.py)"]
+        AGN["Agente Agno (agent/detective.py)"]
+        TOOL["Tools Mapping (agent/tools.py)"]
+        MCPC["McpBridge (mcp_bridge.py)"]
     end
 
     %% Fluxos
-    UI --> API
-    API --> UC
-    UC --> REP
-    REP --> SQL
-    
-    UI -.-> FA
-    AGN --> MCPC
-    MCPC -- "JSON/MCP" --> MCPS
-    MCPS --> UC
-    
-    UC -- "Webhook/Evento" --> FA
-    FA --> AGN
-    AGN --> VEC
+    UI -- "POST /analyze" --> API
+    API --> AGN
+    AGN --> TOOL
+    TOOL --> MCPC
+    MCPC -- "Handshake SSE" --> MCPS
+    MCPS --> SQL
 ```
+
+### 2.2 Estrutura Modular Interna
+- **Módulo Agente (`agent/`)**: Encapsula a "personalidade" do RCA Detective. Utiliza o modelo `gemini-2.0-flash` e mapeia ferramentas que invocam o MCP.
+- **Módulo API (`api/`)**: Define o contrato REST entre o sistema principal e a IA, garantindo tipagem forte com Pydantic.
+- **Ponte MCP (`mcp_bridge.py`)**: Gerencia o estado da sessão SSE. O uso de um padrão Singleton/ClassMethod garante que a sessão seja reutilizada entre requisições.
 
 ---
 

@@ -28,6 +28,7 @@ Regras de governança e histórico de dados.
 Roadmap e design técnico da IA 'RCA Detective'.
 - [Roadmap de IA](./ai/ROADMAP.md) - Fases de implementação.
 - [Design Técnico de IA](./ai/DESIGN_TECNICO.md) - MCP, Sincronização e Arquitetura.
+- [Setup e Infraestrutura de IA](./ai/SETUP_IA.md) - Guia de instalação e ambiente.
 
 ---
 
