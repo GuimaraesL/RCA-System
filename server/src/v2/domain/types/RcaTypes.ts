@@ -133,3 +133,26 @@ export interface Asset {
     parent_id?: string;
     children?: Asset[];
 }
+
+export interface FmeaMode {
+    id: string;
+    asset_id: string;
+    failure_mode: string;
+    potential_effects?: string;
+    severity: number;
+    potential_causes?: string;
+    occurrence: number;
+    current_controls?: string;
+    detection: number;
+    rpn?: number;
+    recommended_actions?: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface Attachment {
+    id: string;
+    type: 'image' | 'video';
+    path: string;
+    label?: string;
+}

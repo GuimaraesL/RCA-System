@@ -76,6 +76,10 @@ export class MigrationRunner {
             {
                 name: 'v2.1: Limpar vínculos órfãos de triggers para garantir integridade',
                 up: "UPDATE triggers SET rca_id = NULL WHERE rca_id IS NOT NULL AND rca_id NOT IN (SELECT id FROM rcas)"
+            },
+            {
+                name: 'v3.0: Adicionar coluna de anexos em rcas',
+                up: "ALTER TABLE rcas ADD COLUMN attachments TEXT"
             }
         ];
 

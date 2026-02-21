@@ -104,3 +104,20 @@ CREATE TABLE IF NOT EXISTS assets (
     parent_id TEXT,
     FOREIGN KEY(parent_id) REFERENCES assets(id)
 );
+
+CREATE TABLE IF NOT EXISTS fmea_modes (
+    id TEXT PRIMARY KEY,
+    asset_id TEXT NOT NULL,
+    failure_mode TEXT NOT NULL,
+    potential_effects TEXT,
+    severity INTEGER DEFAULT 1,
+    potential_causes TEXT,
+    occurrence INTEGER DEFAULT 1,
+    current_controls TEXT,
+    detection INTEGER DEFAULT 1,
+    rpn INTEGER GENERATED ALWAYS AS (severity * occurrence * detection) STORED,
+    recommended_actions TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY(asset_id) REFERENCES assets(id)
+);
