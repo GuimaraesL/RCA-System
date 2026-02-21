@@ -8,6 +8,16 @@ Este documento detalha a arquitetura de testes, as ferramentas utilizadas e os p
 
 O projeto segue uma estrutura de testes dividida em três camadas principais:
 
+```mermaid
+graph TD
+    E2E[Testes E2E - Playwright] --- INT[Testes de Integração - Vitest]
+    INT --- UNIT[Testes Unitários - Vitest]
+    
+    style E2E fill:#fee2e2,stroke:#ef4444,color:#000
+    style INT fill:#fef3c7,stroke:#f59e0b,color:#000
+    style UNIT fill:#dcfce7,stroke:#22c55e,color:#000
+```
+
 ### 1.1. Testes Unitários (Vitest)
 - **Escopo:** Funções puras, hooks do React e lógica de domínio isolada.
 - **Localização:** 
@@ -33,9 +43,17 @@ O projeto segue uma estrutura de testes dividida em três camadas principais:
 - **Ferramenta:** Vitest com `@testing-library/react` (método `renderHook`).
 
 ### 1.5. Análise Estática AST (via Playwright)
-- **Escopo:** Verificação rigorosa contra vazamentos de Internacionalização (I18N). O Linter varre a Árvore Sintática Abstrata (AST) do ecossistema React mapeando usos ilegais de texto cru em Português-BR (em `JSXText` ou `StringLiteral` dentro de Atributos JSX).
+- **Escopo:** Verificação de vazamentos de Internacionalização (I18N) em tempo de execução através do DOM.
 - **Localização:** `tests/e2e/rca-i18n.spec.ts`
-- **Ferramenta:** TypeScript Compiler API (`ts.createSourceFile`) injetado dentro da Pipeline E2E.
+- **Ferramenta:** Playwright executando crawler no frontend.
+
+### 1.6. Auditoria Estática de I18N (Vitest)
+- **Escopo:** Varredura rigorosa do código-fonte para detectar:
+  1. Strings "hardcoded" em tags JSX.
+  2. Texto puro em atributos (placeholder, title, label).
+  3. Chaves usadas via `t()` que não existem nos dicionários PT/EN.
+- **Localização:** `src/services/__tests__/i18n-audit.test.ts`
+- **Ferramenta:** Vitest com Regex e análise de dicionários estáticos.
 
 ---
 
@@ -71,6 +89,18 @@ Seguimos o padrão de **API Shadowing**. Nunca dependemos do backend real para t
 await page.route('**/api/**', async route => {
   // Retorne dados controlados via Factories
 });
+```
+
+```mermaid
+sequenceDiagram
+    participant Navegador as Navegador Playwright
+    participant Rede as Interceptor de Rede
+    participant Factory as Fábricas de Dados (Factories)
+    
+    Navegador->>Rede: Requisição de API (ex: GET /rcas)
+    Rede->>Factory: Solicita Dados Mockados
+    Factory-->>Rede: Resposta JSON
+    Rede-->>Navegador: HTTP 200 (Resposta Mockada)
 ```
 
 ### 3.2. Uso de Factories
@@ -128,6 +158,12 @@ Para testar profundamente a internacionalização, criei um *Crawler* que inspec
 - Busque por chaves de objetos cruas e palavras soltas `hardcoded`, configurando `expect(leaks).toHaveLength(0)`.
 - Use a função `t('chave', 'Fallback em inglês')` inclusive dentro das propriedades dos seus componentes, e confira o idioma do projeto no setup geral.
 
+### 4.7. Auditoria Estática de Código (Pre-commit)
+Para evitar que novas strings hardcoded entrem no repositório, utilizamos uma auditoria baseada em Regex que varre todos os componentes.
+- **Vantagem:** Muito mais rápido que o crawler do Playwright, pois não requer renderização.
+- **Regra de Ouro:** Se o teste falhar, você DEVE mover a string para os arquivos `pt.ts` e `en.ts` e usar o hook `useLanguage`.
+- **Exceções:** Linhas que contêm template literals `${...}` ou comentários são ignoradas para evitar falso-positivos de chaves dinâmicas.
+
 ---
 
 ## 5. Protocolo de Criação de Novos Testes
@@ -156,14 +192,14 @@ Para testar profundamente a internacionalização, criei um *Crawler* que inspec
 ---
 
 ## 📚 Documentação Relacionada
-- [Visão Geral do Produto (PRD)](./PRD.md)
-- [Arquitetura Técnica](./ARCHITECTURE.md)
-- [Referência da API](./API_REFERENCE.md)
-- [Diretrizes de Código](./CODE_GUIDELINES.md)
-- [Design System](./DESIGN_SYSTEM.md)
-- [Catálogo de Testes](./TEST_CATALOG.md)
-- [PRD - Requisitos](./PRD.md)
+- [Visão Geral do Produto (PRD)](../core/PRD.md)
+- [Arquitetura Técnica](../core/ARQUITETURA.md)
+- [Referência da API](../core/REFERENCIA_API.md)
+- [Diretrizes de Código](../core/DIRETRIZES_CODIGO.md)
+- [Design System](../ux-ui/DESIGN_SYSTEM.md)
+- [Catálogo de Testes](./CATALOGO_TESTES.md)
+- [PRD - Requisitos](../core/PRD.md)
 
 ---
 
-> **Nota de Manutenção:** Mantenha este documento atualizado. Ajustes na estratégia de testes devem ser refletidos no [TEST_CATALOG.md](./TEST_CATALOG.md).
+> **Nota de Manutenção:** Mantenha este documento atualizado. Ajustes na estratégia de testes devem ser refletidos no [CATALOGO_TESTES.md](./CATALOGO_TESTES.md).

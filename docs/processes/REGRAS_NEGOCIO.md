@@ -6,31 +6,50 @@ Este documento descreve as regras de negócio centrais que governam o comportame
 
 ---
 
-## 🏗️ Ciclo de Vida da RCA
+## Ciclo de Vida da RCA
 
 A Análise de Causa Raiz (RCA) é a entidade principal do sistema. Seu ciclo de vida é gerido automaticamente com base no preenchimento de dados e na eficácia das ações.
+
+```mermaid
+stateDiagram-v2
+    [*] --> EM_ANDAMENTO: Criação
+    EM_ANDAMENTO --> AGUARDANDO_VERIFICACAO: Campos obrigatórios preenchidos + Ações pendentes (se obrigatórias)
+    EM_ANDAMENTO --> CONCLUIDA: Campos preenchidos + Sem ações pendentes (ou ações opcionais ignoradas)
+    AGUARDANDO_VERIFICACAO --> CONCLUIDA: Todas ações marcadas como eficazes
+    CONCLUIDA --> EM_ANDAMENTO: Edição de campo obrigatório (reabertura)
+    
+    state EM_ANDAMENTO {
+        [*] --> Rascunho
+        Rascunho --> Validado: Validação Zod/UX
+    }
+```
 
 ### 1. Criação
 - **ID:** Gerado automaticamente (UUID) se não fornecido.
 - **Status Inicial:** Sempre inicia como `Em Andamento` (IN_PROGRESS).
 - **Versão:** Define a versão do formulário utilizada (ex: `17.2`).
-- **Seleção de Ativos:** Por governança, o sistema permite a seleção técnica apenas ao nível de **Subgrupo**. Áreas e Equipamentos servem apenas para navegação hierárquica.
-- **Herança:** Se criada via Gatilho, herda:
-    - Ativo (Área, Equipamento, Subgrupo).
-    - Descrição do problema (do `stop_reason`).
     - Data da falha.
+
+```mermaid
+graph TD
+    Area["Área (Nível 1)"] --> Equip["Equipamento (Nível 2)"]
+    Equip --> Sub["Subgrupo (Nível 3 - Selecionável)"]
+    Sub --> RCA["RCA (Vínculo Técnico)"]
+    
+    Trigger["Gatilho (Interrupção)"] -.->|Promover| RCA
+```
 
 ### 2. Edição e Segurança de Dados
 - **Guarda de Navegação:** O sistema impede a mudança acidental de página (via Sidebar) enquanto o Editor de RCA estiver aberto. O usuário deve confirmar que deseja sair, sob risco de perda de alterações não salvas.
 
 ### 3. Cálculo Automático de Status
-O sistema recalcula o status da RCA a cada salvamento ou alteração em suas Ações vinculadas.
+O sistema recalcula o status da RCA a cada salvamento ou alteração em suas Ações vinculadas, baseando-se na configuração de obrigatoriedade definida para o tipo de falha.
 
 | Status | Regra de Negócio |
 | :--- | :--- |
 | **Em Andamento** | Estado padrão. Mantido enquanto **qualquer** campo obrigatório estiver vazio OU se houver erros de validação. |
-| **Aguardando Verificação** | Todos os campos obrigatórios preenchidos, MAS possui ações obrigatórias que ainda não foram marcadas como eficazes. |
-| **Concluída** | 1. Todos os campos obrigatórios preenchidos.<br>2. Se houver ações, todas são eficazes.<br>3. Se não houver ações (e não forem obrigatórias), conclui direto. |
+| **Aguardando Verificação** | Todos os campos obrigatórios preenchidos, MAS possui **ações configuradas como obrigatórias** que ainda não foram marcadas como eficazes. |
+| **Concluída** | 1. Todos os campos obrigatórios preenchidos.<br>2. Se houver ações obrigatórias, todas devem ser eficazes.<br>3. Se as ações não forem obrigatórias, a RCA conclui ignorando o estado das ações. |
 
 > **Nota:** O sistema impede a conclusão manual se as regras acima não forem satisfeitas.
 
@@ -42,16 +61,15 @@ A obrigatoriedade dos campos é dinâmica e configurável via `TaxonomyService`.
 
 ---
 
-## ⚡ Regras de Gatilhos (Triggers)
+## Regras de Gatilhos (Triggers)
 
 Os gatilhos representam eventos de parada que podem ou não virar uma RCA.
-- **Conversão:** Um gatilho pode ser "promovido" a RCA. O sistema cria o vínculo `trigger.rca_id`.
-- **Exclusividade:** Uma RCA pode ter **apenas um** gatilho vinculado atualmente.
-> *Nota: A estrutura de One-to-Many está em roadmap.*
+- **Conversão/Vínculo:** Um ou mais gatilhos podem ser vinculados a uma única RCA. Isso permite que falhas recorrentes em um curto período sejam tratadas em uma análise unificada.
+- **Relacionamento:** A estrutura de dados suporta **N:1** (Múltiplos Triggers para 1 RCA).
 
 ---
 
-## ✅ Planos de Ação (CAPA)
+## Planos de Ação
 
 Ações Corretivas e Preventivas vinculadas a uma RCA.
 - **Recálculo em Cascata:** Criar, editar ou excluir uma ação dispara imediatamente o recálculo do status da RCA pai (`RcaService.updateRca`).
@@ -59,7 +77,7 @@ Ações Corretivas e Preventivas vinculadas a uma RCA.
 
 ---
 
-## 🛡️ Integridade de Dados e Migração
+## Integridade de Dados e Migração
 
 O `RcaService` implementa normalizadores (`migrateRcaData`) para garantir que dados legados não quebrem a aplicação:
 - **5 Porquês:** Garante array mínimo de 5 posições.
@@ -69,11 +87,11 @@ O `RcaService` implementa normalizadores (`migrateRcaData`) para garantir que da
 ---
 
 ## 📚 Documentação Relacionada
-- [PRD - Requisitos](./PRD.md)
-- [API Reference](./API_REFERENCE.md)
+- [PRD - Requisitos](../core/PRD.md)
+- [Referência da API](../core/REFERENCIA_API.md)
 
 ---
 
-> **Nota de Manutenção:** Mantenha este documento atualizado. Alterações nas regras de negócio devem ser sincronizadas com os testes em [TEST_CATALOG.md](./TEST_CATALOG.md).
-- [Catálogo de Testes](./TEST_CATALOG.md)
-- [Arquitetura Técnica](./ARCHITECTURE.md)
+> **Nota de Manutenção:** Mantenha este documento atualizado. Alterações nas regras de negócio devem ser sincronizadas com os testes em [CATALOGO_TESTES.md](../qa/CATALOGO_TESTES.md).
+- [Catálogo de Testes](../qa/CATALOGO_TESTES.md)
+- [Arquitetura Técnica](../core/ARQUITETURA.md)

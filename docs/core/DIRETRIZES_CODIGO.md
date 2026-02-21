@@ -135,7 +135,8 @@ Seguimos rigorosamente o padrão de Conventional Commits para manter um históri
 
 ## 8. Testes
 
-Consulte o documento [docs/TESTING.md](./TESTING.md) para diretrizes detalhadas sobre a pirâmide de testes e resolução de problemas técnicos em automação.
+Consulte o documento [docs/qa/TESTES.md](../qa/TESTES.md)
+ para diretrizes detalhadas sobre a pirâmide de testes e resolução de problemas técnicos em automação.
 
 ---
 
@@ -145,11 +146,12 @@ Consulte o documento [docs/TESTING.md](./TESTING.md) para diretrizes detalhadas 
 
 ## 📚 Documentação Relacionada
 - [Visão Geral do Produto (PRD)](./PRD.md)
-- [Arquitetura Técnica](./ARCHITECTURE.md)
-- [Referência da API](./API_REFERENCE.md)
+- [Arquitetura Técnica](./ARQUITETURA.md)
+- [Referência da API](./REFERENCIA_API.md)
 - [Design System](./DESIGN_SYSTEM.md)
-- [Guia de Testes](./TESTING.md)
+- [Guia de Testes](../qa/TESTES.md)
 
 ---
 
-> **Nota de Manutenção:** Mantenha este documento atualizado. Novas convenções de código devem ser alinhadas com a equipe e registradas aqui. Consulte [ARCHITECTURE.md](./ARCHITECTURE.md) para impacto sistêmico.
+> **Nota de Manutenção:** Mantenha este documento atualizado. Novas convenções de código devem ser alinhadas com a equipe e registradas aqui. Consulte [ARQUITETURA.md](./ARQUITETURA.md)
+ para impacto sistêmico.

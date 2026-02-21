@@ -143,7 +143,7 @@ O sistema foi desenhado para escalabilidade (Multi-Manufatura).
 
 ## 7. Padrões de Código e Qualidade
 
-O projeto segue diretrizes estritas de desenvolvimento definidas em `docs/CODE_GUIDELINES.md`:
+O projeto segue diretrizes estritas de desenvolvimento definidas em `./DIRETRIZES_CODIGO.md`:
 
 - **Padronização:** ESLint e Prettier para garantir consistência de estilo.
 - **Commits:** Padrão Conventional Commits obrigatório (`feat:`, `fix:`, `docs:`, `refactor:`).
@@ -160,12 +160,17 @@ O projeto segue diretrizes estritas de desenvolvimento definidas em `docs/CODE_G
 
 ## 📚 Documentação Relacionada
 - [Visão Geral do Produto (PRD)](./PRD.md)
-- [Regras de Negócio](./BUSINESS_RULES.md)
-- [Referência da API](./API_REFERENCE.md)
-- [Diretrizes de Código](./CODE_GUIDELINES.md)
-- [Design System](./DESIGN_SYSTEM.md)
-- [Guia de Testes](./TESTING.md)
-- [Catálogo de Testes](./TEST_CATALOG.md)
+- [Regras de Negócio](../processes/REGRAS_NEGOCIO.md)
+- [Referência da API](./REFERENCIA_API.md)
+- [Diretrizes de Código](./DIRETRIZES_CODIGO.md)
+- [Design System](../ux-ui/DESIGN_SYSTEM.md)
+- [Guia de Testes](../qa/TESTES.md)
+- [Modelo de Dados & Banco de Dados](../database/MODELO_DADOS.md)
+- [Arquitetura de Segurança](./SEGURANCA.md)
+- [Roadmap de IA (Issue #7)](../ai/ROADMAP.md)
+- [Design Técnico de IA (Issue #7)](../ai/DESIGN_TECNICO.md)
+- [Infraestrutura e Setup de IA](../ai/SETUP_IA.md)
+- [Documentação do MCP](../ai/MCP.md)
 
 ---
 

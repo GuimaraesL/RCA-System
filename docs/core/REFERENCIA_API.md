@@ -1,7 +1,26 @@
-# Referência da API (V2) - RCA System
+# Referência da API (v2)
 
-## 1. Visão Geral
+Este documento detalha os endpoints da API REST do RCA System, seguindo os padrões de Clean Architecture.
 
+```mermaid
+sequenceDiagram
+    participant FE as Frontend (Cliente)
+    participant BE as Backend (Express)
+    participant Zod as Validação Zod
+    participant UC as Casos de Uso (Domínio)
+    participant DB as SQLite (Armazenamento)
+    
+    FE->>BE: Requisição (JSON)
+    BE->>Zod: Analisar e Validar (Parse & Validate)
+    Zod-->>BE: Dados Validados
+    BE->>UC: Executar Lógica de Negócio
+    UC->>DB: Consultar / Persistir
+    DB-->>UC: Resultado do Registro
+    UC-->>BE: Resultado do Sucesso
+    BE-->>FE: HTTP 200/201 (JSON)
+```
+
+---
 A API V2 do RCA System segue o estilo arquitetural **RESTful**, utilizando **JSON** como formato padrão para troca de mensagens. Todas as rotas são prefixadas por `/api`.
 
 ### Convenções
@@ -187,13 +206,12 @@ Em caso de erro de validação (HTTP 400), a API retorna o formato padronizado d
 
 ## 📚 Documentação Relacionada
 - [Visão Geral do Produto (PRD)](./PRD.md)
-- [Arquitetura Técnica](./ARCHITECTURE.md)
-- [Regras de Negócio](./BUSINESS_RULES.md)
-- [Diretrizes de Código](./CODE_GUIDELINES.md)
-- [Design System](./DESIGN_SYSTEM.md)
-- [Guia de Testes](./TESTING.md)
-- [Catálogo de Testes](./TEST_CATALOG.md)
+- [Arquitetura Técnica](./ARQUITETURA.md)
+- [Regras de Negócio](../processes/REGRAS_NEGOCIO.md)
+- [Design System](../ux-ui/DESIGN_SYSTEM.md)
+- [Guia de Testes](../qa/TESTES.md)
+- [Catálogo de Testes](../qa/CATALOGO_TESTES.md)
 
 ---
 
-> **Nota de Manutenção:** Mantenha este documento atualizado. Qualquer alteração na API deve ser refletida aqui e, se impactar a arquitetura, no [ARCHITECTURE.md](./ARCHITECTURE.md).
+> **Nota de Manutenção:** Mantenha este documento atualizado. Qualquer alteração na API deve ser refletida aqui e, se impactar a arquitetura, no [ARQUITETURA.md](./ARQUITETURA.md).

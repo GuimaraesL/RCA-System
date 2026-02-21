@@ -44,12 +44,12 @@ O **RCA System** nasce para ser a **Plataforma Única de Verdade**, substituindo
 ### 3.1 Módulo de Triggers (Eventos)
 - **RF-001 (Importação):** O sistema deve permitir a importação de eventos via CSV/JSON com validação estrita de schema (datas, floats).
 - **RF-002 (Listagem):** Exibição tabular de eventos de parada com performance O(1) para renderização.
-- **RF-003 (Vínculo):** Permitir associar **um único** Trigger a uma RCA. (Suporte a múltiplos triggers previsto para versões futuras).
+- **RF-003 (Vínculo):** Permitir associar **múltiplos** Gatilhos (Triggers) a uma única RCA, permitindo que uma única análise consolide diversos eventos de parada relacionados.
 
 ### 3.2 Módulo de RCA (Root Cause Analysis)
 - **RF-004 (Metodologia 6M):** Interface interativa para classificação de causas nas 6 categorias (Mão de obra, Método, Máquina, Material, Meio ambiente, Medida).
 - **RF-005 (Herança de Dados):** Ao criar uma RCA a partir de um Trigger, herdar automaticamente: Data, Equipamento, Área e Descrição preliminar.
-- **RF-006 (Auto-Status):** O sistema deve calcular automaticamente o status da análise (`Em Andamento`, `Aguardando Validação`, `Concluído`) baseado no preenchimento dos campos obrigatórios e planos de ação.
+- **RF-006 (Auto-Status):** O sistema deve calcular automaticamente o status da análise (`Em Andamento`, `Aguardando Validação`, `Concluído`) baseado no preenchimento dos campos definidos como obrigatórios na configuração do sistema (incluindo a obrigatoriedade flexível do Plano de Ações).
 
 ### 3.3 Dashboard & Analytics
 - **RF-007 (Dashboard):** Visualização interativa da distribuição de falhas por categoria (6M).
@@ -116,17 +116,17 @@ O **RCA System** nasce para ser a **Plataforma Única de Verdade**, substituindo
 
 ---
 
-> **Nota:** Este documento deve ser mantido atualizado em sincronia com `docs/DESIGN_SYSTEM.md` e `docs/TESTING.md`.
+> **Nota:** Este documento deve ser mantido atualizado em sincronia com `docs/DESIGN_SYSTEM.md` e `docs/TESTES.md`.
 
 ---
 
 ## 📚 Documentação Relacionada
-- [Arquitetura Técnica](./ARCHITECTURE.md)
-- [Regras de Negócio](./BUSINESS_RULES.md)
-- [Referência da API](./API_REFERENCE.md)
-- [Diretrizes de Código](./CODE_GUIDELINES.md)
+- [Arquitetura Técnica](./ARQUITETURA.md)
+- [Regras de Negócio](../processes/REGRAS_NEGOCIO.md)
+- [Referência da API](./REFERENCIA_API.md)
+- [Diretrizes de Código](./DIRETRIZES_CODIGO.md)
 - [Design System](./DESIGN_SYSTEM.md)
-- [Guia de Testes](./TESTING.md)
+- [Guia de Testes](../qa/TESTES.md)
 
 ---
 

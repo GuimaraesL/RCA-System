@@ -8,10 +8,20 @@ O design system do RCA System segue um estilo **Corporate Professional**, focado
 - **Body (Texto):** Inter (Neutro, altamente legível em interfaces densas)
 
 ### Espaçamento & Layout
-Utiliza o sistema de grid de 8px (0.5rem) padrão do Tailwind.
-- **Micro-espaçamento:** 4px, 8px
-- **Componente-espaçamento:** 16px, 24px
 - **Seção-espaçamento:** 48px, 64px
+
+```mermaid
+graph LR
+    System[Design System] --> Tokens[Design Tokens]
+    Tokens --> Colors[Cores]
+    Tokens --> Space[Espaçamento]
+    Tokens --> Typography[Tipografia]
+    
+    Colors --> Semantic[Semântica: Success, Warning, Error]
+    Colors --> Neutral[Neutros: Surface, Border, Text]
+    
+    style System fill:#f1f5f9,stroke:#64748b,color:#000
+```
 
 ## 2. Paleta de Cores
 
@@ -108,11 +118,11 @@ Containers principais de conteúdo.
 ---
 
 ## 📚 Documentação Relacionada
-- [Visão Geral do Produto (PRD)](./PRD.md)
-- [Arquitetura Técnica](./ARCHITECTURE.md)
-- [Referência da API](./API_REFERENCE.md)
-- [Diretrizes de Código](./CODE_GUIDELINES.md)
-- [PRD - Requisitos de UX](./PRD.md)
+- [Visão Geral do Produto (PRD)](../core/PRD.md)
+- [Arquitetura Técnica](../core/ARQUITETURA.md)
+- [Referência da API](../core/REFERENCIA_API.md)
+- [Diretrizes de Código](../core/DIRETRIZES_CODIGO.md)
+- [PRD - Requisitos de UX](../core/PRD.md)
 
 ---
 

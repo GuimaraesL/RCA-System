@@ -8,20 +8,18 @@ O **RCA System** é uma plataforma corporativa para a **Gestão do Ciclo de Vida
 
 ---
 
-## 📚 Documentação Técnica Completa
+## 📚 Central de Documentação
 
-A documentação do projeto foi revisada e organizada para facilitar o desenvolvimento:
+A documentação do projeto foi revisada e organizada em categorias para facilitar o acesso:
 
-| Documento | Descrição |
-| :--- | :--- |
-| 🏗️ **[Arquitetura](./docs/ARCHITECTURE.md)** | Visão geral técnica, diagrama de componentes e fluxo de dados. |
-| 🧠 **[Regras de Negócio](./docs/BUSINESS_RULES.md)** | Ciclo de vida da RCA, lógica de status e validações de domínio. |
-| 🔌 **[API Reference](./docs/API_REFERENCE.md)** | Endpoints da API REST (v2), schemas e exemplos de requisição. |
-| 📋 **[Product Requirements](./docs/PRD.md)** | Visão do produto, personas e requisitos funcionais (RF/RNF). |
-| 🎨 **[Design System](./docs/DESIGN_SYSTEM.md)** | Guia de estilos, paleta de cores e componentes UI. |
-| 🧪 **[Guia de Testes](./docs/TESTING.md)** | Estratégia de testes (Unitários, E2E) e comandos de execução. |
-| 🔍 **[Catálogo de Testes](./docs/TEST_CATALOG.md)** | Lista detalhada de todos os arquivos de teste e suas coberturas. |
-| 📝 **[Diretrizes de Código](./docs/CODE_GUIDELINES.md)** | Padrões de nomenclatura, estrutura de pastas e boas práticas. |
+👉 **[Acesse a Central de Documentação](./docs/README.md)**
+
+Nela você encontrará detalhes sobre:
+- 🏗️ **Arquitetura & Core** (Monorepo, Clean Architecture, API)
+- 🎨 **Design System** (Identidade Visual, Componentes)
+- 🧪 **Estratégia de Testes** (Unitários, Integração, E2E)
+- ⚙️ **Processos de Negócio** (Ciclo de Vida RCA, Regras)
+- 🤖 **Inteligência Artificial** (Roadmap, Design Técnico)
 
 ---
 
@@ -61,7 +59,7 @@ npm run dev
 
 ---
 
-> **Nota de Manutenção:** Mantenha este README atualizado. Para detalhes técnicos profundos, consulte a pasta `docs/` e o [PRD](./docs/PRD.md).
+> **Nota de Manutenção:** Mantenha este README atualizado. Para detalhes técnicos profundos, consulte a pasta `docs/` e o [PRD](./docs/core/PRD.md).
 
 ---
 
