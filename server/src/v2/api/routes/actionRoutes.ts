@@ -1,19 +1,25 @@
-/**
- * Proposta: Definição de rotas HTTP para a entidade Action (Planos de Ação).
- */
-
 import { Router } from 'express';
 import { ActionController } from '../controllers/ActionController';
+import { authMiddleware } from '../../infrastructure/middlewares/AuthMiddleware';
+import { rbacMiddleware } from '../../infrastructure/middlewares/RbacMiddleware';
 
 const router = Router();
 const controller = new ActionController();
 
+// Todas as rotas de Ações exigem autenticação
+router.use(authMiddleware);
+
+// Rotas de Leitura
 router.get('/', controller.getAll);
 router.get('/:id', controller.getById);
-router.post('/', controller.create);
-router.post('/bulk', controller.bulkImport);
-router.post('/bulk-delete', controller.bulkDelete);
-router.put('/:id', controller.update);
-router.delete('/:id', controller.delete);
+
+// Rotas de Escrita (Engenheiro ou Administrador)
+const canWrite = rbacMiddleware(['Engenheiro', 'Administrador']);
+
+router.post('/', canWrite, controller.create);
+router.post('/bulk', canWrite, controller.bulkImport);
+router.post('/bulk-delete', canWrite, controller.bulkDelete);
+router.put('/:id', canWrite, controller.update);
+router.delete('/:id', canWrite, controller.delete);
 
 export default router;
