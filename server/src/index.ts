@@ -3,13 +3,17 @@
  * Fluxo: Inicializa middlewares, monta as rotas da arquitetura V2 e orquestra a conexão assíncrona com o banco de dados (sql.js).
  */
 
+import 'dotenv/config';
 import express from 'express';
+
 import cors from 'cors';
+import helmet from 'helmet';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Configuração de Middlewares
+// Configuração de Middlewares de Segurança
+app.use(helmet()); // Proteção contra vulnerabilidades web comuns (Issue #50)
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 

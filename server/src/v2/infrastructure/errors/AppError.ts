@@ -45,3 +45,21 @@ export class BusinessError extends AppError {
         super(message, statusCode);
     }
 }
+
+/**
+ * Erro para falhas de autenticação (HTTP 401).
+ */
+export class UnauthorizedError extends AppError {
+    constructor(message: string = 'Não autorizado') {
+        super(message, 401);
+    }
+}
+
+/**
+ * Erro para falhas de permissão (HTTP 403).
+ */
+export class ForbiddenError extends AppError {
+    constructor(message: string = 'Acesso proibido') {
+        super(message, 403);
+    }
+}
