@@ -1,6 +1,6 @@
 /**
  * Proposta: Schemas de validação de dados utilizando a biblioteca Zod.
- * Fluxo: Define as regras de integridade e os tipos esperados para cada entidade (RCA, Gatilho, Ação, Ativo), garantindo a segurança dos dados recebidos via API.
+ * Fluxo: Define as regras de integridade e os tipos esperados para cada entidade (RCA, Gatilho, Ação, Ativo, FMEA), garantindo a segurança dos dados recebidos via API.
  */
 
 import { z } from 'zod';
@@ -71,7 +71,8 @@ export const rcaSchema = z.object({
     general_moc_number: z.string().nullish(),
     additional_info: jsonStruct,
     additionalInfo: jsonStruct,
-    file_path: z.string().nullish()
+    file_path: z.string().nullish(),
+    attachments: jsonStruct // Adicionado em v3.0
 });
 
 /**
@@ -80,12 +81,12 @@ export const rcaSchema = z.object({
  */
 export const triggerSchema = z.object({
     id: z.string().optional(),
-    area_id: z.string().nullish(), // Relaxado: Obrigigatoriedade vem da config
+    area_id: z.string().nullish(),
     equipment_id: z.string().nullish(),
     subgroup_id: z.string().nullish(),
 
-    start_date: z.string().nullish(), // Relaxado
-    end_date: z.string().nullish(),   // Relaxado
+    start_date: z.string().nullish(),
+    end_date: z.string().nullish(),
     duration_minutes: z.coerce.number().optional().default(0),
 
     stop_type: z.string().nullish(),
@@ -98,9 +99,6 @@ export const triggerSchema = z.object({
     rca_id: z.string().nullish(),
     file_path: z.string().nullish()
 });
-
-export type RcaInput = z.infer<typeof rcaSchema>;
-export type TriggerInput = z.infer<typeof triggerSchema>;
 
 /**
  * Schema para Planos de Ação (CAPA).
@@ -124,3 +122,25 @@ export const assetSchema = z.object({
     type: z.string().min(1, "Tipo do ativo é obrigatório"),
     parent_id: z.string().nullish()
 });
+
+/**
+ * Schema para Modos de Falha (FMEA).
+ */
+export const fmeaSchema = z.object({
+    id: z.string().optional(),
+    asset_id: z.string().min(1, "O ID do ativo é obrigatório"),
+    failure_mode: z.string().min(1, "O modo de falha é obrigatório"),
+    potential_effects: z.string().nullish(),
+    severity: z.coerce.number().min(1).max(10).optional().default(1),
+    potential_causes: z.string().nullish(),
+    occurrence: z.coerce.number().min(1).max(10).optional().default(1),
+    current_controls: z.string().nullish(),
+    detection: z.coerce.number().min(1).max(10).optional().default(1),
+    recommended_actions: z.string().nullish()
+});
+
+export type RcaInput = z.infer<typeof rcaSchema>;
+export type TriggerInput = z.infer<typeof triggerSchema>;
+export type ActionInput = z.infer<typeof actionSchema>;
+export type AssetInput = z.infer<typeof assetSchema>;
+export type FmeaInput = z.infer<typeof fmeaSchema>;

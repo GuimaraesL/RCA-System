@@ -58,10 +58,11 @@ O agente será um serviço independente em Python (FastAPI + Agno) operando em u
 
 ## Roadmap de Implementação
 
-### Fase 1: Fundação & Infra (Semanas 1-2)
-- [ ] Setup do Microserviço Python (FastAPI + Agno + Docker).
+### Fase 1: Fundação & Infra (Concluída 🚀)
+- [x] Setup do Microserviço Python (FastAPI + Agno + Docker).
+- [x] Implementação da tabela `fmea_modes` (Antecipada da Fase 4).
+- [x] Estrutura base de segurança (JWT/RBAC) integrada.
 - [ ] Configuração do **Vector DB Central** (ChromaDB ou SQLite-vec).
-- [ ] Implementação das ferramentas base de consulta ao banco de dados centralizado.
 
 ### Fase 2: Assistência & UI (Semanas 3-4)
 - [ ] Pipeline de RAG (Indexação de embeddings do histórico).
@@ -73,9 +74,9 @@ O agente será um serviço independente em Python (FastAPI + Agno) operando em u
 - [ ] Sistema de alertas contextuais proativos na UI.
 - [ ] Dashboard de tendências e reincidência por ativo.
 
-### Fase 4: Especialização & FMEA (Futuro)
+### Fase 4: Especialização & FMEA (Em Andamento 🛠️)
 - [ ] **Integração FMEA (UI):** Criação da aba de gestão de FMEA dentro da guia de Ativos (Assets).
-- [ ] **Persistência:** Implementação da tabela `fmea_modes` (N:1 com Assets).
+- [x] **Persistência:** Implementação da tabela `fmea_modes` (N:1 com Assets) — **CONCLUÍDO**.
 - [ ] **IA Sync:** Conector para enriquecer sugestões de Causa Raiz cruzando dados de FMEA.
 - [ ] **Análise Multimodal:** Análise de fotos de falhas e diagramas técnicos.
 - [ ] **Conector de Triggers:** Fluxo automático para verificar se um novo Trigger tem correlação com RCAs abertas.

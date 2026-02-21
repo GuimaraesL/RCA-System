@@ -50,6 +50,11 @@ Nenhum dado sensível deve ser mantido no código fonte.
 - **Arquivos .env:** Chaves de API (OpenAI/Azure), segredos de banco de dados e chaves de assinatura JWT devem ser injetados via variáveis de ambiente.
 - **Precedence:** Em produção, as variáveis de ambiente do servidor/contêiner sobrepõem qualquer arquivo local.
 
+### 4.1. Ambiente de Desenvolvimento (Bypass)
+- **Modo DEV:** Quando `NODE_ENV=development`, o sistema permite bypass automático de autenticação se nenhum token for fornecido.
+- **Identidade Automática:** Usuários em bypass são identificados como `Desenvolvedor Local` com papel de `Administrador`.
+- **Rastro:** Logs do servidor registram `🔓 Bypass automático em DEV` para auditoria de tráfego local.
+
 ---
 
 ## 5. Auditoria e Monitoramento

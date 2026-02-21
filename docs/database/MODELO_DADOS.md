@@ -103,11 +103,14 @@ erDiagram
         string id PK
         string asset_id FK
         string failure_mode
-        string failure_effect
+        string potential_effects
         int severity
+        string potential_causes
         int occurrence
+        string current_controls
         int detection
-        int rpn
+        int rpn "Calculado"
+        string recommended_actions
     }
 ```
 
@@ -120,11 +123,14 @@ O FMEA será armazenado em uma tabela dedicada para permitir múltiplos modos de
 | **id** | TEXT (PK) | UUID identificador do modo de falha. |
 | **asset_id** | TEXT (FK) | Vínculo com a tabela `assets`. |
 | **failure_mode** | TEXT | Descrição do modo de falha (ex: "Travamento de rolamento"). |
-| **failure_effect** | TEXT | Impacto causado pela falha. |
+| **potential_effects**| TEXT | Efeitos potenciais do modo de falha. |
 | **severity** | INTEGER | Nota de Gravidade (1 a 10). |
+| **potential_causes** | TEXT | Causas potenciais identificadas para o modo de falha. |
 | **occurrence** | INTEGER | Nota de Ocorrência (1 a 10). |
+| **current_controls** | TEXT | Controles atuais existentes para prevenir/detectar. |
 | **detection** | INTEGER | Nota de Detecção (1 a 10). |
-| **rpn** | INTEGER | Risk Priority Number (Calculado automaticamente). |
+| **rpn** | INTEGER | Risk Priority Number (Calculado automaticamente: S * O * D). |
+| **recommended_actions**| TEXT | Ações recomendadas para mitigação do risco. |
 
 ---
 
