@@ -9,6 +9,10 @@ Documentos fundamentais sobre a estrutura e diretrizes do sistema.
 - [Diretrizes de Código](./core/DIRETRIZES_CODIGO.md) - Padrões de desenvolvimento e commits.
 - [PRD (Product Requirements)](./core/PRD.md) - Requisitos e visão do produto.
 
+## 💾 Banco de Dados
+- [Modelo de Dados Operacional](./database/MODELO_DADOS.md) - Estrutura do SQLite (`rca.db`) e plano FMEA.
+- [Estrutura de Dados Raiz (IA)](./database/ESTRUTURA_DADOS_RAIZ.md) - Base de conhecimento e bancos vetoriais (`/data`).
+
 ## 🎨 Design & UX/UI
 Tudo sobre a identidade visual e experiência do usuário.
 - [Design System](./ux-ui/DESIGN_SYSTEM.md) - Paleta de cores, tipografia e componentes.

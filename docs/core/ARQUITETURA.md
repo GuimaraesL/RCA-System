@@ -166,6 +166,7 @@ O projeto segue diretrizes estritas de desenvolvimento definidas em `./DIRETRIZE
 - [Design System](../ux-ui/DESIGN_SYSTEM.md)
 - [Guia de Testes](../qa/TESTES.md)
 - [Modelo de Dados & Banco de Dados](../database/MODELO_DADOS.md)
+- [Estrutura de Dados Raiz (IA)](../database/ESTRUTURA_DADOS_RAIZ.md)
 - [Arquitetura de Segurança](./SEGURANCA.md)
 - [Roadmap de IA (Issue #7)](../ai/ROADMAP.md)
 - [Design Técnico de IA (Issue #7)](../ai/DESIGN_TECNICO.md)
