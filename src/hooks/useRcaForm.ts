@@ -10,12 +10,14 @@ import { useRcaContext } from '../context/RcaContext';
 import { STATUS_IDS, ROOT_CAUSE_M_IDS } from '../constants/SystemConstants';
 import { updateDeep } from '../utils/objectUtils';
 import { useToast } from '../context/ToastContext';
+import { analyzeRcaWithAI } from '../services/aiService';
 
 export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () => void) => {
     const { assets, taxonomy, actions, addRecord, updateRecord, addAction, updateAction, deleteAction, refreshAll } = useRcaContext();
 
     const [step, setStep] = useState(1);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [aiInsight, setAiInsight] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
     const [linkedActions, setLinkedActions] = useState<ActionRecord[]>([]);
@@ -231,9 +233,23 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
     };
 
     const handleAnalyzeAI = async () => {
+        if (!formData.what && !formData.problem_description) {
+            toast.error('Preencha ao menos o Título ou Descrição do problema para a IA analisar.');
+            return;
+        }
+
         setIsAnalyzing(true);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setIsAnalyzing(false);
+        setAiInsight(null);
+        try {
+            const result = await analyzeRcaWithAI(formData);
+            setAiInsight(result.ai_insight);
+            toast.success('Análise de IA concluída!');
+        } catch (error) {
+            console.error('AI Error:', error);
+            toast.error('Falha ao obter análise da IA. Verifique se o serviço está rodando.');
+        } finally {
+            setIsAnalyzing(false);
+        }
     };
 
     const hasStepError = useCallback((stepFields: string[]) => {
@@ -244,6 +260,7 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
         formData, setFormData,
         step, setStep,
         isAnalyzing,
+        aiInsight, setAiInsight,
         isSaving,
         validationErrors,
         linkedActions,

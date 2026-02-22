@@ -170,7 +170,6 @@ O projeto segue diretrizes estritas de desenvolvimento definidas em `./DIRETRIZE
 - [Roadmap de IA (Issue #7)](../ai/ROADMAP.md)
 - [Design Técnico de IA (Issue #7)](../ai/DESIGN_TECNICO.md)
 - [Infraestrutura e Setup de IA](../ai/SETUP_IA.md)
-- [Documentação do MCP](../ai/MCP.md)
 
 ---
 

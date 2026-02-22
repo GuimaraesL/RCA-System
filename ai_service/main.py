@@ -1,35 +1,49 @@
 # AI Service - Entrypoint
-# Ponto de entrada principal que inicializa o microserviço FastAPI e a ponte MCP.
+# Ponto de entrada principal que inicializa o microserviço FastAPI e a Base de Conhecimento.
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from mcp import ClientSession
 import uvicorn
+import asyncio
+from fastapi.middleware.cors import CORSMiddleware
 
-from mcp_bridge import mcp_bridge
+from agent.knowledge import get_rca_knowledge_base, index_historical_rcas
 from api.routes import router as api_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("🚀 Starting AI Service...")
+    print("Starting AI Service...")
+    
+    # Carregar Base de Conhecimento (RAG)
     try:
-        mcp_context = await mcp_bridge.connect()
-        async with mcp_context as (read_stream, write_stream):
-            async with ClientSession(read_stream, write_stream) as session:
-                await session.initialize()
-                mcp_bridge.set_session(session)
-                print("✅ MCP Bridge ready.")
-                yield
-    except Exception as e:
-        print(f"⚠️ MCP connection failed: {e}")
-        yield
-    finally:
-        print("🛑 AI Service stopping.")
+        knowledge_base = get_rca_knowledge_base()
+        
+        # Load static knowledge from data/knowledge
+        knowledge_base.add_content(path="data/knowledge")
+        print("Static Knowledge Base loaded.")
+        
+        # Indexar Histórico de RCAs (Dinâmico) em background
+        # Usamos to_thread para não bloquear o loop de eventos da FastAPI
+        asyncio.create_task(asyncio.to_thread(index_historical_rcas))
+        print("Background indexing task started.")
+    except Exception as ke:
+        print(f"Knowledge Base load failed: {ke}")
+
+    yield
+    print("AI Service stopping.")
 
 app = FastAPI(
     title="RCA AI Service",
-    version="1.1.0",
+    version="1.2.0",
     lifespan=lifespan
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Permitir todas as origens para desenvolvimento
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(api_router)

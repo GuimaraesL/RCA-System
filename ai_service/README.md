@@ -6,9 +6,8 @@ Este é o microserviço de inteligência artificial do RCA System, responsável 
 O serviço foi refatorado para uma estrutura modular limpa:
 - `agent/`: Cérebro do agente (Prompts, Ferramentas, Definição).
 - `api/`: Camada de interface REST (FastAPI).
-- `config.py`: Gestão centralizada de configurações.
-- `mcp_bridge.py`: Cliente de comunicação com o servidor MCP (Node.js).
-- `main.py`: Ponto de entrada e gestão de ciclo de vida.
+- `config.py`: Gestão centralizada de configurações e caminhos.
+- `main.py`: Ponto de entrada, gestão de ciclo de vida e background syncing.
 
 ## 🚀 Como Executar Localmente
 
@@ -30,7 +29,7 @@ pip install -r requirements.txt
 Crie um arquivo `.env` baseado no exemplo abaixo:
 ```env
 GOOGLE_API_KEY=sua_chave_aqui
-MCP_SERVER_URL=http://localhost:3001/api/mcp/sse
+BACKEND_URL=http://localhost:3001/api
 INTERNAL_AUTH_KEY=dev-key-change-it
 ```
 
@@ -41,8 +40,12 @@ python main.py
 O servidor iniciará em `http://localhost:8000`.
 
 ## 🛡️ Endpoints Principais
-- `GET /health`: Verifica o status do serviço e da ponte MCP.
-- `POST /analyze`: Solicita uma análise profunda de uma RCA (exige `x-internal-key`).
+- `GET /health`: Verifica o status do serviço.
+- `POST /analyze`: Solicita uma análise profunda de uma RCA baseada no RAG e FMEA (exige `x-internal-key`).
+
+## 🧠 Inteligência e Otimização
+- **Hash Control**: O serviço utiliza um banco SQLite local (`data/rca_knowledge.db`) para rastrear RCAs já indexadas. Isso evita chamadas repetitivas à API de Embeddings da Google, economizando créditos.
+- **REST-First**: A comunicação com o backend Node.js é feita via HTTP direto, garantindo robustez e facilidade de depuração.
 
 ---
 Para documentação técnica detalhada, consulte [docs/ai/SETUP_IA.md](../docs/ai/SETUP_IA.md).

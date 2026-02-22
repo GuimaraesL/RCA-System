@@ -43,6 +43,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         formData, setFormData,
         step, setStep,
         isAnalyzing,
+        aiInsight, setAiInsight,
         isSaving,
         validationErrors,
         linkedActions,
@@ -163,7 +164,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                         <div className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-3 mt-1">
                             <Badge variant="neutral" size="sm" className="font-mono">ID: {formData.id}</Badge>
                             <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-                            <Badge variant="neutral" size="sm">{t('common.version') || 'Versão'}: {formData.version}</Badge>
+                            <Badge variant="neutral" size="sm">{t('common.version')}: {formData.version}</Badge>
                         </div>
                     </div>
                 </div>
@@ -263,7 +264,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                     variant="ghost"
                     onClick={onClose}
                     data-testid="btn-cancel-editor"
-                    title="Esc"
+                    title={t('common.shortcuts.esc')}
                 >
                     {t('common.cancel')}
                 </Button>
@@ -273,7 +274,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                             variant="secondary"
                             onClick={goToPrev}
                             data-testid="btn-prev-step"
-                            title="←"
+                            title={t('common.shortcuts.arrowLeft')}
                         >
                             {t('pagination.previous')}
                         </Button>
@@ -284,7 +285,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                         isLoading={isSaving}
                         data-testid="btn-save-rca"
                         className="gap-2"
-                        title="Ctrl+S"
+                        title={t('common.shortcuts.ctrlS')}
                     >
                         {!isSaving && <Save size={18} />}
                         <ShortcutLabel text={t('common.save')} shortcutLetter="S" />
@@ -295,7 +296,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                             onClick={goToNext}
                             data-testid="btn-next-step"
                             className="group gap-2 px-8"
-                            title="→"
+                            title={t('common.shortcuts.arrowRight')}
                         >
                             {t('pagination.next')}
                             <ArrowLeft size={18} className="rotate-180 group-hover:translate-x-1 transition-transform" />
@@ -306,6 +307,35 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
 
             <ActionModal isOpen={isActionModalOpen} initialData={editingAction} fixedRca={{ id: formData.id, title: formData.what || formData.id || t('analysesPage.newTitle') }} onClose={() => setIsActionModalOpen(false)} onSave={onSaveActionUI} />
             <ConfirmModal isOpen={deleteActionModalOpen} title={t('common.delete')} message={t('modals.deleteActionMessage')} confirmText={t('common.delete')} cancelText={t('common.cancel')} onConfirm={confirmDeleteAction} onCancel={() => { setDeleteActionModalOpen(false); setActionToDelete(null); }} variant="danger" />
+
+            {aiInsight && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col border border-slate-200 dark:border-slate-700">
+                        <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-slate-900">
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <span className="text-2xl">✨</span>
+                                {t('ai.analysisTitle')}
+                            </h3>
+                            <button onClick={() => setAiInsight(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                                <ArrowLeft size={24} className="rotate-180" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-950/50 font-mono text-sm leading-relaxed whitespace-pre-wrap text-slate-700 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800">
+                            {aiInsight}
+                        </div>
+
+                        <div className="p-4 flex justify-end gap-3 bg-white dark:bg-slate-900 rounded-b-xl">
+                            <Button variant="secondary" onClick={() => setAiInsight(null)}>
+                                {t('common.close')}
+                            </Button>
+                            <Button variant="primary" onClick={() => { navigator.clipboard.writeText(aiInsight); setAiInsight(null); }}>
+                                {t('common.copy')}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

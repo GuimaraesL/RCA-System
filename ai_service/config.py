@@ -7,9 +7,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://localhost:3001/api/mcp/sse")
-INTERNAL_AUTH_KEY = os.getenv("INTERNAL_AUTH_KEY", "dev-key-change-it")
+BACKEND_URL = os.getenv("BACKEND_URL")
+INTERNAL_AUTH_KEY = os.getenv("INTERNAL_AUTH_KEY")
 NODE_ENV = os.getenv("NODE_ENV", "development")
 
+# Caminhos de dados (Centralizados na raiz)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+VECTOR_DB_PATH = os.path.join(PROJECT_ROOT, "data", "vector_db")
+KNOWLEDGE_DB_PATH = os.path.join(PROJECT_ROOT, "data", "rca_knowledge.db")
+
 if not GOOGLE_API_KEY:
-    print("GOOGLE_API_KEY not configured.")
+    print("WARNING: GOOGLE_API_KEY not configured in .env")
+if not BACKEND_URL:
+    print("WARNING: BACKEND_URL not configured in .env")

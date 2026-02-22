@@ -17,7 +17,6 @@ O serviço está organizado seguindo princípios de responsabilidade única:
 - `agent/`: Configurações, prompts e ferramentas do RCA Detective.
 - `api/`: Rotas FastAPI e modelos Pydantic.
 - `config.py`: Gestão de configurações e ambiente.
-- `mcp_bridge.py`: Ponte de comunicação com o servidor MCP.
 - `main.py`: Entrypoint e gestão de lifespan.
 
 ---
@@ -43,17 +42,23 @@ As principais bibliotecas utilizadas são:
 - `agno`: Framework para orquestração de agentes.
 - `fastapi`, `uvicorn`: Servidor web assíncrono.
 - `google-generativeai`: Integração com o modelo Gemini.
-- `mcp`: SDK para o Model Context Protocol.
+- `httpx`: Cliente HTTP para integração com o Backend.
 
 ---
 
 ## 3. Variáveis de Ambiente (.env)
 
-| Variável | Descrição | Padrão |
-| :--- | :--- | :--- |
-| `GOOGLE_API_KEY` | Chave da API do Google Gemini. | (Obrigatório) |
-| `MCP_SERVER_URL` | URL do servidor MCP (Node.js). | `http://localhost:3001/api/mcp/sse` |
-| `INTERNAL_AUTH_KEY` | Chave para autenticação entre serviços. | `dev-key-change-it` |
+3. **Configuração de Variáveis de Ambiente (`.env`)**
+   ```env
+   GOOGLE_API_KEY=sua_chave_gemini_flash
+   BACKEND_URL=http://localhost:3001/api
+   INTERNAL_AUTH_KEY=sua_chave_de_seguranca_interna
+   ```
+
+4. **Execução**
+   ```bash
+   python main.py
+   ```
 
 ---
 
@@ -61,9 +66,9 @@ As principais bibliotecas utilizadas são:
 
 O microserviço foi desenhado para ser resiliente a falhas de conexão externa:
 
-### 4.1. Conexão MCP
-- **Startup:** O serviço inicia mesmo se o servidor MCP estiver offline, reportando um aviso no log.
-- **Runtime:** Se a ponte MCP cair, o endpoint `/analyze` retornará erro `503 Service Unavailable`, permitindo que o sistema principal trate a falha graciosamente.
+### 4.1. Conexão com o Backend
+- **Startup:** O serviço inicia e sincroniza as RCAs em background. Se o backend estiver offline, ele continuará tentando a sincronização sem travar o boot.
+- **Runtime:** Se o backend principal cair, as ferramentas de consulta retornarão erro graciosamente, informando que os dados externos estão temporariamente indisponíveis.
 
 ---
 
