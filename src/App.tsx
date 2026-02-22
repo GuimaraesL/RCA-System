@@ -4,7 +4,7 @@
  */
 
 import { STATUS_IDS } from './constants/SystemConstants';
-import React, { useState, useRef, useCallback, Suspense, lazy } from 'react';
+import React, { useState, useRef, useCallback, Suspense, lazy, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { RcaRecord, TriggerRecord } from './types';
 
@@ -168,7 +168,7 @@ const AppContent: React.FC = () => {
         setIsEditorOpen(true);
     };
 
-    const handleOpenRca = async (rcaId: string) => {
+    const handleOpenRca = useCallback(async (rcaId: string) => {
         const fullRecord = await import('./services/apiService').then(m => m.fetchRecordById(rcaId));
         if (fullRecord) {
             setEditingRecord(fullRecord);
@@ -180,7 +180,24 @@ const AppContent: React.FC = () => {
                 setIsEditorOpen(true);
             }
         }
-    };
+    }, [records]);
+
+    // Suporte a Deep Linking via Hash (ex: #/rca/ID)
+    useEffect(() => {
+        const handleHashChange = () => {
+            const hash = window.location.hash;
+            if (hash.startsWith('#/rca/')) {
+                const rcaId = hash.replace('#/rca/', '');
+                if (rcaId) {
+                    handleOpenRca(rcaId);
+                }
+            }
+        };
+
+        handleHashChange();
+        window.addEventListener('hashchange', handleHashChange);
+        return () => window.removeEventListener('hashchange', handleHashChange);
+    }, [handleOpenRca]);
 
     const getAssetName = (id: string, nodes: any[]): string => {
         for (const node of nodes) {

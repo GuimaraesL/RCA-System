@@ -2,12 +2,20 @@ import { RcaRecord } from '../types';
 
 // Em produção, isso deve vir de import.meta.env.VITE_AI_SERVICE_URL
 const AI_API_URL = 'http://localhost:8000/analyze';
-const INTERNAL_KEY = 'dev-key-change-it'; 
+const INTERNAL_KEY = 'dev-key-change-it';
+
+export interface RecurrenceInfo {
+    rca_id: string;
+    similarity: number;
+    title: string;
+    level: 'subgroup' | 'equipment' | 'area';
+}
 
 export interface AIAnalysisResponse {
     rca_id: string;
     ai_insight: string;
     status: string;
+    recurrences?: RecurrenceInfo[];
 }
 
 /**
@@ -15,12 +23,18 @@ export interface AIAnalysisResponse {
  */
 export const analyzeRcaWithAI = async (rca: RcaRecord): Promise<AIAnalysisResponse> => {
     // Monta um contexto rico para a IA, focando no problema e ativo
+    // Enriquecemos com o nome amigável do ativo para evitar "Não identificado"
     const context = JSON.stringify({
         title: rca.what,
         description: rca.problem_description || rca.where_description || 'Sem descrição detalhada',
-        asset: rca.asset_name_display || 'Ativo não identificado',
+        asset_display: rca.asset_name_display || 'Ativo em rascunho (Não persistido)',
         date: rca.failure_date,
-        // Enviar causas atuais pode ajudar a IA a refinar ou criticar
+        // Enviar os IDs ajuda o backend na busca, os nomes ajudam a IA no insight
+        hierarchy: {
+            area: rca.area_id,
+            equipment: rca.equipment_id,
+            subgroup: rca.subgroup_id
+        },
         current_causes: rca.root_causes?.map(rc => rc.cause).join('; ') || ''
     });
 
@@ -33,7 +47,10 @@ export const analyzeRcaWithAI = async (rca: RcaRecord): Promise<AIAnalysisRespon
             },
             body: JSON.stringify({
                 rca_id: rca.id,
-                context: context
+                context: context,
+                area_id: rca.area_id,
+                equipment_id: rca.equipment_id,
+                subgroup_id: rca.subgroup_id
             })
         });
 

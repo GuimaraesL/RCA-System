@@ -29,6 +29,7 @@ import { Step5Actions } from '../steps/Step5Actions';
 import { Step6Checklist } from '../steps/Step6Checklist';
 import { Step7Additional } from '../steps/Step7Additional';
 import { StepHRA } from '../steps/StepHRA';
+import { RecurrenceBanner } from '../ui/RecurrenceBanner';
 
 interface RcaEditorProps {
     existingRecord?: RcaRecord | null;
@@ -44,6 +45,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         step, setStep,
         isAnalyzing,
         aiInsight, setAiInsight,
+        recurrences,
         isSaving,
         validationErrors,
         linkedActions,
@@ -247,6 +249,7 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
             {/* Conteúdo */}
             <div className="flex-1 overflow-y-auto p-8 lg:p-12 bg-slate-50 dark:bg-slate-950 custom-scrollbar">
                 <div key={step} className="max-w-7xl mx-auto min-h-full animate-slide-up">
+                    <RecurrenceBanner recurrences={recurrences} />
                     {step === 1 && <Step1General data={formData} onChange={handleChange} assets={assets} taxonomy={taxonomy} onAssetSelect={handleAssetSelect} onRefreshAssets={refreshAssets} errors={validationErrors} isFieldRequired={isFieldRequired} />}
                     {step === 2 && <Step2Problem data={formData} onChange={handleChange} taxonomy={taxonomy} errors={validationErrors} isFieldRequired={isFieldRequired} />}
                     {step === 3 && <Step3Technical data={formData} onChange={handleChange} taxonomy={taxonomy} errors={validationErrors} isFieldRequired={isFieldRequired} />}
