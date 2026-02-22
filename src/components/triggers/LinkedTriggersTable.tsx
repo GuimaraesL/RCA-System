@@ -75,7 +75,7 @@ export const LinkedTriggersTable: React.FC<LinkedTriggersTableProps> = ({
                                 <td className="px-4 py-3 max-w-[120px] truncate font-bold text-slate-700 dark:text-slate-200" title={getAssetName(trigger.area_id, assets)}>{getAssetName(trigger.area_id, assets)}</td>
                                 <td className="px-4 py-3 max-w-[120px] truncate font-bold text-slate-700 dark:text-slate-200" title={getAssetName(trigger.equipment_id, assets)}>{getAssetName(trigger.equipment_id, assets)}</td>
                                 <td className="px-4 py-3 max-w-[120px] truncate font-bold text-slate-700 dark:text-slate-200" title={getAssetName(trigger.subgroup_id, assets)}>{getAssetName(trigger.subgroup_id, assets)}</td>
-                                <td className="px-4 py-3 font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">{trigger.duration_minutes || 0} <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold tracking-widest">MIN</span></td>
+                                <td className="px-4 py-3 font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">{trigger.duration_minutes || 0} <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold tracking-widest">{t('common.minAbbr')}</span></td>
                                 <td className="px-4 py-3 max-w-[180px]">
                                     <div className="font-black text-slate-800 dark:text-slate-100 uppercase text-[11px] tracking-tight">{trigger.stop_type || '-'}</div>
                                     <div className="truncate text-xs text-slate-400 dark:text-slate-500 font-medium" title={trigger.stop_reason}>{trigger.stop_reason || '-'}</div>
@@ -90,7 +90,7 @@ export const LinkedTriggersTable: React.FC<LinkedTriggersTableProps> = ({
                     <tr>
                         <td colSpan={6} className="px-4 py-2.5 text-xs font-bold text-slate-500 uppercase tracking-wider">{t('common.total')}</td>
                         <td className="px-4 py-2.5 font-black text-slate-900 dark:text-white text-sm">
-                            {totalDuration} <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold tracking-widest">MIN</span>
+                            {totalDuration} <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold tracking-widest">{t('common.minAbbr')}</span>
                         </td>
                         <td colSpan={3}></td>
                     </tr>

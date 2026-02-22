@@ -17,6 +17,8 @@ export const pt: TranslationSchema = {
         confirm: "Confirmar",
         portuguese: "Português",
         english: "English",
+        close: "Fechar",
+        copy: "Copiar",
         appTitle: "Global RCA",
         runningOn: "Rodando no",
         failurePrefix: "Falha",
@@ -27,11 +29,32 @@ export const pt: TranslationSchema = {
         box: "Box",
         attention: "Atenção",
         remove: "Remover",
+        engine: "Motor",
+        revision: "Rev",
+        engineWithVersion: "Motor v17.2",
+        revisionWithNumber: "Rev. 04",
+        minAbbr: "MIN",
         tooltips: {
             deleteKey: "Remover este nível",
             resize: "Arraste para redimensionar",
             viewDetails: "Clique para ver detalhes da RCA"
-        }
+        },
+        shortcuts: {
+            esc: "Esc",
+            ctrlS: "Ctrl+S",
+            enter: "Enter",
+            arrowLeft: "←",
+            arrowRight: "→",
+            altN: "Alt+N",
+            altO: "Alt+O",
+            altG: "Alt+G"
+        },
+        placeholder: "...",
+        zeroPlaceholder: "0",
+        decimalPlaceholder: "0.00",
+        urlPlaceholder: "https://...",
+        ptAbbr: "PT",
+        enAbbr: "EN"
     },
     filters: {
         title: "Filtros",
@@ -81,6 +104,7 @@ export const pt: TranslationSchema = {
         settings: "Configurações",
         migration: "Migração",
         shortcuts: "Atalhos",
+        shortcutsTooltip: "Atalhos de Teclado",
         menu: "Navegação",
         system: "Sistema"
     },
@@ -344,7 +368,10 @@ export const pt: TranslationSchema = {
             rcaConcludeTitle: "RCA: Conclusão",
             rcaConcludeDesc: "Campos obrigatórios para alterar o status para 'Concluída'.",
             triggersTitle: "Gatilhos (Triggers)",
-            triggersDesc: "Campos obrigatórios para registrar um novo gatilho."
+            triggersDesc: "Campos obrigatórios para registrar um novo gatilho.",
+            noFields: "Nenhum campo disponível",
+            selectedCount: "{0} selecionado(s)",
+            clear: "Limpar"
         }
     },
     fields: {
@@ -573,13 +600,14 @@ export const pt: TranslationSchema = {
     },
     rcaSelector: {
         title: "Vincular Análise",
-        description: "Selecione uma análise existente para vincular a este evento de gatilho.",
+        description: "Selecione uma análise para vincular a este evento",
         searchPlaceholder: "Buscar RCA por ID, Título ou OS...",
         resultsFound: "{0} análises encontradas",
         manyResults: "Muitos resultados, refine sua busca.",
         noResults: "Nenhuma análise encontrada.",
         showingFirst: "Mostrando os primeiros {0} resultados de {1}.",
         cancel: "Cancelar",
+        vincular: "Vincular",
         filters: {
             areas: "Áreas (Todas)",
             equipments: "Equipamentos",
@@ -845,5 +873,10 @@ export const pt: TranslationSchema = {
         closeModal: "Fechar modal ou editor",
         toggleSidebar: "Alternar Sidebar",
         pressToClose: "Pressione Esc para fechar"
+    },
+    ai: {
+        analysisTitle: "Análise de Inteligência Artificial",
+        assistButton: "Assistir com IA",
+        assistTooltip: "Obter sugestões de IA baseadas no histórico"
     }
 };

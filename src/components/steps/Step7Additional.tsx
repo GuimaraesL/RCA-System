@@ -87,7 +87,7 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange, isFieldR
                                 id={`${idPrefix}-link-url`}
                                 name="link_url"
                                 label={t('wizard.step7.linkUrl')}
-                                placeholder="https://..."
+                                placeholder={t('common.urlPlaceholder')}
                                 value={newLink.url}
                                 onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
                             />

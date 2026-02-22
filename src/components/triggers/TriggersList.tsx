@@ -139,7 +139,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                     <td className="px-6 py-5 max-w-[150px] truncate font-bold text-slate-700 dark:text-slate-200" title={getAssetName(trigger.area_id, assets)}>{getAssetName(trigger.area_id, assets)}</td>
                                     <td className="px-6 py-5 max-w-[150px] truncate font-bold text-slate-700 dark:text-slate-200" title={getAssetName(trigger.equipment_id, assets)}>{getAssetName(trigger.equipment_id, assets)}</td>
                                     <td className="px-6 py-5 max-w-[150px] truncate font-bold text-slate-700 dark:text-slate-200" title={getAssetName(trigger.subgroup_id, assets)}>{getAssetName(trigger.subgroup_id, assets)}</td>
-                                    <td className="px-6 py-5 font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">{trigger.duration_minutes} <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold tracking-widest">MIN</span></td>
+                                    <td className="px-6 py-5 font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">{trigger.duration_minutes} <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold tracking-widest">{t('common.minAbbr')}</span></td>
                                     <td className="px-6 py-5 max-w-[200px]">
                                         <div className="font-black text-slate-800 dark:text-slate-100 uppercase text-[11px] tracking-tight">{trigger.stop_type}</div>
                                         <div className="truncate text-xs text-slate-400 dark:text-slate-500 font-medium" title={trigger.stop_reason}>{trigger.stop_reason}</div>
@@ -159,14 +159,14 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onLinkRca(trigger); }}
                                                     className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
-                                                    title={t('triggersPage.tooltips.linkRca') || 'Trocar Vínculo'}
+                                                    title={t('triggersPage.tooltips.linkRca')}
                                                 >
                                                     <Edit2 size={14} />
                                                 </button>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onUnlinkRca(trigger); }}
                                                     className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all"
-                                                    title={t('common.remove') || 'Remover Vínculo'}
+                                                    title={t('common.remove')}
                                                 >
                                                     <X size={14} strokeWidth={3} />
                                                 </button>
@@ -210,7 +210,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                 disabled={currentPage === 1}
                                 className="px-5 uppercase tracking-widest"
-                                title="←"
+                                title={t('common.shortcuts.arrowLeft')}
                             >
                                 {t('pagination.previous')}
                             </Button>
@@ -220,7 +220,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                 onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredTriggers.length ? prev + 1 : prev))}
                                 disabled={currentPage * itemsPerPage >= filteredTriggers.length}
                                 className="px-5 uppercase tracking-widest"
-                                title="→"
+                                title={t('common.shortcuts.arrowRight')}
                             >
                                 {t('pagination.next')}
                             </Button>

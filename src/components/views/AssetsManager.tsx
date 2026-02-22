@@ -236,7 +236,7 @@ export const AssetsManager: React.FC = () => {
                   size="lg"
                   onClick={() => setIsEditing(false)}
                   className="flex-1 h-14 rounded-2xl"
-                  title="Esc"
+                  title={t('common.shortcuts.esc')}
                 >
                   {t('common.cancel')}
                 </Button>
@@ -245,7 +245,7 @@ export const AssetsManager: React.FC = () => {
                   size="lg"
                   onClick={parentNode || (!selectedNode && !parentNode) ? handleAddChild : handleUpdate}
                   className="flex-1 h-14 rounded-2xl"
-                  title="Ctrl+S"
+                  title={t('common.shortcuts.ctrlS')}
                 >
                   <ShortcutLabel text={t('common.save')} shortcutLetter="S" />
                 </Button>

@@ -150,7 +150,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                         required
                         error={errors.action}
                         rows={4}
-                        placeholder="..."
+                        placeholder={t('common.placeholder')}
                         value={form.action}
                         onChange={e => {
                             setForm({ ...form, action: e.target.value });
@@ -213,14 +213,14 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
                             variant="ghost"
                             onClick={onClose}
                             data-testid="btn-cancel-action"
-                            title="Esc"
+                            title={t('common.shortcuts.esc')}
                         >
                             {t('actionModal.cancel')}
                         </Button>
                         <Button
                             type="submit"
                             data-testid="btn-save-action"
-                            title="Ctrl+S"
+                            title={t('common.shortcuts.ctrlS')}
                         >
                             <ShortcutLabel text={t('actionModal.save')} shortcutLetter="S" />
                         </Button>

@@ -103,7 +103,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         onClick={onCancel}
                         data-testid="btn-confirm-no"
                         className="px-6 py-2.5 text-slate-500 font-bold rounded-xl hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-slate-200"
-                        title="Esc"
+                        title={t('common.shortcuts.esc')}
                     >
                         {finalCancelText}
                     </button>
@@ -112,7 +112,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         onClick={onConfirm}
                         data-testid="btn-confirm-yes"
                         className={`px-8 py-2.5 text-white font-black rounded-xl shadow-lg transition-all active:scale-95 ${colors.button}`}
-                        title="Enter ↵"
+                        title={`${t('common.shortcuts.enter')} ↵`}
                     >
                         {finalConfirmText}
                     </button>

@@ -131,7 +131,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                     onClick={onNew}
                     data-testid="btn-new-analysis"
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
-                    title="Alt+N"
+                    title={t('common.shortcuts.altN')}
                 >
                     <Plus size={20} strokeWidth={3} /><ShortcutLabel text={t('analysesPage.newButton')} shortcutLetter="N" />
                 </button>
@@ -252,7 +252,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                     disabled={currentPage === 1}
                                     className="px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 transition-all shadow-sm active:scale-95"
-                                    title="←"
+                                    title={t('common.shortcuts.arrowLeft')}
                                 >
                                     {t('pagination.previous')}
                                 </button>
@@ -260,7 +260,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                     onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredRecords.length ? prev + 1 : prev))}
                                     disabled={currentPage * itemsPerPage >= filteredRecords.length}
                                     className="px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 transition-all shadow-sm active:scale-95"
-                                    title="→"
+                                    title={t('common.shortcuts.arrowRight')}
                                 >
                                     {t('pagination.next')}
                                 </button>

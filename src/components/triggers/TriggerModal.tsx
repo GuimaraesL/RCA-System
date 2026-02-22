@@ -265,7 +265,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                         onClick={() => setIsModalOpen(false)}
                         data-testid="btn-cancel-trigger"
                         className="px-8 py-3 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest text-[11px] hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
-                        title="Esc"
+                        title={t('common.shortcuts.esc')}
                     >
                         {t('triggerModal.cancel')}
                     </button>
@@ -273,7 +273,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                         onClick={onSaveClick}
                         data-testid="btn-save-trigger"
                         className="px-10 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-95"
-                        title="Ctrl+S"
+                        title={t('common.shortcuts.ctrlS')}
                     >
                         <ShortcutLabel text={t('triggerModal.save')} shortcutLetter="S" />
                     </button>

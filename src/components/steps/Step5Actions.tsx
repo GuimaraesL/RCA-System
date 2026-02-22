@@ -185,7 +185,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                                 <SortHeader label={t('actionModal.actionDescription')} sortKey="action" currentSort={sortConfig} onSort={handleSort} width="w-1/2" />
                                 <SortHeader label={t('actionModal.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} />
                                 <SortHeader label={t('actionModal.dueDate')} sortKey="date" currentSort={sortConfig} onSort={handleSort} />
-                                <th className="px-6 py-4 text-right">Ações</th>
+                                <th className="px-6 py-4 text-right">{t('common.actions')}</th>
                             </tr>
                         </thead>
                         <tbody ref={listRef as any} className="divide-y divide-slate-50 dark:divide-slate-800">

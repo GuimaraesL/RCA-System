@@ -104,9 +104,22 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
 
     return (
         <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('wizard.step4.title')}</h2>
-                <p className="text-gray-600 dark:text-slate-400">{t('wizard.step4.subtitle')}</p>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('wizard.step4.title')}</h2>
+                    <p className="text-gray-600 dark:text-slate-400">{t('wizard.step4.subtitle')}</p>
+                </div>
+
+                <Button
+                    variant="secondary"
+                    onClick={onAnalyzeAI}
+                    isLoading={isAnalyzing}
+                    className="bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100 dark:bg-sky-900/20 dark:text-sky-300 dark:border-sky-800 transition-colors shadow-sm self-start md:self-auto"
+                    title={t('ai.assistTooltip')}
+                >
+                    <Wand2 className="mr-2" size={16} />
+                    {t('ai.assistButton')}
+                </Button>
             </div>
 
             {/* Bloco dos 5 Porquês */}
@@ -178,7 +191,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                                                 newWhys[index] = { ...w, why_question: e.target.value };
                                                 onChange('five_whys', newWhys);
                                             }}
-                                            placeholder="..."
+                                            placeholder={t('common.placeholder')}
                                             error={errors?.five_whys && !w.why_question.trim()}
                                         />
                                     </div>
@@ -193,7 +206,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                                                 newWhys[index] = { ...w, answer: e.target.value };
                                                 onChange('five_whys', newWhys);
                                             }}
-                                            placeholder="..."
+                                            placeholder={t('common.placeholder')}
                                             error={errors?.five_whys && !w.answer.trim()}
                                         />
                                     </div>
@@ -253,7 +266,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                             id="ishikawa_new_item"
                             data-testid="input-ishikawa-new-item"
                             label={t('wizard.step4.addItem')}
-                            placeholder="..."
+                            placeholder={t('common.placeholder')}
                             value={newIshikawaItem}
                             onChange={(e) => setNewIshikawaItem(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && addIshikawaItem()}
@@ -354,7 +367,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                                     rows={2}
                                     value={rc.cause}
                                     onChange={e => updateRootCause(idx, 'cause', e.target.value)}
-                                    placeholder="..."
+                                    placeholder={t('common.placeholder')}
                                     error={!rc.cause.trim() && errors?.root_causes}
                                 />
                             </div>

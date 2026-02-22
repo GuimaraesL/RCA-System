@@ -18,7 +18,7 @@ interface Step3Props {
 }
 
 export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy, errors, isFieldRequired }) => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const idPrefix = useId();
 
     /**
@@ -104,7 +104,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                             required={isFieldRequired('downtime_minutes')}
                             value={data.downtime_minutes || 0}
                             onChange={(e) => onChange('downtime_minutes', parseFloat(e.target.value))}
-                            placeholder="0"
+                            placeholder={t('common.zeroPlaceholder')}
                             error={errors?.downtime_minutes}
                         />
                         <Input
@@ -115,7 +115,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                             required={isFieldRequired('financial_impact')}
                             value={data.financial_impact || 0}
                             onChange={(e) => onChange('financial_impact', parseFloat(e.target.value))}
-                            placeholder="0.00"
+                            placeholder={t('common.decimalPlaceholder')}
                             error={errors?.financial_impact}
                         />
                     </div>
@@ -128,9 +128,9 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                     <p className="text-sm text-blue-800 dark:text-blue-100 leading-relaxed">
                         <strong className="font-bold">{t('wizard.step3.estimatedImpact')}</strong><br />
                         <span className="text-lg font-black dark:text-white">
-                            {(data.financial_impact || 0).toLocaleString('pt-BR', {
+                            {(data.financial_impact || 0).toLocaleString(language === 'pt' ? 'pt-BR' : 'en-US', {
                                 style: 'currency',
-                                currency: 'BRL'
+                                currency: language === 'pt' ? 'BRL' : 'USD'
                             })}
                         </span>
                         <span className="ml-2 text-blue-600 dark:text-blue-400 font-medium italic">

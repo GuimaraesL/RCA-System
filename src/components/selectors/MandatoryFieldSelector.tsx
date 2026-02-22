@@ -1,5 +1,5 @@
-import React from 'react';
 import { Check, AlertCircle } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageDefinition';
 
 interface FieldOption {
     value: string;
@@ -21,6 +21,7 @@ export const MandatoryFieldSelector: React.FC<MandatoryFieldSelectorProps> = ({
     availableFields,
     onChange
 }) => {
+    const { t } = useLanguage();
     const toggleField = (fieldValue: string) => {
         if (selectedFields.includes(fieldValue)) {
             onChange(selectedFields.filter(f => f !== fieldValue));
@@ -62,14 +63,14 @@ export const MandatoryFieldSelector: React.FC<MandatoryFieldSelectorProps> = ({
                 {availableFields.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-slate-600 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-2xl bg-slate-50/30 dark:bg-slate-800/30">
                         <AlertCircle size={32} className="mb-4 opacity-20" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Nenhum campo disponível</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">{t('settings.validation.noFields')}</span>
                     </div>
                 )}
             </div>
 
             <div className="px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
                 <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
-                    {selectedFields.length} selecionado(s)
+                    {t('settings.validation.selectedCount').replace('{0}', selectedFields.length.toString())}
                 </span>
                 {selectedFields.length > 0 && (
                     <button
@@ -77,7 +78,7 @@ export const MandatoryFieldSelector: React.FC<MandatoryFieldSelectorProps> = ({
                         onClick={() => onChange([])}
                         className="text-[10px] font-black text-blue-600 hover:text-rose-600 uppercase tracking-widest transition-colors"
                     >
-                        Limpar
+                        {t('settings.validation.clear')}
                     </button>
                 )}
             </div>

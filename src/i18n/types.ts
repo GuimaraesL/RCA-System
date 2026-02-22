@@ -20,6 +20,8 @@ export interface TranslationSchema {
         confirm: string;
         portuguese: string;
         english: string;
+        close: string;
+        copy: string;
         appTitle: string;
         runningOn: string;
         failurePrefix: string;
@@ -30,11 +32,32 @@ export interface TranslationSchema {
         box: string;
         attention: string;
         remove: string;
+        engine: string;
+        revision: string;
+        engineWithVersion: string;
+        revisionWithNumber: string;
+        minAbbr: string;
         tooltips: {
             deleteKey: string;
             resize: string;
             viewDetails: string;
         };
+        shortcuts: {
+            esc: string;
+            ctrlS: string;
+            enter: string;
+            arrowLeft: string;
+            arrowRight: string;
+            altN: string;
+            altO: string;
+            altG: string;
+        };
+        placeholder: string;
+        zeroPlaceholder: string;
+        decimalPlaceholder: string;
+        urlPlaceholder: string;
+        ptAbbr: string;
+        enAbbr: string;
     };
     filters: {
         title: string;
@@ -84,6 +107,7 @@ export interface TranslationSchema {
         settings: string;
         migration: string;
         shortcuts: string;
+        shortcutsTooltip: string;
         menu: string;
         system: string;
     };
@@ -348,6 +372,9 @@ export interface TranslationSchema {
             rcaConcludeDesc: string;
             triggersTitle: string;
             triggersDesc: string;
+            noFields: string;
+            selectedCount: string;
+            clear: string;
         };
     },
     fields: {
@@ -570,6 +597,7 @@ export interface TranslationSchema {
         noResults: string;
         showingFirst: string;
         cancel: string;
+        vincular: string;
         filters: {
             areas: string;
             equipments: string;
@@ -822,7 +850,11 @@ export interface TranslationSchema {
         focusSearch: string;
         closeModal: string;
         toggleSidebar: string;
-
         pressToClose: string;
+    };
+    ai: {
+        analysisTitle: string;
+        assistButton: string;
+        assistTooltip: string;
     };
 }

@@ -356,7 +356,7 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 text-blue-600 font-black text-[10px] uppercase tracking-[0.2em] bg-blue-50/50 px-4 py-2 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm group-hover:shadow-blue-600/20 group-hover:scale-105 active:scale-95">
-                                            Vincular <ChevronRight size={14} strokeWidth={4} />
+                                            {t('rcaSelector.vincular')} <ChevronRight size={14} strokeWidth={4} />
                                         </div>
                                     </div>
                                 </div>
@@ -390,7 +390,7 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                                     <ChevronRight size={18} strokeWidth={3} className="rotate-180" />
                                 </button>
                                 <button
-                                    onClick={() => setCurrentPage(prev => (prev * itemsPerPage < filteredRecords.length ? prev + 1 : prev))}
+                                    onClick={() => setCurrentPage(prev => (filteredRecords.length > prev * itemsPerPage ? prev + 1 : prev))}
                                     disabled={currentPage * itemsPerPage >= filteredRecords.length}
                                     className="p-3 bg-white border-2 border-slate-100 rounded-xl text-slate-400 disabled:opacity-20 disabled:cursor-not-allowed hover:border-blue-400 hover:text-blue-600 transition-all shadow-sm active:scale-90"
                                 >

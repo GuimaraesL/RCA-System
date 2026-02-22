@@ -17,6 +17,8 @@ export const en: TranslationSchema = {
         confirm: "Confirm",
         portuguese: "Portuguese",
         english: "English",
+        close: "Close",
+        copy: "Copy",
         appTitle: "Global RCA",
         runningOn: "Running on",
         failurePrefix: "Failure",
@@ -27,11 +29,32 @@ export const en: TranslationSchema = {
         box: "Box",
         attention: "Attention",
         remove: "Remove",
+        engine: "Engine",
+        revision: "Rev",
+        engineWithVersion: "Engine v17.2",
+        revisionWithNumber: "Rev. 04",
+        minAbbr: "MIN",
         tooltips: {
             deleteKey: "Remove this level",
             resize: "Drag to resize",
             viewDetails: "Click to view RCA details"
-        }
+        },
+        shortcuts: {
+            esc: "Esc",
+            ctrlS: "Ctrl+S",
+            enter: "Enter",
+            arrowLeft: "←",
+            arrowRight: "→",
+            altN: "Alt+N",
+            altO: "Alt+O",
+            altG: "Alt+G"
+        },
+        placeholder: "...",
+        zeroPlaceholder: "0",
+        decimalPlaceholder: "0.00",
+        urlPlaceholder: "https://...",
+        ptAbbr: "PT",
+        enAbbr: "EN"
     },
     filters: {
         title: "Filters",
@@ -81,6 +104,7 @@ export const en: TranslationSchema = {
         settings: "Settings",
         migration: "Migration",
         shortcuts: "Shortcuts",
+        shortcutsTooltip: "Keyboard Shortcuts",
         menu: "Navigation",
         system: "System"
     },
@@ -344,7 +368,10 @@ export const en: TranslationSchema = {
             rcaConcludeTitle: "RCA: Conclusion",
             rcaConcludeDesc: "Required fields to change status to 'Completed'.",
             triggersTitle: "Triggers",
-            triggersDesc: "Required fields to register a new trigger."
+            triggersDesc: "Required fields to register a new trigger.",
+            noFields: "No fields available",
+            selectedCount: "{0} selected",
+            clear: "Clear"
         }
     },
     fields: {
@@ -586,6 +613,7 @@ export const en: TranslationSchema = {
         noResults: "No analysis found.",
         showingFirst: "Showing first {0} results of {1}.",
         cancel: "Cancel",
+        vincular: "Link",
         filters: {
             areas: "Areas (All)",
             equipments: "Equipments",
@@ -859,5 +887,10 @@ export const en: TranslationSchema = {
         closeModal: "Close modal or editor",
         toggleSidebar: "Toggle Sidebar",
         pressToClose: "Press Esc to close"
+    },
+    ai: {
+        analysisTitle: "AI Intelligence Analysis",
+        assistButton: "Assist with IA",
+        assistTooltip: "Get AI suggestions based on history"
     }
 };

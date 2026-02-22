@@ -24,7 +24,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ compact }) =
                 title={t("common.portuguese")}
             >
                 <span className={`text-lg transition-transform ${language === 'pt' ? 'scale-110' : 'group-hover:scale-110'}`}>🇧🇷</span>
-                {!compact && <span className="text-[10px] font-black uppercase tracking-widest">PT</span>}
+                {!compact && <span className="text-[10px] font-black uppercase tracking-widest">{t('common.ptAbbr')}</span>}
             </button>
             <button
                 onClick={() => setLanguage('en')}
@@ -35,7 +35,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ compact }) =
                 title={t("common.english")}
             >
                 <span className={`text-lg transition-transform ${language === 'en' ? 'scale-110' : 'group-hover:scale-110'}`}>🇺🇸</span>
-                {!compact && <span className="text-[10px] font-black uppercase tracking-widest">EN</span>}
+                {!compact && <span className="text-[10px] font-black uppercase tracking-widest">{t('common.enAbbr')}</span>}
             </button>
         </div>
     );
