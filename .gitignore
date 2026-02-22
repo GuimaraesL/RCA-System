@@ -51,3 +51,8 @@ docs/reports/
 issues_list.json
 docs/PLAN-foundation-security.md
 docs/ai/implementacao
+
+# AI Data & Knowledge Base
+data/rca_knowledge.db
+data/vector_db/
+!data/knowledge/*.md

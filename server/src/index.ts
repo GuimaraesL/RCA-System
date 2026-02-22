@@ -45,16 +45,6 @@ const startServer = async () => {
         const { MigrationRunner } = await import('./v2/infrastructure/database/MigrationRunner');
         await new MigrationRunner().run();
 
-        /**
-         * Inicialização do Servidor MCP (Internal IA Integration)
-         */
-        const { McpServer } = await import('./v2/infrastructure/mcp/McpServer');
-        const mcpServer = new McpServer();
-
-        app.get('/api/mcp/sse', (req, res) => mcpServer.handleSse(req, res));
-        app.post('/api/mcp/message', (req, res) => mcpServer.handleMessage(req, res));
-        logger.info('🔌 Servidor MCP (IA Bridge) pronto em /api/mcp/sse');
-
         app.listen(PORT, () => {
             logger.info(`🚀 Servidor rodando em http://localhost:${PORT}`);
             logger.info(`📡 Endpoints disponíveis:`);
@@ -64,7 +54,6 @@ const startServer = async () => {
             logger.info(`   CRUD /api/actions`);
             logger.info(`   GET/PUT /api/taxonomy`);
             logger.info(`   CRUD /api/assets`);
-            logger.info(`   MCP  /api/mcp/sse`);
         });
     } catch (error) {
         logger.error('❌ Erro crítico ao iniciar servidor:', { error });

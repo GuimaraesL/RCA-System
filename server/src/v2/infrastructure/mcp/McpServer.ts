@@ -16,7 +16,8 @@ export class McpServer {
     private rcaRepository: SqlRcaRepository;
     private assetRepository: SqlAssetRepository;
     private fmeaRepository: SqlFmeaRepository;
-    private transport: SSEServerTransport | null = null;
+    private lastTransport: SSEServerTransport | null = null;
+    private transports: Map<string, SSEServerTransport> = new Map();
 
     constructor() {
         this.server = new Server(
@@ -122,18 +123,39 @@ export class McpServer {
         const ip = req.ip || req.connection.remoteAddress;
         logger.info(`[MCP] 📡 Handshake SSE iniciado. IP: ${ip}`);
 
-        // Tentamos usar a URL absoluta para evitar ambiguidades no cliente Python
         const port = process.env.PORT || 3001;
         const messageUrl = `http://localhost:${port}/api/mcp/message`;
 
-        this.transport = new SSEServerTransport(messageUrl, res);
+        // Criar um novo transporte para esta conexão específica
+        const transport = new SSEServerTransport(messageUrl, res);
+
+        // Guardamos o último transporte para facilitar o roteamento de mensagens iniciais
+        this.lastTransport = transport;
+
+        res.on('close', () => {
+            for (const [sid, t] of this.transports.entries()) {
+                if ((t as any)._res === res) {
+                    this.transports.delete(sid);
+                    logger.info(`[MCP] 🛑 Sessão ${sid} encerrada e removida.`);
+                    break;
+                }
+            }
+        });
 
         try {
-            await this.server.connect(this.transport);
-            logger.info(`[MCP] ✅ Conexão estabelecida. Aguardando mensagens em ${messageUrl}`);
+            await this.server.connect(transport);
+
+            // Tenta capturar o sessionId gerado pelo SDK
+            const sessionId = (transport as any)._sessionId;
+            if (sessionId) {
+                this.transports.set(sessionId, transport);
+                logger.info(`[MCP] ✅ Conexão estabelecida para sessão: ${sessionId}`);
+            }
         } catch (error) {
             logger.error(`[MCP] ❌ Erro ao conectar transporte:`, { error });
-            res.status(500).send("Erro ao inicializar MCP");
+            if (!res.headersSent) {
+                res.status(500).send("Erro ao inicializar MCP");
+            }
         }
     }
 
@@ -141,18 +163,44 @@ export class McpServer {
      * Interface para o Express: Endpoint de Mensagens (POST).
      */
     public async handleMessage(req: any, res: any) {
-        logger.info(`[MCP] 📥 Nova mensagem JSON-RPC recebida.`);
-        if (!this.transport) {
-            logger.warn(`[MCP] ⚠️ Tentativa de POST sem transporte SSE ativo.`);
-            res.status(400).json({ error: "Transporte SSE não inicializado" });
+        const sessionId = req.query.sessionId as string;
+
+        if (!sessionId) {
+            res.status(400).json({ error: "sessionId ausente" });
             return;
         }
+
+        // Tenta buscar o transporte. Se não encontrar, espera brevemente (corrige race condition no handshake)
+        let transport = this.transports.get(sessionId);
+
+        if (!transport && this.lastTransport && (this.lastTransport as any)._sessionId === sessionId) {
+            transport = this.lastTransport;
+        }
+
+        if (!transport) {
+            // Pequeno delay para aguardar o registro da sessão no handshake assíncrono
+            await new Promise(resolve => setTimeout(resolve, 250));
+            transport = this.transports.get(sessionId);
+        }
+
+        if (!transport) {
+            logger.warn(`[MCP] ⚠️ Sessão ${sessionId} não encontrada.`);
+            res.status(400).json({ error: "Sessão não encontrada ou expirada" });
+            return;
+        }
+
         try {
-            await this.transport.handlePostMessage(req, res);
-            logger.info(`[MCP] 📤 Resposta enviada.`);
+            await transport.handlePostMessage(req, res);
+
+            // Garantir que a sessão esteja no mapa (redundância)
+            if (!this.transports.has(sessionId)) {
+                this.transports.set(sessionId, transport);
+            }
         } catch (error) {
-            logger.error(`[MCP] ❌ Erro ao processar mensagem:`, { error });
-            res.status(500).json({ error: "Internal Server Error" });
+            logger.error(`[MCP] ❌ Erro ao processar mensagem ${sessionId}:`, { error });
+            if (!res.headersSent) {
+                res.status(500).json({ error: "Internal Server Error" });
+            }
         }
     }
 }

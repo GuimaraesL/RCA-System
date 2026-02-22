@@ -22,9 +22,21 @@ declare global {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-para-dev';
+const INTERNAL_AUTH_KEY = process.env.INTERNAL_AUTH_KEY || 'dev-key-change-it';
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
     const authHeader = req.headers.authorization;
+    const internalKey = req.headers['x-internal-key'];
+
+    // Autenticação Interna (Service-to-Service)
+    if (internalKey === INTERNAL_AUTH_KEY) {
+        req.user = {
+            id: 'ai-service-agent',
+            role: 'Administrador',
+            name: 'RCA Detective Agent'
+        };
+        return next();
+    }
 
     // AUTO-BYPASS em ambiente de desenvolvimento (YOLO MODE)
     // Se não houver token e estivermos em DEV, injetamos o Admin padrão
