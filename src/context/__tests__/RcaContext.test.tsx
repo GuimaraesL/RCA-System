@@ -101,14 +101,12 @@ describe('Context: RcaContext', () => {
 
         // Assert
         await waitFor(() => {
+            // Aguarda o fim do carregamento E a presença dos dados de fallback
             expect(result.current.isLoading).toBe(false);
-        });
+            expect(result.current.records).toEqual([{ id: 'FALLBACK' }]);
+        }, { timeout: 3000 });
 
-        await waitFor(() => {
-            expect(storage.LEGACY_getRecords).toHaveBeenCalled();
-        });
-
-        expect(result.current.records).toEqual([{ id: 'FALLBACK' }]);
+        expect(storage.LEGACY_getRecords).toHaveBeenCalled();
     });
 
     it('should route saveAction to API Service when application is online', async () => {
