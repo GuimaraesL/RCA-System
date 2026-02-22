@@ -10,6 +10,7 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 BACKEND_URL = os.getenv("BACKEND_URL")
 INTERNAL_AUTH_KEY = os.getenv("INTERNAL_AUTH_KEY")
 NODE_ENV = os.getenv("NODE_ENV", "development")
+AGNO_API_KEY = os.getenv("AGNO_API_KEY")
 
 # Caminhos de dados (Centralizados na raiz)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

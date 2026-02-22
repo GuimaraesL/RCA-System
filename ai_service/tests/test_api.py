@@ -17,7 +17,9 @@ def test_health_check():
     """Valida se o endpoint de health check está respondendo corretamente."""
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "alive"}
+    data = response.json()
+    # Aceita tanto o formato original quanto o formato do Agno OS
+    assert data["status"] in ["alive", "ok"]
 
 def test_analyze_rca_invalid_key():
     """Valida se a API rejeita requisições sem a chave interna correta."""

@@ -6,8 +6,10 @@ from fastapi import FastAPI
 import uvicorn
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
+from agno.os import AgentOS
 
 from agent.knowledge import get_rca_knowledge_base, index_historical_rcas
+from agent.detective import get_rca_detective_agent
 from api.routes import router as api_router
 
 @asynccontextmanager
@@ -43,10 +45,15 @@ app.add_middleware(
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["Content-Type", "x-internal-key", "Authorization"],
+    allow_headers=["*"],
 )
 
 app.include_router(api_router)
+
+# Integrar com Agno Dashboard (os.agno.com)
+agent = get_rca_detective_agent()
+agent_os = AgentOS(agents=[agent], base_app=app)
+app = agent_os.get_app()
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

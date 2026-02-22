@@ -51,10 +51,24 @@ O agente opera como um microserviço independente em Python (FastAPI + Agno) seg
 - [x] Refinamento da Persona: Especialista em Confiabilidade Sênior (Anti-vazamento técnico).
 - [x] Priorização de contexto real-time para análises não persistidas.
 
-### Fase 4: Especialização & FMEA (Planejada 📅)
+### Fase 4: Observabilidade & Auditoria de IA (Concluída 🚀 - Fev 2026)
+- [x] Integração com **Agno Dashboard** (os.agno.com) via `AgentOS`.
+- [x] Auditoria de Dados: Rastreamento automático de ferramentas e fontes consultadas.
+- [x] Estudo de UX: Documento `ESTUDO_UX_INTERACAO.md` consolidado.
+- [x] Logs Estruturados: Visibilidade de traces no Agno Studio (SDK v2.5.3+).
+
+### Fase 4.5: Evolução Multi-Agente (Em Planejamento 🛠️)
+- [ ] Implementação de **Teams**: Divisão de tarefas entre Detective, Asset Engineer e Analyst.
+- [ ] Orquestração via **Workflows**: Fluxos de análise estruturados com checkpoints.
+- [ ] Especialização de agentes: Responsabilidades isoladas para maior precisão.
+
+### Fase 5: Expansão de Interface & Mídia (Próxima 📅)
+- [ ] **Issue #110**: Implementação de Componente de Upload e Galeria de Mídias (Fotos de falhas).
+- [ ] **Issue #111**: Interface de Gestão de Modos de Falha (FMEA) no Assets Manager.
+
+### Fase 6: Integração Profunda com FMEA (Especialização 📅)
 - [ ] **IA Sync**: Conector para enriquecer sugestões de Causa Raiz cruzando dados de FMEA.
-- [ ] **Interface FMEA**: Aba de gestão técnica de modos de falha nos Assets.
-- [ ] **Análise Multimodal**: Processamento de fotos de falhas.
+- [ ] **Análise Multimodal**: Processamento e diagnóstico de fotos de falhas (baseado na Fase 5).
 
 ---
 

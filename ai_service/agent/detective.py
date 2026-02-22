@@ -12,9 +12,10 @@ def get_rca_detective_agent():
     knowledge_base = get_rca_knowledge_base()
     
     return Agent(
+        name="rca-detective",
         model=Gemini(id="gemini-2.0-flash"),
         description=DETECTIVE_DESCRIPTION,
         instructions=SYSTEM_INSTRUCTIONS,
         tools=AGENT_TOOLS,
-        knowledge=knowledge_base
+        knowledge=knowledge_base,
     )
