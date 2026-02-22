@@ -91,9 +91,8 @@ def index_historical_rcas(api_url="http://localhost:3001/api/rcas"):
                 f"TÍTULO DA FALHA: {rca.get('what', 'N/A')}\n"
                 f"DATA: {rca.get('failure_date', 'N/A')}\n"
                 f"ATIVO: {rca.get('asset', 'N/A')} (ID: {rca.get('asset_id', 'N/A')})\n"
-                f"DESCRIÇÃO: {rca.get('description', 'N/A')}\n"
+                f"DESCRIÇÃO: {rca.get('description', rca.get('problem_description', 'N/A'))}\n"
                 f"CAUSAS RAIZ: {rca.get('root_causes', 'N/A')}\n"
-                f"5 PORQUÊS: {rca.get('five_whys', 'N/A')}\n"
                 f"AÇÕES TOMADAS: {rca.get('actions', 'N/A')}"
             ).strip()
             
@@ -117,7 +116,10 @@ def index_historical_rcas(api_url="http://localhost:3001/api/rcas"):
                         "source": "rca_history", 
                         "rca_id": rca_id,
                         "asset": str(rca.get('asset', '')),
-                        "status": rca.get('status')
+                        "status": rca.get('status'),
+                        "area_id": str(rca.get('area_id', rca.get('area_id', ''))),
+                        "equipment_id": str(rca.get('equipment_id', rca.get('equipment_id', ''))),
+                        "subgroup_id": str(rca.get('subgroup_id', rca.get('subgroup_id', '')))
                     },
                     upsert=True
                 )
