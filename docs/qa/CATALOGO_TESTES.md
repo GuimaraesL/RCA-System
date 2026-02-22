@@ -20,6 +20,20 @@ Estes testes simulam a jornada completa do usuário no navegador, com API mockad
 
 ---
 
+## 🔴 Testes do Serviço de IA (Python)
+Localização: `ai_service/tests/`
+Ferramenta: **Pytest**
+
+Testam a lógica do Agente RCA Detective e a API de análise.
+
+| Arquivo (`.py`) | Descrição |
+| :--- | :--- |
+| **test_api** | Valida os endpoints `/health` e `/analyze` (segurança e roteamento). |
+| **test_tools** | Testa as ferramentas do agente (buscas no backend) com mocks. |
+| **test_agent** | Valida a configuração e factory do agente Agno. |
+
+---
+
 ## 🔵 Testes de Integração (Backend)
 Localização: `server/src/v2/`
 Ferramenta: **Vitest**
@@ -55,6 +69,7 @@ Testam funções isoladas, hooks de lógica e utilitários.
 | **hooks/useActionsLogic** | Lógica de gestão de ações de planos de ação (CAPA). |
 | **hooks/useFilteredData** | Motor de filtragem cruzada dinâmica e busca global. |
 | **services/api/api.modular** | Valida contratos HTTP e interceptores de erro. |
+| **services/aiService** | Valida integração frontend com o serviço de análise de IA. |
 | **services/csvService.*** | Suite completa de testes para geração e leitura de CSV/Excel. |
 | **services/i18n-audit** | **Auditoria.** Varre o código para garantir zero strings hardcoded. |
 | **utils/statusUtils** | Helpers de formatação visual de status. |

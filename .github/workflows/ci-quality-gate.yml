@@ -41,6 +41,27 @@ jobs:
     - name: Executar Testes de Lógica (Vitest - Backend)
       run: cd server && npm run test
 
+    - name: Configurar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Instalar Dependências (AI Service)
+      run: |
+        cd ai_service
+        pip install -r requirements.txt
+        pip install pytest pytest-asyncio httpx
+
+    - name: Executar Testes de Lógica (Pytest - AI Service)
+      run: |
+        cd ai_service
+        pytest tests/
+      env:
+        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        INTERNAL_AUTH_KEY: ${{ secrets.INTERNAL_AUTH_KEY }}
+        BACKEND_URL: http://localhost:3001/api
+
     - name: Build da Aplicação
       run: npm run build
 

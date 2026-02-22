@@ -18,36 +18,41 @@ graph TD
     style UNIT fill:#dcfce7,stroke:#22c55e,color:#000
 ```
 
-### 1.1. Testes Unitários (Vitest)
+### 1.1. Testes Unitários e Funcionais de IA (Python/pytest)
+- **Escopo:** Lógica do Agente Detective, ferramentas de consulta (tools) e endpoints da API FastAPI.
+- **Localização:** `ai_service/tests/*.py`
+- **Ferramenta:** Pytest com mocks de rede (httpx) e objetos de IA (Agno).
+
+### 1.2. Testes Unitários (Vitest)
 - **Escopo:** Funções puras, hooks do React e lógica de domínio isolada.
 - **Localização:** 
   - Frontend: `src/**/__tests__/*.test.ts(x)`
   - Backend: `server/src/**/__tests__/*.test.ts`
 - **Ferramenta:** Vitest com JSDOM para simulação de ambiente de navegador no frontend.
 
-### 1.2. Testes de Integração (Vitest)
+### 1.3. Testes de Integração (Vitest)
 - **Escopo:** Validação da interação entre serviços, repositórios e banco de dados SQLite.
 - **Localização:** `server/src/v2/__tests__/*.test.ts`
 - **Ferramenta:** Vitest executando contra um banco de dados de teste (`rca_test.db`).
 
-### 1.3. Testes de Ponta a Ponta - E2E (Playwright)
+### 1.4. Testes de Ponta a Ponta - E2E (Playwright)
 - **Escopo:** Fluxos completos de usuário, validação de interface e integração total (com mocks de API).
 - **Localização:** `tests/e2e/*.spec.ts`
 - **Ferramenta:** Playwright.
 
-### 1.4. Testes de Hooks e Utilitários de Domínio (Vitest)
+### 1.5. Testes de Hooks e Utilitários de Domínio (Vitest)
 - **Escopo:** Validação isolada de lógicas complexas de data, parsing de arquivos Excel, filtragem cruzada dinâmica e orquestração de formulários no Frontend.
 - **Localização:** 
   - `src/hooks/__tests__/*.test.ts(x)`
   - `src/utils/__tests__/*.test.ts(x)`
 - **Ferramenta:** Vitest com `@testing-library/react` (método `renderHook`).
 
-### 1.5. Análise Estática AST (via Playwright)
+### 1.6. Análise Estática AST (via Playwright)
 - **Escopo:** Verificação de vazamentos de Internacionalização (I18N) em tempo de execução através do DOM.
 - **Localização:** `tests/e2e/rca-i18n.spec.ts`
 - **Ferramenta:** Playwright executando crawler no frontend.
 
-### 1.6. Auditoria Estática de I18N (Vitest)
+### 1.7. Auditoria Estática de I18N (Vitest)
 - **Escopo:** Varredura rigorosa do código-fonte para detectar:
   1. Strings "hardcoded" em tags JSX.
   2. Texto puro em atributos (placeholder, title, label).
@@ -59,17 +64,22 @@ graph TD
 
 ## 2. Execução via CLI
 
-### 2.1. Executar Testes do Frontend (Raiz)
+### 2.1. Executar Testes do Serviço de IA (Python)
+```bash
+pytest ai_service/tests
+```
+
+### 2.2. Executar Testes do Frontend (Raiz)
 ```bash
 npx vitest run
 ```
 
-### 2.2. Executar Testes do Backend
+### 2.3. Executar Testes do Backend
 ```bash
 npm test --prefix server
 ```
 
-### 2.3. Executar Testes E2E
+### 2.4. Executar Testes E2E
 ```bash
 npx playwright test
 ```
