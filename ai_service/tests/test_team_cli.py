@@ -4,8 +4,9 @@ import os
 # Adiciona o diretório ai_service ao path para facilitar imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from ai_service.agent.detective import get_rca_detectives_team
-from ai_service.config import settings
+from rca_team import get_rca_detectives_team
+from config import GOOGLE_API_KEY
+import os
 import dotenv
 
 # Carrega variáveis de ambiente
@@ -33,13 +34,17 @@ def test_team_analysis():
     # Inicializa o time
     team = get_rca_detectives_team(rca_id=test_rca_id)
     
+    # Preparar o prompt enriquecido com recorrências simuladas
+    recurr_str = "- [RCA RCA-2025-999](/rcas/RCA-2025-999): Vazamento similar em Prensa 01 (Nível: area)\n- [RCA RCA-2024-123](/rcas/RCA-2024-123): Rompimento de mangote por abrasão (Nível: subgroup)"
+    
+    prompt = f"Analise o seguinte evento de falha e sugira causas raiz e um plano de ação: {test_context}"
+    prompt += f"\n\n⚠️ RECORRÊNCIAS ENCONTRADAS:\n{recurr_str}\n\nObrigatório: No seu relatório, crie um banner (usando blockquote Markdown `>`) na seção de Histórico e liste essas RCAs com os links fornecidos."
+
     print("--- SOLICITANDO ANÁLISE ---\n")
-    # Usa print_response conforme documentação de 'Running Teams'
-    # Inclui show_members_responses=True conforme documentação de 'Debugging Teams'
     team.print_response(
-        f"Analise o seguinte evento de falha e sugira causas raiz e um plano de ação: {test_context}",
+        prompt,
         stream=True,
-        show_members_responses=True
+        show_members_responses=False # Mantenha limpo para ver apenas a resposta do líder
     )
     print("\n--- TESTE FINALIZADO ---")
 

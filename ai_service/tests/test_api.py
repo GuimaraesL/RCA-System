@@ -10,6 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Importa o app após configurar o path
 from main import app
 from config import INTERNAL_AUTH_KEY
+import json
 
 client = TestClient(app)
 
@@ -32,23 +33,19 @@ def test_analyze_rca_invalid_key():
     assert response.json()["detail"] == "Invalid Internal Key"
 
 @patch("api.routes.get_rca_knowledge_base")
-@patch("api.routes.get_rca_detective_agent")
-def test_analyze_rca_success(mock_get_agent, mock_get_kb):
-    """Valida o fluxo de análise com sucesso (mockando o agente de IA)."""
+@patch("api.routes.create_rca_detectives_team")
+def test_analyze_rca_success(mock_create_team, mock_get_kb):
+    """Valida o fluxo de análise com sucesso (mockando o time de IA)."""
     
     # Configura mocks
-    mock_agent = MagicMock()
-    # No Agno, o retorno de arun é um objeto que tem o atributo content
-    mock_response = MagicMock()
-    mock_response.content = "Análise da IA: Causa raiz identificada como fadiga de material."
+    mock_team = MagicMock()
+    # No Agno, o retorno de run (ou arun) é um objeto/generator
+    # Vamos mockar o retorno de run
+    mock_chunk = MagicMock()
+    mock_chunk.content = "Análise da IA: Causa raiz identificada como fadiga de material."
     
-    # Como arun é async, precisamos mockar o retorno como um objeto que pode ser 'awaited'
-    # O TestClient do FastAPI lida com o loop de eventos se o endpoint for async
-    async def async_response(*args, **kwargs):
-        return mock_response
-    
-    mock_agent.arun.side_effect = async_response
-    mock_get_agent.return_value = mock_agent
+    mock_team.run.return_value = [mock_chunk]
+    mock_create_team.return_value = mock_team
     
     mock_kb = MagicMock()
     # Mock do Vector DB para não encontrar recorrências neste teste simples
@@ -68,8 +65,17 @@ def test_analyze_rca_success(mock_get_agent, mock_get_kb):
 
     # Verificações
     assert response.status_code == 200
-    data = response.json()
-    assert data["rca_id"] == "RCA-2026-001"
-    assert "fadiga de material" in data["ai_insight"]
-    assert data["status"] == "completed"
-    assert data["recurrences"] == []
+    
+    # Valida o stream SSE
+    found_content = False
+    for line in response.iter_lines():
+        if line.startswith("data: "):
+            data_str = line[6:]
+            if data_str == "[DONE]":
+                break
+            data = json.loads(data_str)
+            if data["type"] == "content":
+                assert "fadiga de material" in data["delta"]
+                found_content = True
+    
+    assert found_content, "Não encontrou o conteúdo esperado no stream"

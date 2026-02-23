@@ -25,4 +25,4 @@ def test_get_rca_detective_agent(mock_get_kb, mock_agent_class, mock_gemini):
     
     assert kwargs["knowledge"] == mock_kb
     assert len(kwargs["tools"]) > 0
-    assert "Especialista Sênior" in kwargs["instructions"][0]
+    assert "Especialista Sênior" in kwargs["role"]

@@ -28,32 +28,67 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
     try:
         # Garante que o diretório de storage existe
         import os
+        import httpx
+        from config import BACKEND_URL, AGENT_MEMORY_PATH
         os.makedirs(os.path.dirname(AGENT_MEMORY_PATH), exist_ok=True)
 
-        knowledge_base = get_rca_knowledge_base()
-        # Inicializa o Time simplificado com o novo rca_team.py
-        team = create_rca_detectives_team(str(request.rca_id))
-        
-        # 1. Determinar o texto de busca para similaridade e extrair info do ativo
-        query_text = ""
+        # --- NOVA LÓGICA DE CAPTURA DE ATIVO ---
+        area_id = request.area_id
+        equipment_id = request.equipment_id
+        subgroup_id = request.subgroup_id
         asset_info = "Ativo não identificado explicitamente"
+
+        # 1. Se os IDs estão faltando mas o RCA já existe, buscar no backend
+        if not all([area_id, equipment_id, subgroup_id]) and request.rca_id and not str(request.rca_id).startswith("TEST"):
+            try:
+                print(f"DEBUG: Buscando metadados do ativo para RCA {request.rca_id} no backend...")
+                rca_url = f"{BACKEND_URL}/api/rcas/{request.rca_id}"
+                backend_resp = httpx.get(rca_url, timeout=5.0)
+                if backend_resp.status_code == 200:
+                    rca_data = backend_resp.json()
+                    if isinstance(rca_data, dict) and 'data' in rca_data:
+                        rca_data = rca_data['data']
+                    
+                    # Atualiza os IDs se eles vierem do backend
+                    area_id = area_id or rca_data.get('area_id')
+                    equipment_id = equipment_id or rca_data.get('equipment_id')
+                    subgroup_id = subgroup_id or rca_data.get('subgroup_id')
+                    asset_info = rca_data.get('asset', asset_info)
+                    print(f"DEBUG: Metadados recuperados: Area={area_id}, Equip={equipment_id}, Sub={subgroup_id}")
+            except Exception as backend_e:
+                print(f"WARNING: Falha ao recuperar metadados do backend: {backend_e}")
+
+        # 2. Se for uma análise nova (não salva ainda), capturar do contexto
+        query_text = ""
         if request.context:
             try:
                 ctx = json.loads(request.context)
                 query_text = f"{ctx.get('title', '')} {ctx.get('description', '')}"
-                asset_info = ctx.get('asset_display', asset_info)
+                # Prioriza o asset_display do contexto se os IDs ainda forem nulos (novo RCA)
+                if asset_info == "Ativo não identificado explicitamente":
+                    asset_info = ctx.get('asset_display', asset_info)
+                
+                # Captura IDs do contexto se vierem da interface (Novo RCA)
+                area_id = area_id or ctx.get('area_id')
+                equipment_id = equipment_id or ctx.get('equipment_id')
+                subgroup_id = subgroup_id or ctx.get('subgroup_id')
             except:
                 query_text = request.context
+
+        knowledge_base = get_rca_knowledge_base()
+        # Inicializa o Time orquestrado
+        team = create_rca_detectives_team(str(request.rca_id))
         
-        # 2. Busca Hierárquica de Recorrências (Para injetar no prompt inicial)
+        # 3. Busca Hierárquica de Recorrências (Acumulativa)
         recurrences = []
         levels = [
-            ("subgroup", request.subgroup_id),
-            ("equipment", request.equipment_id),
-            ("area", request.area_id)
+            ("subgroup", subgroup_id),
+            ("equipment", equipment_id),
+            ("area", area_id)
         ]
 
         if query_text:
+            seen_ids = set()
             for level_name, level_id in levels:
                 if not level_id: continue
                 search_filter = {f"{level_name}_id": str(level_id)}
@@ -64,13 +99,16 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                 )
                 if results:
                     for doc in results:
-                        recurrences.append(RecurrenceInfo(
-                            rca_id=doc.meta_data.get("rca_id", "unknown"),
-                            similarity=1.0,
-                            title=doc.content.split("\n")[0].replace("TÍTULO DA FALHA: ", ""),
-                            level=level_name
-                        ))
-                    break
+                        rid = doc.meta_data.get("rca_id", "unknown")
+                        if rid not in seen_ids and rid != request.rca_id:
+                            recurrences.append(RecurrenceInfo(
+                                rca_id=rid,
+                                similarity=1.0,
+                                title=doc.content.split("\n")[0].replace("TÍTULO DA FALHA: ", ""),
+                                level=level_name
+                            ))
+                            seen_ids.add(rid)
+            # Ordena por nível (subgroup > equipment > area)
         
         # 3. Preparar o prompt enriquecido
         prompt = f"Realize uma análise profunda da RCA com ID: {request.rca_id}."
@@ -80,8 +118,8 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
             prompt += f"\n\nCONTEXTO DO FORMULÁRIO (PRIORITÁRIO):\n{request.context}"
         
         if recurrences:
-            recurr_str = "\n".join([f"- RCA {r.rca_id}: {r.title} (Nível: {r.level})" for r in recurrences])
-            prompt += f"\n\n⚠️ RECORRÊNCIAS ENCONTRADAS:\n{recurr_str}\n\nPor favor, avalie se estas falhas anteriores possuem a mesma causa raiz."
+            recurr_str = "\n".join([f"- [RCA {r.rca_id}](/rcas/{r.rca_id}): {r.title} (Nível: {r.level})" for r in recurrences])
+            prompt += f"\n\n⚠️ RECORRÊNCIAS ENCONTRADAS:\n{recurr_str}\n\nObrigatório: No seu relatório, crie um banner (usando blockquote Markdown `>`) na seção de Histórico e liste essas RCAs com os links fornecidos."
 
         # 4. Gerador de Streaming para SSE compatível com Agno 2.x e o Frontend
         def stream_output():
@@ -91,11 +129,17 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                 yield f"data: {json.dumps({'type': 'metadata', 'recurrences': [r.dict() for r in recurrences]})}\n\n"
             
             try:
-                # Execução do stream do Time (modo síncrono validado via test_sync.py)
-                for chunk in team.run(prompt, stream=True, session_id=str(request.rca_id)):
-                    if chunk and chunk.content:
-                        # print(f"DEBUG: Enviando chunk ({len(chunk.content)} chars)")
-                        yield f"data: {json.dumps({'type': 'content', 'delta': chunk.content})}\n\n"
+                # Execução do stream do Time
+                for event in team.run(prompt, stream=True, session_id=str(request.rca_id)):
+                    # O Agno 2.x envia RunContentEvent ou strings
+                    content = ""
+                    if hasattr(event, "content"):
+                        content = event.content
+                    elif isinstance(event, str):
+                        content = event
+                    
+                    if content:
+                        yield f"data: {json.dumps({'type': 'content', 'delta': content})}\n\n"
             except Exception as stream_e:
                 print(f"ERROR no streaming: {stream_e}")
                 yield f"data: {json.dumps({'type': 'error', 'text': str(stream_e)})}\n\n"
