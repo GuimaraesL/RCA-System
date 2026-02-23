@@ -16,6 +16,7 @@ AGNO_API_KEY = os.getenv("AGNO_API_KEY")
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VECTOR_DB_PATH = os.path.join(PROJECT_ROOT, "data", "vector_db")
 KNOWLEDGE_DB_PATH = os.path.join(PROJECT_ROOT, "data", "rca_knowledge.db")
+KNOWLEDGE_PATH = os.path.join(PROJECT_ROOT, "data", "knowledge")
 
 if not GOOGLE_API_KEY:
     print("WARNING: GOOGLE_API_KEY not configured in .env")

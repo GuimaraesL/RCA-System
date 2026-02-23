@@ -57,18 +57,29 @@ O agente opera como um microserviço independente em Python (FastAPI + Agno) seg
 - [x] Estudo de UX: Documento `ESTUDO_UX_INTERACAO.md` consolidado.
 - [x] Logs Estruturados: Visibilidade de traces no Agno Studio (SDK v2.5.3+).
 
-### Fase 4.5: Evolução Multi-Agente (Em Planejamento 🛠️)
-- [ ] Implementação de **Teams**: Divisão de tarefas entre Detective, Asset Engineer e Analyst.
-- [ ] Orquestração via **Workflows**: Fluxos de análise estruturados com checkpoints.
-- [ ] Especialização de agentes: Responsabilidades isoladas para maior precisão.
+### Fase 4.5: Evolução Multi-Agente & Interface (Em Planejamento 🛠️)
+- [ ] **Sidebar Híbrida (UX/UI)**: Implementação de painel lateral colapsável no Editor de RCA.
+    - **Insights Automáticos**: Alertas de recorrência e sugestões de causa raiz via debounce.
+    - **Copilot Chat**: Interface de conversação persistente para investigação profunda.
+- [ ] **Memória Persistente**: Implementação de `SqliteMemory` para manter o contexto da Sidebar vinculado ao `rca_id`.
+- [ ] **Teams (Multi-Agente)**: Orquestração entre Detective (Busca), Asset Specialist (FMEA) e Writer (Plano de Ação).
 
-### Fase 5: Expansão de Interface & Mídia (Próxima 📅)
-- [ ] **Issue #110**: Implementação de Componente de Upload e Galeria de Mídias (Fotos de falhas).
-- [ ] **Issue #111**: Interface de Gestão de Modos de Falha (FMEA) no Assets Manager.
+### Fase 5: Interface, Mídia & Visão (Próxima 📅)
+- [ ] **Multimodalidade na Sidebar**: Capacidade de arrastar fotos de falhas para o chat para análise visual imediata.
+- [ ] **Streaming de Respostas**: Implementação de Server-Sent Events (SSE) para que as respostas da IA apareçam em tempo real na Sidebar.
+- [ ] **Ações Rápidas**: Botões "Aplicar Sugestão" que preenchem automaticamente campos do formulário (Ishikawa, 5W2H).
 
 ### Fase 6: Integração Profunda com FMEA (Especialização 📅)
-- [ ] **IA Sync**: Conector para enriquecer sugestões de Causa Raiz cruzando dados de FMEA.
-- [ ] **Análise Multimodal**: Processamento e diagnóstico de fotos de falhas (baseado na Fase 5).
+- [ ] **IA Sync**: Cruzamento automático entre causa raiz sugerida e modos de falha (FMEA) cadastrados no Assets Manager.
+- [ ] **Checklist Dinâmico**: Geração de listas de verificação baseadas no tipo de ativo e falha detectada.
+
+---
+
+## Granularidade de Dados
+
+- **Nível 1 (Geral)**: Documentação técnica e normas (RAG Estático).
+- **Nível 2 (Histórico)**: Base de ~2800 RCAs concluídas (RAG Dinâmico).
+- **Nível 3 (Contextual)**: Dados de FMEA e taxonomia do ativo (via Tools).
 
 ---
 
@@ -76,7 +87,8 @@ O agente opera como um microserviço independente em Python (FastAPI + Agno) seg
 
 -   **Backend IA:** Python 3.11+, FastAPI, Agno Framework.
 -   **LLM & Embeddings:** Google Gemini 2.0 Flash (API).
--   **Vector Store:** ChromaDB (Centralizado em `/data/vector_db`).
+-   **Vector Store:** ChromaDB (Persistente).
+-   **Memória:** SQLite (`data/agent_memory.db`).
 -   **Cache de Integridade:** SQLite (`data/rca_knowledge.db`).
 
 ---

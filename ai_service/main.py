@@ -8,6 +8,7 @@ import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 from agno.os import AgentOS
 
+from config import KNOWLEDGE_PATH
 from agent.knowledge import get_rca_knowledge_base, index_historical_rcas
 from agent.detective import get_rca_detective_agent
 from api.routes import router as api_router
@@ -20,9 +21,9 @@ async def lifespan(app: FastAPI):
     try:
         knowledge_base = get_rca_knowledge_base()
         
-        # Load static knowledge from data/knowledge
-        knowledge_base.add_content(path="data/knowledge")
-        print("Static Knowledge Base loaded.")
+        # Load static knowledge using absolute path
+        knowledge_base.add_content(path=KNOWLEDGE_PATH)
+        print(f"Static Knowledge Base loaded from {KNOWLEDGE_PATH}")
         
         # Indexar Histórico de RCAs (Dinâmico) em background
         # Usamos to_thread para não bloquear o loop de eventos da FastAPI
@@ -52,7 +53,11 @@ app.include_router(api_router)
 
 # Integrar com Agno Dashboard (os.agno.com)
 agent = get_rca_detective_agent()
-agent_os = AgentOS(agents=[agent], base_app=app)
+agent_os = AgentOS(
+    name="rca-ai-service",
+    agents=[agent],
+    base_app=app
+)
 app = agent_os.get_app()
 
 if __name__ == "__main__":

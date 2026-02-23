@@ -6,6 +6,7 @@ from agno.models.google import Gemini
 from .prompts import SYSTEM_INSTRUCTIONS, DETECTIVE_DESCRIPTION
 from .tools import AGENT_TOOLS
 from .knowledge import get_rca_knowledge_base
+from config import AGNO_API_KEY
 
 def get_rca_detective_agent():
     """Instancia o Agente Agno com as ferramentas, instruções e RAG configurados."""

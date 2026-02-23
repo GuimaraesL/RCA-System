@@ -10,12 +10,6 @@ import json
 
 router = APIRouter()
 
-@router.get("/health")
-async def health_check():
-    return {
-        "status": "alive"
-    }
-
 @router.post("/analyze", response_model=AnalysisResponse)
 async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(None)):
     if x_internal_key != INTERNAL_AUTH_KEY:
