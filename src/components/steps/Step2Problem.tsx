@@ -3,11 +3,12 @@
  * Fluxo: Captura o contexto detalhado do evento, focando no que ocorreu, quem identificou, onde e quais os impactos imediatos de qualidade e segurança.
  */
 
-import React, { useId } from 'react';
+import React, { useId, useEffect } from 'react';
 import { Input } from '../ui/Input';
 import { Textarea } from '../ui/Textarea';
 import { RcaRecord, TaxonomyConfig } from '../../types';
 import { useLanguage } from '../../context/LanguageDefinition';
+import { useAi } from '../../context/AIContext';
 
 interface Step2Props {
     data: RcaRecord;
@@ -20,6 +21,18 @@ interface Step2Props {
 export const Step2Problem: React.FC<Step2Props> = ({ data, onChange, taxonomy, errors, isFieldRequired }) => {
     const { t } = useLanguage();
     const idPrefix = useId();
+    const { analyzeRca, status } = useAi();
+
+    // IA Ghost: Monitora o preenchimento para sugerir recorrências e insights
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (data.problem_description && data.problem_description.length > 50 && status === 'idle') {
+                analyzeRca(data);
+            }
+        }, 5000); // 5 segundos de debounce
+
+        return () => clearTimeout(timer);
+    }, [data.problem_description, analyzeRca, status]);
 
     return (
         <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">

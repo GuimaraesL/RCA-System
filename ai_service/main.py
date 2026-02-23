@@ -10,7 +10,7 @@ from agno.os import AgentOS
 
 from config import KNOWLEDGE_PATH
 from agent.knowledge import get_rca_knowledge_base, index_historical_rcas
-from agent.detective import get_rca_detective_agent
+from rca_team import create_rca_detectives_team
 from api.routes import router as api_router
 
 @asynccontextmanager
@@ -21,14 +21,12 @@ async def lifespan(app: FastAPI):
     try:
         knowledge_base = get_rca_knowledge_base()
         
-        # Load static knowledge using absolute path
         knowledge_base.add_content(path=KNOWLEDGE_PATH)
         print(f"Static Knowledge Base loaded from {KNOWLEDGE_PATH}")
         
         # Indexar Histórico de RCAs (Dinâmico) em background
-        # Usamos to_thread para não bloquear o loop de eventos da FastAPI
-        asyncio.create_task(asyncio.to_thread(index_historical_rcas))
-        print("Background indexing task started.")
+        # asyncio.create_task(asyncio.to_thread(index_historical_rcas))
+        # print("Background indexing task started.")
     except Exception as ke:
         print(f"Knowledge Base load failed: {ke}")
 
@@ -37,7 +35,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="RCA AI Service",
-    version="1.2.0",
+    version="1.3.0",
     lifespan=lifespan
 )
 
@@ -51,14 +49,7 @@ app.add_middleware(
 
 app.include_router(api_router)
 
-# Integrar com Agno Dashboard (os.agno.com)
-agent = get_rca_detective_agent()
-agent_os = AgentOS(
-    name="rca-ai-service",
-    agents=[agent],
-    base_app=app
-)
-app = agent_os.get_app()
+# Suporte opcional a Agno OS aqui...
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -31,14 +31,20 @@ import { Step7Additional } from '../steps/Step7Additional';
 import { StepHRA } from '../steps/StepHRA';
 import { RecurrenceBanner } from '../ui/RecurrenceBanner';
 
+// IA Integration
+import { AiProvider, useAi } from '../../context/AIContext';
+import { AiSidebar } from '../ai/AiSidebar';
+import { BrainCircuit } from 'lucide-react';
+
 interface RcaEditorProps {
     existingRecord?: RcaRecord | null;
     onClose: () => void;
     onSave: () => void;
 }
 
-export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, onSave }) => {
+const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, onSave }) => {
     const { t } = useLanguage();
+    const { isAiOpen, setAiOpen, analyzeRca } = useAi();
 
     const {
         formData, setFormData,
@@ -108,6 +114,11 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     const onSaveActionUI = async (action: ActionRecord) => {
         await handleSaveAction(action);
         setIsActionModalOpen(false);
+    };
+
+    const handleToggleAi = () => {
+        if (!isAiOpen) analyzeRca(formData);
+        setAiOpen(!isAiOpen);
     };
 
     const isCompleted = formData.status === STATUS_IDS.CONCLUDED;
@@ -187,11 +198,23 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                                     <option key={s.id} value={s.id}>
                                         {translateStatus(s.id, s.name, t)}
                                     </option>
-                                ))}
+                                )) || []}
                             </select>
                             <ChevronDown size={16} className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${isCompleted ? 'text-emerald-500' : 'text-slate-400 group-hover:text-slate-600'}`} />
                         </div>
                     </div>
+
+                    <button
+                        onClick={handleToggleAi}
+                        className={`p-2.5 rounded-xl transition-all border flex items-center gap-2 font-bold text-sm shadow-sm ${isAiOpen
+                            ? 'bg-blue-600 text-white border-blue-500 shadow-blue-500/20'
+                            : 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/30 hover:bg-blue-50 dark:hover:bg-blue-900/10'
+                            }`}
+                        title="AI Copilot"
+                    >
+                        <BrainCircuit size={20} className={isAiOpen ? 'animate-pulse' : ''} />
+                        {!isAiOpen && <span>AI Help</span>}
+                    </button>
                 </div>
             </div>
 
@@ -311,34 +334,13 @@ export const RcaEditor: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
             <ActionModal isOpen={isActionModalOpen} initialData={editingAction} fixedRca={{ id: formData.id, title: formData.what || formData.id || t('analysesPage.newTitle') }} onClose={() => setIsActionModalOpen(false)} onSave={onSaveActionUI} />
             <ConfirmModal isOpen={deleteActionModalOpen} title={t('common.delete')} message={t('modals.deleteActionMessage')} confirmText={t('common.delete')} cancelText={t('common.cancel')} onConfirm={confirmDeleteAction} onCancel={() => { setDeleteActionModalOpen(false); setActionToDelete(null); }} variant="danger" />
 
-            {aiInsight && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
-                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col border border-slate-200 dark:border-slate-700">
-                        <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-slate-900">
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <span className="text-2xl">✨</span>
-                                {t('ai.analysisTitle')}
-                            </h3>
-                            <button onClick={() => setAiInsight(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                                <ArrowLeft size={24} className="rotate-180" />
-                            </button>
-                        </div>
-
-                        <div className="p-6 overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-950/50 font-mono text-sm leading-relaxed whitespace-pre-wrap text-slate-700 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800">
-                            {aiInsight}
-                        </div>
-
-                        <div className="p-4 flex justify-end gap-3 bg-white dark:bg-slate-900 rounded-b-xl">
-                            <Button variant="secondary" onClick={() => setAiInsight(null)}>
-                                {t('common.close')}
-                            </Button>
-                            <Button variant="primary" onClick={() => { navigator.clipboard.writeText(aiInsight); setAiInsight(null); }}>
-                                {t('common.copy')}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <AiSidebar isOpen={isAiOpen} onClose={() => setAiOpen(false)} rcaData={formData} />
         </div>
     );
 };
+
+export const RcaEditor: React.FC<RcaEditorProps> = (props) => (
+    <AiProvider>
+        <RcaEditorContent {...props} />
+    </AiProvider>
+);

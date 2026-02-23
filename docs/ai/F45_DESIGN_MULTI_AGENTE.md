@@ -162,8 +162,8 @@ ai_service/
 
 ## 6. Próximos Passos de Implementação (Sprint 4.5)
 
-1.  [ ] Criar o banco de dados `agent_memory.db` via SqliteStorage.
-2.  [ ] Desmembrar o agente atual em 3 instâncias especialistas.
-3.  [ ] Implementar a orquestração via `Team`.
-4.  [ ] Adicionar suporte a `DuckDuckGo` nas tools do Detective.
-5.  [ ] Atualizar o endpoint `/analyze` para consumir o `Team.run()`.
+1.  [x] Criar o banco de dados `agent_memory.db` via SqliteStorage.
+2.  [x] Desmembrar o agente atual em 3 instâncias especialistas.
+3.  [x] Implementar a orquestração via `Team`.
+4.  [x] Adicionar suporte a `DuckDuckGo` nas tools do Detective.
+5.  [x] Atualizar o endpoint `/analyze` para consumir o `Team.run()` com suporte a Streaming (SSE).
