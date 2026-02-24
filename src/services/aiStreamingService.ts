@@ -17,7 +17,7 @@ export const streamAiAnalysis = async (
     onUpdate: (update: StreamUpdate) => void,
     customMessage?: string
 ) => {
-    const context = customMessage || JSON.stringify({
+    const context = JSON.stringify({
         title: rca.what,
         description: rca.problem_description || rca.where_description || 'Sem descrição detalhada',
         asset_display: rca.asset_name_display || 'Ativo em rascunho',
@@ -44,6 +44,7 @@ export const streamAiAnalysis = async (
                 area_id: rca.area_id,
                 equipment_id: rca.equipment_id,
                 subgroup_id: rca.subgroup_id,
+                user_prompt: customMessage, // Agora enviamos explicitamente como prompt do usuário
                 stream: true
             })
         });
@@ -79,7 +80,7 @@ export const streamAiAnalysis = async (
                 if (!dataStr) continue;
 
                 if (dataStr === '[DONE]') {
-                    onUpdate({ type: 'done' });
+                    onUpdate({ type: 'done', text: contentBuffer });
                     continue;
                 }
 

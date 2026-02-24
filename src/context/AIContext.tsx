@@ -2,11 +2,18 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import { RcaRecord } from '../types';
 import { streamAiAnalysis, StreamUpdate } from '../services/aiStreamingService';
 
+interface Message {
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: Date;
+}
+
 interface AiContextType {
     isAiOpen: boolean;
     setAiOpen: (open: boolean) => void;
     status: 'idle' | 'thinking' | 'streaming' | 'done' | 'error';
-    insight: string;
+    messages: Message[];
+    insight: string; // Resposta corrente (streaming)
     recurrences: any[];
     error: string | null;
     analyzeRca: (rca: RcaRecord) => Promise<void>;
@@ -19,11 +26,13 @@ const AiContext = createContext<AiContextType | undefined>(undefined);
 export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isAiOpen, setAiOpen] = useState(false);
     const [status, setStatus] = useState<AiContextType['status']>('idle');
+    const [messages, setMessages] = useState<Message[]>([]);
     const [insight, setInsight] = useState('');
     const [recurrences, setRecurrences] = useState<any[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     const clearAi = useCallback(() => {
+        setMessages([]);
         setInsight('');
         setRecurrences([]);
         setError(null);
@@ -46,6 +55,9 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
                 setRecurrences(prev => [...prev, update.data]);
             } else if (update.type === 'done') {
                 setStatus('done');
+                // Adiciona a resposta final ao histórico
+                setMessages(prev => [...prev, { role: 'assistant', content: update.text || '', timestamp: new Date() }]);
+                setInsight(''); // Limpa o buffer de streaming
             } else if (update.type === 'error') {
                 setStatus('error');
                 setError(update.text || 'Erro inesperado.');
@@ -56,16 +68,23 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     const chatWithAi = useCallback(async (rca: RcaRecord, message: string) => {
         if (status === 'streaming' || status === 'thinking') return;
 
+        // Adiciona a mensagem do usuário imediatamente ao histórico
+        const userMsg: Message = { role: 'user', content: message, timestamp: new Date() };
+        setMessages(prev => [...prev, userMsg]);
+
         setStatus('thinking');
         setError(null);
-        // O insight do chat substitui ou concatena conforme a lógica.
-        // Aqui vamos apenas disparar a análise com a mensagem como contexto.
+        setInsight('');
+
         await streamAiAnalysis(rca, (update: StreamUpdate) => {
             if (update.type === 'content' && update.text) {
                 setStatus('streaming');
                 setInsight(update.text);
             } else if (update.type === 'done') {
                 setStatus('done');
+                // Adiciona a resposta da IA ao histórico
+                setMessages(prev => [...prev, { role: 'assistant', content: update.text || '', timestamp: new Date() }]);
+                setInsight('');
             } else if (update.type === 'error') {
                 setStatus('error');
                 setError(update.text || 'Erro no chat.');
@@ -75,7 +94,7 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
     return (
         <AiContext.Provider value={{
-            isAiOpen, setAiOpen, status, insight, recurrences, error, analyzeRca, chatWithAi, clearAi
+            isAiOpen, setAiOpen, status, messages, insight, recurrences, error, analyzeRca, chatWithAi, clearAi
         }}>
             {children}
         </AiContext.Provider>

@@ -32,32 +32,42 @@ Em vez de um único agente "faz-tudo", utilizaremos um **Team** de especialistas
 
 ---
 
-## 2. Interface: Sidebar Híbrida (Copilot + Insights)
+## 2. Contexto Obrigatório (Mandatory Info)
 
-A interação não será mais baseada em um botão estático, mas em um painel lateral dinâmico.
+Para qualquer análise (nova ou existente), os agentes DEVEM ter acesso garantido a:
+- **Subgrupo ID**: Para contextualização técnica e similaridade.
+- **Título Curto (O Que)**: Para definição rápida do problema.
 
-### A. Camada de Insights (Automática)
-- **Trigger**: Debounce de input do usuário nos campos "Descrição" e "Causa Raiz".
-- **Agente**: **Detective** (em busca assíncrona).
-- **Saída**: Cards de "Recorrência Detectada" ou "Sugestão Técnica" que aparecem no topo da Sidebar.
-
-### B. Camada de Copilot (Chat)
-- **Trigger**: Input manual do usuário no chat.
-- **Agente**: **Team Orchestrator** (que escolhe entre Detective, Specialist ou Writer).
-- **Memória**: `SqliteMemory` vinculada ao `rca_id`.
-- **Ações**: O usuário pode pedir para formatar o 5W2H, pedir explicações sobre o FMEA ou solicitar uma revisão da análise.
+Estes dados serão injetados sistematicamente em cada chamada ao time para garantir precisão desde a "Fase de Descoberta".
 
 ---
 
-## 3. Workflows de Interação
+## 3. Interface: Sidebar Copilot (Right Panel)
 
-1.  **Modo Assistência**: O usuário começa a preencher. O sistema detecta similaridades e "empurra" o insight para a Sidebar.
-2.  **Modo Investigação**: O usuário clica em um insight e faz uma pergunta de seguimento no chat.
-3.  **Modo Finalização**: O usuário pede: "Gere as ações do 5W2H para essa falha". O **Technical Writer** responde e o usuário clica em "Aplicar" para injetar o texto no formulário principal.
+A experiência de usuário evolui de um modal bloqueante para uma barra lateral (estilo Edge Copilot) integrada ao editor de RCA.
+
+### A. Sidebar Não-Bloqueante
+- **Posicionamento**: Fixa à direita da tela.
+- **Interação Simultânea**: O usuário pode editar o formulário da RCA enquanto consulta a IA. 
+- **Injeção de Dados**: Botões "Aplicar Sugestão" na Sidebar preenchem automaticamente os campos do formulário principal sem fechar o chat.
+
+### B. Chat Estilo GPT (Conversa Contínua)
+- **Histórico Persistente**: A conversa não "reseta" a cada interação. O agente mantém o fio da discussão usando a memória vinculada ao `rca_id`.
+- **Streaming de Respostas**: Respostas rápidas e progressivas via SSE (Server-Sent Events).
 
 ---
 
-## 4. Estrutura de Comunicação (Streaming)
+## 4. Workflow de Análise Estruturado
+
+Para evitar o comportamento de "disparo único", o sistema seguirá um workflow de estados definido no Agno:
+
+1.  **Fase de Descoberta (Discovery)**: O Detective varre o backend e o RAG. Se dados críticos (como o Ativo) estiverem ausentes, o agente **para** e pergunta ao usuário no chat: "Poderia informar qual o modelo do motor?".
+2.  **Fase de Raciocínio (Reasoning)**: Com os dados em mãos, o Specialist cruza com a taxonomia e FMEA. O usuário pode intervir com observações de campo em tempo real.
+3.  **Fase de Resposta (Drafting)**: O Writer consolida o relatório. O histórico de mensagens permite que o usuário peça ajustes finos: "Refaça o 5W2H focando apenas na parte mecânica".
+
+---
+
+## 5. Estrutura de Comunicação (Streaming)
 
 Para garantir uma UX "viva", utilizaremos o **Streaming do Agno** via `arun(stream=True)`.
 - O Frontend (React) consome o stream via Server-Sent Events (SSE).
@@ -71,7 +81,7 @@ As `Skills` são funções Python encapsuladas que garantem precisão lógica qu
 
 ---
 
-## 4. Memória e Persistência (SQLite)
+## 6. Memória e Persistência (SQLite)
 
 Utilizaremos o `SqliteMemory` para garantir que o agente não "esqueça" o contexto entre sessões.
 
@@ -80,7 +90,7 @@ Utilizaremos o `SqliteMemory` para garantir que o agente não "esqueça" o conte
 - **User ID**: Mapeado para o usuário logado na plataforma.
 - **Benefício**: Se dois usuários diferentes editarem a mesma RCA, o agente terá o contexto compartilhado da investigação.
 
-## 5. Fluxos de Dados e Interação (Mermaid)
+## 7. Fluxos de Dados e Interação (Mermaid)
 
 ### A. Fluxo de Bancos de Dados (Data Architecture)
 Este diagrama mostra como o serviço de IA interage com as diferentes fontes de dados e persistência.
@@ -129,7 +139,7 @@ sequenceDiagram
 
 ---
 
-## 6. Estrutura de Pastas (Refatoração Modular)
+## 8. Estrutura de Pastas (Refatoração Modular)
 
 Para suportar essa complexidade, a pasta `ai_service` será organizada assim:
 
@@ -160,10 +170,13 @@ ai_service/
 
 ---
 
-## 6. Próximos Passos de Implementação (Sprint 4.5)
+## 9. Próximos Passos de Implementação (Sprint 4.5)
 
 1.  [x] Criar o banco de dados `agent_memory.db` via SqliteStorage.
 2.  [x] Desmembrar o agente atual em 3 instâncias especialistas.
-3.  [x] Implementar a orquestração via `Team`.
-4.  [x] Adicionar suporte a `DuckDuckGo` nas tools do Detective.
-5.  [x] Atualizar o endpoint `/analyze` para consumir o `Team.run()` com suporte a Streaming (SSE).
+3.  [x] Implementar a orquestração via `Team` (Base do Copilot).
+4.  [ ] Realizar o Mockup e Implementação da **Sidebar UX (Painel Direito)** no Editor de RCA.
+5.  [ ] Projetar a classe `AnalysisWorkflow` para gerenciar os estados (Discovery, Reasoning, Drafting).
+6.  [ ] Ajustar o Backend para garantir a injeção do **Contexto Obrigatório** (Subgrupo, Título).
+7.  [ ] Implementar a lógica de **Chat Contínuo** (GPT-style) mantendo o histórico da sessão.
+8.  [ ] Adicionar botões de **Injeção de Dados** ("Aplicar Sugestão") para preenchimento automático do formulário.
