@@ -56,3 +56,4 @@ docs/ai/implementacao
 data/*.db
 data/vector_db/
 !data/knowledge/*.md
+docs/agno/

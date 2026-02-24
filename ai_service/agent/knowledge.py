@@ -7,7 +7,7 @@ from agno.knowledge import Knowledge
 from agno.knowledge.reader.text_reader import TextReader
 from agno.vectordb.chroma import ChromaDb
 from agno.knowledge.embedder.google import GeminiEmbedder
-from config import VECTOR_DB_PATH, KNOWLEDGE_DB_PATH, GOOGLE_API_KEY
+from config import VECTOR_DB_PATH, KNOWLEDGE_DB_PATH, GOOGLE_API_KEY, BACKEND_URL
 
 # Configuração do Embedder (Google Gemini 2.0 Flash)
 embedder = GeminiEmbedder(api_key=GOOGLE_API_KEY)
@@ -20,10 +20,12 @@ vector_db = ChromaDb(
     embedder=embedder
 )
 
-# Base de Conhecimento (RAG) usando o Reader e a classe base Knowledge
+# Base de Conhecimento (RAG) centralizada
 knowledge_base = Knowledge(
     vector_db=vector_db,
-    readers={"docs": TextReader(path="data/knowledge")}
+    name="RCA Knowledge",
+    # Removido o path relativo para evitar erros de diretório no Agno OS
+    readers=[] 
 )
 
 def get_rca_knowledge_base():
@@ -43,11 +45,14 @@ def init_hash_db():
     conn.commit()
     return conn
 
-def index_historical_rcas(api_url="http://localhost:3001/api/rcas"):
+def index_historical_rcas(api_url=None):
     """
     Busca RCAs concluídas no backend principal e as indexa no VectorDB.
     Usa um banco local de hashes para evitar re-indexar o que não mudou (Saves Credits).
     """
+    if api_url is None:
+        api_url = f"{BACKEND_URL}/api/rcas"
+    
     import httpx
     from agno.knowledge.document import Document
     
