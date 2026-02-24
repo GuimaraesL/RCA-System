@@ -15,16 +15,15 @@
     box-shadow: -4px 0 20px rgba(0, 0, 0, 0.04);
     overflow: hidden;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    flex-shrink: 0;
 }
 
 .ai-sidebar.open {
     width: 420px;
-    transform: translateX(0);
 }
 
 .ai-sidebar.minimized {
     width: 56px;
-    transform: translateX(0);
     box-shadow: none;
     cursor: pointer;
 }

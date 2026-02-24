@@ -169,7 +169,7 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
 
     return (
         <div className="flex items-center justify-center h-full w-full gap-4 max-w-[1920px] mx-auto overflow-hidden transition-all duration-500">
-            <div className={`bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 flex flex-col h-full transition-all duration-500 relative overflow-hidden animate-scale-in ${isAiOpen ? 'flex-1' : 'w-full max-w-[1600px]'}`}>
+            <div className={`bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 flex flex-col h-full relative overflow-hidden animate-scale-in flex-1`}>
                 {/* Cabeçalho */}
                 <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 z-10">
                     <div className="flex items-center gap-4">
@@ -213,18 +213,6 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                                 <ChevronDown size={16} className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${isCompleted ? 'text-emerald-500' : 'text-slate-400 group-hover:text-slate-600'}`} />
                             </div>
                         </div>
-
-                        <button
-                            onClick={handleToggleAi}
-                            className={`p-2.5 rounded-xl transition-all border flex items-center gap-2 font-bold text-sm shadow-sm ${isAiOpen
-                                ? 'bg-blue-600 text-white border-blue-500 shadow-blue-500/20'
-                                : 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/30 hover:bg-blue-50 dark:hover:bg-blue-900/10'
-                                }`}
-                            title="AI Copilot"
-                        >
-                            <BrainCircuit size={20} className={isAiOpen ? 'animate-pulse' : ''} />
-                            {!isAiOpen && <span>AI Help</span>}
-                        </button>
                     </div>
                 </div>
 
