@@ -9,6 +9,8 @@ class RecurrenceInfo(BaseModel):
     similarity: float
     title: str
     level: str # 'subgroup', 'equipment', 'area'
+    root_causes: Optional[str] = None
+    actions: Optional[str] = None
 
 class AnalysisRequest(BaseModel):
     rca_id: str

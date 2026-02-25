@@ -7,6 +7,7 @@ from .models import AnalysisRequest, AnalysisResponse, RecurrenceInfo
 from rca_team import create_rca_detectives_team
 from agent.knowledge import get_rca_history_knowledge
 from config import INTERNAL_AUTH_KEY, AGENT_MEMORY_PATH
+from agno.utils.log import logger
 import json
 import asyncio
 
@@ -102,11 +103,21 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                     for doc in results:
                         rid = doc.meta_data.get("rca_id", "unknown")
                         if rid not in seen_ids and rid != request.rca_id:
+                            # Extrair causas e ações do conteúdo formatado no documento
+                            content_lines = doc.content.split("\n")
+                            causes = "N/A"
+                            actions = "N/A"
+                            for line in content_lines:
+                                if line.startswith("CAUSAS RAIZ:"): causes = line.replace("CAUSAS RAIZ: ", "")
+                                if line.startswith("AÇÕES TOMADAS:"): actions = line.replace("AÇÕES TOMADAS: ", "")
+
                             recurrences.append(RecurrenceInfo(
                                 rca_id=rid,
                                 similarity=1.0,
-                                title=doc.content.split("\n")[0].replace("TÍTULO DA FALHA: ", ""),
-                                level=level_name
+                                title=content_lines[0].replace("TÍTULO DA FALHA: ", ""),
+                                level=level_name,
+                                root_causes=causes,
+                                actions=actions
                             ))
                             seen_ids.add(rid)
             # Ordena por nível (subgroup > equipment > area)
@@ -115,26 +126,38 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         prompt = ""
         
         # Se for a primeira inicialização ou apenas o contexto do formulário (Botão Analisar ou click automático da IA)
-        if not request.user_prompt:
+        if not request.user_prompt or not str(request.user_prompt).strip():
             prompt = f"Iniciando Copiloto para a RCA ID: {request.rca_id}.\n\nNOME DO ATIVO ATUAL: {asset_info}"
             if request.context:
                 prompt += f"\n\nCONTEXTO DO FORMULÁRIO:\n{request.context}"
             if recurrences:
-                recurr_str = "\n".join([f"- [RCA {r.rca_id}](/rcas/{r.rca_id}): {r.title} (Nível: {r.level})" for r in recurrences])
-                prompt += f"\n\nContexto histórico encontrado. Use seu banner de RECORRÊNCIAS com:\n{recurr_str}"
+                recurr_items = []
+                for r in recurrences:
+                    item = f"- [RCA {r.rca_id[:8]}...](#/rca/{r.rca_id}): {r.title} (Nível: {r.level})"
+                    if r.root_causes and r.root_causes != "N/A":
+                        item += f"\n  - Causa Raiz: {r.root_causes}"
+                    if r.actions and r.actions != "N/A":
+                        item += f"\n  - Ações anteriores: {r.actions}"
+                    recurr_items.append(item)
+                
+                recurr_str = "\n".join(recurr_items)
+                prompt += f"\n\nContexto histórico encontrado. Use os fatos abaixo para sugerir causas no Ishikawa:\n{recurr_str}"
         # Se for um turno de conversa originado pelo campo de digitação do Chat Sidebar
         else:
             prompt = request.user_prompt    
+        
+        logger.info(f"🔍 DEBUG: Prompt Final para o Time: '{prompt[:100]}...' (Tamanho: {len(prompt)})")
 
         # 4. Gerador de Streaming para SSE compatível com Agno 2.x e o Frontend
         async def stream_output():
-            print(f"DEBUG: Iniciando stream ASYNC para RCA {request.rca_id}")
+            logger.debug(f"📡 DEBUG: Iniciando stream ASYNC para RCA {request.rca_id}")
             # Alertas de recorrência imediatos via metadata
             if recurrences:
                 yield f"data: {json.dumps({'type': 'metadata', 'recurrences': [r.dict() for r in recurrences]})}\n\n"
             
             try:
                 # Execução do stream do Time de forma assíncrona
+                logger.info(f"🤝 DEBUG: Chamando team.arun com session_id={request.rca_id}")
                 async for event in team.arun(prompt, stream=True, session_id=str(request.rca_id)):
                     # O Agno 2.x envia RunContentEvent ou strings
                     content = ""

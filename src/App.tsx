@@ -330,7 +330,7 @@ const AppContent: React.FC = () => {
                     className="fixed inset-0 bg-slate-50 dark:bg-slate-900 p-0 z-50 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200"
                     data-testid="rca-editor-overlay"
                 >
-                    <div className="flex-1 p-6 overflow-hidden">
+                    <div className="flex-1 p-0 overflow-hidden">
                         <RcaEditor
                             existingRecord={editingRecord}
                             onClose={handleCancelRca}

@@ -60,30 +60,53 @@ O Diagrama de Ishikawa, também conhecido como Diagrama de Causa e Efeito ou Dia
 
 ```mermaid
 graph LR
-    A[Baixa Qualidade do Produto] --> B[Método]
-    A --> C[Máquina]
-    A --> D[Mão de obra]
-    A --> E[Material]
-    A --> F[Medição]
-    A --> G[Meio ambiente]
-    
-    B --> B1[Procedimentos inadequados]
-    B --> B2[Falta de treinamento]
-    
-    C --> C1[Equipamento descalibrado]
-    C --> C2[Manutenção deficiente]
-    
-    D --> D1[Trabalhadores inexperientes]
-    D --> D2[Falta de motivação]
-    
-    E --> E1[Material de baixa qualidade]
-    E --> E2[Especificações incorretas]
-    
-    F --> F1[Instrumentos imprecisos]
-    F --> F2[Métodos de amostragem inadequados]
-    
-    G --> G1[Temperatura alta]
-    G --> G2[Umidade excessiva]
+    %% Efeito / Problema Central (A "Cabeca" do Peixe)
+    Efeito(((Falha no Pipeline de Deploy)))
+
+    %% Categoria: Maquina (Infraestrutura/Hardware)
+    subgraph G_Maquina [Máquina]
+        M1[Falta de recursos de CPU/RAM]
+        M2[Instabilidade no servidor CI/CD]
+    end
+    M1 & M2 --> C_Maquina[Máquina]
+
+    %% Categoria: Metodo (Processos/Procedimentos)
+    subgraph G_Metodo [Método]
+        Met1[Aprovação manual pendente]
+        Met2[Cobertura de testes insuficiente]
+    end
+    Met1 & Met2 --> C_Metodo[Método]
+
+    %% Categoria: Material (Insumos/Dependencias)
+    subgraph G_Material [Material]
+        Mat1[Pacote NPM/Pip corrompido]
+        Mat2[API de terceiros fora do ar]
+    end
+    Mat1 & Mat2 --> C_Material[Material]
+
+    %% Categoria: Mao de Obra (Pessoas)
+    subgraph G_MaoObra [Mão de Obra]
+        MO1[Falta de conhecimento na stack]
+        MO2[Merge conflict resolvido errado]
+    end
+    MO1 & MO2 --> C_MaoObra[Mão de Obra]
+
+    %% Categoria: Meio Ambiente (Ambiente de Execucao)
+    subgraph G_MeioAmbiente [Meio Ambiente]
+        MA1[Variaveis de ambiente omitidas]
+        MA2[Divergencia entre Dev e Prod]
+    end
+    MA1 & MA2 --> C_MeioAmbiente[Meio Ambiente]
+
+    %% Categoria: Medida (Metricas/Monitoramento)
+    subgraph G_Medida [Medida]
+        Med1[Falta de telemetria/logs]
+        Med2[Threshold de alerta mal configurado]
+    end
+    Med1 & Med2 --> C_Medida[Medida]
+
+    %% Convergencia das "Espinhas" para o "Efeito"
+    C_Maquina & C_Metodo & C_Material & C_MaoObra & C_MeioAmbiente & C_Medida ==> Efeito
 ```
 
 ## Quando usar cada método

@@ -5,6 +5,8 @@ import { useLanguage } from '../../context/LanguageDefinition';
 import { useAi } from '../../context/AIContext';
 import { Button } from '../ui/Button';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Mermaid } from '../ui/Mermaid';
 import './AiSidebar.css';
 
 interface AiSidebarProps {
@@ -14,6 +16,23 @@ interface AiSidebarProps {
     rcaData: RcaRecord;
     onApplySuggestion?: (suggestion: string) => void;
 }
+
+// Componente para renderizar blocos de código
+const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
+    const match = /language-(\w+)/.exec(className || '');
+    const lang = match ? match[1] : '';
+    const content = String(children).replace(/\n$/, '');
+
+    if (!inline && lang === 'mermaid') {
+        return <Mermaid chart={content} />;
+    }
+
+    return (
+        <code className={className} {...props}>
+            {children}
+        </code>
+    );
+};
 
 export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, rcaData, onApplySuggestion }) => {
     const { t } = useLanguage();
@@ -26,7 +45,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
         if (contentEndRef.current) {
             contentEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [insight, messages]);
+    }, [insight, messages.length]); // Corrigido: Dependência messages.length é mais estável
 
     // Dispara análise inicial se abrir pela primeira vez e tiver dados
     useEffect(() => {
@@ -34,7 +53,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
             const timer = setTimeout(() => analyzeRca(rcaData), 500);
             return () => clearTimeout(timer);
         }
-    }, [isOpen, messages.length]);
+    }, [isOpen]); // Simplificado dependências
 
     const handleSend = () => {
         if (!chatInput.trim() || status === 'thinking' || status === 'streaming') return;
@@ -47,6 +66,10 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
             e.preventDefault();
             handleSend();
         }
+    };
+
+    const markdownComponents = {
+        code: CodeBlock
     };
 
     return (
@@ -87,7 +110,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                             {recurrences.map((r, i) => (
                                 <div key={i} className="ai-recurrence-card">
                                     <div className="flex justify-between items-start">
-                                        <span className="ai-rca-id">#{r.rca_id}</span>
+                                        <span className="ai-rca-id">#{r.rca_id.substring(0, 8)}...</span>
                                         <span className="ai-match-badge">
                                             {Math.round(r.similarity * 100)}% Match
                                         </span>
@@ -113,7 +136,12 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                                     {msg.role === 'assistant' ? <BrainCircuit size={16} /> : <Zap size={16} />}
                                 </div>
                                 <div className="ai-bubble">
-                                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm]}
+                                        components={markdownComponents}
+                                    >
+                                        {msg.content}
+                                    </ReactMarkdown>
                                     {msg.role === 'assistant' && onApplySuggestion && (
                                         <button
                                             className="ai-apply-btn"
@@ -134,7 +162,12 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                                     <BrainCircuit size={16} />
                                 </div>
                                 <div className="ai-bubble">
-                                    <ReactMarkdown>{insight}</ReactMarkdown>
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm]}
+                                        components={markdownComponents}
+                                    >
+                                        {insight}
+                                    </ReactMarkdown>
                                 </div>
                             </div>
                         )}

@@ -20,6 +20,7 @@ async def lifespan(app: FastAPI):
         print("✅ Sincronização de RCAs concluída.")
     except Exception as e:
         print(f"⚠️ Falha na sincronização inicial: {e}")
+    # Reload trigger comment
     yield
     print("🛑 AI Service finalizando.")
 

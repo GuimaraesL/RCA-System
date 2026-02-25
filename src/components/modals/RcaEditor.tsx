@@ -168,8 +168,8 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     }, [goToPrev, goToNext]);
 
     return (
-        <div className="flex items-center justify-center h-full w-full gap-4 max-w-[1920px] mx-auto overflow-hidden transition-all duration-500">
-            <div className={`bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 flex flex-col h-full relative overflow-hidden animate-scale-in flex-1`}>
+        <div className="flex h-full w-full gap-0 overflow-hidden transition-all duration-500">
+            <div className={`bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full relative overflow-hidden animate-scale-in flex-1`}>
                 {/* Cabeçalho */}
                 <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 z-10">
                     <div className="flex items-center gap-4">
@@ -218,7 +218,7 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
 
                 {/* Stepper */}
                 <div className="px-8 py-6 bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 overflow-x-auto">
-                    <div className="flex justify-between items-start min-w-[800px] max-w-5xl mx-auto">
+                    <div className="flex justify-between items-start w-full">
                         {stepsList.map((s, index) => {
                             const isCompletedStep = step > s.id;
                             const isCurrent = step === s.id;
@@ -252,7 +252,7 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                         })}
                     </div>
                     {showHra && (
-                        <div className="flex justify-center mt-6 pt-4 border-t border-slate-200/60 dark:border-slate-700/60 max-w-5xl mx-auto">
+                        <div className="flex justify-center mt-6 pt-4 border-t border-slate-200/60 dark:border-slate-700/60 w-full">
                             <Button
                                 variant={step === 8 ? 'secondary' : 'outline'}
                                 size="sm"
@@ -269,7 +269,7 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
 
                 {/* Conteúdo */}
                 <div className="flex-1 overflow-y-auto p-8 lg:p-12 bg-slate-50 dark:bg-slate-950 custom-scrollbar">
-                    <div key={step} className="max-w-7xl mx-auto min-h-full animate-slide-up">
+                    <div key={step} className="w-full min-h-full animate-slide-up">
                         <RecurrenceBanner recurrences={recurrences} />
                         {step === 1 && <Step1General data={formData} onChange={handleChange} assets={assets} taxonomy={taxonomy} onAssetSelect={handleAssetSelect} onRefreshAssets={refreshAssets} errors={validationErrors} isFieldRequired={isFieldRequired} />}
                         {step === 2 && <Step2Problem data={formData} onChange={handleChange} taxonomy={taxonomy} errors={validationErrors} isFieldRequired={isFieldRequired} />}

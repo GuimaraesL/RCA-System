@@ -19,7 +19,7 @@
 }
 
 .ai-sidebar.open {
-    width: 420px;
+    width: 600px;
 }
 
 .ai-sidebar.minimized {
@@ -452,4 +452,170 @@
     50% {
         opacity: 0;
     }
+}
+
+/* Markdown Styles within AI Bubbles */
+.ai-bubble h1,
+.ai-bubble h2,
+.ai-bubble h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.ai-bubble h1 {
+    font-size: 1.25rem;
+}
+
+.ai-bubble h2 {
+    font-size: 1.125rem;
+}
+
+.ai-bubble h3 {
+    font-size: 1rem;
+}
+
+.ai-bubble p {
+    margin-bottom: 0.75rem;
+}
+
+.ai-bubble p:last-child {
+    margin-bottom: 0;
+}
+
+.ai-bubble ul,
+.ai-bubble ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.ai-bubble ul {
+    list-style-type: disc;
+}
+
+.ai-bubble ol {
+    list-style-type: decimal;
+}
+
+.ai-bubble li {
+    margin-bottom: 0.25rem;
+}
+
+.ai-bubble blockquote {
+    border-left: 4px solid #cbd5e1;
+    padding-left: 1rem;
+    margin: 1rem 0;
+    color: #475569;
+    font-style: italic;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 0 8px 8px 0;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.dark .ai-bubble blockquote {
+    border-left-color: #475569;
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.ai-bubble a {
+    color: #3b82f6;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+.ai-bubble code {
+    background: #f1f5f9;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.8em;
+}
+
+.dark .ai-bubble code {
+    background: #334155;
+}
+
+.ai-bubble pre {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 1rem 0;
+    overflow-x: auto;
+}
+
+.ai-bubble table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    font-size: 0.8rem;
+}
+
+.ai-bubble th,
+.ai-bubble td {
+    border: 1px solid #e2e8f0;
+    padding: 8px;
+    text-align: left;
+}
+
+.dark .ai-bubble th,
+.dark .ai-bubble td {
+    border-color: #334155;
+}
+
+.ai-bubble th {
+    background: #f8fafc;
+    font-weight: 700;
+}
+
+.dark .ai-bubble th {
+    background: #1e293b;
+}
+
+/* Custom styles for the Recurrence Alert in Markdown */
+.ai-bubble blockquote p:first-child {
+    font-weight: 700;
+    color: #eab308;
+    /* yellow-500 */
+}
+
+/* Mermaid Container Tweaks */
+.mermaid-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    cursor: zoom-in;
+    transition: all 0.3s ease;
+}
+
+.mermaid-container svg {
+    max-width: none !important;
+    /* Permite que o SVG cresça além da largura do container */
+    min-width: 600px;
+    /* Garante que o Ishikawa não fique microscópico */
+    height: auto;
+}
+
+.mermaid-container:hover {
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.mermaid-expanded {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-expanded svg {
+    max-width: 95% !important;
+    max-height: 95% !important;
+    width: auto !important;
+    height: auto !important;
+    filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
 }
