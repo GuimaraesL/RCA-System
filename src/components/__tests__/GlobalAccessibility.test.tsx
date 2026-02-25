@@ -75,6 +75,17 @@ vi.mock('../../hooks/useEnterAnimation', () => ({
     useEnterAnimation: () => ({ current: null })
 }));
 
+vi.mock('../../context/AIContext', () => ({
+    useAi: () => ({
+        analyzeRca: vi.fn(),
+        status: 'idle',
+        result: null,
+        error: null,
+        clearResult: vi.fn()
+    }),
+    AiProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
+}));
+
 // Componentes a serem testados
 import { FilterBar } from '../layout/FilterBar';
 import { ActionModal } from '../modals/ActionModal';

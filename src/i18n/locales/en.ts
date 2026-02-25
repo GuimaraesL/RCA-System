@@ -891,6 +891,18 @@ export const en: TranslationSchema = {
     ai: {
         analysisTitle: "AI Intelligence Analysis",
         assistButton: "Assist with IA",
-        assistTooltip: "Get AI suggestions based on history"
+        assistTooltip: "Get AI suggestions based on history",
+        copilotTitle: "RCA Copilot",
+        clearChat: "Clear Chat",
+        applyToForm: "Apply to form",
+        apply: "Apply",
+        thinking: "Summoning investigators...",
+        welcome: "Hello! I am your Copilot. How can I help with this investigation today?",
+        inputPlaceholder: "Ask about failure modes, 5 Whys...",
+        reanalyze: "Reanalyze All",
+        copyReport: "Copy Report",
+        similarHistory: "Similar History",
+        chatConversations: "Conversation with Detectives",
+        match: "Match"
     }
 };

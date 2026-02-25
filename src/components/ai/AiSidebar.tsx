@@ -80,14 +80,14 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
             <header className="ai-sidebar-header">
                 <div className="ai-sidebar-title">
                     <BrainCircuit size={24} />
-                    <span>RCA Copilot</span>
+                    <span>{t('ai.copilotTitle')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                     {messages.length > 0 && (
                         <button
                             onClick={(e) => { e.stopPropagation(); clearAi(); }}
                             className="p-2 hover:bg-white/20 rounded-full transition-colors text-white/70 hover:text-white"
-                            title="Limpar Chat"
+                            title={t('ai.clearChat')}
                         >
                             <Trash2 size={16} />
                         </button>
@@ -104,7 +104,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                 {recurrences.length > 0 && (
                     <div className="ai-recurrence-section">
                         <h4 className="ai-section-label">
-                            <History size={14} /> Histórico Similares ({recurrences.length})
+                            <History size={14} /> {t('ai.similarHistory')} ({recurrences.length})
                         </h4>
                         <div className="ai-recurrence-list">
                             {recurrences.map((r, i) => (
@@ -112,7 +112,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                                     <div className="flex justify-between items-start">
                                         <span className="ai-rca-id">#{r.rca_id.substring(0, 8)}...</span>
                                         <span className="ai-match-badge">
-                                            {Math.round(r.similarity * 100)}% Match
+                                            {Math.round(r.similarity * 100)}% {t('ai.match')}
                                         </span>
                                     </div>
                                     <p className="ai-recurrence-title">{r.title}</p>
@@ -125,7 +125,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                 {/* Chat Section */}
                 <div className="ai-chat-section">
                     <h4 className="ai-section-label">
-                        <Sparkles size={14} className="text-blue-500" /> Conversa com Detectives
+                        <Sparkles size={14} className="text-blue-500" /> {t('ai.chatConversations')}
                     </h4>
 
                     <div className="ai-messages-container">
@@ -146,9 +146,9 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                                         <button
                                             className="ai-apply-btn"
                                             onClick={() => onApplySuggestion(msg.content)}
-                                            title="Aplicar no formulário"
+                                            title={t('ai.applyToForm')}
                                         >
-                                            <Check size={14} /> Aplicar
+                                            <Check size={14} /> {t('ai.apply')}
                                         </button>
                                     )}
                                 </div>
@@ -175,14 +175,14 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                         {status === 'thinking' && !insight && (
                             <div className="ai-thinking">
                                 <RefreshCw size={32} className="animate-spin text-blue-500" />
-                                <p>Convocando investigadores...</p>
+                                <p>{t('ai.thinking')}</p>
                             </div>
                         )}
 
                         {messages.length === 0 && !insight && status === 'idle' && (
                             <div className="ai-empty-chat">
                                 <Zap size={32} />
-                                <p>Olá! Sou seu Copilot. Como posso ajudar nesta investigação hoje?</p>
+                                <p>{t('ai.welcome')}</p>
                             </div>
                         )}
 
@@ -201,7 +201,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                 <div className="ai-input-container">
                     <textarea
                         className="ai-chat-input"
-                        placeholder="Pergunte sobre modos de falha, 5 Porquês..."
+                        placeholder={t('ai.inputPlaceholder')}
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
                         onKeyDown={handleKeyDown}
@@ -223,7 +223,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                         onClick={() => analyzeRca(rcaData)}
                         disabled={status === 'thinking' || status === 'streaming'}
                     >
-                        Reanalisar Tudo
+                        {t('ai.reanalyze')}
                     </Button>
                     <Button
                         variant="secondary"
@@ -231,7 +231,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                         onClick={() => navigator.clipboard.writeText(insight)}
                         disabled={!insight}
                     >
-                        Copiar Relatório
+                        {t('ai.copyReport')}
                     </Button>
                 </div>
             </footer>

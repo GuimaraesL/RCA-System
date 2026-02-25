@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mermaid from 'mermaid';
-
+import { useLanguage } from '../../context/LanguageDefinition';
 import { Maximize2, X as CloseIcon } from 'lucide-react';
 
 mermaid.initialize({
@@ -15,6 +15,7 @@ interface MermaidProps {
 }
 
 export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
+    const { t } = useLanguage();
     const ref = useRef<HTMLDivElement>(null);
     const [svg, setSvg] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
@@ -32,12 +33,12 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
                 setSvg(renderedSvg);
             } catch (err) {
                 console.error('Mermaid render error:', err);
-                setError('Falha ao renderizar diagrama Mermaid');
+                setError(t('errors.somethingWentWrong', ['Mermaid']));
             }
         };
 
         renderChart();
-    }, [chart]);
+    }, [chart, t]);
 
     if (error) {
         return (
@@ -75,7 +76,7 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-                            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Diagrama de Ishikawa</h3>
+                            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('wizard.step4.ishikawaTitle')}</h3>
                             <button
                                 onClick={() => setIsExpanded(false)}
                                 className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"

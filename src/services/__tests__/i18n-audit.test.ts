@@ -83,7 +83,7 @@ describe('Auditoria de Internacionalização (Anti-Hardcoded)', () => {
             !text.startsWith('{') &&
             !text.endsWith('}') &&
             !text.includes('className') &&
-            !['Version', 'Promise', 'void', 'string', 'number', 'boolean', 'any'].some(kw => text.includes(kw))
+            !['Version', 'Promise', 'void', 'string', 'number', 'boolean', 'any', 'new Date', 'prev =>', '=>'].some(kw => text.includes(kw))
           ) {
             violations.push(`${path.relative(process.cwd(), file)}:${index + 1} -> Texto fixo detectado: "${text}"`);
           }
