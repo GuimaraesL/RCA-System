@@ -49,8 +49,9 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
      * Função de tradução principal.
      * Implementa busca recursiva por chaves (ex: "dashboard.title") e normalização agressiva
      * para garantir a compatibilidade com strings legadas ou com ruído de espaços.
+     * Suporta interpolação via argumentos posicionais (ex: "olá {0}").
      */
-    const t = (key: string): string => {
+    const t = (key: string, args?: any[]): string => {
         if (!key) return '';
 
         const normalize = (s: string) => s.trim().replace(/\s+/g, ' ').replace(/\u2026/g, '...');
@@ -60,13 +61,29 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
         const checklistMapping = locale.checklists?.precision as Record<string, string>;
         if (checklistMapping) {
             const found = Object.keys(checklistMapping).find(k => normalize(k) === cleanKey);
-            if (found) return checklistMapping[found];
+            if (found) {
+                let text = checklistMapping[found];
+                if (args && args.length > 0) {
+                    args.forEach((arg, i) => {
+                        text = text.replace(`{${i}}`, String(arg));
+                    });
+                }
+                return text;
+            }
         }
 
         const hraMapping = locale.wizard?.stepHRA as Record<string, string>;
         if (hraMapping) {
             const found = Object.keys(hraMapping).find(k => normalize(k) === cleanKey);
-            if (found) return hraMapping[found];
+            if (found) {
+                let text = hraMapping[found] as string;
+                if (args && args.length > 0) {
+                    args.forEach((arg, i) => {
+                        text = text.replace(`{${i}}`, String(arg));
+                    });
+                }
+                return text;
+            }
         }
 
         const lookup = (k: string, obj: any): any => {
@@ -83,12 +100,20 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
         // 2. Busca recursiva via dot-notation
         let translation = lookup(key, locale);
-        if (translation) return translation;
-
+        
         // 3. Fallback para chaves diretas no nível raiz do dicionário
-        if (!key.includes('.')) {
+        if (!translation && !key.includes('.')) {
             const rootFound = Object.keys(locale).find(k => normalize(k) === cleanKey);
-            if (rootFound) return (locale as any)[rootFound];
+            if (rootFound) translation = (locale as any)[rootFound];
+        }
+
+        if (translation) {
+            if (args && args.length > 0) {
+                args.forEach((arg, i) => {
+                    translation = translation.replace(`{${i}}`, String(arg));
+                });
+            }
+            return translation;
         }
 
         return key;

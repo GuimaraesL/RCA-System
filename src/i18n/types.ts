@@ -856,5 +856,17 @@ export interface TranslationSchema {
         analysisTitle: string;
         assistButton: string;
         assistTooltip: string;
+        copilotTitle: string;
+        clearChat: string;
+        applyToForm: string;
+        apply: string;
+        thinking: string;
+        welcome: string;
+        inputPlaceholder: string;
+        reanalyze: string;
+        copyReport: string;
+        similarHistory: string;
+        chatConversations: string;
+        match: string;
     };
 }

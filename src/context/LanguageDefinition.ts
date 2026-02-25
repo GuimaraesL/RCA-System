@@ -11,7 +11,7 @@ export type Language = 'pt' | 'en';
 export interface LanguageContextType {
     language: Language;
     setLanguage: (lang: Language) => void;
-    t: (key: string) => string;
+    t: (key: string, args?: any[]) => string;
     locale: TranslationSchema;
     formatDate: (date: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions) => string;
 }
