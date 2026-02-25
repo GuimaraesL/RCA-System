@@ -283,15 +283,31 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                 </div>
 
                 {/* Rodapé */}
-                <div className="px-8 py-5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-b-xl flex justify-between items-center z-20 shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.05)]">
+                <div 
+                    className="px-8 py-5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-b-xl flex justify-between items-center z-20 shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.05)]"
+                    data-testid="rca-editor-footer"
+                >
                     <Button variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
                     <div className="flex gap-4">
-                        {step > 1 && <Button variant="secondary" onClick={goToPrev}>{t('pagination.previous')}</Button>}
+                        {step > 1 && (
+                            <Button
+                                variant="secondary"
+                                onClick={goToPrev}
+                                data-testid="btn-prev-step"
+                            >
+                                {t('pagination.previous')}
+                            </Button>
+                        )}
                         <Button variant="primary" onClick={handleSave} isLoading={isSaving} className="gap-2">
                             <Save size={18} /> {t('common.save')}
                         </Button>
                         {step < 7 && (
-                            <Button variant="primary" onClick={goToNext} className="group gap-2 px-8">
+                            <Button
+                                variant="primary"
+                                onClick={goToNext}
+                                data-testid="btn-next-step"
+                                className="group gap-2 px-8"
+                            >
                                 {t('pagination.next')}
                                 <ArrowLeft size={18} className="rotate-180 group-hover:translate-x-1 transition-transform" />
                             </Button>
