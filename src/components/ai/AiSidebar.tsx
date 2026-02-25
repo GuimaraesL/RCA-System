@@ -36,8 +36,9 @@ const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
 
 export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, rcaData, onApplySuggestion }) => {
     const { t } = useLanguage();
-    const { status, messages, insight, recurrences, error, analyzeRca, chatWithAi, clearAi } = useAi();
+    const { status, messages, insight, reasoning, recurrences, error, analyzeRca, chatWithAi, clearAi, loadHistory } = useAi();
     const [chatInput, setChatInput] = useState('');
+    const [hasLoadedHistory, setHasLoadedHistory] = useState(false);
     const contentEndRef = useRef<HTMLDivElement>(null);
 
     // Auto-scroll durante o streaming ou novas mensagens
@@ -45,15 +46,27 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
         if (contentEndRef.current) {
             contentEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [insight, messages.length]); // Corrigido: Dependência messages.length é mais estável
+    }, [insight, reasoning, messages.length]);
 
-    // Dispara análise inicial se abrir pela primeira vez e tiver dados
+    // Carrega o histórico ao abrir a aba
     useEffect(() => {
-        if (isOpen && messages.length === 0 && status === 'idle' && (rcaData.what || rcaData.problem_description)) {
+        const initChat = async () => {
+            if (isOpen && !hasLoadedHistory && rcaData.id) {
+                // Aguarda o React montar e carrega a persistência do Agno (SQLite)
+                await loadHistory(rcaData.id);
+                setHasLoadedHistory(true);
+            }
+        };
+        initChat();
+    }, [isOpen, rcaData.id, hasLoadedHistory, loadHistory]);
+
+    // Dispara análise inicial se abrir pela primeira vez, não tiver histórico e tiver dados
+    useEffect(() => {
+        if (isOpen && hasLoadedHistory && messages.length === 0 && status === 'idle' && (rcaData.what || rcaData.problem_description)) {
             const timer = setTimeout(() => analyzeRca(rcaData), 500);
             return () => clearTimeout(timer);
         }
-    }, [isOpen]); // Simplificado dependências
+    }, [isOpen, hasLoadedHistory, messages.length, status, rcaData, analyzeRca]);
 
     const handleSend = () => {
         if (!chatInput.trim() || status === 'thinking' || status === 'streaming') return;
@@ -172,10 +185,14 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                             </div>
                         )}
 
-                        {status === 'thinking' && !insight && (
+                        {/* Reasoning Streaming / Thinking */}
+                        {(status === 'thinking' || reasoning) && !insight && (
                             <div className="ai-thinking">
                                 <RefreshCw size={32} className="animate-spin text-blue-500" />
-                                <p>{t('ai.thinking')}</p>
+                                <div className="ai-thinking-text">
+                                    <p>{reasoning ? 'Processando raciocínio...' : t('ai.thinking')}</p>
+                                    {reasoning && <span className="ai-reasoning-detail text-sm text-gray-400 block mt-1">{reasoning}</span>}
+                                </div>
                             </div>
                         )}
 

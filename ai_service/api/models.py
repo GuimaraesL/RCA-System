@@ -19,6 +19,7 @@ class AnalysisRequest(BaseModel):
     equipment_id: Optional[str] = None
     subgroup_id: Optional[str] = None
     user_prompt: Optional[str] = None
+    ui_language: Optional[str] = "Português-BR"
 
 class AnalysisResponse(BaseModel):
     rca_id: str

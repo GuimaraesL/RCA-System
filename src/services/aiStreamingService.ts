@@ -4,10 +4,27 @@ const AI_API_URL = 'http://localhost:8000/analyze';
 const INTERNAL_KEY = 'dev-key-change-it';
 
 export interface StreamUpdate {
-    type: 'content' | 'recurrence' | 'done' | 'error';
+    type: 'content' | 'recurrence' | 'reasoning' | 'done' | 'error';
     text?: string;
     data?: any;
 }
+
+export const fetchChatHistory = async (rcaId: string) => {
+    try {
+        const url = AI_API_URL.replace('/analyze', `/analyze/history/${rcaId}`);
+        const response = await fetch(url, {
+            headers: {
+                'x-internal-key': INTERNAL_KEY
+            }
+        });
+        if (!response.ok) return [];
+        const data = await response.json();
+        return data.messages || [];
+    } catch (e) {
+        console.error('Failed to fetch AI chat history', e);
+        return [];
+    }
+};
 
 /**
  * Consome o endpoint de IA via streaming (SSE-like via POST ReadableStream)
@@ -15,6 +32,7 @@ export interface StreamUpdate {
 export const streamAiAnalysis = async (
     rca: RcaRecord,
     onUpdate: (update: StreamUpdate) => void,
+    language: string = 'Portuguese',
     customMessage?: string
 ) => {
     const context = JSON.stringify({
@@ -44,7 +62,8 @@ export const streamAiAnalysis = async (
                 area_id: rca.area_id,
                 equipment_id: rca.equipment_id,
                 subgroup_id: rca.subgroup_id,
-                user_prompt: customMessage, // Agora enviamos explicitamente como prompt do usuário
+                user_prompt: customMessage,
+                ui_language: language,
                 stream: true
             })
         });
@@ -97,6 +116,10 @@ export const streamAiAnalysis = async (
                         parsed.recurrences.forEach((r: any) => {
                             onUpdate({ type: 'recurrence', data: r });
                         });
+                    }
+                    // Novo formato de Thought Streaming: { type: 'reasoning', text: '...' }
+                    else if (parsed.type === 'reasoning' && parsed.text) {
+                        onUpdate({ type: 'reasoning', text: parsed.text });
                     }
                     // Legado/Backup: Se for string pura
                     else if (typeof parsed === 'string') {

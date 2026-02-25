@@ -13,16 +13,16 @@ from agent.memory import get_agent_memory
 
 load_dotenv()
 
-def create_rca_detectives_team(session_id: str = "default_rca"):
+def create_rca_detectives_team(session_id: str = "default_rca", language: str = "Português-BR"):
     """
     Cria o time RCA-Detectives orquestrado por um Lead Agent.
     A orquestração silenciosa garante que apenas o relatório consolidado seja retornado.
     """
     
     # 1. Carregar Membros Especialistas (Silent Workers)
-    detective = get_detective_agent()
-    specialist = get_specialist_agent()
-    writer = get_writer_agent()
+    detective = get_detective_agent(language)
+    specialist = get_specialist_agent(language)
+    writer = get_writer_agent(language)
 
     # 2. O Time (Team) como Orquestrador Único
     return Team(
@@ -37,9 +37,9 @@ def create_rca_detectives_team(session_id: str = "default_rca"):
         markdown=True,
     )
 
-def get_rca_detectives_team(rca_id: str):
+def get_rca_detectives_team(rca_id: str, language: str = "Português-BR"):
     """Alias para compatibilidade legado com scripts de teste."""
-    return create_rca_detectives_team(rca_id)
+    return create_rca_detectives_team(rca_id, language)
 
 # --- CLI PREVIEW ---
 
