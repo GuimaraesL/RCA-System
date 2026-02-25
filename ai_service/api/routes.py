@@ -156,8 +156,9 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         
         # Modo Chat: Se há user_prompt, aciona apenas o Agente focado em chat rápido
         if request.user_prompt and str(request.user_prompt).strip():
-            logger.info("📡 DEBUG: Modo Chat Ativado (Agente Único)")
-            ai_engine = get_chat_agent(str(request.rca_id), language=ui_lang)
+            logger.info("📡 DEBUG: Modo Chat Ativado (Super Agent)")
+            from agent.super_agent import get_super_agent
+            ai_engine = get_super_agent(str(request.rca_id), language=ui_lang)
             prompt = request.user_prompt
             # Contextualiza a etapa 
             if request.context:
@@ -165,8 +166,11 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         
         # Modo Análise Inicial: Sem prompt, aciona o Time de Especialistas completo
         else:
-            logger.info("📡 DEBUG: Modo Análise Inicial Ativado (Time RCA-Detectives)")
-            ai_engine = create_rca_detectives_team(str(request.rca_id), language=ui_lang)
+            logger.info("📡 DEBUG: Modo Análise Inicial Ativado (Super Agent)")
+            # Substituindo temporariamente create_rca_detectives_team pelo Super Agente Unificado
+            from agent.super_agent import get_super_agent
+            ai_engine = get_super_agent(str(request.rca_id), language=ui_lang)
+            
             prompt = f"Iniciando Copiloto para a RCA ID: {request.rca_id}.\n\nNOME DO ATIVO ATUAL: {asset_info}"
             if request.context:
                 prompt += f"\n\nCONTEXTO DO FORMULÁRIO:\n{request.context}"

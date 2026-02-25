@@ -37,8 +37,9 @@ def search_technical_taxonomy_tool(query: str):
 def search_historical_rcas_tool(query: str, equipment_id: str = None, area_id: str = None):
     """
     Busca RCAs históricas (Análises de Falha antigas) no banco vetorial usando busca por similaridade.
-    Use sempre esta ferramenta quando o usuário pedir para verificar recorrências ou falhas similares recentes.
-    Você pode passar o equipment_id ou area_id para restringir a busca, se os souber.
+    **Obrigatório para identificar:** Causa Raiz de falhas passadas, Ações Tomadas e Planos de Ação anteriores.
+    Use sempre esta ferramenta quando o usuário perguntar sobre o histórico, recorrências, planos passados ou o que foi feito em outras falhas.
+    Você pode passar o equipment_id ou area_id para restringir a busca por Ativo ou Área.
     """
     from agent.knowledge import get_rca_history_knowledge
     knowledge_base = get_rca_history_knowledge()
@@ -60,14 +61,13 @@ def search_historical_rcas_tool(query: str, equipment_id: str = None, area_id: s
             rid = doc.meta_data.get("rca_id", "Desconhecido")
             asset = doc.meta_data.get("asset", "Desconhecido")
             
-            # Formatar as primeiras linhas para resumo sem poluir demais o prompt
-            lines = doc.content.split("\n")
-            preview = "\n".join(lines[:6]) # Pega as primeiras 6 linhas com Título, Data, Descrição e Causa
+            # Retornar o conteúdo completo para garantir que ações e causas não sejam truncadas
+            content_display = doc.content.strip()
             
             formatted_results.append(
                 f"--- RCA ID: {rid} ---\n"
                 f"Ativo: {asset}\n"
-                f"Conteúdo Indexado:\n{preview}..."
+                f"Conteúdo Indexado:\n{content_display}"
             )
             
         return "RCAS HISTÓRICAS ENCONTRADAS:\n\n" + "\n\n".join(formatted_results)
