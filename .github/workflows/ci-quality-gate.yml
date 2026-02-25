@@ -54,6 +54,7 @@ jobs:
         pip install pytest pytest-asyncio httpx
 
     - name: Executar Testes de Lógica (Pytest - AI Service)
+      if: env.GOOGLE_API_KEY != ''
       run: |
         cd ai_service
         pytest tests/
@@ -61,6 +62,12 @@ jobs:
         GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         INTERNAL_AUTH_KEY: ${{ secrets.INTERNAL_AUTH_KEY }}
         BACKEND_URL: http://localhost:3001/api
+
+    - name: Pular Testes de IA (Chave não configurada)
+      if: env.GOOGLE_API_KEY == ''
+      run: echo "GOOGLE_API_KEY não detectada. Pulando testes do AI Service para evitar falhas de conexão."
+      env:
+        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
 
     - name: Build da Aplicação
       run: npm run build
