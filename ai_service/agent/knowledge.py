@@ -7,30 +7,42 @@ from agno.knowledge import Knowledge
 from agno.knowledge.reader.text_reader import TextReader
 from agno.vectordb.chroma import ChromaDb
 from agno.knowledge.embedder.google import GeminiEmbedder
-from config import VECTOR_DB_PATH, KNOWLEDGE_DB_PATH, GOOGLE_API_KEY, BACKEND_URL
+from config import VECTOR_DB_PATH, KNOWLEDGE_DB_PATH, GOOGLE_API_KEY, BACKEND_URL, KNOWLEDGE_PATH
 
 # Configuração do Embedder (Google Gemini 2.0 Flash)
 embedder = GeminiEmbedder(api_key=GOOGLE_API_KEY)
 
-# Banco de Dados Vetorial (Persistente)
-vector_db = ChromaDb(
-    collection="rca_knowledge",
-    path=VECTOR_DB_PATH,
-    persistent_client=True,  # CRITICAL: Necessário para salvar no disco no Agno
-    embedder=embedder
+# Base de Conhecimento para Histórico de RCAs (Dinamica - RAG)
+rca_history_knowledge = Knowledge(
+    vector_db=ChromaDb(
+        collection="rca_history_v1", # Versão explícita para evitar conflitos
+        path=VECTOR_DB_PATH,
+        persistent_client=True,
+        embedder=embedder
+    ),
+    name="RCA History",
+    readers=[] # Alimentado via index_historical_rcas em tools/main
 )
 
-# Base de Conhecimento (RAG) centralizada
-knowledge_base = Knowledge(
-    vector_db=vector_db,
-    name="RCA Knowledge",
-    # Removido o path relativo para evitar erros de diretório no Agno OS
-    readers=[] 
+# Base de Conhecimento para Documentação/Metodologia (Estática)
+methodology_knowledge = Knowledge(
+    vector_db=ChromaDb(
+        collection="methodology_docs",
+        path=VECTOR_DB_PATH,
+        persistent_client=True,
+        embedder=embedder
+    ),
+    name="Methodology Docs",
+    readers=[]
 )
 
-def get_rca_knowledge_base():
-    """Retorna a base de conhecimento configurada."""
-    return knowledge_base
+def get_rca_history_knowledge():
+    """Retorna a base de conhecimento do histórico de RCAs."""
+    return rca_history_knowledge
+
+def get_methodology_knowledge():
+    """Retorna a base de conhecimento da metodologia."""
+    return methodology_knowledge
 
 def init_hash_db():
     """Inicializa um banco SQLite simples para controlar os hashes das RCAs indexadas."""
@@ -51,7 +63,8 @@ def index_historical_rcas(api_url=None):
     Usa um banco local de hashes para evitar re-indexar o que não mudou (Saves Credits).
     """
     if api_url is None:
-        api_url = f"{BACKEND_URL}/api/rcas"
+        base_url = BACKEND_URL.rstrip('/')
+        api_url = f"{base_url}/api/rcas"
     
     import httpx
     from agno.knowledge.document import Document
@@ -114,7 +127,7 @@ def index_historical_rcas(api_url=None):
             
             # Se mudou ou é novo, indexa no Vector DB
             try:
-                knowledge_base.add_content(
+                rca_history_knowledge.add_content(
                     name=f"rca_{rca_id}",
                     text_content=content,
                     metadata={
@@ -123,8 +136,8 @@ def index_historical_rcas(api_url=None):
                         "asset": str(rca.get('asset', '')),
                         "status": rca.get('status'),
                         "area_id": str(rca.get('area_id', rca.get('area_id', ''))),
-                        "equipment_id": str(rca.get('equipment_id', rca.get('equipment_id', ''))),
-                        "subgroup_id": str(rca.get('subgroup_id', rca.get('subgroup_id', '')))
+                        "equipment_id": str(rca.get('equipment_id', '')),
+                        "subgroup_id": str(rca.get('subgroup_id', ''))
                     },
                     upsert=True
                 )

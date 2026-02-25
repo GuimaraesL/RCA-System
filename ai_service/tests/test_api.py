@@ -32,7 +32,7 @@ def test_analyze_rca_invalid_key():
     assert response.status_code == 403
     assert response.json()["detail"] == "Invalid Internal Key"
 
-@patch("api.routes.get_rca_knowledge_base")
+@patch("api.routes.get_rca_history_knowledge")
 @patch("api.routes.create_rca_detectives_team")
 def test_analyze_rca_success(mock_create_team, mock_get_kb):
     """Valida o fluxo de análise com sucesso (mockando o time de IA)."""

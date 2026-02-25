@@ -5,7 +5,7 @@ from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import StreamingResponse
 from .models import AnalysisRequest, AnalysisResponse, RecurrenceInfo
 from rca_team import create_rca_detectives_team
-from agent.knowledge import get_rca_knowledge_base
+from agent.knowledge import get_rca_history_knowledge
 from config import INTERNAL_AUTH_KEY, AGENT_MEMORY_PATH
 import json
 import asyncio
@@ -75,7 +75,8 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
             except:
                 query_text = request.context
 
-        knowledge_base = get_rca_knowledge_base()
+        from agent.knowledge import get_rca_history_knowledge
+        knowledge_base = get_rca_history_knowledge()
         # Inicializa o Time orquestrado
         team = create_rca_detectives_team(str(request.rca_id))
         
@@ -111,26 +112,30 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
             # Ordena por nível (subgroup > equipment > area)
         
         # 3. Preparar o prompt enriquecido
-        prompt = f"Realize uma análise profunda da RCA com ID: {request.rca_id}."
-        prompt += f"\n\nNOME DO ATIVO ATUAL: {asset_info}"
+        prompt = ""
         
-        if request.context:
-            prompt += f"\n\nCONTEXTO DO FORMULÁRIO (PRIORITÁRIO):\n{request.context}"
-        
-        if recurrences:
-            recurr_str = "\n".join([f"- [RCA {r.rca_id}](/rcas/{r.rca_id}): {r.title} (Nível: {r.level})" for r in recurrences])
-            prompt += f"\n\n⚠️ RECORRÊNCIAS ENCONTRADAS:\n{recurr_str}\n\nObrigatório: No seu relatório, crie um banner (usando blockquote Markdown `>`) na seção de Histórico e liste essas RCAs com os links fornecidos."
+        # Se for a primeira inicialização ou apenas o contexto do formulário (Botão Analisar ou click automático da IA)
+        if not request.user_prompt:
+            prompt = f"Iniciando Copiloto para a RCA ID: {request.rca_id}.\n\nNOME DO ATIVO ATUAL: {asset_info}"
+            if request.context:
+                prompt += f"\n\nCONTEXTO DO FORMULÁRIO:\n{request.context}"
+            if recurrences:
+                recurr_str = "\n".join([f"- [RCA {r.rca_id}](/rcas/{r.rca_id}): {r.title} (Nível: {r.level})" for r in recurrences])
+                prompt += f"\n\nContexto histórico encontrado. Use seu banner de RECORRÊNCIAS com:\n{recurr_str}"
+        # Se for um turno de conversa originado pelo campo de digitação do Chat Sidebar
+        else:
+            prompt = request.user_prompt    
 
         # 4. Gerador de Streaming para SSE compatível com Agno 2.x e o Frontend
-        def stream_output():
-            print(f"DEBUG: Iniciando stream SYNC para RCA {request.rca_id}")
+        async def stream_output():
+            print(f"DEBUG: Iniciando stream ASYNC para RCA {request.rca_id}")
             # Alertas de recorrência imediatos via metadata
             if recurrences:
                 yield f"data: {json.dumps({'type': 'metadata', 'recurrences': [r.dict() for r in recurrences]})}\n\n"
             
             try:
-                # Execução do stream do Time
-                for event in team.run(prompt, stream=True, session_id=str(request.rca_id)):
+                # Execução do stream do Time de forma assíncrona
+                async for event in team.arun(prompt, stream=True, session_id=str(request.rca_id)):
                     # O Agno 2.x envia RunContentEvent ou strings
                     content = ""
                     if hasattr(event, "content"):

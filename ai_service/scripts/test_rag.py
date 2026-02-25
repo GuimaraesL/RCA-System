@@ -4,13 +4,13 @@ import os
 # Adiciona o diretório pai ao PYTHONPATH para importar módulos do ai_service
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agent.knowledge import get_rca_knowledge_base
+from agent.knowledge import get_rca_history_knowledge
 from agno.knowledge.document import Document
 
 def test_rag_retrieval():
     print("🧪 Testing RAG Retrieval...")
     
-    kb = get_rca_knowledge_base()
+    kb = get_rca_history_knowledge()
     
     # 1. Adicionar documento de teste
     test_doc = Document(

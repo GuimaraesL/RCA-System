@@ -7,13 +7,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from agno.os import AgentOS
 
 from config import KNOWLEDGE_PATH
-from agent.knowledge import get_rca_knowledge_base
+from agent.knowledge import get_rca_history_knowledge, get_methodology_knowledge, index_historical_rcas
 from rca_team import create_rca_detectives_team
 from api.routes import router as api_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("🚀 Iniciando RCA AI Service com AgentOS...")
+    # Sincroniza RCAs históricas logo no startup
+    try:
+        index_historical_rcas()
+        print("✅ Sincronização de RCAs concluída.")
+    except Exception as e:
+        print(f"⚠️ Falha na sincronização inicial: {e}")
     yield
     print("🛑 AI Service finalizando.")
 
@@ -24,8 +30,9 @@ if os.path.exists(KNOWLEDGE_PATH):
 else:
     print(f"⚠️ AVISO: Diretório {KNOWLEDGE_PATH} NÃO encontrado.")
 
-knowledge_base = get_rca_knowledge_base()
-knowledge_base.add_content(path=KNOWLEDGE_PATH)
+history_kb = get_rca_history_knowledge()
+methodology_kb = get_methodology_knowledge()
+methodology_kb.add_content(path=KNOWLEDGE_PATH)
 
 # Usamos a memória padrão para o AgentOS monitorar
 from agent.memory import get_agent_memory
@@ -40,13 +47,14 @@ agent_os = AgentOS(
     name="RCA System OS",
     agents=rca_team.members, # Habilita aba "Agents"
     teams=[rca_team],        # Habilita aba "Teams"
-    knowledge=[knowledge_base], # Habilita aba "Knowledge"
+    knowledge=[history_kb, methodology_kb], # Habilita aba "Knowledge"
     db=storage,             # Habilita aba "Memory"
-    tracing=True
+    tracing=True            # Restaurado a pedido do usuário
 )
 
-# 4. Obter a aplicação FastAPI
+# 4. Obter a aplicação FastAPI e vincular o lifespan
 app = agent_os.get_app()
+app.router.lifespan_context = lifespan
 
 # 4. Customização Adicional do App
 app.title = "RCA AI Service (Agno OS Powered)"

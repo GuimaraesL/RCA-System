@@ -16,6 +16,7 @@ class AnalysisRequest(BaseModel):
     area_id: Optional[str] = None
     equipment_id: Optional[str] = None
     subgroup_id: Optional[str] = None
+    user_prompt: Optional[str] = None
 
 class AnalysisResponse(BaseModel):
     rca_id: str

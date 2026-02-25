@@ -11,3 +11,6 @@ sqlalchemy-json>=0.7.0
 duckduckgo-search>=6.0.0
 wikipedia>=1.4.0
 duckduckgo-search>=6.0.0
+opentelemetry-api
+opentelemetry-sdk
+openinference-instrumentation-agno
