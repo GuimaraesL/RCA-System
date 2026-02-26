@@ -104,15 +104,37 @@ def index_historical_rcas(api_url=None):
             # Garante que o ID seja string para busca consistente no SQLite
             rca_id = str(rca.get('id'))
             
-            # Formata o conteúdo normalizado (removendo espaços extras de indentação do Python)
-            content = (
-                f"TÍTULO DA FALHA: {rca.get('what', 'N/A')}\n"
-                f"DATA: {rca.get('failure_date', 'N/A')}\n"
-                f"ATIVO: {rca.get('asset', 'N/A')} (ID: {rca.get('asset_id', 'N/A')})\n"
-                f"DESCRIÇÃO: {rca.get('description', rca.get('problem_description', 'N/A'))}\n"
-                f"CAUSAS RAIZ: {rca.get('root_causes', 'N/A')}\n"
+            import json
+            # Formata o conteúdo normalizado (incluindo 5 Porquês e Ishikawa se existirem)
+            content_parts = [
+                f"TÍTULO DA FALHA: {rca.get('what', 'N/A')}",
+                f"DATA: {rca.get('failure_date', 'N/A')}",
+                f"ATIVO: {rca.get('asset', 'N/A')} (ID: {rca.get('asset_id', 'N/A')})",
+                f"DESCRIÇÃO: {rca.get('description', rca.get('problem_description', 'N/A'))}",
+            ]
+            
+            # Adiciona 5 Porquês se houver
+            whys = [rca.get(f'why{i}') for i in range(1, 6) if rca.get(f'why{i}')]
+            if whys:
+                content_parts.append("METODOLOGIA 5 PORQUÊS:")
+                for i, why in enumerate(whys, 1):
+                    content_parts.append(f"  {i}. {why}")
+            
+            # Adiciona Ishikawa se houver (considerando que venha como dict ou string json)
+            ishikawa = rca.get('ishikawa')
+            if ishikawa:
+                if isinstance(ishikawa, (dict, list)):
+                    ishikawa_str = json.dumps(ishikawa, ensure_ascii=False)
+                else:
+                    ishikawa_str = str(ishikawa)
+                content_parts.append(f"DIAGRAMA ISHIKAWA (DADOS 6M): {ishikawa_str}")
+
+            content_parts.extend([
+                f"CAUSAS RAIZ: {rca.get('root_causes', 'N/A')}",
                 f"AÇÕES TOMADAS: {rca.get('actions', 'N/A')}"
-            ).strip()
+            ])
+            
+            content = "\n".join(content_parts).strip()
             
             # Gera hash do conteúdo atual
             current_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()

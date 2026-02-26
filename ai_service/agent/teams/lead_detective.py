@@ -2,7 +2,7 @@
 from agno.agent import Agent
 from agno.models.google import Gemini
 from agno.tools.duckduckgo import DuckDuckGoTools
-from ..tools import get_rca_context_tool, search_historical_rcas_tool
+from ..tools import search_historical_rcas_tool
 from ..knowledge import get_rca_history_knowledge
 from agent.prompts import GLOBAL_RULES, DETECTIVE_PROMPT, MEMBER_RULES
 
@@ -12,7 +12,7 @@ def get_detective_agent(language: str = "Português-BR"):
         role="Lead Investigator (Investigador de Fatos e Recorrências)",
         model=Gemini(id="gemini-2.0-flash"),
         instructions=[GLOBAL_RULES.format(idioma=language), DETECTIVE_PROMPT, MEMBER_RULES],
-        tools=[DuckDuckGoTools(), get_rca_context_tool, search_historical_rcas_tool],
+        tools=[DuckDuckGoTools(), search_historical_rcas_tool],
         knowledge=get_rca_history_knowledge(),
         search_knowledge=False, # <-- Desabilita busca genérica para forçar a tool `search_historical_rcas_tool`
         markdown=True,
