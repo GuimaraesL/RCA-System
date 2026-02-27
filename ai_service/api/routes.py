@@ -148,32 +148,32 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                             ))
                             seen_ids.add(rid)
 
-        from agents.chat_agent import get_chat_agent
-        
-        # Inicializa a Orquestração escolhida dependendo do "Modo" (Análise Inicial vs Chat)
+        # Fase 3: Workflow Unificado — um único ponto de entrada inteligente
+        from agents.rca_workflow import get_rca_workflow
         ui_lang = request.ui_language or "Português-BR"
-        
-        # Modo Chat: Se há user_prompt, aciona o Agente Conversacional (leve e fluido)
+        ai_engine = get_rca_workflow(str(request.rca_id), language=ui_lang)
+
+        # Monta o prompt adaptado ao contexto: chat rápido ou análise inicial
         if request.user_prompt and str(request.user_prompt).strip():
-            logger.info("📡 DEBUG: Modo Chat Ativado (Chat Agent - Conversacional)")
-            from agents.chat_agent import get_chat_agent
-            ai_engine = get_chat_agent(str(request.rca_id), language=ui_lang)
+            logger.info("📡 WORKFLOW: Mensagem de chat recebida do usuário.")
             prompt = request.user_prompt
-            
-            # Otimização de Tokens: Injeta o contexto APENAS se o histórico estiver vazio
-            # para evitar que o mesmo JSON gigante seja enviado em cada turno do chat.
-            session_history = ai_engine.get_chat_history()
-            
+            # Injeta o contexto da RCA apenas se for o primeiro turno (eficiência de tokens)
+            try:
+                session_history = ai_engine.agent.get_chat_history() if ai_engine.agent else []
+            except Exception:
+                session_history = []
             if not session_history and request.context:
-                 prompt += f"\n\n[CONTEXTO INICIAL DA RCA: {request.context}]"
-        
-        # Modo Análise Inicial: Sem prompt, aciona o Super Agente para análise profunda
+                prompt = (
+                    f"[CONTEXTO DA RCA - leia silenciosamente para enriquecer sua resposta]:\n"
+                    f"{request.context}\n\n"
+                    f"---\nMensagem do engenheiro: {request.user_prompt}"
+                )
         else:
-            logger.info("📡 DEBUG: Modo Análise Inicial Ativado (Super Agent)")
-            from agents.super_agent import get_super_agent
-            ai_engine = get_super_agent(str(request.rca_id), language=ui_lang)
-            
-            prompt = f"Realize a análise da RCA ID: {request.rca_id}.\n\nNOME DO ATIVO: {asset_info}"
+            logger.info("📡 WORKFLOW: Análise inicial ativada (sem prompt do usuário).")
+            prompt = (
+                f"Realize a análise completa de causa raiz para a RCA ID: {request.rca_id}.\n\n"
+                f"NOME DO ATIVO: {asset_info}"
+            )
             if request.context:
                 prompt += f"\n\nDADOS ATUAIS DO FORMULÁRIO:\n{request.context}"
             if recurrences:
@@ -185,11 +185,9 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                     if r.actions and r.actions != "N/A":
                         item += f"\n  - Ações anteriores: {r.actions}"
                     recurr_items.append(item)
-                
-                recurr_str = "\n".join(recurr_items)
-                prompt += f"\n\nContexto histórico encontrado. Use os fatos abaixo para sugerir causas no Ishikawa:\n{recurr_str}"
-        
-        logger.info(f"🔍 DEBUG: Prompt Final: '{prompt[:100]}...' (Tamanho: {len(prompt)})")
+                prompt += f"\n\nHistórico encontrado — use para enriquecer a análise:\n" + "\n".join(recurr_items)
+
+        logger.info(f"🔍 WORKFLOW: Prompt montado ({len(prompt)} chars): '{prompt[:80]}...'")
 
         # 4. Gerador de Streaming para SSE compatível com Agno 2.x e o Frontend
         async def stream_output():
@@ -203,6 +201,13 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                 # Execução do stream async
                 async for event in ai_engine.arun(prompt, stream=True, session_id=str(request.rca_id)):
                     logger.debug(f"📡 DEBUG: Evento recebido: {type(event)}")
+                    
+                    # A Agno emite eventos de conclusão no final (WorkflowCompletedEvent) que contêm 
+                    # a resposta COMPLETA no .content, o que causa duplicação/triplicação no SSE.
+                    event_type = type(event).__name__
+                    if event_type in ("WorkflowCompletedEvent", "WorkflowAgentCompletedEvent", "RunCompletedEvent"):
+                        continue
+                    
                     content = ""
                     if hasattr(event, "content") and event.content:
                         content = event.content
