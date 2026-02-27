@@ -6,14 +6,15 @@ import os
 from fastapi.middleware.cors import CORSMiddleware
 from agno.os import AgentOS
 
-from config import KNOWLEDGE_PATH
-from agent.knowledge import get_rca_history_knowledge, get_methodology_knowledge, index_historical_rcas
-from rca_team import create_rca_detectives_team
+from core.config import KNOWLEDGE_PATH
+from core.knowledge import get_rca_history_knowledge, get_methodology_knowledge, index_historical_rcas
 from api.routes import router as api_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("🚀 Iniciando RCA AI Service com AgentOS...")
+    import os
+    os.environ["AGNO_DEBUG"] = "True"
+    print("🚀 Iniciando RCA AI Service com AGNO_DEBUG=True...")
     # Sincroniza RCAs históricas logo no startup
     try:
         index_historical_rcas()
@@ -36,21 +37,24 @@ methodology_kb = get_methodology_knowledge()
 methodology_kb.add_content(path=KNOWLEDGE_PATH)
 
 # Usamos a memória padrão para o AgentOS monitorar
-from agent.memory import get_agent_memory
+from core.memory import get_agent_memory
 storage = get_agent_memory("rca_system_storage")
 
-# 2. Definir o Time RCA com ID explícito para o Dashboard
-rca_team = create_rca_detectives_team()
+# 2. Instanciar Agentes para Visibilidade no Dashboard (Studio)
+from agents.super_agent import get_super_agent
+from agents.chat_agent import get_chat_agent
 
-# 3. Inicializar o AgentOS com TODOS os componentes
-# Expondo tanto o time quanto os agentes individuais para máxima visibilidade no Dashboard
+# Criamos instâncias de "Preview" com nomes que o Dashboard entende
+super_agent_preview = get_super_agent("preview_super")
+chat_agent_preview = get_chat_agent("preview_chat")
+
+# 3. Inicializar o AgentOS
 agent_os = AgentOS(
     name="RCA System OS",
-    agents=rca_team.members, # Habilita aba "Agents"
-    teams=[rca_team],        # Habilita aba "Teams"
-    knowledge=[history_kb, methodology_kb], # Habilita aba "Knowledge"
-    db=storage,             # Habilita aba "Memory"
-    tracing=True            # Restaurado a pedido do usuário
+    agents=[super_agent_preview, chat_agent_preview], 
+    knowledge=[history_kb, methodology_kb], 
+    db=storage,             
+    tracing=True
 )
 
 # 4. Obter a aplicação FastAPI e vincular o lifespan

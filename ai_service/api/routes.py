@@ -4,9 +4,8 @@
 from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import StreamingResponse
 from .models import AnalysisRequest, AnalysisResponse, RecurrenceInfo
-from rca_team import create_rca_detectives_team
-from agent.knowledge import get_rca_history_knowledge
-from config import INTERNAL_AUTH_KEY, AGENT_MEMORY_PATH
+from core.knowledge import get_rca_history_knowledge
+from core.config import INTERNAL_AUTH_KEY, AGENT_MEMORY_PATH
 from agno.utils.log import logger
 import json
 import asyncio
@@ -26,7 +25,7 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
     if x_internal_key != INTERNAL_AUTH_KEY:
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
     
-    from agent.chat_agent import get_chat_agent
+    from agents.chat_agent import get_chat_agent
     agent = get_chat_agent(rca_id)
     
     messages = []
@@ -60,7 +59,7 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         # Garante que o diretório de storage existe
         import os
         import httpx
-        from config import BACKEND_URL, AGENT_MEMORY_PATH
+        from core.config import BACKEND_URL, AGENT_MEMORY_PATH
         os.makedirs(os.path.dirname(AGENT_MEMORY_PATH), exist_ok=True)
 
         # --- NOVA LÓGICA DE CAPTURA DE ATIVO ---
@@ -106,7 +105,7 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
             except:
                 query_text = request.context
 
-        from agent.knowledge import get_rca_history_knowledge
+        from core.knowledge import get_rca_history_knowledge
         knowledge_base = get_rca_history_knowledge()
         
         # 3. Busca Hierárquica de Recorrências (Acumulativa)
@@ -149,7 +148,7 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                             ))
                             seen_ids.add(rid)
 
-        from agent.chat_agent import get_chat_agent
+        from agents.chat_agent import get_chat_agent
         
         # Inicializa a Orquestração escolhida dependendo do "Modo" (Análise Inicial vs Chat)
         ui_lang = request.ui_language or "Português-BR"
@@ -157,23 +156,26 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         # Modo Chat: Se há user_prompt, aciona apenas o Agente focado em chat rápido
         if request.user_prompt and str(request.user_prompt).strip():
             logger.info("📡 DEBUG: Modo Chat Ativado (Super Agent)")
-            from agent.super_agent import get_super_agent
+            from agents.super_agent import get_super_agent
             ai_engine = get_super_agent(str(request.rca_id), language=ui_lang)
             prompt = request.user_prompt
-            # Contextualiza a etapa 
-            if request.context:
-                prompt += f"\n\n[INFO DE SISTEMA INVISÍVEL AO USUÁRIO: O formulário atual possui os seguintes dados preenchidos: {request.context}]"
+            
+            # Otimização de Tokens: Injeta o contexto APENAS se o histórico estiver vazio
+            # para evitar que o mesmo JSON gigante seja enviado em cada turno do chat.
+            session_history = ai_engine.get_chat_history()
+            
+            if not session_history and request.context:
+                 prompt += f"\n\n[CONTEXTO INICIAL DA RCA: {request.context}]"
         
-        # Modo Análise Inicial: Sem prompt, aciona o Time de Especialistas completo
+        # Modo Análise Inicial: Sem prompt, aciona o Super Agente para análise profunda
         else:
             logger.info("📡 DEBUG: Modo Análise Inicial Ativado (Super Agent)")
-            # Substituindo temporariamente create_rca_detectives_team pelo Super Agente Unificado
             from agent.super_agent import get_super_agent
             ai_engine = get_super_agent(str(request.rca_id), language=ui_lang)
             
-            prompt = f"Iniciando Copiloto para a RCA ID: {request.rca_id}.\n\nNOME DO ATIVO ATUAL: {asset_info}"
+            prompt = f"Realize a análise da RCA ID: {request.rca_id}.\n\nNOME DO ATIVO: {asset_info}"
             if request.context:
-                prompt += f"\n\nCONTEXTO DO FORMULÁRIO:\n{request.context}"
+                prompt += f"\n\nDADOS ATUAIS DO FORMULÁRIO:\n{request.context}"
             if recurrences:
                 recurr_items = []
                 for r in recurrences:
@@ -197,10 +199,12 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                 yield f"data: {json.dumps({'type': 'metadata', 'recurrences': [r.dict() for r in recurrences]})}\n\n"
             
             try:
+                logger.info(f"📡 DEBUG: Chamando arun para prompt de {len(prompt)} chars")
                 # Execução do stream async
                 async for event in ai_engine.arun(prompt, stream=True, session_id=str(request.rca_id)):
+                    logger.debug(f"📡 DEBUG: Evento recebido: {type(event)}")
                     content = ""
-                    if hasattr(event, "content"):
+                    if hasattr(event, "content") and event.content:
                         content = event.content
                     elif isinstance(event, str):
                         content = event
@@ -213,6 +217,9 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                             continue
                         elif content_str.startswith("get_asset_fmea_tool"):
                             yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Analisando banco de FMEA do ativo...'})}\n\n"
+                            continue
+                        elif content_str.startswith("get_full_rca_detail_tool"):
+                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Acessando conteúdo integral e triggers da RCA selecionada...'})}\n\n"
                             continue
                         elif "completed in" in content_str and ("tool" in content_str or "Tool" in content_str):
                             # Filtro genérico para descartar outputs sujos das tools sem gerar conteúdo

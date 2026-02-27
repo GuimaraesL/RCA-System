@@ -7,7 +7,7 @@ from agno.knowledge import Knowledge
 from agno.knowledge.reader.text_reader import TextReader
 from agno.vectordb.chroma import ChromaDb
 from agno.knowledge.embedder.google import GeminiEmbedder
-from config import VECTOR_DB_PATH, KNOWLEDGE_DB_PATH, GOOGLE_API_KEY, BACKEND_URL, KNOWLEDGE_PATH
+from .config import VECTOR_DB_PATH, KNOWLEDGE_DB_PATH, GOOGLE_API_KEY, BACKEND_URL, KNOWLEDGE_PATH
 
 # Configuração do Embedder (Google Gemini 2.0 Flash)
 embedder = GeminiEmbedder(api_key=GOOGLE_API_KEY)
@@ -105,36 +105,19 @@ def index_historical_rcas(api_url=None):
             rca_id = str(rca.get('id'))
             
             import json
-            # Formata o conteúdo normalizado (incluindo 5 Porquês e Ishikawa se existirem)
+            # Formata o conteúdo para busca semântica leve (Foco em Título, Descrição, Quem e Onde)
             content_parts = [
-                f"TÍTULO DA FALHA: {rca.get('what', 'N/A')}",
-                f"DATA: {rca.get('failure_date', 'N/A')}",
-                f"ATIVO: {rca.get('asset', 'N/A')} (ID: {rca.get('asset_id', 'N/A')})",
-                f"DESCRIÇÃO: {rca.get('description', rca.get('problem_description', 'N/A'))}",
+                f"ID DA RCA: {rca_id}",
+                f"TÍTULO/O QUE (What): {rca.get('what', 'N/A')}",
+                f"QUEM (Who): {rca.get('who', 'N/A')}",
+                f"ONDE (Where): {rca.get('where_description', 'N/A')}",
+                f"DESCRIÇÃO TÉCNICA: {rca.get('problem_description', rca.get('description', 'N/A'))}",
+                f"TIPO DE COMPONENTE: {rca.get('component_type', 'N/A')}",
+                f"TIPO DE ANÁLISE: {rca.get('analysis_type', 'N/A')}"
             ]
             
-            # Adiciona 5 Porquês se houver
-            whys = [rca.get(f'why{i}') for i in range(1, 6) if rca.get(f'why{i}')]
-            if whys:
-                content_parts.append("METODOLOGIA 5 PORQUÊS:")
-                for i, why in enumerate(whys, 1):
-                    content_parts.append(f"  {i}. {why}")
-            
-            # Adiciona Ishikawa se houver (considerando que venha como dict ou string json)
-            ishikawa = rca.get('ishikawa')
-            if ishikawa:
-                if isinstance(ishikawa, (dict, list)):
-                    ishikawa_str = json.dumps(ishikawa, ensure_ascii=False)
-                else:
-                    ishikawa_str = str(ishikawa)
-                content_parts.append(f"DIAGRAMA ISHIKAWA (DADOS 6M): {ishikawa_str}")
-
-            content_parts.extend([
-                f"CAUSAS RAIZ: {rca.get('root_causes', 'N/A')}",
-                f"AÇÕES TOMADAS: {rca.get('actions', 'N/A')}"
-            ])
-            
             content = "\n".join(content_parts).strip()
+
             
             # Gera hash do conteúdo atual
             current_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()
@@ -153,11 +136,10 @@ def index_historical_rcas(api_url=None):
                     name=f"rca_{rca_id}",
                     text_content=content,
                     metadata={
-                        "source": "rca_history", 
                         "rca_id": rca_id,
-                        "asset": str(rca.get('asset', '')),
+                        "asset": str(rca.get('asset_name_display', rca.get('asset', ''))),
                         "status": rca.get('status'),
-                        "area_id": str(rca.get('area_id', rca.get('area_id', ''))),
+                        "area_id": str(rca.get('area_id', '')),
                         "equipment_id": str(rca.get('equipment_id', '')),
                         "subgroup_id": str(rca.get('subgroup_id', ''))
                     },
