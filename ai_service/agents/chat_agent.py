@@ -28,7 +28,7 @@ def get_chat_agent(session_id: str, language: str = "Português-BR"):
         search_knowledge=False, 
         db=get_agent_memory(session_id),
         add_history_to_context=True,
-        num_history_runs=2, # Reduzido
+        num_history_runs=4, # Mais contexto para fluidez conversacional
         debug_mode=True,
         markdown=True,
     )

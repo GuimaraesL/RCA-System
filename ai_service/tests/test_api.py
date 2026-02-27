@@ -33,22 +33,26 @@ def test_analyze_rca_invalid_key():
     assert response.json()["detail"] == "Invalid Internal Key"
 
 @patch("api.routes.get_rca_history_knowledge")
-@patch("api.routes.create_rca_detectives_team")
-def test_analyze_rca_success(mock_create_team, mock_get_kb):
+@patch("api.routes.get_super_agent")
+def test_analyze_rca_success(mock_get_agent, mock_get_kb):
     """Valida o fluxo de análise com sucesso (mockando o time de IA)."""
     
     # Configura mocks
     mock_team = MagicMock()
-    # No Agno, o retorno de run (ou arun) é um objeto/generator
-    # Vamos mockar o retorno de run
-    mock_chunk = MagicMock()
-    mock_chunk.content = "Análise da IA: Causa raiz identificada como fadiga de material."
     
-    mock_team.run.return_value = [mock_chunk]
-    mock_create_team.return_value = mock_team
+    # Mock do stream SSE (Agno 2.x usa arun como generator)
+    async def mock_arun_gen(*args, **kwargs):
+        # Simula o objeto RunEvent/RunContentEvent ou similar que o routes.py espera
+        class MockEvent:
+            def __init__(self, content):
+                self.content = content
+        
+        yield MockEvent("Análise da IA: Causa raiz identificada como fadiga de material.")
+
+    mock_team.arun = mock_arun_gen
+    mock_get_agent.return_value = mock_team
     
     mock_kb = MagicMock()
-    # Mock do Vector DB para não encontrar recorrências neste teste simples
     mock_kb.vector_db.search.return_value = []
     mock_get_kb.return_value = mock_kb
 

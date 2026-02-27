@@ -153,11 +153,11 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         # Inicializa a Orquestração escolhida dependendo do "Modo" (Análise Inicial vs Chat)
         ui_lang = request.ui_language or "Português-BR"
         
-        # Modo Chat: Se há user_prompt, aciona apenas o Agente focado em chat rápido
+        # Modo Chat: Se há user_prompt, aciona o Agente Conversacional (leve e fluido)
         if request.user_prompt and str(request.user_prompt).strip():
-            logger.info("📡 DEBUG: Modo Chat Ativado (Super Agent)")
-            from agents.super_agent import get_super_agent
-            ai_engine = get_super_agent(str(request.rca_id), language=ui_lang)
+            logger.info("📡 DEBUG: Modo Chat Ativado (Chat Agent - Conversacional)")
+            from agents.chat_agent import get_chat_agent
+            ai_engine = get_chat_agent(str(request.rca_id), language=ui_lang)
             prompt = request.user_prompt
             
             # Otimização de Tokens: Injeta o contexto APENAS se o histórico estiver vazio
@@ -170,7 +170,7 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         # Modo Análise Inicial: Sem prompt, aciona o Super Agente para análise profunda
         else:
             logger.info("📡 DEBUG: Modo Análise Inicial Ativado (Super Agent)")
-            from agent.super_agent import get_super_agent
+            from agents.super_agent import get_super_agent
             ai_engine = get_super_agent(str(request.rca_id), language=ui_lang)
             
             prompt = f"Realize a análise da RCA ID: {request.rca_id}.\n\nNOME DO ATIVO: {asset_info}"
@@ -225,6 +225,10 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                             # Filtro genérico para descartar outputs sujos das tools sem gerar conteúdo
                             continue
                         elif content_str.startswith("get_rca_context_tool"):
+                            continue
+                        # Filtros para logs de coordenação do Team
+                        elif content_str.startswith("Transferring") or content_str.startswith("Running"):
+                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Coordenando especialistas...'})}\n\n"
                             continue
                         
                         yield f"data: {json.dumps({'type': 'content', 'delta': content_str})}\n\n"

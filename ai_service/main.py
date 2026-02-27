@@ -40,18 +40,19 @@ methodology_kb.add_content(path=KNOWLEDGE_PATH)
 from core.memory import get_agent_memory
 storage = get_agent_memory("rca_system_storage")
 
-# 2. Instanciar Agentes para Visibilidade no Dashboard (Studio)
+# 2. Instanciar Agentes/Times para Visibilidade no Dashboard (Studio)
 from agents.super_agent import get_super_agent
 from agents.chat_agent import get_chat_agent
 
-# Criamos instâncias de "Preview" com nomes que o Dashboard entende
-super_agent_preview = get_super_agent("preview_super")
+# Preview do Time de Análise (Team) e do Chat Agent (Agent individual)
+rca_team_preview = get_super_agent("preview_super")
 chat_agent_preview = get_chat_agent("preview_chat")
 
 # 3. Inicializar o AgentOS
 agent_os = AgentOS(
     name="RCA System OS",
-    agents=[super_agent_preview, chat_agent_preview], 
+    agents=[chat_agent_preview],
+    teams=[rca_team_preview],
     knowledge=[history_kb, methodology_kb], 
     db=storage,             
     tracing=True

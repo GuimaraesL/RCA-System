@@ -1,35 +1,46 @@
-# AI Service - Super Agent (Unified RCA Agent)
+# AI Service - RCA Analysis Team (Coordinate Mode)
+# Substitui o Super Agent monolítico por um Time de especialistas coordenados.
+# O líder delega sub-tarefas para Detective, Specialist e Writer,
+# depois sintetiza os resultados em um único output consolidado.
+
 from agno.agent import Agent
+from agno.team import Team
+from agno.team.mode import TeamMode
 from agno.models.google import Gemini
-from agno.tools.duckduckgo import DuckDuckGoTools
-from core.tools import search_historical_rcas_tool, get_asset_fmea_tool, get_full_rca_detail_tool
-from core.knowledge import get_rca_history_knowledge
 from core.prompts import GLOBAL_RULES, SUPER_AGENT_PROMPT
 from core.memory import get_agent_memory
 
-from agno.skills import Skills, LocalSkills
-import os
+from agents.detective_agent import get_detective_agent
+from agents.specialist_agent import get_specialist_agent
+from agents.writer_agent import get_writer_agent
+
 
 def get_super_agent(session_id: str, language: str = "Português-BR"):
     """
-    Cria um Agente Único (Super Agente) que consolida as funções do Detetive, Especialista e Redator.
-    Em vez de orquestrar múltiplos agentes, este agente faz a análise completa em um único turno.
+    Cria um Time de Análise de RCA (substituindo o Super Agente monolítico).
+    Usa TeamMode.coordinate: o líder delega para os especialistas e sintetiza o resultado.
+    
+    O líder (Team Leader) tem o SUPER_AGENT_PROMPT e orquestra:
+    - Detective: Busca histórica e recorrências
+    - Specialist: Validação técnica via FMEA
+    - Writer: Formatação de Ishikawa e Planos de Ação
     """
-    # Define o caminho base das skills
-    skills_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "skills")
+    # Cria os membros especialistas
+    detective = get_detective_agent(language)
+    specialist = get_specialist_agent(language)
+    writer = get_writer_agent(language)
 
-    return Agent(
-        name="RCA_Super_Copilot",
-        role="Especialista Definitivo em RCA",
+    return Team(
+        name="RCA_Analysis_Team",
+        mode=TeamMode.coordinate,
         model=Gemini(id="gemini-2.0-flash"),
-        instructions=[GLOBAL_RULES.format(idioma=language), SUPER_AGENT_PROMPT],
-        tools=[search_historical_rcas_tool, get_full_rca_detail_tool, get_asset_fmea_tool, DuckDuckGoTools()],
-        skills=Skills(loaders=[LocalSkills(skills_path)]), # Carrega skills de formatação
-        knowledge=None, # Desativado carregamento automático para economizar tokens
-        search_knowledge=False, 
+        members=[detective, specialist, writer],
+        instructions=[
+            GLOBAL_RULES.format(idioma=language),
+            SUPER_AGENT_PROMPT,
+        ],
         db=get_agent_memory(session_id),
-        add_history_to_context=True,
-        num_history_runs=2, # Reduzido para economizar tokens
-        debug_mode=True,
         markdown=True,
+        debug_mode=True,
+        stream_member_events=False, # Evita duplicação: silencia os membros no stream e deixa apenas o Líder falar
     )
