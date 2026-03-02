@@ -7,7 +7,7 @@ from agno.agent import Agent
 from agno.team import Team
 from agno.team.mode import TeamMode
 from agno.models.google import Gemini
-from core.prompts import GLOBAL_RULES, SUPER_AGENT_PROMPT
+from core.prompts import GLOBAL_RULES, COPILOT_TEAM_PROMPT
 from core.memory import get_agent_memory
 
 from agents.detective_agent import get_detective_agent
@@ -17,13 +17,11 @@ from agents.writer_agent import get_writer_agent
 
 def get_super_agent(session_id: str, language: str = "Português-BR"):
     """
-    Cria um Time de Análise de RCA (substituindo o Super Agente monolítico).
-    Usa TeamMode.coordinate: o líder delega para os especialistas e sintetiza o resultado.
-    
-    O líder (Team Leader) tem o SUPER_AGENT_PROMPT e orquestra:
-    - Detective: Busca histórica e recorrências
-    - Specialist: Validação técnica via FMEA
-    - Writer: Formatação de Ishikawa e Planos de Ação
+    Cria o RCA Copilot Team (TeamMode.coordinate).
+    O Líder recebe o COPILOT_TEAM_PROMPT e decide se:
+    - Conversa direto sem acionar ninguém.
+    - Delega busca para o Detective / Specialist.
+    - Delega o fluxo completo para todos os especialistas sequencialmente.
     """
     # Cria os membros especialistas
     detective = get_detective_agent(language)
@@ -37,7 +35,7 @@ def get_super_agent(session_id: str, language: str = "Português-BR"):
         members=[detective, specialist, writer],
         instructions=[
             GLOBAL_RULES.format(idioma=language),
-            SUPER_AGENT_PROMPT,
+            COPILOT_TEAM_PROMPT,
         ],
         db=get_agent_memory(session_id),
         markdown=True,

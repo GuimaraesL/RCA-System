@@ -1,0 +1,13 @@
+Com os dados da RCA e o histórico de falhas, vamos iniciar a análise completa.
+
+Vou analisar o histórico de falhas para identificar recorrências e padrões.
+Em seguida, vou verificar o FMEA para validar as hipóteses levantadas.
+Por fim, vou gerar um diagrama de Ishikawa (6M) e um plano de ação (5W2H) para a causa raiz identificada.
+Com base na análise de recorrência, vou agora verificar o FMEA para validar as hipóteses levantadas sobre as causas da falha.
+
+Não foi encontrado um FMEA cadastrado para o ativo. Com os dados do histórico e a falta de FMEA, vou gerar o diagrama de Ishikawa e o plano de ação.
+
+Análise de Causa Raiz - "Roletes do Módulo 25 do conveyor não giram"
+Causa Raiz Identificada:
+
+A causa raiz principal identificada é a falta de um plano de manutenção preventiva adequado, com instruções detalhadas para o tensionamento das correntes, o que leva a um tensionamento inadequado, desgaste prematuro e, finalmente, ao rompimento da corrente de acionamento dos roletes do conveyor.
