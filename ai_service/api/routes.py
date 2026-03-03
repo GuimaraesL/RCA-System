@@ -35,9 +35,28 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
         for msg in session_msgs:
             if msg.role in ['user', 'assistant']:
                 content = msg.content
-                # Limpa a injeção invisível de contexto do formulário (se houver)
-                if isinstance(content, str) and "[INFO DE SISTEMA INVISÍVEL AO USUÁRIO:" in content:
-                    content = content.split("\n\n[INFO DE SISTEMA INVISÍVEL AO USUÁRIO:")[0]
+                
+                # Agno pode retornar 'content' como None se for apenas uma chamada de ferramenta (tool_call) sem resposta textual
+                if not content or not isinstance(content, str):
+                    continue
+
+                # --- LÓGICA DE LIMPEZA DE MEMÓRIA (ROBUSTA) ---
+                # 1. Se a mensagem for do Assistente mas contiver tags de Sistema, é um "Leak" do Agno (Bug do framework)
+                if msg.role == 'assistant' and ("<!-- RCA_SYSTEM_CONTEXT -->" in content or "<!-- INITIAL_ANALYSIS_REQUEST -->" in content):
+                    continue
+
+                # 2. Extrai apenas a mensagem real do usuário escondendo o contexto de sistema
+                if "<!-- USER_MESSAGE -->" in content:
+                    content = content.split("<!-- USER_MESSAGE -->")[-1].strip()
+                elif "<!-- INITIAL_ANALYSIS_REQUEST -->" in content:
+                    content = "Solicitei uma análise baseada nos dados atuais do formulário."
+                elif "<!-- RCA_SYSTEM_CONTEXT -->" in content:
+                    # Caso raro onde sobrou apenas o contexto
+                    content = "Dados contextuais enviados ao assistente."
+                
+                # 3. Filtra mensagens redundantes de status
+                if content.strip() in ["IO", "Analisando...", "Consultando...", "Analizando..."]:
+                    if msg.role == 'assistant': continue
                 
                 messages.append({
                     "role": msg.role,
@@ -162,9 +181,9 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
             ai_engine = get_super_agent(str(request.rca_id), language=ui_lang)
 
         # 1. Constrói o Contexto Global (Formulário + Recorrências)
-        context_block = ""
+        context_block = "<!-- RCA_SYSTEM_CONTEXT -->"
         if request.context:
-            context_block += f"\n[DADOS ATUAIS DA TELA - use para contexto, não mencione que os recebeu]:\nAtivo: {asset_info}\n{request.context}\n"
+            context_block += f"\n[DADOS ATUAIS DA TELA]:\nAtivo: {asset_info}\n{request.context}\n"
         
         if recurrences:
             recurr_items = []
@@ -175,15 +194,16 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                 if r.actions and r.actions != "N/A":
                     item += f"\n  - Ações anteriores: {r.actions}"
                 recurr_items.append(item)
-            context_block += f"\n[HISTÓRICO ENCONTRADO - Considere recorrência se houver dados similares]:\n" + "\n".join(recurr_items) + "\n"
+            context_block += f"\n[HISTÓRICO ENCONTRADO]:\n" + "\n".join(recurr_items) + "\n"
+        context_block += "<!-- END_RCA_SYSTEM_CONTEXT -->"
 
         # 2. Monta o prompt final (Chat ou Análise Inicial)
         if not is_initial_analysis:
             logger.info("📡 ROTA: Mensagem de chat recebida -> Team Mode.")
-            prompt = f"{context_block}\n---\nMensagem do usuário: {request.user_prompt}"
+            prompt = f"{context_block}\n<!-- USER_MESSAGE -->\n{request.user_prompt}"
         else:
             logger.info("📡 ROTA: Análise inicial automática -> Workflow Formal.")
-            prompt = f"{context_block}\n---\nRealize a análise completa de causa raiz para a RCA ID: {request.rca_id} baseando-se nos dados acima."
+            prompt = f"{context_block}\n<!-- INITIAL_ANALYSIS_REQUEST -->\nRealize a análise completa de causa raiz para a RCA ID: {request.rca_id} baseando-se nos dados acima."
 
         logger.info(f"🔍 ROTA: Motor={type(ai_engine).__name__}, Prompt ({len(prompt)} chars)")
 

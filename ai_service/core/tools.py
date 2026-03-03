@@ -130,3 +130,76 @@ def search_historical_rcas_tool(query: str, subgroup_id: str = None, equipment_i
         return "RCAS HISTÓRICAS ENCONTRADAS (DADOS COMPLETOS):\n\n" + "\n\n".join(formatted_results)
     except Exception as e:
         return f"Erro ao realizar a busca RAG: {str(e)}"
+
+def get_historical_rca_summary(rca_id: str) -> str:
+    """
+    Busca o RESUMO de uma RCA histórica (O que, Onde, Quando, Quem, Impacto e Descrição do Problema).
+    Use para entender o contexto básico de uma falha passada antes de se aprofundar.
+    """
+    try:
+        with httpx.Client(base_url=BACKEND_URL, timeout=5.0) as client:
+            res = client.get(f"/api/rcas/{rca_id}")
+            if res.status_code != 200: return f"RCA {rca_id} não encontrada."
+            data = res.json()
+            return (
+                f"RCA {rca_id} - {data.get('what', 'N/A')}\n"
+                f"Ativo: {data.get('asset_name_display', data.get('asset', 'N/A'))}\n"
+                f"Data/Quando: {data.get('date', data.get('created_at', 'N/A'))}\n"
+                f"Quem: {data.get('who', 'N/A')}\n"
+                f"Onde: {data.get('where_description', 'N/A')}\n"
+                f"Status: {data.get('status', 'N/A')}\n"
+                f"Tipo de Análise: {data.get('analysis_type', 'N/A')}\n"
+                f"Descrição: {data.get('problem_description', data.get('description', 'N/A'))}"
+            )
+    except Exception as e: return str(e)
+
+def get_historical_rca_causes(rca_id: str) -> str:
+    """
+    Busca apenas a CAUSA RAIZ e os DIAGNÓSTICOS (Ishikawa/5 Porquês) de uma RCA histórica.
+    Use quando você já sabe qual é a RCA e quer saber o que causou o problema na época.
+    """
+    try:
+        with httpx.Client(base_url=BACKEND_URL, timeout=5.0) as client:
+            res = client.get(f"/api/rcas/{rca_id}")
+            if res.status_code != 200: return f"RCA {rca_id} não encontrada."
+            data = res.json()
+            
+            # Filtra apenas a parte de causas
+            causes = data.get("root_causes", [])
+            import json
+            return f"CAUSAS DA RCA {rca_id}:\n{json.dumps(causes, indent=2, ensure_ascii=False)}"
+    except Exception as e: return str(e)
+
+def get_historical_rca_action_plan(rca_id: str) -> str:
+    """
+    Busca apenas o PLANO DE AÇÃO e AÇÕES DE CONTENÇÃO de uma RCA histórica.
+    Use para saber o que foi feito na época para resolver o problema e verificar status.
+    """
+    try:
+        with httpx.Client(base_url=BACKEND_URL, timeout=5.0) as client:
+            res = client.get(f"/api/rcas/{rca_id}")
+            if res.status_code != 200: return f"RCA {rca_id} não encontrada."
+            data = res.json()
+            
+            plan = {
+                "containment_actions": data.get("containment_actions", []),
+                "root_cause_actions": [action for rc in data.get("root_causes", []) for action in rc.get("actions", [])],
+                "human_reliability": data.get("human_reliability", [])
+            }
+            import json
+            return f"PLANO DE AÇÃO DA RCA {rca_id}:\n{json.dumps(plan, indent=2, ensure_ascii=False)}"
+    except Exception as e: return str(e)
+
+def get_historical_rca_triggers(rca_id: str) -> str:
+    """
+    Busca os GATILHOS (Triggers) que iniciaram esta RCA histórica (ex: perdas financeiras, horas de máquina parada, multas).
+    Use para entender o impacto financeiro e operacional que gerou a necessidade desta RCA.
+    """
+    try:
+        with httpx.Client(base_url=BACKEND_URL, timeout=5.0) as client:
+            res = client.get(f"/api/triggers/rca/{rca_id}")
+            if res.status_code != 200: return f"Não foram encontrados gatilhos atrelados à RCA {rca_id}."
+            data = res.json()
+            import json
+            return f"GATILHOS DA RCA {rca_id}:\n{json.dumps(data, indent=2, ensure_ascii=False)}"
+    except Exception as e: return str(e)

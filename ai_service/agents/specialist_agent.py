@@ -3,6 +3,7 @@
 
 from agno.agent import Agent
 from agno.models.google import Gemini
+from agno.tools.duckduckgo import DuckDuckGoTools
 from core.tools import get_asset_fmea_tool
 from core.prompts import GLOBAL_RULES, MEMBER_RULES, SPECIALIST_PROMPT
 
@@ -22,6 +23,6 @@ def get_specialist_agent(language: str = "Português-BR"):
             MEMBER_RULES,
             SPECIALIST_PROMPT,
         ],
-        tools=[get_asset_fmea_tool],
+        tools=[get_asset_fmea_tool, DuckDuckGoTools()],
         markdown=True,
     )

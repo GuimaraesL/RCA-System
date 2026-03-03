@@ -3,7 +3,13 @@
 
 from agno.agent import Agent
 from agno.models.google import Gemini
-from core.tools import search_historical_rcas_tool, get_full_rca_detail_tool
+from core.tools import (
+    search_historical_rcas_tool,
+    get_historical_rca_summary,
+    get_historical_rca_causes,
+    get_historical_rca_action_plan,
+    get_historical_rca_triggers
+)
 from core.prompts import GLOBAL_RULES, MEMBER_RULES, DETECTIVE_PROMPT
 
 
@@ -22,6 +28,12 @@ def get_detective_agent(language: str = "Português-BR"):
             MEMBER_RULES,
             DETECTIVE_PROMPT,
         ],
-        tools=[search_historical_rcas_tool, get_full_rca_detail_tool],
+        tools=[
+            search_historical_rcas_tool,
+            get_historical_rca_summary,
+            get_historical_rca_causes,
+            get_historical_rca_action_plan,
+            get_historical_rca_triggers
+        ],
         markdown=True,
     )

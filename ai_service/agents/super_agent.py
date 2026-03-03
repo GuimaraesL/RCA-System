@@ -30,6 +30,7 @@ def get_super_agent(session_id: str, language: str = "Português-BR"):
 
     return Team(
         name="RCA_Analysis_Team",
+        session_id=session_id,
         mode=TeamMode.coordinate,
         model=Gemini(id="gemini-2.0-flash"),
         members=[detective, specialist, writer],
@@ -38,6 +39,9 @@ def get_super_agent(session_id: str, language: str = "Português-BR"):
             COPILOT_TEAM_PROMPT,
         ],
         db=get_agent_memory(session_id),
+        read_chat_history=True,
+        add_history_to_context=True,
+        num_history_runs=4,
         markdown=True,
         debug_mode=True,
         stream_member_events=False, # Evita duplicação: silencia os membros no stream e deixa apenas o Líder falar
