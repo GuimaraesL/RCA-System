@@ -17,7 +17,7 @@ def get_specialist_agent(language: str = "Português-BR"):
     return Agent(
         name="RCA_Asset_Specialist",
         role="Análise de modos de falha (FMEA) e validação técnica de hipóteses",
-        model=Gemini(id="gemini-2.0-flash"),
+        model=Gemini(id="gemini-2.5-flash"),
         instructions=[
             GLOBAL_RULES.format(idioma=language),
             MEMBER_RULES,

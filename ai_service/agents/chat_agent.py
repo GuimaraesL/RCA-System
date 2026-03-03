@@ -29,7 +29,7 @@ def get_chat_agent(session_id: str, language: str = "Português-BR"):
         name="RCA_Chat_Copilot",
         session_id=session_id,
         role="Engenheiro Sênior Conversacional",
-        model=Gemini(id="gemini-2.0-flash"),
+        model=Gemini(id="gemini-2.5-flash"),
         instructions=[GLOBAL_RULES.format(idioma=language), CHAT_AGENT_PROMPT],
         tools=[
             search_historical_rcas_tool, 

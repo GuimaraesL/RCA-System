@@ -22,7 +22,7 @@ def get_detective_agent(language: str = "Português-BR"):
     return Agent(
         name="RCA_Detective",
         role="Mineração de histórico de falhas e identificação de recorrências",
-        model=Gemini(id="gemini-2.0-flash"),
+        model=Gemini(id="gemini-2.5-flash"),
         instructions=[
             GLOBAL_RULES.format(idioma=language),
             MEMBER_RULES,

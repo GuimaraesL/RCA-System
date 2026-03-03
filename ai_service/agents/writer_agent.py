@@ -17,7 +17,7 @@ def get_writer_agent(language: str = "Português-BR"):
     return Agent(
         name="RCA_Technical_Writer",
         role="Formatação de Ishikawa (Mermaid 6M) e Planos de Ação (5W2H) conforme padrões industriais",
-        model=Gemini(id="gemini-2.0-flash"),
+        model=Gemini(id="gemini-2.5-flash"),
         instructions=[
             GLOBAL_RULES.format(idioma=language),
             MEMBER_RULES,

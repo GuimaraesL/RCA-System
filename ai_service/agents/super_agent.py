@@ -32,7 +32,7 @@ def get_super_agent(session_id: str, language: str = "Português-BR"):
         name="RCA_Analysis_Team",
         session_id=session_id,
         mode=TeamMode.coordinate,
-        model=Gemini(id="gemini-2.0-flash"),
+        model=Gemini(id="gemini-2.5-flash"),
         members=[detective, specialist, writer],
         instructions=[
             GLOBAL_RULES.format(idioma=language),
@@ -41,6 +41,7 @@ def get_super_agent(session_id: str, language: str = "Português-BR"):
         db=get_agent_memory(session_id),
         read_chat_history=True,
         add_history_to_context=True,
+        add_team_history_to_members=True,
         num_history_runs=4,
         markdown=True,
         debug_mode=True,

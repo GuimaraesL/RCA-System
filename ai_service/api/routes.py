@@ -167,18 +167,12 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                             ))
                             seen_ids.add(rid)
 
-        # Fase 3: Workflow Formal (Análise) ou Team (Chat)
+        # Fase 3: Motor de IA Unificado (Team) para consistência de memória
         ui_lang = request.ui_language or "Português-BR"
-        
-        # Decide o motor de IA: Workflow para Análise Inicial, Team para Chat
         is_initial_analysis = not (request.user_prompt and str(request.user_prompt).strip())
         
-        if is_initial_analysis:
-            from workflows.rca import get_rca_workflow
-            ai_engine = get_rca_workflow(str(request.rca_id), language=ui_lang)
-        else:
-            from agents.super_agent import get_super_agent
-            ai_engine = get_super_agent(str(request.rca_id), language=ui_lang)
+        from agents.super_agent import get_super_agent
+        ai_engine = get_super_agent(str(request.rca_id), language=ui_lang)
 
         # 1. Constrói o Contexto Global (Formulário + Recorrências)
         context_block = "<!-- RCA_SYSTEM_CONTEXT -->"
@@ -217,90 +211,46 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
             try:
                 logger.info(f"📡 DEBUG: Chamando motor de IA para prompt de {len(prompt)} chars")
                 
-                if is_initial_analysis:
-                    # Workflow.run(stream=True) retorna Iterator síncrono.
-                    # Usamos asyncio.Queue para emitir eventos em tempo real.
-                    import queue as sync_queue
-                    event_queue = asyncio.Queue()
+                # Team.arun(stream=True) retorna AsyncIterator nativo
+                async for event in ai_engine.arun(prompt, stream=True, session_id=str(request.rca_id)):
+                    logger.debug(f"📡 DEBUG: Evento Team: {type(event)}")
                     
-                    def _run_workflow():
-                        try:
-                            for event in ai_engine.run(input=prompt, stream=True):
-                                asyncio.run_coroutine_threadsafe(event_queue.put(event), loop)
-                            asyncio.run_coroutine_threadsafe(event_queue.put(None), loop)  # Sinal de fim
-                        except Exception as ex:
-                            asyncio.run_coroutine_threadsafe(event_queue.put(ex), loop)
+                    event_type = type(event).__name__
+                    if event_type in ("WorkflowCompletedEvent", "WorkflowAgentCompletedEvent", "RunCompletedEvent"):
+                        continue
                     
-                    loop = asyncio.get_event_loop()
-                    loop.run_in_executor(None, _run_workflow)
+                    content = ""
+                    if hasattr(event, "content") and event.content:
+                        content = event.content
+                    elif isinstance(event, str):
+                        content = event
                     
-                    while True:
-                        event = await event_queue.get()
-                        if event is None:
-                            break
-                        if isinstance(event, Exception):
-                            raise event
+                    if content:
+                        content_str = str(content)
                         
-                        logger.debug(f"📡 DEBUG: Evento Workflow: {type(event)}")
+                        # --- SANITIZAÇÃO DE MERMAID (ANTI-ALUCINAÇÃO) ---
+                        # Remove escapes de quebra de linha literais (\n) que o modelo insiste em colocar
+                        if "graph LR" in content_str or "subgraph" in content_str:
+                            content_str = content_str.replace("\\n", "\n").replace("\\\"", "\"")
                         
-                        event_type = type(event).__name__
-                        if event_type in ("WorkflowCompletedEvent", "WorkflowAgentCompletedEvent", "RunCompletedEvent", "StepCompletedEvent", "WorkflowStartedEvent", "StepStartedEvent"):
+                        if content_str.startswith("search_historical_rcas_tool"):
+                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Consultando o histórico de falhas e arquivos mortos...'})}\n\n"
+                            continue
+                        elif content_str.startswith("get_asset_fmea_tool"):
+                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Analisando banco de FMEA do ativo...'})}\n\n"
+                            continue
+                        elif content_str.startswith("get_full_rca_detail_tool"):
+                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Acessando conteúdo integral e triggers da RCA selecionada...'})}\n\n"
+                            continue
+                        elif "completed in" in content_str and ("tool" in content_str or "Tool" in content_str):
+                            continue
+                        elif content_str.startswith("get_rca_context_tool"):
+                            continue
+                        elif content_str.startswith("Transferring") or content_str.startswith("Running"):
+                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Coordenando especialistas...'})}\n\n"
                             continue
                         
-                        content = ""
-                        if hasattr(event, "content") and event.content:
-                            content = event.content
-                        elif isinstance(event, str):
-                            content = event
-                        
-                        if content:
-                            content_str = str(content)
-                            # Filtros de tool noise
-                            if any(content_str.startswith(t) for t in ["search_historical_rcas_tool", "get_asset_fmea_tool", "get_full_rca_detail_tool", "get_rca_context_tool"]):
-                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Consultando bases de conhecimento...'})}\n\n"
-                                continue
-                            if "completed in" in content_str and ("tool" in content_str or "Tool" in content_str):
-                                continue
-                            if content_str.startswith("Transferring") or content_str.startswith("Running"):
-                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Executando próximo passo do pipeline...'})}\n\n"
-                                continue
-                            
-                            yield f"data: {json.dumps({'type': 'content', 'delta': content_str})}\n\n"
-                else:
-                    # Team.arun(stream=True) retorna AsyncIterator nativo
-                    async for event in ai_engine.arun(prompt, stream=True, session_id=str(request.rca_id)):
-                        logger.debug(f"📡 DEBUG: Evento Team: {type(event)}")
-                        
-                        event_type = type(event).__name__
-                        if event_type in ("WorkflowCompletedEvent", "WorkflowAgentCompletedEvent", "RunCompletedEvent"):
-                            continue
-                        
-                        content = ""
-                        if hasattr(event, "content") and event.content:
-                            content = event.content
-                        elif isinstance(event, str):
-                            content = event
-                        
-                        if content:
-                            content_str = str(content)
-                            if content_str.startswith("search_historical_rcas_tool"):
-                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Consultando o histórico de falhas e arquivos mortos...'})}\n\n"
-                                continue
-                            elif content_str.startswith("get_asset_fmea_tool"):
-                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Analisando banco de FMEA do ativo...'})}\n\n"
-                                continue
-                            elif content_str.startswith("get_full_rca_detail_tool"):
-                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Acessando conteúdo integral e triggers da RCA selecionada...'})}\n\n"
-                                continue
-                            elif "completed in" in content_str and ("tool" in content_str or "Tool" in content_str):
-                                continue
-                            elif content_str.startswith("get_rca_context_tool"):
-                                continue
-                            elif content_str.startswith("Transferring") or content_str.startswith("Running"):
-                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Coordenando especialistas...'})}\n\n"
-                                continue
-                            
-                            yield f"data: {json.dumps({'type': 'content', 'delta': content_str})}\n\n"
+                        yield f"data: {json.dumps({'type': 'content', 'delta': content_str})}\n\n"
             except Exception as stream_e:
                 print(f"ERROR no streaming: {stream_e}")
                 yield f"data: {json.dumps({'type': 'error', 'text': str(stream_e)})}\n\n"
