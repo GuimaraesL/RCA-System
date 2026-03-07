@@ -4,7 +4,7 @@
  * Fluxo: Define o endpoint raiz e funções de tratamento de resposta compartilhadas.
  */
 
-export const API_BASE = 'http://localhost:3001/api';
+export const API_BASE = '/api';
 
 /**
  * Helper para verificar a integridade da resposta HTTP e lançar erros descritivos.

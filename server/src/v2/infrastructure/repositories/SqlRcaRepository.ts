@@ -36,6 +36,7 @@ export class SqlRcaRepository {
                 specialty_id, failure_mode_id, failure_category_id,
                 who, what, "when", where_description, problem_description, 
                 root_causes, 
+                attachments,
                 created_at, updated_at
             FROM rcas 
             ORDER BY created_at DESC
@@ -77,8 +78,8 @@ export class SqlRcaRepository {
                 who, what, "when", where_description, problem_description, potential_impacts, quality_impacts,
                 five_whys, five_whys_chains, ishikawa, root_causes,
                 precision_maintenance, human_reliability,
-                containment_actions, lessons_learned, general_moc_number, additional_info, file_path
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                containment_actions, lessons_learned, general_moc_number, additional_info, file_path, attachments
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const params = this.mapRcaToParams(rca);
         this.db.execute(sql, params);
@@ -96,6 +97,7 @@ export class SqlRcaRepository {
                 five_whys = ?, five_whys_chains = ?, ishikawa = ?, root_causes = ?,
                 precision_maintenance = ?, human_reliability = ?,
                 containment_actions = ?, lessons_learned = ?, general_moc_number = ?, additional_info = ?, file_path = ?,
+                attachments = ?,
                 updated_at = datetime('now')
             WHERE id = ?
         `;
@@ -148,8 +150,8 @@ export class SqlRcaRepository {
                 who, what, "when", where_description, problem_description, potential_impacts, quality_impacts,
                 five_whys, five_whys_chains, ishikawa, root_causes,
                 precision_maintenance, human_reliability,
-                containment_actions, lessons_learned, general_moc_number, additional_info, file_path
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                containment_actions, lessons_learned, general_moc_number, additional_info, file_path, attachments
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const params = this.mapRcaToParams(rca);
         this.db.execute(sql, params);
@@ -187,6 +189,7 @@ export class SqlRcaRepository {
             containment_actions: this.safeParse(row.containment_actions, []),
             lessons_learned: this.safeParse(row.lessons_learned, []),
             additional_info: this.safeParse(row.additional_info, null),
+            attachments: this.safeParse(row.attachments, []),
             requires_operation_support: !!row.requires_operation_support
         };
     }
@@ -237,7 +240,8 @@ export class SqlRcaRepository {
             JSON.stringify(rca.lessons_learned || []),
             this.n(rca.general_moc_number),
             JSON.stringify(rca.additional_info || null),
-            this.n(rca.file_path)
+            this.n(rca.file_path),
+            JSON.stringify(rca.attachments || [])
         ];
     }
 }

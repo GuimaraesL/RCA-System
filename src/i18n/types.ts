@@ -58,6 +58,9 @@ export interface TranslationSchema {
         urlPlaceholder: string;
         ptAbbr: string;
         enAbbr: string;
+        attachments: string;
+        add: string;
+        remove: string;
     };
     filters: {
         title: string;

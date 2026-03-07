@@ -12,6 +12,11 @@ class RecurrenceInfo(BaseModel):
     root_causes: Optional[str] = None
     actions: Optional[str] = None
 
+class MediaItem(BaseModel):
+    type: str # 'image', 'video'
+    url: str
+    filename: str
+
 class AnalysisRequest(BaseModel):
     rca_id: str
     context: Optional[str] = None
@@ -20,6 +25,7 @@ class AnalysisRequest(BaseModel):
     subgroup_id: Optional[str] = None
     user_prompt: Optional[str] = None
     ui_language: Optional[str] = "Português-BR"
+    attachments: Optional[List[MediaItem]] = None
 
 class AnalysisResponse(BaseModel):
     rca_id: str

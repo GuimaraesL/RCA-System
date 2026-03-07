@@ -10,6 +10,7 @@ import triggerRoutes from './triggerRoutes';
 import assetRoutes from './assetRoutes';
 import taxonomyRoutes from './taxonomyRoutes';
 import fmeaRoutes from './fmeaRoutes';
+import mediaRoutes from './mediaRoutes';
 
 const router = Router();
 
@@ -19,5 +20,6 @@ router.use('/triggers', triggerRoutes);
 router.use('/assets', assetRoutes);
 router.use('/taxonomy', taxonomyRoutes);
 router.use('/fmea', fmeaRoutes);
+router.use('/media', mediaRoutes);
 
 export default router;

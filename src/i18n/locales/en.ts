@@ -54,7 +54,10 @@ export const en: TranslationSchema = {
         decimalPlaceholder: "0.00",
         urlPlaceholder: "https://...",
         ptAbbr: "PT",
-        enAbbr: "EN"
+        enAbbr: "EN",
+        attachments: "Attachments & Evidence",
+        add: "Add",
+        remove: "Remove"
     },
     filters: {
         title: "Filters",

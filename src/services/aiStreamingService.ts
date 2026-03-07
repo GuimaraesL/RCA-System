@@ -1,6 +1,6 @@
 import { RcaRecord } from '../types';
 
-const AI_API_URL = 'http://localhost:8000/analyze';
+const AI_API_URL = '/ai/analyze';
 const INTERNAL_KEY = 'dev-key-change-it';
 
 export interface StreamUpdate {
@@ -64,7 +64,12 @@ export const streamAiAnalysis = async (
                 subgroup_id: rca.subgroup_id,
                 user_prompt: customMessage,
                 ui_language: language,
-                stream: true
+                stream: true,
+                attachments: rca.attachments?.map(att => ({
+                    type: att.type,
+                    url: att.url,
+                    filename: att.filename
+                }))
             })
         });
 

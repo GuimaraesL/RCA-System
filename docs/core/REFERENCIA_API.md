@@ -21,46 +21,46 @@ sequenceDiagram
 ```
 
 ---
-A API V2 do RCA System segue o estilo arquitetural **RESTful**, utilizando **JSON** como formato padrão para troca de mensagens. Todas as rotas são prefixadas por `/api`.
+A API V2 do RCA System segue o estilo arquitetural RESTful, utilizando JSON como formato padrão para troca de mensagens. Todas as rotas são prefixadas por /api.
 
 ### Convenções
-- **URL Base:** `http://localhost:3001/api` (ambiente de desenvolvimento)
-- **Autenticação:** (Atualmente aberta/interna, futuro suporte a JWT Bearer).
-- **Datas:** ISO 8601 (`YYYY-MM-DD` ou `YYYY-MM-DDTHH:mm:ss.sssZ`).
-- **Paginação:** Parâmetros `?page=1&limit=50`.
-- **Status Codes:**
-    - `200 OK`: Sucesso.
-    - `201 Created`: Recurso criado com sucesso.
-    - `400 Bad Request`: Erro de validação (Zod) ou requisição mal formatada.
-    - `404 Not Found`: Recurso não encontrado.
-    - `500 Internal Server Error`: Erro inesperado do servidor.
+- URL Base: http://localhost:3001/api (ambiente de desenvolvimento)
+- Autenticação: (Atualmente aberta/interna, futuro suporte a JWT Bearer).
+- Datas: ISO 8601 (YYYY-MM-DD ou YYYY-MM-DDTHH:mm:ss.sssZ).
+- Paginação: Parâmetros ?page=1&limit=50.
+- Status Codes:
+    - 200 OK: Sucesso.
+    - 201 Created: Recurso criado com sucesso.
+    - 400 Bad Request: Erro de validação (Zod) ou requisição mal formatada.
+    - 404 Not Found: Recurso não encontrado.
+    - 500 Internal Server Error: Erro inesperado do servidor.
 
 ---
 
-## 2. Análises e RCA (`/rcas`)
+## 2. Análises e RCA (/rcas)
 
 ### Listar Análises
 Retorna uma lista paginada ou completa de análises RCA.
 
-**GET** `/rcas`
+GET /rcas
 
 | Parâmetro | Tipo | Obrigatório | Descrição |
 | :--- | :--- | :--- | :--- |
-| `page` | `number` | Não | Número da página (Default: 1). |
-| `limit` | `number` | Não | Itens por página (Default: 0 - retorna todos). |
-| `full` | `boolean` | Não | Se `true`, retorna o objeto completo. Se `false`, retorna um resumo performático. |
+| page | number | Não | Número da página (Default: 1). |
+| limit | number | Não | Itens por página (Default: 0 - retorna todos). |
+| full | boolean | Não | Se true, retorna o objeto completo. Se false, retorna um resumo performático. |
 
 ### Obter Análise por ID
 Retorna os detalhes completos de uma análise específica.
 
-**GET** `/rcas/:id`
+GET /rcas/:id
 
 ### Criar Análise
 Cria uma nova análise RCA.
 
-**POST** `/rcas`
+POST /rcas
 
-**Body Exemplo (JSON):**
+Body Exemplo (JSON):
 ```json
 {
   "description": "Falha na bomba hidráulica",
@@ -73,33 +73,59 @@ Cria uma nova análise RCA.
   }
 }
 ```
-*Nota: O Payload é validado rigorosamente pelo Schema `rcaSchema` (ver Seção 6).*
+*Nota: O Payload é validado rigorosamente pelo Schema rcaSchema (ver Seção 6).*
 
 ### Atualizar Análise
 Atualiza uma análise existente. O status pode ser recalculado automaticamente pelo backend dependendo dos campos alterados.
 
-**PUT** `/rcas/:id`
+PUT /rcas/:id
+
+Campo Adicional (JSON):
+```json
+{
+  "attachments": [
+    { "id": "uuid", "type": "image", "filename": "foto.jpg", "url": "/api/media/rca-id/foto.jpg" }
+  ]
+}
+```
 
 ### Importação em Lote (Bulk)
 Importa múltiplas análises de uma vez, processando regras de negócio para cada uma.
 
-**POST** `/rcas/bulk`
+POST /rcas/bulk
 
-**Body:** Aceita um `Array<RcaRecord>` ou um objeto `{ records: [], actions: [] }`.
+Body: Aceita um Array<RcaRecord> ou um objeto { records: [], actions: [] }.
 
 ---
 
-## 3. Gatilhos (`/triggers`)
+## 3. Gestão de Mídias (/media)
+
+Gerencia o ciclo de vida de arquivos físicos (fotos e vídeos) vinculados às análises.
+
+### Upload de Arquivo
+POST /media/upload/:rcaId
+- Headers: x-filename (obrigatório), Content-Type.
+- Body: Binário bruto (Binary Raw).
+
+### Listar Anexos da RCA
+GET /media/rca/:rcaId
+
+### Servir Arquivo
+GET /media/:rcaId/:filename
+
+---
+
+## 4. Gatilhos (/triggers)
 
 ### Listar Gatilhos
 Retorna todos os gatilhos cadastrados.
 
-**GET** `/triggers`
+GET /triggers
 
 ### Criar Gatilho
-**POST** `/triggers`
+POST /triggers
 
-**Body Exemplo (JSON):**
+Body Exemplo (JSON):
 ```json
 {
   "start_date": "2026-02-12T10:00:00",
@@ -111,25 +137,25 @@ Retorna todos os gatilhos cadastrados.
 ```
 
 ### Importação em Lote
-**POST** `/triggers/bulk-import`
+POST /triggers/bulk-import
 
 ---
 
-## 4. Planos de Ação (`/actions`)
+## 5. Planos de Ação (/actions)
 
 ### Listar Ações
-**GET** `/actions`
+GET /actions
 
 | Parâmetro | Tipo | Descrição |
 | :--- | :--- | :--- |
-| `rca_id` | `UUID` | (Opcional) Filtra ações vinculadas a uma RCA específica. |
+| rca_id | UUID | (Opcional) Filtra ações vinculadas a uma RCA específica. |
 
 ### Criar Ação
 Cria uma nova ação corretiva ou preventiva.
 
-**POST** `/actions`
+POST /actions
 
-**Body Exemplo (JSON):**
+Body Exemplo (JSON):
 ```json
 {
   "rca_id": "uuid-1234-5678",
@@ -143,42 +169,44 @@ Cria uma nova ação corretiva ou preventiva.
 
 ---
 
-## 5. Ativos (`/assets`)
+## 6. Ativos e FMEA (/assets e /fmea)
 
 ### Obter Árvore de Ativos
 Retorna a hierarquia completa de ativos técnicos.
 
-**GET** `/assets/tree`
+GET /assets/tree
 
-**Resposta:** Estrutura aninhada `Área -> Subgrupo -> Equipamento -> Componente`.
+### Gestão de FMEA
+- GET /fmea/asset/:assetId: Lista modos de falha do ativo.
+- POST /fmea: Cria novo modo de falha.
 
-### Obter Lista Plana
-Retorna todos os ativos em uma lista plana, ideal para componentes de *Select* ou *Autocomplete*.
-
-**GET** `/assets/flat`
+### Extração de FMEA via IA
+POST /ai/extract-fmea
+- Body: { text: string, ui_language: string }
+- Retorno: Lista estruturada de modos de falha extraídos de manuais.
 
 ---
 
-## 6. Schemas de Validação (Zod)
+## 7. Schemas de Validação (Zod)
 
-A integridade dos dados é garantida pela biblioteca **Zod**. Abaixo, os principais campos validados e seus tipos.
+A integridade dos dados é garantida pela biblioteca Zod. Abaixo, os principais campos validados e seus tipos.
 
-### `rcaSchema`
+### rcaSchema
 | Campo | Tipo | Obrigatório? | Descrição |
 | :--- | :--- | :--- | :--- |
-| `id` | UUID | Sim | Gerado automaticamente pelo backend se omitido. |
-| `analysis_date` | DateString | Não | Data da análise. |
-| `status` | String | Sim | Enum: `IN_PROGRESS`, `WAITING_VALIDATION`, `CONCLUDED`. |
-| `five_whys` | JSON | Não | Array de objetos `{ why: string, answer: string }`. |
-| `ishikawa` | JSON | Não | Objeto com arrays de strings para cada um dos 6Ms. |
-| `root_causes` | JSON | Não | Array de causas raízes identificadas. |
+| id | UUID | Sim | Gerado automaticamente pelo backend se omitido. |
+| analysis_date | DateString | Não | Data da análise. |
+| status | String | Sim | Enum: IN_PROGRESS, WAITING_VALIDATION, CONCLUDED. |
+| five_whys | JSON | Não | Array de objetos { why: string, answer: string }. |
+| ishikawa | JSON | Não | Objeto com arrays de strings para cada um dos 6Ms. |
+| root_causes | JSON | Não | Array de causas raízes identificadas. |
 
-### `triggerSchema`
+### triggerSchema
 | Campo | Tipo | Observação |
 | :--- | :--- | :--- |
-| `start_date` | DateTime | Pode ser opcional dependendo da configuração. |
-| `duration_minutes` | Number | Obrigatório (Default: 0). |
-| `stop_type` | String | Tipo da parada (ex: Planejada, Corretiva). |
+| start_date | DateTime | Pode ser opcional dependendo da configuração. |
+| duration_minutes | Number | Obrigatório (Default: 0). |
+| stop_type | String | Tipo da parada (ex: Planejada, Corretiva). |
 
 ---
 
@@ -186,7 +214,7 @@ A integridade dos dados é garantida pela biblioteca **Zod**. Abaixo, os princip
 
 Em caso de erro de validação (HTTP 400), a API retorna o formato padronizado de erro do Zod, detalhando exatamente qual campo falhou e o motivo.
 
-**Exemplo de Resposta de Erro:**
+Exemplo de Resposta de Erro:
 ```json
 {
   "error": "Dados inválidos",
@@ -200,11 +228,11 @@ Em caso de erro de validação (HTTP 400), a API retorna o formato padronizado d
   }
 }
 ```
-> **Nota:** Este documento deve ser mantido vivo e atualizado conforme a arquitetura evolui. Qualquer decisão em relação a API e arquitetura deve ser refletida aqui.
+> Nota: Este documento deve ser mantido vivo e atualizado conforme a arquitetura evolui. Qualquer decisão em relação a API e arquitetura deve ser refletida aqui.
 
 ---
 
-## 📚 Documentação Relacionada
+## Documentação Relacionada
 - [Visão Geral do Produto (PRD)](./PRD.md)
 - [Arquitetura Técnica](./ARQUITETURA.md)
 - [Regras de Negócio](../processes/REGRAS_NEGOCIO.md)
@@ -214,4 +242,4 @@ Em caso de erro de validação (HTTP 400), a API retorna o formato padronizado d
 
 ---
 
-> **Nota de Manutenção:** Mantenha este documento atualizado. Qualquer alteração na API deve ser refletida aqui e, se impactar a arquitetura, no [ARQUITETURA.md](./ARQUITETURA.md).
+> Nota de Manutenção: Mantenha este documento atualizado. Qualquer alteração na API deve ser refletida aqui e, se impactar a arquitetura, no [ARQUITETURA.md](./ARQUITETURA.md).

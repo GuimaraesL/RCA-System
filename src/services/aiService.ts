@@ -1,7 +1,7 @@
 import { RcaRecord } from '../types';
 
 // Em produção, isso deve vir de import.meta.env.VITE_AI_SERVICE_URL
-const AI_API_URL = 'http://localhost:8000/analyze';
+const AI_API_URL = '/ai/analyze';
 const INTERNAL_KEY = 'dev-key-change-it';
 
 export interface RecurrenceInfo {
@@ -50,7 +50,12 @@ export const analyzeRcaWithAI = async (rca: RcaRecord): Promise<AIAnalysisRespon
                 context: context,
                 area_id: rca.area_id,
                 equipment_id: rca.equipment_id,
-                subgroup_id: rca.subgroup_id
+                subgroup_id: rca.subgroup_id,
+                attachments: rca.attachments?.map(att => ({
+                    type: att.type,
+                    url: att.url,
+                    filename: att.filename
+                }))
             })
         });
 

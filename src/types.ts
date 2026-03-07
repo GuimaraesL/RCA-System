@@ -272,6 +272,17 @@ export interface RcaRecord {
   // 11. Metadados de Arquivo
   file_path?: string;
   trigger_ids?: string[]; // IDs dos Gatilhos vinculados (Issue #80 - Relação N:1)
+  attachments?: Attachment[];
+}
+
+export interface Attachment {
+  id: string;
+  type: 'image' | 'video' | 'document';
+  filename: string;
+  url: string;
+  size?: number;
+  label?: string;
+  uploaded_at?: string;
 }
 
 // --- Tipos de FMEA ---

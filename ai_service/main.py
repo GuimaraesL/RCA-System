@@ -14,23 +14,23 @@ from api.routes import router as api_router
 async def lifespan(app: FastAPI):
     import os
     os.environ["AGNO_DEBUG"] = "True"
-    print("🚀 Iniciando RCA AI Service com AGNO_DEBUG=True...")
+    print("[INFO] Iniciando RCA AI Service com AGNO_DEBUG=True...")
     # Sincroniza RCAs históricas logo no startup
     try:
         index_historical_rcas()
-        print("✅ Sincronização de RCAs concluída.")
+        print("[OK] Sincronização de RCAs concluída.")
     except Exception as e:
-        print(f"⚠️ Falha na sincronização inicial: {e}")
+        print(f"[ERROR] Falha na sincronização inicial: {e}")
     # Reload trigger comment
     yield
-    print("🛑 AI Service finalizando.")
+    print("[STOP] AI Service finalizando.")
 
 # 1. Instanciar Componentes Globais (Para que o Dashboard os veja)
-print(f"📂 Verificando Knowledge Path: {KNOWLEDGE_PATH}")
+print(f"[KNOWLEDGE] Verificando Knowledge Path: {KNOWLEDGE_PATH}")
 if os.path.exists(KNOWLEDGE_PATH):
-    print(f"✅ Diretório de conhecimento encontrado.")
+    print(f"[OK] Diretório de conhecimento encontrado.")
 else:
-    print(f"⚠️ AVISO: Diretório {KNOWLEDGE_PATH} NÃO encontrado.")
+    print(f"[WARNING] AVISO: Diretório {KNOWLEDGE_PATH} NÃO encontrado.")
 
 history_kb = get_rca_history_knowledge()
 methodology_kb = get_methodology_knowledge()
@@ -44,7 +44,7 @@ storage = get_agent_memory("rca_system_storage")
 from agents.main_agent import get_rca_agent
 
 # Preview dos componentes de IA para o AgentOS monitorar
-rca_agent_preview = get_rca_agent("preview_agent")
+rca_agent_preview = get_rca_agent("preview_agent", rca_context="Contexto de preview para o Dashboard")
 
 # 3. Inicializar o AgentOS
 agent_os = AgentOS(

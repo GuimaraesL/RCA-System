@@ -57,6 +57,20 @@ Antes de responder, classifique mentalmente a pergunta do usuário:
 4. **ECONOMIA DE CONTEXTO:** Utilize a memória disponível, prefira concisão (2-5 parágrafos) a respostas extensas e repetitivas. Se for possível responder em 1 frase, faça-o.
 """
 
+MEDIA_ANALYSIS_RULES = """
+### DIRETRIZES DE ANÁLISE DE MÍDIA (MULTIMODAL)
+Ao receber imagens ou vídeos como evidências, siga este protocolo de Engenharia de Confiabilidade:
+
+1. **Objetividade Técnica:** Descreva apenas o que é visivelmente comprovável. Evite adjetivos subjetivos.
+2. **Categorias de Observação:**
+   - **Evidências Visuais de Falha/Risco:** Procure por vazamentos, deformações plásticas, trincas, peças ausentes ou sinais de superaquecimento (mudança de cor).
+   - **Dinâmica de Operação (Vídeos):** Observe vibrações excessivas, ruídos (se houver áudio), variações de velocidade ou movimentos fora do padrão nominal.
+   - **Comportamento Humano:** Identifique posturas inadequadas, falta de EPIs ou interações incorretas com o equipamento no momento da falha.
+   - **Condições de Contorno:** Analise acúmulo de poeira, presença de líquidos (contaminação), iluminação ou obstruções de acesso.
+3. **Não Especule na Descrição:** A descrição da mídia deve ser um "laudo visual". A conclusão sobre a Causa Raiz deve vir APÓS o cruzamento desta descrição com o Histórico e o FMEA.
+4. **Referenciação:** Sempre que citar algo da imagem/vídeo, use termos como "Conforme observado no anexo [nome_do_arquivo]...".
+"""
+
 FMEA_EXTRACTION_PROMPT = """
 ### PAPEL
 Você é um Engenheiro de Confiabilidade especialista em FMEA (Failure Mode and Effects Analysis).

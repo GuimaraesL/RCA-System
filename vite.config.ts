@@ -8,6 +8,19 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3000,
       host: '0.0.0.0',
+      proxy: {
+        // Redireciona chamadas da API para o backend Node.js
+        '/api': {
+          target: 'http://localhost:3001',
+          changeOrigin: true,
+        },
+        // Redireciona chamadas de IA para o serviço Python
+        '/ai': {
+          target: 'http://localhost:8000',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/ai/, ''),
+        }
+      }
     },
     plugins: [react()],
     resolve: {

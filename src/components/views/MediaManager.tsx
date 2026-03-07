@@ -1,0 +1,175 @@
+/**
+ * Proposta: Componente de Gestão de Mídias (Imagens/Vídeos) para RCAs.
+ * Fluxo: Permite visualizar arquivos existentes, realizar novos uploads e excluir anexos com preview instantâneo.
+ */
+
+import React, { useState, useRef } from 'react';
+import { Attachment } from '../../types';
+import { mediaService } from '../../services/mediaService';
+import { 
+  Image as ImageIcon, Video, FileText, Upload, Trash2, 
+  ExternalLink, Loader2, AlertCircle, Plus
+} from 'lucide-react';
+import { useLanguage } from '../../context/LanguageDefinition';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+
+interface MediaManagerProps {
+  rcaId: string;
+  attachments: Attachment[];
+  onChange: (attachments: Attachment[]) => void;
+}
+
+export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, onChange }) => {
+  const { t } = useLanguage();
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    try {
+      const newAttachments = [...attachments];
+      for (const file of Array.from(files)) {
+        // Limites de tamanho (RF-002 do docs)
+        const isImage = file.type.startsWith('image/');
+        const isVideo = file.type.startsWith('video/');
+        const maxSize = isImage ? 5 * 1024 * 1024 : isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+
+        if (file.size > maxSize) {
+          alert(`Arquivo ${file.name} excede o limite de ${maxSize / (1024 * 1024)}MB`);
+          continue;
+        }
+
+        const attachment = await mediaService.upload(rcaId, file);
+        newAttachments.push(attachment);
+      }
+      onChange(newAttachments);
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao enviar arquivos');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDelete = async (filename: string) => {
+    try {
+      await mediaService.delete(rcaId, filename);
+      onChange(attachments.filter(a => a.filename !== filename));
+    } catch (err) {
+      alert('Erro ao excluir arquivo');
+    }
+  };
+
+  const renderPreview = (att: Attachment) => {
+    if (att.type === 'image') {
+      return <img src={att.url} alt={att.filename} className="w-full h-full object-cover" />;
+    }
+    if (att.type === 'video') {
+      return (
+        <div className="w-full h-full flex items-center justify-center bg-slate-900">
+          <Video className="text-white opacity-40" size={32} />
+        </div>
+      );
+    }
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800">
+        <FileText className="text-slate-400" size={32} />
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+          <ImageIcon className="text-blue-600" size={20} />
+          {t('common.attachments') || 'Anexos e Evidências'}
+        </h3>
+        
+        <input 
+          type="file" 
+          multiple 
+          accept="image/*,video/*,.pdf" 
+          className="hidden" 
+          ref={fileInputRef}
+          onChange={handleFileChange}
+        />
+        
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          leftIcon={uploading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+          className="rounded-xl"
+        >
+          {uploading ? t('common.loading') : t('common.add') || 'Adicionar'}
+        </Button>
+      </div>
+
+      {attachments.length === 0 && !uploading ? (
+        <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed bg-slate-50/30">
+          <Upload size={40} className="text-slate-200 dark:text-slate-700 mb-4" />
+          <p className="text-slate-400 text-sm font-medium">Nenhum anexo encontrado para esta análise.</p>
+          <p className="text-slate-300 text-xs mt-1 italic">Arraste fotos ou vídeos aqui para começar.</p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {attachments.map((att) => (
+            <div key={att.id} className="group relative aspect-square rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-all hover:shadow-md">
+              {renderPreview(att)}
+              
+              {/* Overlay de Ações */}
+              <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
+                <a 
+                  href={att.url} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="p-2 bg-white/20 hover:bg-white/40 text-white rounded-full transition-colors"
+                  title={t('common.view')}
+                >
+                  <ExternalLink size={18} />
+                </a>
+                <button 
+                  onClick={() => handleDelete(att.filename)}
+                  className="p-2 bg-red-500/80 hover:bg-red-500 text-white rounded-full transition-colors"
+                  title={t('common.delete')}
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+
+              {/* Label de Tipo */}
+              <div className="absolute bottom-2 left-2 px-2 py-1 bg-white/90 dark:bg-slate-800/90 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
+                <p className="text-[9px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-wider truncate max-w-[80px]">
+                  {att.filename}
+                </p>
+              </div>
+            </div>
+          ))}
+          
+          {uploading && (
+            <div className="aspect-square rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-900/30 flex flex-col items-center justify-center gap-3 bg-blue-50/20">
+              <Loader2 size={32} className="text-blue-500 animate-spin" />
+              <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest animate-pulse">Enviando...</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Info de Limites */}
+      <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex gap-3">
+        <AlertCircle size={18} className="text-slate-400 flex-shrink-0 mt-0.5" />
+        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+          <p><strong>Limites de Upload:</strong> Imagens (5MB), Vídeos (50MB), Documentos (10MB).</p>
+          <p>Formatos sugeridos: JPG, PNG, MP4, PDF.</p>
+        </div>
+      </div>
+    </div>
+  );
+};

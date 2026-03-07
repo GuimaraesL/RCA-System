@@ -270,7 +270,7 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
             label={t('fmea.table.mode')}
             value={editingMode?.failure_mode || ''}
             onChange={e => setEditingMode({ ...editingMode, failure_mode: e.target.value })}
-            placeholder="Ex: Quebra do rolamento de esferas"
+            placeholder={t('fmea.table.mode')}
             required
           />
           <div className="grid grid-cols-3 gap-4">

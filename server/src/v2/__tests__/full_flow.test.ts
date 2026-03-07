@@ -59,7 +59,7 @@ describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
             failure_date TEXT, failure_time TEXT, os_number TEXT,
             area_id TEXT, equipment_id TEXT, asset_name_display TEXT,
             potential_impacts TEXT, quality_impacts TEXT,
-            general_moc_number TEXT
+            general_moc_number TEXT, attachments TEXT
         )`);
 
         db.run(`CREATE TABLE IF NOT EXISTS actions (

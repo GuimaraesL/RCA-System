@@ -32,6 +32,7 @@ Testam a lógica do Agente RCA Detective e a API de análise.
 | **test_tools** | Testa as ferramentas do agente (buscas no backend) com mocks. |
 | **test_agent** | Valida a configuração e factory do agente Agno. |
 | **test_fmea** | Valida a extração inteligente de modos de falha via Gemini 2.0 Flash. |
+| **test_multimodal** | Valida o processamento de anexos (fotos/vídeos) e o fluxo de análise multimodal via Gemini 2.5 Flash. |
 
 ---
 

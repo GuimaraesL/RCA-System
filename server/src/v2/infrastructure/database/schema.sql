@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS rcas (
     
     file_path TEXT, -- Added in v1.2
     five_whys_chains TEXT, -- Added in v1.3
+    attachments TEXT, -- Added in v3.0
 
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))

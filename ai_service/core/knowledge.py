@@ -91,7 +91,7 @@ def index_historical_rcas(api_url=None):
             return
 
         total = len(rcas)
-        print(f"🔄 Processing {total} RCAs...")
+        print(f"[SYNC] Processing {total} RCAs...")
         
         indexed_count = 0
         skipped_count = 0
@@ -152,11 +152,11 @@ def index_historical_rcas(api_url=None):
                 indexed_count += 1
                 
             except Exception as doc_e:
-                print(f"⚠️ Error indexing RCA {rca_id}: {doc_e}")
+                print(f"[WARNING] Error indexing RCA {rca_id}: {doc_e}")
                 continue
                 
-        print(f"✅ Sync Finished! New: {indexed_count} | Skipped (unchanged): {skipped_count} | Total: {total}")
+        print(f"[OK] Sync Finished! New: {indexed_count} | Skipped (unchanged): {skipped_count} | Total: {total}")
         conn.close()
         
     except Exception as e:
-        print(f"❌ Critical error during RCA indexing: {str(e)}")
+        print(f"[CRITICAL] Critical error during RCA indexing: {str(e)}")

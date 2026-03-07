@@ -7,8 +7,9 @@ import React, { useState, useId } from 'react';
 import { Textarea } from '../ui/Textarea';
 import { Input } from '../ui/Input';
 import { RcaRecord } from '../../types';
-import { Plus, Trash2, Info, Link as LinkIcon, MessageSquare, History } from 'lucide-react';
+import { Plus, Trash2, Info, Link as LinkIcon, MessageSquare, History, ShieldAlert } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageDefinition';
+import { MediaManager } from '../views/MediaManager';
 
 interface Step7Props {
     data: RcaRecord;
@@ -50,6 +51,15 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange, isFieldR
             <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display tracking-tight">{t('wizard.step7.title')}</h2>
                 <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('wizard.step7.subtitle')}</p>
+            </div>
+
+            {/* Gestão de Mídias e Evidências */}
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-blue-200 dark:hover:border-blue-800 transition-all">
+                <MediaManager 
+                    rcaId={data.id} 
+                    attachments={data.attachments || []} 
+                    onChange={(atts) => onChange('attachments', atts)}
+                />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">

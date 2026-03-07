@@ -3,13 +3,15 @@
 
 from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import StreamingResponse
-from .models import AnalysisRequest, AnalysisResponse, RecurrenceInfo, FmeaExtractionRequest, FmeaExtractionResponse
+from .models import AnalysisRequest, AnalysisResponse, RecurrenceInfo, FmeaExtractionRequest, FmeaExtractionResponse, MediaItem
 from core.knowledge import get_rca_history_knowledge
-from core.config import INTERNAL_AUTH_KEY, AGENT_MEMORY_PATH
+from core.config import INTERNAL_AUTH_KEY, AGENT_MEMORY_PATH, BACKEND_URL
 from core.prompts import GLOBAL_RULES, FMEA_EXTRACTION_PROMPT
 from agno.utils.log import logger
+from agno.media import Image, Video
 import json
 import asyncio
+import httpx
 
 router = APIRouter()
 
@@ -25,11 +27,11 @@ async def extract_fmea(request: FmeaExtractionRequest, x_internal_key: str = Hea
     """
     if x_internal_key != INTERNAL_AUTH_KEY:
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
-    
+
     try:
         from agno.agent import Agent
         from agno.models.google import Gemini
-        
+
         # Criamos um agente temporário especialista em extração
         extractor = Agent(
             name="FMEA_Extractor",
@@ -49,7 +51,7 @@ async def extract_fmea(request: FmeaExtractionRequest, x_internal_key: str = Hea
             content = content.split("```json")[-1].split("```")[0].strip()
         elif "```" in content:
             content = content.split("```")[-1].split("```")[0].strip()
-        
+
         # Parseia o JSON
         try:
             data = json.loads(content)
@@ -71,18 +73,18 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
     """
     if x_internal_key != INTERNAL_AUTH_KEY:
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
-    
+
     from agents.main_agent import get_rca_agent
     agent = get_rca_agent(rca_id)
-    
+
     messages = []
     session_msgs = agent.get_session_messages(rca_id)
-    
+
     if session_msgs:
         for msg in session_msgs:
             if msg.role in ['user', 'assistant']:
                 content = msg.content
-                
+
                 # Agno pode retornar 'content' como None se for apenas uma chamada de ferramenta (tool_call) sem resposta textual
                 if not content or not isinstance(content, str):
                     continue
@@ -100,16 +102,16 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
                 elif "<!-- RCA_SYSTEM_CONTEXT -->" in content:
                     # Caso raro onde sobrou apenas o contexto
                     content = "Dados contextuais enviados ao assistente."
-                
+
                 # 3. Filtra mensagens redundantes de status
                 if content.strip() in ["IO", "Analisando...", "Consultando...", "Analizando..."]:
                     if msg.role == 'assistant': continue
-                
+
                 messages.append({
                     "role": msg.role,
                     "content": content,
                 })
-    
+
     return {"messages": messages}
 
 @router.post("/analyze")
@@ -117,15 +119,15 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
     """
     Realiza a análise da RCA usando o agente unificado.
     Retorna um StreamingResponse (SSE) para uma UX fluida.
+    Suporta entrada multimodal (imagens e vídeos).
     """
     if x_internal_key != INTERNAL_AUTH_KEY:
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
-    
+
     try:
         # Garante que o diretório de storage existe
         import os
-        import httpx
-        from core.config import BACKEND_URL, AGENT_MEMORY_PATH
+        from core.config import AGENT_MEMORY_PATH
         os.makedirs(os.path.dirname(AGENT_MEMORY_PATH), exist_ok=True)
 
         # --- NOVA LÓGICA DE CAPTURA DE ATIVO ---
@@ -143,7 +145,7 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                 # Prioriza o asset_display do contexto se os IDs ainda forem nulos (novo RCA)
                 if asset_info == "Ativo não identificado explicitamente":
                     asset_info = ctx.get('asset_display', asset_info)
-                
+
                 # Captura IDs do contexto se vierem da interface (Novo RCA)
                 area_id = area_id or ctx.get('area_id')
                 equipment_id = equipment_id or ctx.get('equipment_id')
@@ -153,7 +155,7 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
 
         from core.knowledge import get_rca_history_knowledge
         knowledge_base = get_rca_history_knowledge()
-        
+
         # 3. Busca Hierárquica de Recorrências (Acumulativa)
         recurrences = []
         levels = [
@@ -194,18 +196,48 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                             ))
                             seen_ids.add(rid)
 
+        # Processamento de Mídia (Multimodal)
+        images = []
+        videos = []
+        if request.attachments:
+            async with httpx.AsyncClient() as client:
+                for att in request.attachments:
+                    # Constrói URL absoluta se for relativa
+                    media_url = att.url
+                    if media_url.startswith('/'):
+                        # Remove barra final do BACKEND_URL para evitar //
+                        base = BACKEND_URL.rstrip('/')
+                        media_url = f"{base}{media_url}"
+
+                    try:
+                        logger.info(f"[Media] Baixando midia para analise: {media_url}")
+                        # Header de autenticação service-to-service (mesmo padrão do backend Node)
+                        resp = await client.get(
+                            media_url,
+                            headers={"x-internal-key": INTERNAL_AUTH_KEY},
+                            timeout=30.0
+                        )
+                        if resp.status_code == 200:
+                            if att.type == 'image':
+                                images.append(Image(content=resp.content))
+                                logger.info(f"[Media] Imagem carregada: {att.filename} ({len(resp.content)} bytes)")
+                            elif att.type == 'video':
+                                videos.append(Video(content=resp.content))
+                                logger.info(f"[Media] Video carregado: {att.filename} ({len(resp.content)} bytes)")
+                        else:
+                            logger.error(f"[Media] Falha HTTP {resp.status_code} ao baixar {media_url}")
+                    except Exception as media_err:
+                        logger.error(f"[Media] Falha ao baixar midia {media_url}: {media_err}")
+
         # Fase 3: Motor de IA Unificado para consistência de memória
         ui_lang = request.ui_language or "Português-BR"
         is_initial_analysis = not (request.user_prompt and str(request.user_prompt).strip())
-        
-        from agents.main_agent import get_rca_agent
-        ai_engine = get_rca_agent(str(request.rca_id), language=ui_lang)
 
         # 1. Constrói o Contexto Global (Formulário + Recorrências)
-        context_block = "<!-- RCA_SYSTEM_CONTEXT -->"
+        context_block = ""
         if request.context:
             context_block += f"\n[DADOS ATUAIS DA TELA]:\nAtivo: {asset_info}\n{request.context}\n"
-        
+
         if recurrences:
             recurr_items = []
             for r in recurrences:
@@ -216,16 +248,21 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                     item += f"\n  - Ações anteriores: {r.actions}"
                 recurr_items.append(item)
             context_block += f"\n[HISTÓRICO ENCONTRADO]:\n" + "\n".join(recurr_items) + "\n"
-        context_block += "<!-- END_RCA_SYSTEM_CONTEXT -->"
 
-        # 2. Monta o prompt final (Chat ou Análise Inicial)
+        if images or videos:
+            context_block += f"\n[EVIDÊNCIAS VISUAIS]: Existem {len(images)} imagens e {len(videos)} vídeos anexados para sua análise técnica.\n"
+
+        # Injetamos o contexto no agente via instructions para evitar repetição no DB de chat
+        from agents.main_agent import get_rca_agent
+        ai_engine = get_rca_agent(str(request.rca_id), language=ui_lang, rca_context=context_block)
+
+        # 2. Monta o prompt final
         if not is_initial_analysis:
-            logger.info("📡 ROTA: Mensagem de chat recebida -> Unified Agent Mode.")
-            prompt = f"{context_block}\n<!-- USER_MESSAGE -->\n{request.user_prompt}"
+            logger.info(f"📡 ROTA: Mensagem de chat recebida -> Unified Agent Mode. (Multimodal: {len(images)} imgs, {len(videos)} vids)")
+            prompt = request.user_prompt
         else:
-            logger.info("📡 ROTA: Análise inicial automática -> Unified Agent Mode.")
-            prompt = f"{context_block}\n<!-- INITIAL_ANALYSIS_REQUEST -->\nRealize a análise completa de causa raiz para a RCA ID: {request.rca_id} baseando-se nos dados acima."
-
+            logger.info(f"📡 ROTA: Análise inicial automática -> Unified Agent Mode. (Multimodal: {len(images)} imgs, {len(videos)} vids)")
+            prompt = f"Realize a análise completa de causa raiz para a RCA ID: {request.rca_id} baseando-se nos dados fornecidos e nas evidências visuais."
         logger.info(f"🔍 ROTA: Motor={type(ai_engine).__name__}, Prompt ({len(prompt)} chars)")
 
         # 4. Gerador de Streaming para SSE compatível com Agno 2.x e o Frontend
@@ -234,32 +271,32 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
             # Alertas de recorrência imediatos via metadata (apenas na análise inicial)
             if recurrences and not request.user_prompt:
                 yield f"data: {json.dumps({'type': 'metadata', 'recurrences': [r.dict() for r in recurrences]})}\n\n"
-            
+
             try:
                 logger.info(f"📡 DEBUG: Chamando motor de IA para prompt de {len(prompt)} chars")
-                
+
                 # ai_engine.arun(stream=True) retorna AsyncIterator nativo
-                async for event in ai_engine.arun(prompt, stream=True, stream_intermediate_steps=True):
+                async for event in ai_engine.arun(prompt, stream=True, stream_intermediate_steps=True, images=images or None, videos=videos or None):
                     logger.debug(f"📡 DEBUG: Evento Agent: {type(event)}")
-                    
+
                     event_type = type(event).__name__
                     if event_type in ("WorkflowCompletedEvent", "WorkflowAgentCompletedEvent", "RunCompletedEvent"):
                         continue
-                    
+
                     content = ""
                     if hasattr(event, "content") and event.content:
                         content = event.content
                     elif isinstance(event, str):
                         content = event
-                    
+
                     if content:
                         content_str = str(content)
-                        
+
                         # --- SANITIZAÇÃO DE MERMAID (ANTI-ALUCINAÇÃO) ---
                         # Remove escapes de quebra de linha literais (\n) que o modelo insiste em colocar
                         if "graph LR" in content_str or "subgraph" in content_str:
                             content_str = content_str.replace("\\n", "\n").replace("\\\"", "\"")
-                        
+
                         if content_str.startswith("search_historical_rcas_tool"):
                             yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Consultando o histórico de falhas e arquivos mortos...'})}\n\n"
                             continue
@@ -276,12 +313,12 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                         elif content_str.startswith("Transferring") or content_str.startswith("Running"):
                             yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Coordenando especialistas...'})}\n\n"
                             continue
-                        
+
                         yield f"data: {json.dumps({'type': 'content', 'delta': content_str})}\n\n"
             except Exception as stream_e:
                 print(f"ERROR no streaming: {stream_e}")
                 yield f"data: {json.dumps({'type': 'error', 'text': str(stream_e)})}\n\n"
-            
+
             print("DEBUG: Stream finalizado.")
             yield "data: [DONE]\n\n"
 
@@ -291,3 +328,4 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         import traceback
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
+

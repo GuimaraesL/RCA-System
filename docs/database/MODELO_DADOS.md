@@ -6,7 +6,7 @@ Este documento detalha a estrutura do banco de dados SQLite, cobrindo as entidad
 
 ## 1. Arquitetura Relacional
 
-O sistema utiliza um banco de dados **SQLite** local-first. Abaixo está a estrutura das entidades principais conforme o `schema.sql`.
+O sistema utiliza um banco de dados SQLite local-first. Abaixo está a estrutura das entidades principais conforme o schema.sql.
 
 ### Diagrama ER (Estado Atual)
 
@@ -26,6 +26,7 @@ erDiagram
         text five_whys "JSON"
         text ishikawa "JSON"
         text root_causes "JSON"
+        text attachments "JSON"
     }
 
     ACTIONS {
@@ -69,12 +70,12 @@ erDiagram
 
 | Tabela | Descrição | Chaves Principais |
 | :--- | :--- | :--- |
-| `assets` | Hierarquia física (Área > Equipamento > Subgrupo). Utiliza auto-relacionamento (parent_id referenciando id). | `id`, `parent_id` (Self-FK) |
-| `rcas` | Registros completos de investigação e análise. | `id` |
-| `triggers` | Eventos de parada brutos importados/gerados. | `id`, `rca_id` (FK) |
-| `actions` | Planos de ação derivados de uma RCA. | `id`, `rca_id` (FK) |
-| `fmea_modes` | Modos de falha e efeitos (FMEA) vinculados a equipamentos. | `id`, `asset_id` (FK) |
-| `taxonomy` | Configurações globais de status e campos (JSON). | `id` (PK fixed 1) |
+| assets | Hierarquia física (Área > Equipamento > Subgrupo). Utiliza auto-relacionamento (parent_id referenciando id). | id, parent_id (Self-FK) |
+| rcas | Registros completos de investigação e análise. | id |
+| triggers | Eventos de parada brutos importados/gerados. | id, rca_id (FK) |
+| actions | Planos de ação derivados de uma RCA. | id, rca_id (FK) |
+| fmea_modes | Modos de falha e efeitos (FMEA) vinculados a equipamentos. | id, asset_id (FK) |
+| taxonomy | Configurações globais de status e campos (JSON). | id (PK fixed 1) |
 
 ---
 
@@ -85,7 +86,7 @@ O FMEA é armazenado em uma tabela dedicada para permitir múltiplos modos de fa
 | Campo | Tipo | Descrição |
 | :--- | :--- | :--- |
 | **id** | TEXT (PK) | UUID identificador do modo de falha. |
-| **asset_id** | TEXT (FK) | Vínculo com a tabela `assets`. |
+| **asset_id** | TEXT (FK) | Vínculo com a tabela assets. |
 | **failure_mode** | TEXT | Descrição do modo de falha (ex: "Travamento de rolamento"). |
 | **potential_effects**| TEXT | Efeitos potenciais do modo de falha. |
 | **severity** | INTEGER | Nota de Gravidade (1 a 10). |
@@ -97,7 +98,7 @@ O FMEA é armazenado em uma tabela dedicada para permitir múltiplos modos de fa
 | **recommended_actions**| TEXT | Ações recomendadas para mitigação do risco. |
 
 ### Cálculo de RPN Automático
-A coluna `rpn` é uma **Generated Column** persistida no banco (`STORED`). Isso garante que a integridade matemática seja mantida pela engine do SQLite sem necessidade de recálculo manual no backend ou frontend.
+A coluna rpn é uma Generated Column persistida no banco (STORED). Isso garante que a integridade matemática seja mantida pela engine do SQLite sem necessidade de recálculo manual no backend ou frontend.
 
 ---
 
@@ -106,14 +107,14 @@ A coluna `rpn` é uma **Generated Column** persistida no banco (`STORED`). Isso 
 Para suportar anexo de imagens e vídeos nas análises, seguiremos a seguinte arquitetura:
 
 ### Armazenamento Local-First
-- **Pasta de Mídia:** Armazenamento em `/data/media/[rca_id]/`.
-- **Referência:** O banco de dados armazenará apenas o caminho relativo ou uma lista de metadados JSON na tabela `rcas`.
-- **Limites:**
+- Pasta de Mídia: Armazenamento em /data/media/[rca_id]/.
+- Referência: O banco de dados armazenará apenas o caminho relativo ou uma lista de metadados JSON na tabela rcas.
+- Limites:
   - Imagens: Max 5MB (JPG/PNG).
   - Vídeos: Max 50MB (MP4).
 
 ### Schema (Extensão)
-A tabela `rcas` receberá uma coluna `attachments` (TEXT) contendo um JSON array de objetos:
+A tabela rcas receberá uma coluna attachments (TEXT) contendo um JSON array de objetos:
 ```json
 [
   { "id": "uuid", "type": "image", "path": "filename.jpg", "label": "Evidência 01" }

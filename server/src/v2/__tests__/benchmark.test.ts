@@ -51,7 +51,7 @@ describe('Performance Benchmark (V2 Core)', () => {
             failure_date TEXT, failure_time TEXT, os_number TEXT,
             area_id TEXT, equipment_id TEXT, asset_name_display TEXT,
             potential_impacts TEXT, quality_impacts TEXT,
-            general_moc_number TEXT
+            general_moc_number TEXT, attachments TEXT
         )`);
 
         repo = new SqlRcaRepository();

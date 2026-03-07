@@ -57,3 +57,5 @@ data/*.db
 data/vector_db/
 !data/knowledge/*.md
 docs/agno/
+server/data/media/
+server/server_log.txt

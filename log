@@ -1,135 +1,997 @@
-      qual o espaçamento de tempo entre as essas falhas no cm2?
+      modo manual. Feito testes e o carro voltou a se movimentar, entretanto, na inspeção mecânica, foi detectado que o
+      trilho do carro lado CM3 estava com marcas de arrastamento. Com essa constatação, foi entendido que era preciso  
+      trocar o rolamento desta roda. TIPO DE COMPONENTE: None TIPO DE ANÁLISE: CAPA (Nível: area)
+      <!-- END_RCA_SYSTEM_CONTEXT -->
+      <!-- USER_MESSAGE -->
+      analise as midias
 DEBUG ============================================ assistant ============================================
-DEBUG Com base nos dados fornecidos, **não é possível determinar o espaçamento de tempo entre as falhas no CM2**, pois 
-      as informações do `[HISTÓRICO ENCONTRADO]` não contêm as datas das ocorrências passadas.
+DEBUG Peço desculpas, mas, como mencionei anteriormente, não consigo analisar mídias no formato visual ou auditivo.    
+      Minhas capacidades são limitadas à análise de texto.
 
-      Apenas a falha atual, "Roletes do Módulo 25 do conveyor não giram", tem a data de **2025-11-07**.
+      Se você tiver alguma informação em formato de texto (como relatórios, descrições, transcrições) que você
+      considera "mídia" e gostaria que eu analisasse, por favor, me forneça o texto. Caso contrário, não posso
+      prosseguir com essa solicitação.
 DEBUG =============================================== user ==============================================
 DEBUG <!-- RCA_SYSTEM_CONTEXT -->
       [DADOS ATUAIS DA TELA]:
       Ativo: Ativo em rascunho
-      {"title":"Roletes do Módulo 25 do conveyor não giram","description":"Parada do CM2 durante 63 minutos devido     
-      rompimento da corrente de acionamento dos roletes do módulo 25 do conveyor malha 2.","asset_display":"Ativo em   
-      rascunho","date":"2025-11-07","hierarchy":{"area":"LF","equipment":"CM_2","subgroup":"10 - CONVEYOR DE BOBINAS - 
-      CONVEYOR 02"},"current_causes":"Roteiro do plano não contém o método de execução e parâmetro para tensionamento  
-      das correntes."}
+      {"title":"Variação na tensão da chapa durante o rebobinamento","description":"Múltiplas paradas do CM2 que juntas
+      totalizaram 83,75h entre os dias 17 e 21 de Janeiro devido travamento do rolamento dianteiro do mandril
+      enrolador. Houve parada para preventiva no dia 20/jan de 14h, o que reduziu o total apontado como downtime não   
+      planejado.","asset_display":"Ativo em
+      rascunho","date":"2025-01-17","hierarchy":{"area":"LF","equipment":"CM_2","subgroup":"30 - AREA DE SAÍDA -       
+      ENROLADOR"},"current_causes":"Não há rotina para conferir se o fuxo de óleo e setpoint de acionamento do
+      fluxostato está conforme especificado."}
 
       [HISTÓRICO ENCONTRADO]:
-      - [RCA a75016b7...](#/rca/a75016b7-a8a8-48a2-ab52-46396c16f7bb): ID DA RCA: a75016b7-a8a8-48a2-ab52-46396c16f7bb 
-      TÍTULO/O QUE (What): Parada do módulo 18 do conveyor QUEM (Who): Plantão CM2 ONDE (Where): DESCRIÇÃO TÉCNICA:    
-      Parada de 130 min por quebra da corrente de transmissão do modulo 8 do conveyor. Foi necessario cortar a chaparia
-      de proteção e aguaradar a liberação dos bombeiros. TIPO DE COMPONENTE: Correntes TIPO DE ANÁLISE: Mini RCA       
-      (Nível: subgroup)
-      - [RCA 557fc9fe...](#/rca/557fc9fe-0697-44a3-80dc-3cb1f9d84502): ID DA RCA: 557fc9fe-0697-44a3-80dc-3cb1f9d84502 
-      TÍTULO/O QUE (What): Quebra do esticador do módulo 18 do conveyor QUEM (Who): Turno ONDE (Where): Conveyor 2 -   
-      Módulo 18 DESCRIÇÃO TÉCNICA: Módulo 18 não movimenta devido a quebra do esticador. TIPO DE COMPONENTE: Correntes 
-      TIPO DE ANÁLISE: Mini RCA (Nível: subgroup)
-      - [RCA 8720ba10...](#/rca/8720ba10-03a0-4407-92e5-b66207c4a4da): ID DA RCA: 8720ba10-03a0-4407-92e5-b66207c4a4da 
-      TÍTULO/O QUE (What): Quebra do pescoço do rolete. QUEM (Who): Turno Mecância ONDE (Where): Rolete - Conveyor 01  
-      DESCRIÇÃO TÉCNICA: Parada no CM2 durante 63 minutos, devido quebra do pescoço do rolete, conveyor 01. TIPO DE    
-      COMPONENTE: Rolo TIPO DE ANÁLISE: Mini RCA (Nível: equipment)
-      - [RCA 825613ba...](#/rca/825613ba-bf04-4c3b-808c-5f540b96553e): ID DA RCA: 825613ba-bf04-4c3b-808c-5f540b96553e 
-      TÍTULO/O QUE (What): Perda do acionamento dos roletes do módulo I2 do conveyor malha 2 QUEM (Who): Alex,
-      Henrique, Washington e Gutierrez - Tec Mecanico Turno ONDE (Where): Mesa I2 - Conveyor Malha 2 DESCRIÇÃO TÉCNICA:
-      Parada de 241min no CM1 devido desprendimento dos 4 parafusos de fixação do redutor da mesa I2 do conveyor.      
-      Inicialmente o que foi observado que a corrente da coroa principal havia soltado e o parafuso de fixação da base 
-      do eixo de transmissão estava solto. TIPO DE COMPONENTE: Redutores TIPO DE ANÁLISE: Mini RCA (Nível: area)       
-      - [RCA 38ba3a23...](#/rca/38ba3a23-9b78-4d77-9c84-7f27ead401bb): ID DA RCA: 38ba3a23-9b78-4d77-9c84-7f27ead401bb 
-      TÍTULO/O QUE (What): Quebra do rolete do Conveyor QUEM (Who): Turno - Mecânica ONDE (Where): Conveyor - Mlalha 1 
-      DESCRIÇÃO TÉCNICA: Durante operação do CM#1, houve atraso na movimentação de bobinas devido rolete da mesa C1    
-      quebrado. TIPO DE COMPONENTE: Eixo TIPO DE ANÁLISE: RCA (Nível: area)
+      - [RCA 5755b506...](#/rca/5755b506-49d6-4461-8dd0-b0c7acf82a3b): ID DA RCA: 5755b506-49d6-4461-8dd0-b0c7acf82a3b 
+      TÍTULO/O QUE (What): Perda de ajuste durante o funcionamento. QUEM (Who): Americo, Leandro, Erick e Sergio - Tec 
+      manutenção ONDE (Where): Enrolador DESCRIÇÃO TÉCNICA: Parada do CM2 durante 103 minutos devido falha na abertura 
+      do freio do enrolador. TIPO DE COMPONENTE: Estrutura TIPO DE ANÁLISE: Mini RCA (Nível: subgroup)
+      - [RCA be569870...](#/rca/be569870-1ce4-4d2f-8f07-aeacf8bed1ba): ID DA RCA: be569870-1ce4-4d2f-8f07-aeacf8bed1ba 
+      TÍTULO/O QUE (What): Falha na lubrificação do mandril enrolador QUEM (Who): Erick Leite - Técnico Manut Mecânica 
+      Especializado ONDE (Where): DESCRIÇÃO TÉCNICA: Parada do CM2 durante 1,2h devido Falha na lubrificação do mandril
+      enrolador. A falha ocorreu após troca do mandril enrolador, concluída no dia 16/09 as 5:00. TIPO DE COMPONENTE:  
+      None TIPO DE ANÁLISE: Mini RCA (Nível: subgroup)
+      - [RCA b4e42e78...](#/rca/b4e42e78-9ed7-4fec-959c-74c306666e32): ID DA RCA: b4e42e78-9ed7-4fec-959c-74c306666e32 
+      TÍTULO/O QUE (What): Oscilação na espessura durante laminação QUEM (Who): Hércules, Erick e Alex. ONDE (Where):  
+      Deflector Roll DESCRIÇÃO TÉCNICA: Duas paradas no CM2, totalizando 255 minutos de DWT. Durante a laminação, havia
+      oscilação na espessura do material. Parada de máquina para inspeção, encontrando folga no acoplamento do
+      deflector roll, lado rígido montado no eixo do rolo. TIPO DE COMPONENTE: Acoplamento TIPO DE ANÁLISE: RCA (Nível:
+      equipment)
+      - [RCA f0231f97...](#/rca/f0231f97-0d8f-4fcc-b16b-9bcfc4ec9ad5): ID DA RCA: f0231f97-0d8f-4fcc-b16b-9bcfc4ec9ad5 
+      TÍTULO/O QUE (What): Aquecimento no tambor do freio. Operador viu a fumaça e parou o laminador. QUEM (Who): Erick
+      Leite - Tec Mecânico ONDE (Where): Freio do desenrolador DESCRIÇÃO TÉCNICA: Paradas interimitentes do CM2 devido 
+      aquecimento no tambor do freio do desenrolador. O problema ocorreu nos seguinte dias: 9/set (69min), 13/set      
+      (240min), 17/set (60+93min) - 2 eventos. Esse conjunto de freio foi instalado no paradão e a única diferença dele
+      com o anterior é a catraca de ajuste automático do cj para compensar o desgaste da lona. TIPO DE COMPONENTE:     
+      Freio TIPO DE ANÁLISE: RCA (Nível: equipment)
+      - [RCA 01f4e30f...](#/rca/01f4e30f-f83f-4e42-b9cd-30b699b63bee): ID DA RCA: 01f4e30f-f83f-4e42-b9cd-30b699b63bee 
+      TÍTULO/O QUE (What): Parada para troca do Ironing Roll do CM3 devido ao rolo em operação (CM3-19) ter apresentado
+      tampa lateral do mancal lado motor solta QUEM (Who): Manutenção / Assessoria ONDE (Where): Ironing Roll DESCRIÇÃO
+      TÉCNICA: Durante laminação o operador do CM3 observou que havia uma peça na região inferior da base da caixa     
+      redutora do Tension Reel. Foi parado a máquina e chamado a manutenção para inspeção e encontrado a tampa do      
+      mancal do IR solta. TIPO DE COMPONENTE: Rolo TIPO DE ANÁLISE: Mini RCA (Nível: area)
+      - [RCA 70b3e0eb...](#/rca/70b3e0eb-3379-4da2-b72b-dc493477b76f): ID DA RCA: 70b3e0eb-3379-4da2-b72b-dc493477b76f 
+      TÍTULO/O QUE (What): Coil Car apresentou falha de posicionamento durante laminação. Time de manutenção fez       
+      inspeção e foi detectado uma das quatro rodas com rolamento quebrado. QUEM (Who): Marcos França, Rodrigo Faria,  
+      Henrique, Paulo Henrique, Américo, Alex, Washington, Ari, João Hara e Dalber. ONDE (Where): Coil Car - Entry Side
+      DESCRIÇÃO TÉCNICA: Parada de 791 minutos no Coil Car de Entrada. Durante a laminação do CM3, o operador sinalizou
+      que o CC2 parou de se movimentar, gerando interlock. O time de manutenção foi acionado e o carro foi colocado em 
+      modo manual. Feito testes e o carro voltou a se movimentar, entretanto, na inspeção mecânica, foi detectado que o
+      trilho do carro lado CM3 estava com marcas de arrastamento. Com essa constatação, foi entendido que era preciso  
+      trocar o rolamento desta roda. TIPO DE COMPONENTE: None TIPO DE ANÁLISE: CAPA (Nível: area)
       <!-- END_RCA_SYSTEM_CONTEXT -->
-      <!-- USER_MESSAGE -->
-      busque no historico
-      INFO   127.0.0.1:55881 - "POST /analyze HTTP/1.1" 200
-DEBUG ============================================ assistant ============================================
-DEBUG Tool Calls:
-        - ID: '130088a8-84c8-4e70-bd43-8e72c43d5816'
-          Name: 'get_historical_rca_summary'
-          Arguments: 'rca_id: a75016b7-a8a8-48a2-ab52-46396c16f7bb'
-        - ID: '10e847e8-e09c-4073-bc89-b04f8dafdd77'
-          Name: 'get_historical_rca_summary'
-          Arguments: 'rca_id: 557fc9fe-0697-44a3-80dc-3cb1f9d84502'
-        - ID: 'eb5611a8-10d7-4114-8c91-75e6eece358d'
-          Name: 'get_historical_rca_summary'
-          Arguments: 'rca_id: 8720ba10-03a0-4407-92e5-b66207c4a4da'
-        - ID: '5daff2be-e1ff-46cd-a111-add985da5aef'
-          Name: 'get_historical_rca_summary'
-          Arguments: 'rca_id: 825613ba-bf04-4c3b-808c-5f540b96553e'
-DEBUG ********************************************  METRICS  ********************************************
-DEBUG * Tokens:                      input=15670, output=222, total=15892, cached=3979, reasoning=565
-DEBUG * Duration:                    4.7079s
-DEBUG * Tokens per second:           47.1547 tokens/s
-DEBUG ********************************************  METRICS  ********************************************
-DEBUG Running: get_historical_rca_summary(rca_id=a75016b7-a8a8-48a2-ab52-46396c16f7bb)
-DEBUG Running: get_historical_rca_summary(rca_id=557fc9fe-0697-44a3-80dc-3cb1f9d84502)
-DEBUG Running: get_historical_rca_summary(rca_id=8720ba10-03a0-4407-92e5-b66207c4a4da)
-DEBUG Running: get_historical_rca_summary(rca_id=825613ba-bf04-4c3b-808c-5f540b96553e)
-DEBUG =============================================== tool ==============================================
-DEBUG Tool call Id: 130088a8-84c8-4e70-bd43-8e72c43d5816
-DEBUG RCA a75016b7-a8a8-48a2-ab52-46396c16f7bb - Parada do módulo 18 do conveyor
-      Ativo: None
-      Data/Quando: 2026-02-20 19:00:47
-      Quem: Plantão CM2
-      Onde:
-      Status: STATUS-01
-      Tipo de Análise: Mini RCA
-      Descrição: Parada de 130 min por quebra da corrente de transmissão do modulo 8 do conveyor. Foi necessario cortar
-      a chaparia de proteção e aguaradar a liberação dos bombeiros.
-DEBUG =============================================== tool ==============================================
-DEBUG Tool call Id: 10e847e8-e09c-4073-bc89-b04f8dafdd77
-DEBUG RCA 557fc9fe-0697-44a3-80dc-3cb1f9d84502 - Quebra do esticador do módulo 18 do conveyor
-      Ativo: None
-      Data/Quando: 2026-02-20 19:00:47
-      Quem: Turno
-      Onde: Conveyor 2 - Módulo 18
-      Status: STATUS-02
-      Tipo de Análise: Mini RCA
-      Descrição: Módulo 18 não movimenta devido a quebra do esticador.
-DEBUG =============================================== tool ==============================================
-DEBUG Tool call Id: eb5611a8-10d7-4114-8c91-75e6eece358d
-DEBUG RCA 8720ba10-03a0-4407-92e5-b66207c4a4da - Quebra do pescoço do rolete.
-      Ativo: None
-      Data/Quando: 2026-02-20 19:00:47
-      Quem: Turno Mecância
-      Onde: Rolete - Conveyor 01
-      Status: STATUS-02
-      Tipo de Análise: Mini RCA
-      Descrição: Parada no CM2 durante 63 minutos, devido quebra do pescoço do rolete, conveyor 01.
-DEBUG =============================================== tool ==============================================
-DEBUG Tool call Id: 5daff2be-e1ff-46cd-a111-add985da5aef
-DEBUG RCA 825613ba-bf04-4c3b-808c-5f540b96553e - Perda do acionamento dos roletes do módulo I2 do conveyor malha 2     
-      Ativo: None
-      Data/Quando: 2026-02-20 19:00:47
-      Quem: Alex, Henrique, Washington e Gutierrez - Tec Mecanico Turno
-      Onde: Mesa I2 - Conveyor Malha 2
-      Status: STATUS-02
-      Tipo de Análise: Mini RCA
-      Descrição: Parada de 241min no CM1 devido desprendimento dos 4 parafusos de fixação do redutor da mesa I2 do     
-      conveyor. Inicialmente o que foi observado que a corrente da coroa principal havia soltado e o parafuso de       
-      fixação da base do eixo de transmissão estava solto.
+      <!-- INITIAL_ANALYSIS_REQUEST -->
+      Realize a análise completa de causa raiz para a RCA ID: 96ff6526-7418-4920-ad8e-dbf82e65ccb6 baseando-se nos     
+      dados acima e nas evidências visuais fornecidas.
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
 DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
 DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
 DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
 DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
 DEBUG ============================================ assistant ============================================
-DEBUG Com base nos dados históricos obtidos:
+DEBUG Peço desculpas novamente, mas reforço que não consigo analisar "mídias" ou "evidências visuais" no formato de    
+      imagens ou vídeos, pois sou uma inteligência artificial baseada em texto. Minhas capacidades se limitam a        
+      processar e analisar informações textuais.
 
-      Todos os registros de RCA históricas relacionados ao CM2 (ou incidentes que causaram parada no CM2, como a quebra
-      do pescoço do rolete no conveyor 01) e ao CM1 apresentam a mesma data e hora: **2026-02-20 19:00:47**.
+      Se você possui descrições detalhadas, relatórios ou qualquer outro tipo de informação textual referente a essas  
+      "mídias" ou "evidências visuais", por favor, me forneça o texto para que eu possa integrá-lo à análise.
 
-      Isso significa que, com as informações disponíveis no histórico, **não é possível calcular o espaçamento de tempo
-      entre essas falhas**, pois as datas são idênticas para todos os incidentes passados.
+      Em relação à "análise completa de causa raiz para a RCA ID: 96ff6526-7418-4920-ad8e-dbf82e65ccb6", já havíamos   
+      chegado a uma causa raiz acordada na nossa interação anterior: a **deficiência na gestão e execução da rotina de 
+      manutenção e/ou na abrangência do procedimento de lubrificação para o mandril enrolador**. Essa causa raiz foi   
+      inferida a partir dos `[DADOS ATUAIS DA TELA]` e do `[HISTÓRICO ENCONTRADO]`, especificamente a RCA de "Falha na 
+      lubrificação do mandril enrolador".
 
-      Para o incidente atual de "Roletes do Módulo 25 do conveyor não giram", a data registrada é **2025-11-07**.      
+      Para dar continuidade, se você tiver informações textuais adicionais (que talvez sejam as "mídias" a que você se 
+      refere), posso revisar a análise. Caso contrário, o próximo passo seria a criação de um plano de ação com base na
+      causa raiz já identificada.
 DEBUG ********************************************  METRICS  ********************************************
-DEBUG * Tokens:                      input=17179, output=161, total=17340, cached=14941, reasoning=497
-DEBUG * Duration:                    3.5044s
-DEBUG * Tokens per second:           45.9426 tokens/s
-DEBUG * Time to first token:         2.9876s
+DEBUG * Tokens:                      input=13491, output=322, total=13813, reasoning=111
+DEBUG * Duration:                    3.8222s
+DEBUG * Tokens per second:           84.2448 tokens/s
+DEBUG * Time to first token:         2.3913s
 DEBUG ********************************************  METRICS  ********************************************
 DEBUG --------------------------------- Google Async Response Stream End --------------------------------
 DEBUG Added RunOutput to Agent Session
-DEBUG Created or updated AgentSession record: dc057f5b-0683-4494-af6a-ae361b67d177
-DEBUG *********************** Agent Run End: 05e11a0a-9f75-43aa-bab6-9ef3cabaa5e7 ***********************
+DEBUG Created or updated AgentSession record: 96ff6526-7418-4920-ad8e-dbf82e65ccb6
+DEBUG *********************** Agent Run End: 788ca778-4141-40aa-9d64-c7a50b70a67e ***********************
 DEBUG: Stream finalizado.
+   WARNING   WatchFiles detected changes in 'api\routes.py'. Reloading...
+ 
+      INFO   Shutting down
+      INFO   Waiting for application shutdown.
+[STOP] AI Service finalizando.
+      INFO   Application shutdown complete.
+      INFO   Finished server process [40900]
+DEBUG DatabaseSpanExporter shutdown
+[KNOWLEDGE] Verificando Knowledge Path: C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge
+[OK] Diretório de conhecimento encontrado.
+INFO Adding content from path, 808cf4c3-a24e-511e-b9c9-66560bf3d8a0, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge, None        
+INFO Adding content from path, cea00f04-63a5-5a97-a0b3-1b8314e98358, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\01_rca_overvi
+     ew.md, None
+INFO Deleted 1 documents with content_hash '4bac8d4ffa051678d04b430ed2fc148fb457381e59af7275535cfbbd4752b6f1'
+INFO Upserting 1 documents
+INFO Adding content from path, d42716f1-c827-5ac1-8652-9da7e6467a6b, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\02_5_whys.md,
+     None
+INFO Deleted 1 documents with content_hash '085912ccb8ce07a91e23d4faf40e7bc3c62b8a7eb669d2fdd74bd9d4a4bc8a3e'
+INFO Upserting 1 documents
+INFO Adding content from path, 289185af-6a1b-5dcf-8bc4-4b385b90c0b2, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\03_ishikawa_6
+     m.md, None
+INFO Deleted 1 documents with content_hash 'bb3cebe0e489bf16b6d3f453ec116373635c4fbad2a77e9252fe4a468443852a'
+INFO Upserting 1 documents
+INFO Adding content from path, a64842dd-d8bc-55bd-8610-0b811a6aa9ae, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\04_action_pla
+     ns.md, None
+INFO Deleted 1 documents with content_hash '06a2851d6c82c5b822c09cb959553892b3d859cc39a1065681e7e97df3383638'
+INFO Upserting 1 documents
+INFO Adding content from path, 5201a173-ce59-54df-bd22-9ae2217f2b47, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\05_problem_co
+     nclusion.md, None
+INFO Deleted 1 documents with content_hash 'a0a5144701e5d1e47978ba9b236b03d0fde022e2af4fef62943e8f1dd19abfe1'
+INFO Upserting 1 documents
+DEBUG ********************************** Agent ID: rca-unified-copilot **********************************
+DEBUG Tracing configured with SimpleSpanProcessor
+INFO Agno tracing successfully set up with database storage
+      INFO   Started server process [20772]
+      INFO   Waiting for application startup.
+[INFO] Iniciando RCA AI Service com AGNO_DEBUG=True...
+Indexing RCAs from http://localhost:3001/api/rcas...
+[SYNC] Processing 2822 RCAs...
+[OK] Sync Finished! New: 0 | Skipped (unchanged): 2764 | Total: 2822
+[OK] Sincronização de RCAs concluída.
+      INFO   Application startup complete.
+DEBUG Function: web_search registered with websearch
+DEBUG Function: search_news registered with websearch
+DEBUG Getting messages from previous runs: 13
+      INFO   127.0.0.1:49331 - "GET /analyze/history/96ff6526-7418-4920-ad8e-dbf82e65ccb6 HTTP/1.1" 200
+INFO Found 3 documents
+INFO Found 3 documents
+INFO Found 3 documents
+INFO [Media] Baixando midia para analise:
+     http://localhost:3001/api/media/96ff6526-7418-4920-ad8e-dbf82e65ccb6/IMAGE_1.jpeg
+INFO [Media] Imagem carregada: IMAGE_1.jpeg (75410 bytes)
+INFO [Media] Baixando midia para analise:
+     http://localhost:3001/api/media/96ff6526-7418-4920-ad8e-dbf82e65ccb6/IMAGE_2.jpeg
+INFO [Media] Imagem carregada: IMAGE_2.jpeg (236589 bytes)
+INFO [Media] Baixando midia para analise:
+     http://localhost:3001/api/media/96ff6526-7418-4920-ad8e-dbf82e65ccb6/IMAGE_3.jpeg
+INFO [Media] Imagem carregada: IMAGE_3.jpeg (152946 bytes)
+INFO [Media] Baixando midia para analise:
+     http://localhost:3001/api/media/96ff6526-7418-4920-ad8e-dbf82e65ccb6/IMAGE_4.jpeg
+INFO [Media] Imagem carregada: IMAGE_4.jpeg (157710 bytes)
+INFO [Media] Baixando midia para analise:
+     http://localhost:3001/api/media/96ff6526-7418-4920-ad8e-dbf82e65ccb6/IMAGE_5.jpeg
+INFO [Media] Imagem carregada: IMAGE_5.jpeg (164628 bytes)
+INFO [Media] Baixando midia para analise:
+     http://localhost:3001/api/media/96ff6526-7418-4920-ad8e-dbf82e65ccb6/IMAGE_6.jpeg
+INFO [Media] Imagem carregada: IMAGE_6.jpeg (159789 bytes)
+INFO [Media] Baixando midia para analise:
+     http://localhost:3001/api/media/96ff6526-7418-4920-ad8e-dbf82e65ccb6/IMAGE_7.jpeg
+INFO [Media] Imagem carregada: IMAGE_7.jpeg (87056 bytes)
+INFO [Media] Baixando midia para analise:
+     http://localhost:3001/api/media/96ff6526-7418-4920-ad8e-dbf82e65ccb6/VIDEO_01.mp4
+INFO [Media] Video carregado: VIDEO_01.mp4 (3791192 bytes)
+DEBUG Function: web_search registered with websearch
+DEBUG Function: search_news registered with websearch
+INFO 📡 ROTA: Mensagem de chat recebida -> Unified Agent Mode. (Multimodal: 7 imgs, 1 vids)
+INFO 🔍 ROTA: Motor=Agent, Prompt (4762 chars)
+DEBUG 📡 DEBUG: Iniciando stream ASYNC para RCA 96ff6526-7418-4920-ad8e-dbf82e65ccb6
+INFO 📡 DEBUG: Chamando motor de IA para prompt de 4762 chars
+DEBUG ************************* Session ID: 96ff6526-7418-4920-ad8e-dbf82e65ccb6 ************************
+DEBUG ********************************** Agent ID: rca-unified-copilot **********************************
+DEBUG Reading AgentSession: 96ff6526-7418-4920-ad8e-dbf82e65ccb6
+DEBUG ********************** Agent Run Start: 9d49b7ee-a3ea-4868-8466-20f4cfc959ff **********************
+DEBUG Processing tools for model
+DEBUG Added tool search_historical_rcas_tool
+DEBUG Added tool get_historical_rca_summary
+DEBUG Added tool get_historical_rca_causes
+DEBUG Added tool get_historical_rca_action_plan
+DEBUG Added tool get_historical_rca_triggers
+DEBUG Added tool get_asset_fmea_tool
+DEBUG Added tool web_search from websearch
+DEBUG Added tool search_news from websearch
+DEBUG Added tool get_chat_history
+DEBUG Added tool search_knowledge_base
+DEBUG Getting messages from previous runs: 8
+DEBUG Adding 8 messages from history
+DEBUG -------------------------------- Google Async Response Stream Start -------------------------------
+DEBUG ------------------------------------- Model: gemini-2.5-flash -------------------------------------
+DEBUG ============================================== system =============================================
+DEBUG <your_role>
+      Engenheiro Sênior de Confiabilidade e Copiloto RCA
+      </your_role>
+
+      -
+      ### DIRETRIZES GERAIS (GLOBAL RULES)
+      1. **IDIOMA:** Responda SEMPRE em Português-BR.
+      2. **SEPARAÇÃO DE CONTEXTO:**
+         - [DADOS ATUAIS DA TELA] vêm do Frontend e representam o INCIDENTE ATUAL. Esta é a sua verdade absoluta sobre 
+      o agora.
+         - Ferramentas (`tools`) servem EXCLUSIVAMENTE para pesquisar o PASSADO ou Teoria.
+      3. **PROIBIDO DIZER QUE NÃO TEM DADOS:** Se houver um Título ou Descrição no prompt, você TEM dados. Use sua     
+      expertise de engenheiro para inferir causas prováveis caso o FMEA ou Histórico falhem. NUNCA dê respostas        
+      robóticas pedindo IDs.
+      4. **ZERO METALINGUAGEM:** Entregue a resposta direta.
+
+      -
+      ### PERSONA
+      Você é o **Engenheiro Sênior de Confiabilidade e Copiloto RCA**, um único agente inteligente que ajuda na análise
+      de causa raiz com profundo conhecimento técnico.
+      Você atua tanto como investigador e especialista, quanto como redator de artefatos estruturados e facilitador    
+      interativo.
+
+      ### MODO INVESTIGADOR PROATIVO (NÃO SEJA PREGUIÇOSO)
+      Você é um engenheiro sênior. O usuário espera que você DÊ AS RESPOSTAS e PROPONHA teorias, não que você fique    
+      fazendo perguntas vazias ("Por que você acha que isso aconteceu?").
+      1. **Analise Proativamente:** Se você tem o "Problema Atual" e o "Histórico", FAÇA A CONEXÃO e proponha a causa  
+      raiz ou uma árvore de falhas.
+      2. **Proponha os 5 Porquês:** Não peça para o usuário montar os 5 porquês. CRIE VOCÊ UMA VERSÃO INICIAL dos 5    
+      Porquês baseando-se no histórico e na sua expertise técnica, e peça para o usuário validar ("Faz sentido para    
+      você?").
+      3. **Chega de Perguntas Abertas:** Se a corrente rompeu e o histórico diz que quebras de corrente nesse
+      equipamento ocorrem por sobrecarga no redutor, Diga: "Historicamente isso ocorre por sobrecarga no redutor.      
+      Podemos considerar que o redutor travou e rompeu a corrente?". Nunca diga "Por que a corrente rompeu?".
+      4. Quando chegarem à causa raiz acordada, sugira proativamente registrar isso no formulário e criar um Plano de  
+      Ação.
+
+      ### CLASSIFICAÇÃO DE INTENÇÃO (RACIOCÍNIO INTERNO - NÃO EXIBIR)
+      Antes de responder, classifique mentalmente a pergunta do usuário:
+      - **CONVERSA_RAPIDA**: Perguntas simples, saudações, status, dúvidas diretas -> Responda em texto limpo e curto. 
+      - **INSIGHT_HISTORICO / FMEA**: Perguntas sobre recorrência, falhas passadas, comparações ou modos de falha      
+      prováveis -> Use ferramentas de RAG e FMEA e responda de forma narrativa e analítica.
+      - **ANALISE_ESTRUTURADA (ARTEFATOS)**: Pedidos EXPLÍCITOS de Ishikawa, 5 Porquês, plano de ação, tabela -> Gere o
+      artefato solicitado usando os padrões de formatação apropriados.
+
+      ### DIRETRIZES DE INVESTIGAÇÃO (HISTÓRICO E FMEA)
+      1. **Uso Obrigatório de Ferramentas:** Se o bloco `[HISTÓRICO ENCONTRADO]` não possuir as causas detalhadas (ex: 
+      listando como "N/A") ou se faltarem informações, você DEVE OBRIGATORIAMENTE utilizar as ferramentas
+      `get_historical_rca_causes`, `get_historical_rca_action_plan` ou `get_full_rca_detail_tool` usando o ID da RCA   
+      passada para buscar os detalhes. NUNCA diga que o histórico não fornece causas ou dados sem antes consultar as   
+      ferramentas ativamente.
+      2. **Análise de Nova RCA:** Se a RCA ID informada for de um incidente NOVO (não encontrado no histórico/banco),  
+      NÃO se recuse a fazer a análise. Utilize os `[DADOS ATUAIS DA TELA]` (título, descrição, ativo) e cruze com as   
+      similaridades do `[HISTÓRICO ENCONTRADO]` para fornecer uma análise preliminar construtiva, inferindo causas     
+      prováveis baseando-se no padrão de falhas daquele ativo.
+      3. **Inteligência de RAG:** Não diga apenas "encontrei 3 RCAs". Contextualize os achados. Ex: "Este equipamento  
+      falhou 3 vezes pelo mesmo motivo (Quebra de correia) nos últimos 2 meses. No caso ID X, a solução foi Y..."      
+      4. **Confronto de Dados:** Se a busca no FMEA falhar, não diga apenas que não encontrou. Use sua experiência para
+      inferir os modos de falha mais comuns para o tipo de ativo e confronte com os dados históricos (se houver).      
+      5. **Narrativa sobre Histórico:** Quando perguntado sobre o histórico, responda como uma história técnica de     
+      engenharia.
+
+      ### 🛑 DIRETRIZES DE ARTEFATOS E SINTAXE (MUITO IMPORTANTE)
+      1. **ISHIKAWA SOMENTE SOB DEMANDA:** Gere diagrama de Ishikawa SOMENTE quando solicitado explicitamente
+      ("ishikawa", "diagrama", "espinha de peixe").
+      2. **REGRA CRÍTICA DE SINTAXE MERMAID:**
+         - ASPAS DUPLAS OBRIGATÓRIAS para textos em `((( )))` ou `[ ]`. Ex: `M1["Texto"]`.
+         - PROIBIDO QUEBRAS DE LINHA LITERAIS (`
+      `, `<br>`) dentro de nós. Uma causa = uma linha contínua.
+         - PROIBIDO ESCAPES com `\`. Use aspas simples para citações.
+         - ESTRUTURA DE 6 CATEGORIAS obrigatória: Máquina, Método, Material, Mão de Obra, Meio Ambiente, Medida. Se não
+      houver causa, use `["Causa não identificada"]`.
+         - FORMATO CORRETO:
+         ```mermaid
+         graph LR
+             Efeito((("TEXTO DO PROBLEMA")))
+             subgraph G_Maquina [Máquina]
+                 M1["Causa 1"]
+             end
+             M1 --> C_Maquina[Máquina]
+             C_Maquina ==> Efeito
+         ```
+      3. **TABELAS SOMENTE SOB DEMANDA:** Gere tabelas 5W2H ou planos de ação apenas se solicitado.
+      4. **ECONOMIA DE CONTEXTO:** Utilize a memória disponível, prefira concisão (2-5 parágrafos) a respostas extensas
+      e repetitivas. Se for possível responder em 1 frase, faça-o.
+
+      <additional_information>
+      - Use markdown to format your answers.
+      </additional_information>
+DEBUG =============================================== user ==============================================
+DEBUG <!-- RCA_SYSTEM_CONTEXT -->
+      [DADOS ATUAIS DA TELA]:
+      Ativo: Ativo em rascunho
+      {"title":"Variação na tensão da chapa durante o rebobinamento","description":"Múltiplas paradas do CM2 que juntas
+      totalizaram 83,75h entre os dias 17 e 21 de Janeiro devido travamento do rolamento dianteiro do mandril
+      enrolador. Houve parada para preventiva no dia 20/jan de 14h, o que reduziu o total apontado como downtime não   
+      planejado.","asset_display":"Ativo em
+      rascunho","date":"2025-01-17","hierarchy":{"area":"LF","equipment":"CM_2","subgroup":"30 - AREA DE SAÍDA -       
+      ENROLADOR"},"current_causes":"Não há rotina para conferir se o fuxo de óleo e setpoint de acionamento do
+      fluxostato está conforme especificado."}
+
+      [HISTÓRICO ENCONTRADO]:
+      - [RCA 5755b506...](#/rca/5755b506-49d6-4461-8dd0-b0c7acf82a3b): ID DA RCA: 5755b506-49d6-4461-8dd0-b0c7acf82a3b 
+      TÍTULO/O QUE (What): Perda de ajuste durante o funcionamento. QUEM (Who): Americo, Leandro, Erick e Sergio - Tec 
+      manutenção ONDE (Where): Enrolador DESCRIÇÃO TÉCNICA: Parada do CM2 durante 103 minutos devido falha na abertura 
+      do freio do enrolador. TIPO DE COMPONENTE: Estrutura TIPO DE ANÁLISE: Mini RCA (Nível: subgroup)
+      - [RCA be569870...](#/rca/be569870-1ce4-4d2f-8f07-aeacf8bed1ba): ID DA RCA: be569870-1ce4-4d2f-8f07-aeacf8bed1ba 
+      TÍTULO/O QUE (What): Falha na lubrificação do mandril enrolador QUEM (Who): Erick Leite - Técnico Manut Mecânica 
+      Especializado ONDE (Where): DESCRIÇÃO TÉCNICA: Parada do CM2 durante 1,2h devido Falha na lubrificação do mandril
+      enrolador. A falha ocorreu após troca do mandril enrolador, concluída no dia 16/09 as 5:00. TIPO DE COMPONENTE:  
+      None TIPO DE ANÁLISE: Mini RCA (Nível: subgroup)
+      - [RCA b4e42e78...](#/rca/b4e42e78-9ed7-4fec-959c-74c306666e32): ID DA RCA: b4e42e78-9ed7-4fec-959c-74c306666e32 
+      TÍTULO/O QUE (What): Oscilação na espessura durante laminação QUEM (Who): Hércules, Erick e Alex. ONDE (Where):  
+      Deflector Roll DESCRIÇÃO TÉCNICA: Duas paradas no CM2, totalizando 255 minutos de DWT. Durante a laminação, havia
+      oscilação na espessura do material. Parada de máquina para inspeção, encontrando folga no acoplamento do
+      deflector roll, lado rígido montado no eixo do rolo. TIPO DE COMPONENTE: Acoplamento TIPO DE ANÁLISE: RCA (Nível:
+      equipment)
+      - [RCA f0231f97...](#/rca/f0231f97-0d8f-4fcc-b16b-9bcfc4ec9ad5): ID DA RCA: f0231f97-0d8f-4fcc-b16b-9bcfc4ec9ad5 
+      TÍTULO/O QUE (What): Aquecimento no tambor do freio. Operador viu a fumaça e parou o laminador. QUEM (Who): Erick
+      Leite - Tec Mecânico ONDE (Where): Freio do desenrolador DESCRIÇÃO TÉCNICA: Paradas interimitentes do CM2 devido 
+      aquecimento no tambor do freio do desenrolador. O problema ocorreu nos seguinte dias: 9/set (69min), 13/set      
+      (240min), 17/set (60+93min) - 2 eventos. Esse conjunto de freio foi instalado no paradão e a única diferença dele
+      com o anterior é a catraca de ajuste automático do cj para compensar o desgaste da lona. TIPO DE COMPONENTE:     
+      Freio TIPO DE ANÁLISE: RCA (Nível: equipment)
+      - [RCA 01f4e30f...](#/rca/01f4e30f-f83f-4e42-b9cd-30b699b63bee): ID DA RCA: 01f4e30f-f83f-4e42-b9cd-30b699b63bee 
+      TÍTULO/O QUE (What): Parada para troca do Ironing Roll do CM3 devido ao rolo em operação (CM3-19) ter apresentado
+      tampa lateral do mancal lado motor solta QUEM (Who): Manutenção / Assessoria ONDE (Where): Ironing Roll DESCRIÇÃO
+      TÉCNICA: Durante laminação o operador do CM3 observou que havia uma peça na região inferior da base da caixa     
+      redutora do Tension Reel. Foi parado a máquina e chamado a manutenção para inspeção e encontrado a tampa do      
+      mancal do IR solta. TIPO DE COMPONENTE: Rolo TIPO DE ANÁLISE: Mini RCA (Nível: area)
+      - [RCA 70b3e0eb...](#/rca/70b3e0eb-3379-4da2-b72b-dc493477b76f): ID DA RCA: 70b3e0eb-3379-4da2-b72b-dc493477b76f 
+      TÍTULO/O QUE (What): Coil Car apresentou falha de posicionamento durante laminação. Time de manutenção fez       
+      inspeção e foi detectado uma das quatro rodas com rolamento quebrado. QUEM (Who): Marcos França, Rodrigo Faria,  
+      Henrique, Paulo Henrique, Américo, Alex, Washington, Ari, João Hara e Dalber. ONDE (Where): Coil Car - Entry Side
+      DESCRIÇÃO TÉCNICA: Parada de 791 minutos no Coil Car de Entrada. Durante a laminação do CM3, o operador sinalizou
+      que o CC2 parou de se movimentar, gerando interlock. O time de manutenção foi acionado e o carro foi colocado em 
+      modo manual. Feito testes e o carro voltou a se movimentar, entretanto, na inspeção mecânica, foi detectado que o
+      trilho do carro lado CM3 estava com marcas de arrastamento. Com essa constatação, foi entendido que era preciso  
+      trocar o rolamento desta roda. TIPO DE COMPONENTE: None TIPO DE ANÁLISE: CAPA (Nível: area)
+      <!-- END_RCA_SYSTEM_CONTEXT -->
+      <!-- INITIAL_ANALYSIS_REQUEST -->
+      Realize a análise completa de causa raiz para a RCA ID: 96ff6526-7418-4920-ad8e-dbf82e65ccb6 baseando-se nos     
+      dados acima.
+DEBUG ============================================ assistant ============================================
+DEBUG Com base na nossa análise e na validação implícita dos 5 Porquês, a causa raiz para o incidente atual de
+      "Variação na tensão da chapa durante o rebobinamento" e o consequente travamento do rolamento dianteiro do       
+      mandril enrolador (RCA ID: 96ff6526-7418-4920-ad8e-dbf82e65ccb6) é identificada como a **deficiência na gestão e 
+      execução da rotina de manutenção e/ou na abrangência do procedimento de lubrificação para o mandril enrolador**. 
+
+      Isso engloba a falta de uma rotina consistente para verificar o fluxo de óleo e o setpoint do fluxostato, mesmo  
+      após ações passadas para resolver a "falta de conhecimento sobre como ajustar o fluxo do óleo". A questão evoluiu
+      de um problema de conhecimento para um problema de aplicação sistemática e controle da rotina.
+
+      **Causa Raiz Acordada:** Deficiência na gestão da rotina de manutenção e no escopo dos procedimentos de
+      lubrificação, resultando na falha em garantir o fluxo de óleo e o setpoint do fluxostato conforme especificado,  
+      levando ao travamento do rolamento do mandril enrolador.
+
+      Agora que chegamos a essa causa raiz acordada, sugiro que elaboremos um Plano de Ação para formalizar as medidas 
+      corretivas. Você gostaria de iniciar a criação desse plano de ação agora, detalhando as ações, responsáveis e    
+      prazos?
+DEBUG =============================================== user ==============================================
+DEBUG <!-- RCA_SYSTEM_CONTEXT -->
+      [DADOS ATUAIS DA TELA]:
+      Ativo: Ativo em rascunho
+      {"title":"Variação na tensão da chapa durante o rebobinamento","description":"Múltiplas paradas do CM2 que juntas
+      totalizaram 83,75h entre os dias 17 e 21 de Janeiro devido travamento do rolamento dianteiro do mandril
+      enrolador. Houve parada para preventiva no dia 20/jan de 14h, o que reduziu o total apontado como downtime não   
+      planejado.","asset_display":"Ativo em
+      rascunho","date":"2025-01-17","hierarchy":{"area":"LF","equipment":"CM_2","subgroup":"30 - AREA DE SAÍDA -       
+      ENROLADOR"},"current_causes":"Não há rotina para conferir se o fuxo de óleo e setpoint de acionamento do
+      fluxostato está conforme especificado."}
+
+      [HISTÓRICO ENCONTRADO]:
+      - [RCA 5755b506...](#/rca/5755b506-49d6-4461-8dd0-b0c7acf82a3b): ID DA RCA: 5755b506-49d6-4461-8dd0-b0c7acf82a3b 
+      TÍTULO/O QUE (What): Perda de ajuste durante o funcionamento. QUEM (Who): Americo, Leandro, Erick e Sergio - Tec 
+      manutenção ONDE (Where): Enrolador DESCRIÇÃO TÉCNICA: Parada do CM2 durante 103 minutos devido falha na abertura 
+      do freio do enrolador. TIPO DE COMPONENTE: Estrutura TIPO DE ANÁLISE: Mini RCA (Nível: subgroup)
+      - [RCA be569870...](#/rca/be569870-1ce4-4d2f-8f07-aeacf8bed1ba): ID DA RCA: be569870-1ce4-4d2f-8f07-aeacf8bed1ba 
+      TÍTULO/O QUE (What): Falha na lubrificação do mandril enrolador QUEM (Who): Erick Leite - Técnico Manut Mecânica 
+      Especializado ONDE (Where): DESCRIÇÃO TÉCNICA: Parada do CM2 durante 1,2h devido Falha na lubrificação do mandril
+      enrolador. A falha ocorreu após troca do mandril enrolador, concluída no dia 16/09 as 5:00. TIPO DE COMPONENTE:  
+      None TIPO DE ANÁLISE: Mini RCA (Nível: subgroup)
+      - [RCA b4e42e78...](#/rca/b4e42e78-9ed7-4fec-959c-74c306666e32): ID DA RCA: b4e42e78-9ed7-4fec-959c-74c306666e32 
+      TÍTULO/O QUE (What): Oscilação na espessura durante laminação QUEM (Who): Hércules, Erick e Alex. ONDE (Where):  
+      Deflector Roll DESCRIÇÃO TÉCNICA: Duas paradas no CM2, totalizando 255 minutos de DWT. Durante a laminação, havia
+      oscilação na espessura do material. Parada de máquina para inspeção, encontrando folga no acoplamento do
+      deflector roll, lado rígido montado no eixo do rolo. TIPO DE COMPONENTE: Acoplamento TIPO DE ANÁLISE: RCA (Nível:
+      equipment)
+      - [RCA f0231f97...](#/rca/f0231f97-0d8f-4fcc-b16b-9bcfc4ec9ad5): ID DA RCA: f0231f97-0d8f-4fcc-b16b-9bcfc4ec9ad5 
+      TÍTULO/O QUE (What): Aquecimento no tambor do freio. Operador viu a fumaça e parou o laminador. QUEM (Who): Erick
+      Leite - Tec Mecânico ONDE (Where): Freio do desenrolador DESCRIÇÃO TÉCNICA: Paradas interimitentes do CM2 devido 
+      aquecimento no tambor do freio do desenrolador. O problema ocorreu nos seguinte dias: 9/set (69min), 13/set      
+      (240min), 17/set (60+93min) - 2 eventos. Esse conjunto de freio foi instalado no paradão e a única diferença dele
+      com o anterior é a catraca de ajuste automático do cj para compensar o desgaste da lona. TIPO DE COMPONENTE:     
+      Freio TIPO DE ANÁLISE: RCA (Nível: equipment)
+      - [RCA 01f4e30f...](#/rca/01f4e30f-f83f-4e42-b9cd-30b699b63bee): ID DA RCA: 01f4e30f-f83f-4e42-b9cd-30b699b63bee 
+      TÍTULO/O QUE (What): Parada para troca do Ironing Roll do CM3 devido ao rolo em operação (CM3-19) ter apresentado
+      tampa lateral do mancal lado motor solta QUEM (Who): Manutenção / Assessoria ONDE (Where): Ironing Roll DESCRIÇÃO
+      TÉCNICA: Durante laminação o operador do CM3 observou que havia uma peça na região inferior da base da caixa     
+      redutora do Tension Reel. Foi parado a máquina e chamado a manutenção para inspeção e encontrado a tampa do      
+      mancal do IR solta. TIPO DE COMPONENTE: Rolo TIPO DE ANÁLISE: Mini RCA (Nível: area)
+      - [RCA 70b3e0eb...](#/rca/70b3e0eb-3379-4da2-b72b-dc493477b76f): ID DA RCA: 70b3e0eb-3379-4da2-b72b-dc493477b76f 
+      TÍTULO/O QUE (What): Coil Car apresentou falha de posicionamento durante laminação. Time de manutenção fez       
+      inspeção e foi detectado uma das quatro rodas com rolamento quebrado. QUEM (Who): Marcos França, Rodrigo Faria,  
+      Henrique, Paulo Henrique, Américo, Alex, Washington, Ari, João Hara e Dalber. ONDE (Where): Coil Car - Entry Side
+      DESCRIÇÃO TÉCNICA: Parada de 791 minutos no Coil Car de Entrada. Durante a laminação do CM3, o operador sinalizou
+      que o CC2 parou de se movimentar, gerando interlock. O time de manutenção foi acionado e o carro foi colocado em 
+      modo manual. Feito testes e o carro voltou a se movimentar, entretanto, na inspeção mecânica, foi detectado que o
+      trilho do carro lado CM3 estava com marcas de arrastamento. Com essa constatação, foi entendido que era preciso  
+      trocar o rolamento desta roda. TIPO DE COMPONENTE: None TIPO DE ANÁLISE: CAPA (Nível: area)
+      <!-- END_RCA_SYSTEM_CONTEXT -->
+      <!-- USER_MESSAGE -->
+      analise as midias
+DEBUG ============================================ assistant ============================================
+DEBUG Não consigo analisar mídias (imagens, vídeos, etc.) diretamente. Minhas capacidades são limitadas à busca e      
+      análise de dados textuais do histórico de RCAs, FMEA e informações da web.
+
+      Você se refere a algum tipo de "mídia" textual, como notícias ou artigos, que eu possa buscar na web, ou a       
+      arquivos de mídia visuais/auditivos? Se for o último, não tenho acesso a esse tipo de informação.
+DEBUG =============================================== user ==============================================
+DEBUG <!-- RCA_SYSTEM_CONTEXT -->
+      [DADOS ATUAIS DA TELA]:
+      Ativo: Ativo em rascunho
+      {"title":"Variação na tensão da chapa durante o rebobinamento","description":"Múltiplas paradas do CM2 que juntas
+      totalizaram 83,75h entre os dias 17 e 21 de Janeiro devido travamento do rolamento dianteiro do mandril
+      enrolador. Houve parada para preventiva no dia 20/jan de 14h, o que reduziu o total apontado como downtime não   
+      planejado.","asset_display":"Ativo em
+      rascunho","date":"2025-01-17","hierarchy":{"area":"LF","equipment":"CM_2","subgroup":"30 - AREA DE SAÍDA -       
+      ENROLADOR"},"current_causes":"Não há rotina para conferir se o fuxo de óleo e setpoint de acionamento do
+      fluxostato está conforme especificado."}
+
+      [HISTÓRICO ENCONTRADO]:
+      - [RCA 5755b506...](#/rca/5755b506-49d6-4461-8dd0-b0c7acf82a3b): ID DA RCA: 5755b506-49d6-4461-8dd0-b0c7acf82a3b 
+      TÍTULO/O QUE (What): Perda de ajuste durante o funcionamento. QUEM (Who): Americo, Leandro, Erick e Sergio - Tec 
+      manutenção ONDE (Where): Enrolador DESCRIÇÃO TÉCNICA: Parada do CM2 durante 103 minutos devido falha na abertura 
+      do freio do enrolador. TIPO DE COMPONENTE: Estrutura TIPO DE ANÁLISE: Mini RCA (Nível: subgroup)
+      - [RCA be569870...](#/rca/be569870-1ce4-4d2f-8f07-aeacf8bed1ba): ID DA RCA: be569870-1ce4-4d2f-8f07-aeacf8bed1ba 
+      TÍTULO/O QUE (What): Falha na lubrificação do mandril enrolador QUEM (Who): Erick Leite - Técnico Manut Mecânica 
+      Especializado ONDE (Where): DESCRIÇÃO TÉCNICA: Parada do CM2 durante 1,2h devido Falha na lubrificação do mandril
+      enrolador. A falha ocorreu após troca do mandril enrolador, concluída no dia 16/09 as 5:00. TIPO DE COMPONENTE:  
+      None TIPO DE ANÁLISE: Mini RCA (Nível: subgroup)
+      - [RCA b4e42e78...](#/rca/b4e42e78-9ed7-4fec-959c-74c306666e32): ID DA RCA: b4e42e78-9ed7-4fec-959c-74c306666e32 
+      TÍTULO/O QUE (What): Oscilação na espessura durante laminação QUEM (Who): Hércules, Erick e Alex. ONDE (Where):  
+      Deflector Roll DESCRIÇÃO TÉCNICA: Duas paradas no CM2, totalizando 255 minutos de DWT. Durante a laminação, havia
+      oscilação na espessura do material. Parada de máquina para inspeção, encontrando folga no acoplamento do
+      deflector roll, lado rígido montado no eixo do rolo. TIPO DE COMPONENTE: Acoplamento TIPO DE ANÁLISE: RCA (Nível:
+      equipment)
+      - [RCA f0231f97...](#/rca/f0231f97-0d8f-4fcc-b16b-9bcfc4ec9ad5): ID DA RCA: f0231f97-0d8f-4fcc-b16b-9bcfc4ec9ad5 
+      TÍTULO/O QUE (What): Aquecimento no tambor do freio. Operador viu a fumaça e parou o laminador. QUEM (Who): Erick
+      Leite - Tec Mecânico ONDE (Where): Freio do desenrolador DESCRIÇÃO TÉCNICA: Paradas interimitentes do CM2 devido 
+      aquecimento no tambor do freio do desenrolador. O problema ocorreu nos seguinte dias: 9/set (69min), 13/set      
+      (240min), 17/set (60+93min) - 2 eventos. Esse conjunto de freio foi instalado no paradão e a única diferença dele
+      com o anterior é a catraca de ajuste automático do cj para compensar o desgaste da lona. TIPO DE COMPONENTE:     
+      Freio TIPO DE ANÁLISE: RCA (Nível: equipment)
+      - [RCA 01f4e30f...](#/rca/01f4e30f-f83f-4e42-b9cd-30b699b63bee): ID DA RCA: 01f4e30f-f83f-4e42-b9cd-30b699b63bee 
+      TÍTULO/O QUE (What): Parada para troca do Ironing Roll do CM3 devido ao rolo em operação (CM3-19) ter apresentado
+      tampa lateral do mancal lado motor solta QUEM (Who): Manutenção / Assessoria ONDE (Where): Ironing Roll DESCRIÇÃO
+      TÉCNICA: Durante laminação o operador do CM3 observou que havia uma peça na região inferior da base da caixa     
+      redutora do Tension Reel. Foi parado a máquina e chamado a manutenção para inspeção e encontrado a tampa do      
+      mancal do IR solta. TIPO DE COMPONENTE: Rolo TIPO DE ANÁLISE: Mini RCA (Nível: area)
+      - [RCA 70b3e0eb...](#/rca/70b3e0eb-3379-4da2-b72b-dc493477b76f): ID DA RCA: 70b3e0eb-3379-4da2-b72b-dc493477b76f 
+      TÍTULO/O QUE (What): Coil Car apresentou falha de posicionamento durante laminação. Time de manutenção fez       
+      inspeção e foi detectado uma das quatro rodas com rolamento quebrado. QUEM (Who): Marcos França, Rodrigo Faria,  
+      Henrique, Paulo Henrique, Américo, Alex, Washington, Ari, João Hara e Dalber. ONDE (Where): Coil Car - Entry Side
+      DESCRIÇÃO TÉCNICA: Parada de 791 minutos no Coil Car de Entrada. Durante a laminação do CM3, o operador sinalizou
+      que o CC2 parou de se movimentar, gerando interlock. O time de manutenção foi acionado e o carro foi colocado em 
+      modo manual. Feito testes e o carro voltou a se movimentar, entretanto, na inspeção mecânica, foi detectado que o
+      trilho do carro lado CM3 estava com marcas de arrastamento. Com essa constatação, foi entendido que era preciso  
+      trocar o rolamento desta roda. TIPO DE COMPONENTE: None TIPO DE ANÁLISE: CAPA (Nível: area)
+      <!-- END_RCA_SYSTEM_CONTEXT -->
+      <!-- USER_MESSAGE -->
+      analise as midias
+DEBUG ============================================ assistant ============================================
+DEBUG Peço desculpas, mas, como mencionei anteriormente, não consigo analisar mídias no formato visual ou auditivo.    
+      Minhas capacidades são limitadas à análise de texto.
+
+      Se você tiver alguma informação em formato de texto (como relatórios, descrições, transcrições) que você
+      considera "mídia" e gostaria que eu analisasse, por favor, me forneça o texto. Caso contrário, não posso
+      prosseguir com essa solicitação.
+DEBUG =============================================== user ==============================================
+DEBUG <!-- RCA_SYSTEM_CONTEXT -->
+      [DADOS ATUAIS DA TELA]:
+      Ativo: Ativo em rascunho
+      {"title":"Variação na tensão da chapa durante o rebobinamento","description":"Múltiplas paradas do CM2 que juntas
+      totalizaram 83,75h entre os dias 17 e 21 de Janeiro devido travamento do rolamento dianteiro do mandril
+      enrolador. Houve parada para preventiva no dia 20/jan de 14h, o que reduziu o total apontado como downtime não   
+      planejado.","asset_display":"Ativo em
+      rascunho","date":"2025-01-17","hierarchy":{"area":"LF","equipment":"CM_2","subgroup":"30 - AREA DE SAÍDA -       
+      ENROLADOR"},"current_causes":"Não há rotina para conferir se o fuxo de óleo e setpoint de acionamento do
+      fluxostato está conforme especificado."}
+
+      [HISTÓRICO ENCONTRADO]:
+      - [RCA 5755b506...](#/rca/5755b506-49d6-4461-8dd0-b0c7acf82a3b): ID DA RCA: 5755b506-49d6-4461-8dd0-b0c7acf82a3b 
+      TÍTULO/O QUE (What): Perda de ajuste durante o funcionamento. QUEM (Who): Americo, Leandro, Erick e Sergio - Tec 
+      manutenção ONDE (Where): Enrolador DESCRIÇÃO TÉCNICA: Parada do CM2 durante 103 minutos devido falha na abertura 
+      do freio do enrolador. TIPO DE COMPONENTE: Estrutura TIPO DE ANÁLISE: Mini RCA (Nível: subgroup)
+      - [RCA be569870...](#/rca/be569870-1ce4-4d2f-8f07-aeacf8bed1ba): ID DA RCA: be569870-1ce4-4d2f-8f07-aeacf8bed1ba 
+      TÍTULO/O QUE (What): Falha na lubrificação do mandril enrolador QUEM (Who): Erick Leite - Técnico Manut Mecânica 
+      Especializado ONDE (Where): DESCRIÇÃO TÉCNICA: Parada do CM2 durante 1,2h devido Falha na lubrificação do mandril
+      enrolador. A falha ocorreu após troca do mandril enrolador, concluída no dia 16/09 as 5:00. TIPO DE COMPONENTE:  
+      None TIPO DE ANÁLISE: Mini RCA (Nível: subgroup)
+      - [RCA b4e42e78...](#/rca/b4e42e78-9ed7-4fec-959c-74c306666e32): ID DA RCA: b4e42e78-9ed7-4fec-959c-74c306666e32 
+      TÍTULO/O QUE (What): Oscilação na espessura durante laminação QUEM (Who): Hércules, Erick e Alex. ONDE (Where):  
+      Deflector Roll DESCRIÇÃO TÉCNICA: Duas paradas no CM2, totalizando 255 minutos de DWT. Durante a laminação, havia
+      oscilação na espessura do material. Parada de máquina para inspeção, encontrando folga no acoplamento do
+      deflector roll, lado rígido montado no eixo do rolo. TIPO DE COMPONENTE: Acoplamento TIPO DE ANÁLISE: RCA (Nível:
+      equipment)
+      - [RCA f0231f97...](#/rca/f0231f97-0d8f-4fcc-b16b-9bcfc4ec9ad5): ID DA RCA: f0231f97-0d8f-4fcc-b16b-9bcfc4ec9ad5 
+      TÍTULO/O QUE (What): Aquecimento no tambor do freio. Operador viu a fumaça e parou o laminador. QUEM (Who): Erick
+      Leite - Tec Mecânico ONDE (Where): Freio do desenrolador DESCRIÇÃO TÉCNICA: Paradas interimitentes do CM2 devido 
+      aquecimento no tambor do freio do desenrolador. O problema ocorreu nos seguinte dias: 9/set (69min), 13/set      
+      (240min), 17/set (60+93min) - 2 eventos. Esse conjunto de freio foi instalado no paradão e a única diferença dele
+      com o anterior é a catraca de ajuste automático do cj para compensar o desgaste da lona. TIPO DE COMPONENTE:     
+      Freio TIPO DE ANÁLISE: RCA (Nível: equipment)
+      - [RCA 01f4e30f...](#/rca/01f4e30f-f83f-4e42-b9cd-30b699b63bee): ID DA RCA: 01f4e30f-f83f-4e42-b9cd-30b699b63bee 
+      TÍTULO/O QUE (What): Parada para troca do Ironing Roll do CM3 devido ao rolo em operação (CM3-19) ter apresentado
+      tampa lateral do mancal lado motor solta QUEM (Who): Manutenção / Assessoria ONDE (Where): Ironing Roll DESCRIÇÃO
+      TÉCNICA: Durante laminação o operador do CM3 observou que havia uma peça na região inferior da base da caixa     
+      redutora do Tension Reel. Foi parado a máquina e chamado a manutenção para inspeção e encontrado a tampa do      
+      mancal do IR solta. TIPO DE COMPONENTE: Rolo TIPO DE ANÁLISE: Mini RCA (Nível: area)
+      - [RCA 70b3e0eb...](#/rca/70b3e0eb-3379-4da2-b72b-dc493477b76f): ID DA RCA: 70b3e0eb-3379-4da2-b72b-dc493477b76f 
+      TÍTULO/O QUE (What): Coil Car apresentou falha de posicionamento durante laminação. Time de manutenção fez       
+      inspeção e foi detectado uma das quatro rodas com rolamento quebrado. QUEM (Who): Marcos França, Rodrigo Faria,  
+      Henrique, Paulo Henrique, Américo, Alex, Washington, Ari, João Hara e Dalber. ONDE (Where): Coil Car - Entry Side
+      DESCRIÇÃO TÉCNICA: Parada de 791 minutos no Coil Car de Entrada. Durante a laminação do CM3, o operador sinalizou
+      que o CC2 parou de se movimentar, gerando interlock. O time de manutenção foi acionado e o carro foi colocado em 
+      modo manual. Feito testes e o carro voltou a se movimentar, entretanto, na inspeção mecânica, foi detectado que o
+      trilho do carro lado CM3 estava com marcas de arrastamento. Com essa constatação, foi entendido que era preciso  
+      trocar o rolamento desta roda. TIPO DE COMPONENTE: None TIPO DE ANÁLISE: CAPA (Nível: area)
+      <!-- END_RCA_SYSTEM_CONTEXT -->
+      <!-- INITIAL_ANALYSIS_REQUEST -->
+      Realize a análise completa de causa raiz para a RCA ID: 96ff6526-7418-4920-ad8e-dbf82e65ccb6 baseando-se nos     
+      dados acima e nas evidências visuais fornecidas.
+DEBUG ============================================ assistant ============================================
+DEBUG Peço desculpas novamente, mas reforço que não consigo analisar "mídias" ou "evidências visuais" no formato de    
+      imagens ou vídeos, pois sou uma inteligência artificial baseada em texto. Minhas capacidades se limitam a        
+      processar e analisar informações textuais.
+
+      Se você possui descrições detalhadas, relatórios ou qualquer outro tipo de informação textual referente a essas  
+      "mídias" ou "evidências visuais", por favor, me forneça o texto para que eu possa integrá-lo à análise.
+
+      Em relação à "análise completa de causa raiz para a RCA ID: 96ff6526-7418-4920-ad8e-dbf82e65ccb6", já havíamos   
+      chegado a uma causa raiz acordada na nossa interação anterior: a **deficiência na gestão e execução da rotina de 
+      manutenção e/ou na abrangência do procedimento de lubrificação para o mandril enrolador**. Essa causa raiz foi   
+      inferida a partir dos `[DADOS ATUAIS DA TELA]` e do `[HISTÓRICO ENCONTRADO]`, especificamente a RCA de "Falha na 
+      lubrificação do mandril enrolador".
+
+      Para dar continuidade, se você tiver informações textuais adicionais (que talvez sejam as "mídias" a que você se 
+      refere), posso revisar a análise. Caso contrário, o próximo passo seria a criação de um plano de ação com base na
+      causa raiz já identificada.
+DEBUG =============================================== user ==============================================
+DEBUG <!-- RCA_SYSTEM_CONTEXT -->
+      [DADOS ATUAIS DA TELA]:
+      Ativo: Ativo em rascunho
+      {"title":"Variação na tensão da chapa durante o rebobinamento","description":"Múltiplas paradas do CM2 que juntas
+      totalizaram 83,75h entre os dias 17 e 21 de Janeiro devido travamento do rolamento dianteiro do mandril
+      enrolador. Houve parada para preventiva no dia 20/jan de 14h, o que reduziu o total apontado como downtime não   
+      planejado.","asset_display":"Ativo em
+      rascunho","date":"2025-01-17","hierarchy":{"area":"LF","equipment":"CM_2","subgroup":"30 - AREA DE SAÍDA -       
+      ENROLADOR"},"current_causes":"Não há rotina para conferir se o fuxo de óleo e setpoint de acionamento do
+      fluxostato está conforme especificado."}
+
+      [HISTÓRICO ENCONTRADO]:
+      - [RCA 5755b506...](#/rca/5755b506-49d6-4461-8dd0-b0c7acf82a3b): ID DA RCA: 5755b506-49d6-4461-8dd0-b0c7acf82a3b 
+      TÍTULO/O QUE (What): Perda de ajuste durante o funcionamento. QUEM (Who): Americo, Leandro, Erick e Sergio - Tec 
+      manutenção ONDE (Where): Enrolador DESCRIÇÃO TÉCNICA: Parada do CM2 durante 103 minutos devido falha na abertura 
+      do freio do enrolador. TIPO DE COMPONENTE: Estrutura TIPO DE ANÁLISE: Mini RCA (Nível: subgroup)
+      - [RCA be569870...](#/rca/be569870-1ce4-4d2f-8f07-aeacf8bed1ba): ID DA RCA: be569870-1ce4-4d2f-8f07-aeacf8bed1ba 
+      TÍTULO/O QUE (What): Falha na lubrificação do mandril enrolador QUEM (Who): Erick Leite - Técnico Manut Mecânica 
+      Especializado ONDE (Where): DESCRIÇÃO TÉCNICA: Parada do CM2 durante 1,2h devido Falha na lubrificação do mandril
+      enrolador. A falha ocorreu após troca do mandril enrolador, concluída no dia 16/09 as 5:00. TIPO DE COMPONENTE:  
+      None TIPO DE ANÁLISE: Mini RCA (Nível: subgroup)
+      - [RCA b4e42e78...](#/rca/b4e42e78-9ed7-4fec-959c-74c306666e32): ID DA RCA: b4e42e78-9ed7-4fec-959c-74c306666e32 
+      TÍTULO/O QUE (What): Oscilação na espessura durante laminação QUEM (Who): Hércules, Erick e Alex. ONDE (Where):  
+      Deflector Roll DESCRIÇÃO TÉCNICA: Duas paradas no CM2, totalizando 255 minutos de DWT. Durante a laminação, havia
+      oscilação na espessura do material. Parada de máquina para inspeção, encontrando folga no acoplamento do
+      deflector roll, lado rígido montado no eixo do rolo. TIPO DE COMPONENTE: Acoplamento TIPO DE ANÁLISE: RCA (Nível:
+      equipment)
+      - [RCA f0231f97...](#/rca/f0231f97-0d8f-4fcc-b16b-9bcfc4ec9ad5): ID DA RCA: f0231f97-0d8f-4fcc-b16b-9bcfc4ec9ad5 
+      TÍTULO/O QUE (What): Aquecimento no tambor do freio. Operador viu a fumaça e parou o laminador. QUEM (Who): Erick
+      Leite - Tec Mecânico ONDE (Where): Freio do desenrolador DESCRIÇÃO TÉCNICA: Paradas interimitentes do CM2 devido 
+      aquecimento no tambor do freio do desenrolador. O problema ocorreu nos seguinte dias: 9/set (69min), 13/set      
+      (240min), 17/set (60+93min) - 2 eventos. Esse conjunto de freio foi instalado no paradão e a única diferença dele
+      com o anterior é a catraca de ajuste automático do cj para compensar o desgaste da lona. TIPO DE COMPONENTE:     
+      Freio TIPO DE ANÁLISE: RCA (Nível: equipment)
+      - [RCA 01f4e30f...](#/rca/01f4e30f-f83f-4e42-b9cd-30b699b63bee): ID DA RCA: 01f4e30f-f83f-4e42-b9cd-30b699b63bee 
+      TÍTULO/O QUE (What): Parada para troca do Ironing Roll do CM3 devido ao rolo em operação (CM3-19) ter apresentado
+      tampa lateral do mancal lado motor solta QUEM (Who): Manutenção / Assessoria ONDE (Where): Ironing Roll DESCRIÇÃO
+      TÉCNICA: Durante laminação o operador do CM3 observou que havia uma peça na região inferior da base da caixa     
+      redutora do Tension Reel. Foi parado a máquina e chamado a manutenção para inspeção e encontrado a tampa do      
+      mancal do IR solta. TIPO DE COMPONENTE: Rolo TIPO DE ANÁLISE: Mini RCA (Nível: area)
+      - [RCA 70b3e0eb...](#/rca/70b3e0eb-3379-4da2-b72b-dc493477b76f): ID DA RCA: 70b3e0eb-3379-4da2-b72b-dc493477b76f 
+      TÍTULO/O QUE (What): Coil Car apresentou falha de posicionamento durante laminação. Time de manutenção fez       
+      inspeção e foi detectado uma das quatro rodas com rolamento quebrado. QUEM (Who): Marcos França, Rodrigo Faria,  
+      Henrique, Paulo Henrique, Américo, Alex, Washington, Ari, João Hara e Dalber. ONDE (Where): Coil Car - Entry Side
+      DESCRIÇÃO TÉCNICA: Parada de 791 minutos no Coil Car de Entrada. Durante a laminação do CM3, o operador sinalizou
+      que o CC2 parou de se movimentar, gerando interlock. O time de manutenção foi acionado e o carro foi colocado em 
+      modo manual. Feito testes e o carro voltou a se movimentar, entretanto, na inspeção mecânica, foi detectado que o
+      trilho do carro lado CM3 estava com marcas de arrastamento. Com essa constatação, foi entendido que era preciso  
+      trocar o rolamento desta roda. TIPO DE COMPONENTE: None TIPO DE ANÁLISE: CAPA (Nível: area)
+
+      [EVIDÊNCIAS VISUAIS]: Analise as imagens/vídeos anexados para enriquecer o diagnóstico técnico.
+      <!-- END_RCA_SYSTEM_CONTEXT -->
+      <!-- USER_MESSAGE -->
+      tente analisar novamente a midia
+DEBUG Images added: 7
+DEBUG Videos added: 1
+      INFO   127.0.0.1:53139 - "POST /analyze HTTP/1.1" 200
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG ============================================ assistant ============================================
+DEBUG Excelente! Agradeço por fornecer as evidências visuais e o relatório de análise de lubrificante. Com essas       
+      informações, podemos enriquecer significativamente nossa análise e confirmar a causa raiz.
+
+      **Análise das Evidências Visuais e Relatório:**
+
+      1.  **Vídeo (0-00:20) e Imagem 3 (Visão interna da máquina):**
+          *   O vídeo e a imagem mostram o funcionamento de um componente do enrolador, possivelmente o mandril, com a 
+      presença de um líquido amarelado/esverdeado escorrendo. Este líquido é consistente com um lubrificante
+      industrial. A forma como escorre pode indicar tanto um sistema de lubrificação em funcionamento quanto um        
+      problema de contenção ou excesso/falta de fluxo em áreas específicas, mas por si só não é conclusivo sem mais    
+      contexto.
+
+      2.  **Imagens 2, 4 e 6 (Rolamento e superfícies):**
+          *   As imagens do rolamento e das superfícies adjacentes revelam sinais claros de desgaste severo. A
+      descoloração, o aspecto áspero e as possíveis marcas de atrito na pista do rolamento (Imagens 4 e 6) são
+      indicativos de falha da camada lubrificante e consequente contato metal-metal. O travamento do rolamento
+      dianteiro do mandril enrolador, conforme descrito, é uma consequência direta desse cenário.
+
+      3.  **Imagens 1 e 5 (Análise de Partículas e Partículas Magnéticas):**
+          *   **Imagem 1 (Microscopia):** Apresenta partículas de AÇO geradas por **Fadiga** (até 88 mícrons) e por    
+      **Arrastamento** (até 5 mícrons). Isso é uma prova irrefutável de desgaste mecânico ativo. Partículas de fadiga  
+      são típicas de sobrecarga e falha estrutural do material, enquanto as de arrastamento indicam atrito excessivo,  
+      muitas vezes por falta ou degradação da lubrificação.
+          *   **Imagem 5 (Acúmulo Magnético):** O aglomerado de partículas metálicas, semelhante a "cabelos" ferrosos, 
+      é uma evidência contundente de desgaste severo do componente. Essas partículas são geradas pela fricção entre    
+      superfícies metálicas e são transportadas pelo lubrificante, acumulando-se magneticamente. Este achado é um      
+      alerta crítico para a saúde do equipamento.
+
+      4.  **Imagem 7 (Relatório de Análise de Lubrificante):**
+          *   O relatório da Lubrin, com status **CRÍTICO**, é a "arma fumegante" dessa investigação.
+          *   **Equipamento:** Confirma ser do "P302 COLDMILL II - CAIXA RED. ENROLADOR", ou seja, o CM2 e o enrolador,
+      diretamente ligado ao nosso incidente.
+          *   **Recomendações:** A necessidade de "Descontaminar o óleo, com uso de equipamentos apropriados, para     
+      remoção de PARTÍCULAS e ÁGUA" é crucial. Isso valida a presença de contaminantes que afetam diretamente a        
+      capacidade de lubrificação do óleo. A recomendação de "acompanhar tendência dos ensaios de Karl Fischer (água),  
+      Contagem de Partículas, Ferrografia Analítica (partículas maiores) e Espectrometria (partículas de desgaste)"    
+      indica que esses parâmetros estavam fora de controle ou críticos.
+          *   **Observações:** A "Alta concentração de Fósforo e Zinco" na espectrometria pode indicar a degradação de 
+      aditivos antidesgaste (EP/AW) ou a presença de outros contaminantes.
+
+      **Integração com o Problema Atual e Histórico:**
+
+      As evidências visuais e o relatório de análise de lubrificante fornecem uma base sólida e inquestionável para a  
+      nossa causa raiz. O "travamento do rolamento dianteiro do mandril enrolador" é uma consequência direta da **falha
+      de lubrificação**, que por sua vez é corroborada pelo relatório "CRÍTICO" e pela abundância de partículas de     
+      desgaste.
+
+      O fato de "Não haver rotina para conferir se o fluxo de óleo e setpoint de acionamento do fluxostato está        
+      conforme especificado" (conforme `current_causes` na tela) explica perfeitamente *por que* essa falha de
+      lubrificação ocorreu e persistiu, levando à degradação do óleo, contaminação e, finalmente, ao desgaste
+      catastrófico do rolamento.
+
+      A RCA histórica de "Falha na lubrificação do mandril enrolador" (ID be569870-1ce4-4d2f-8f07-aeacf8bed1ba) mostra 
+      que este é um problema recorrente ou um modo de falha conhecido para este equipamento, reforçando a necessidade  
+      de ações preventivas e de monitoramento mais robustas.
+
+      **Refinando os 5 Porquês com as Evidências:**
+
+      *   **Problema:** Travamento do rolamento dianteiro do mandril enrolador, causando múltiplas paradas do CM2.     
+          *   **Por quê?** O rolamento travou devido a desgaste excessivo e falha da superfície de contato.
+              *   *(Evidência: Imagens 2, 4, 6 mostrando desgaste do rolamento; Imagem 1 mostrando partículas de fadiga
+      e arrastamento; Imagem 5 mostrando acúmulo magnético de partículas metálicas.)*
+          *   **Por quê?** O desgaste excessivo foi causado por uma lubrificação inadequada, com óleo degradado e      
+      contaminado.
+              *   *(Evidência: Imagem 7 - Relatório de Análise de Lubrificante "CRÍTICO", indicando presença de        
+      partículas e água, e alta concentração de Fósforo e Zinco.)*
+          *   **Por quê?** A lubrificação se tornou inadequada porque não havia uma rotina consistente para conferir e 
+      manter o fluxo de óleo e o setpoint de acionamento do fluxostato conforme especificado.
+              *   *(Evidência: `current_causes` - "Não há rotina para conferir se o fuxo de óleo e setpoint de
+      acionamento do fluxostato está conforme especificado." e histórico de "Falha na lubrificação do mandril
+      enrolador".)*
+          *   **Por quê?** A falta de rotina e a recorrência do problema (RCA histórica de falha de lubrificação)      
+      indicam uma deficiência sistêmica nos procedimentos de manutenção preventiva e preditiva para este componente    
+      crítico.
+          *   **Por quê?** (Nível mais profundo) A falha em estabelecer e/ou cumprir procedimentos de manutenção       
+      robustos reflete uma lacuna na gestão da confiabilidade, treinamento e cultura operacional que não priorizou a   
+      monitoração e controle da lubrificação para um componente tão vital.
+
+      **Causa Raiz Final e Consolidada:**
+
+      A causa raiz para o travamento do rolamento dianteiro do mandril enrolador é a **deficiência sistêmica na gestão 
+      da manutenção preventiva e preditiva, evidenciada pela ausência de uma rotina eficaz para monitorar o fluxo de   
+      óleo e o setpoint do fluxostato, resultando na degradação e contaminação do lubrificante e, consequentemente, no 
+      desgaste acelerado e falha por fadiga e arrastamento do rolamento.**
+
+      As evidências visuais e o relatório de análise confirmam de forma conclusiva que o problema é de lubrificação    
+      severa e desgaste, diretamente ligadas à falta de controle e rotina.
+
+      Agora que temos uma causa raiz amplamente embasada, podemos focar na criação de um plano de ação detalhado para  
+      corrigir essas deficiências.
+DEBUG ********************************************  METRICS  ********************************************
+DEBUG * Tokens:                      input=20137, output=1697, total=21834, reasoning=1554
+DEBUG * Duration:                    19.2140s
+DEBUG * Tokens per second:           88.3211 tokens/s
+DEBUG * Time to first token:         11.9115s
+DEBUG ********************************************  METRICS  ********************************************
+DEBUG --------------------------------- Google Async Response Stream End --------------------------------
+DEBUG Added RunOutput to Agent Session
+DEBUG Created or updated AgentSession record: 96ff6526-7418-4920-ad8e-dbf82e65ccb6
+DEBUG *********************** Agent Run End: 9d49b7ee-a3ea-4868-8466-20f4cfc959ff ***********************
+DEBUG: Stream finalizado.
+   WARNING   WatchFiles detected changes in 'tests\test_multimodal.py'. Reloading...
+ 
+      INFO   Shutting down
+      INFO   Waiting for application shutdown.
+[STOP] AI Service finalizando.
+      INFO   Application shutdown complete.
+      INFO   Finished server process [20772]
+DEBUG DatabaseSpanExporter shutdown
+[KNOWLEDGE] Verificando Knowledge Path: C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge
+[OK] Diretório de conhecimento encontrado.
+INFO Adding content from path, 808cf4c3-a24e-511e-b9c9-66560bf3d8a0, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge, None        
+INFO Adding content from path, cea00f04-63a5-5a97-a0b3-1b8314e98358, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\01_rca_overvi
+     ew.md, None
+INFO Deleted 1 documents with content_hash '4bac8d4ffa051678d04b430ed2fc148fb457381e59af7275535cfbbd4752b6f1'
+INFO Upserting 1 documents
+INFO Adding content from path, d42716f1-c827-5ac1-8652-9da7e6467a6b, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\02_5_whys.md,
+     None
+INFO Deleted 1 documents with content_hash '085912ccb8ce07a91e23d4faf40e7bc3c62b8a7eb669d2fdd74bd9d4a4bc8a3e'
+INFO Upserting 1 documents
+INFO Adding content from path, 289185af-6a1b-5dcf-8bc4-4b385b90c0b2, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\03_ishikawa_6
+     m.md, None
+INFO Deleted 1 documents with content_hash 'bb3cebe0e489bf16b6d3f453ec116373635c4fbad2a77e9252fe4a468443852a'
+INFO Upserting 1 documents
+INFO Adding content from path, a64842dd-d8bc-55bd-8610-0b811a6aa9ae, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\04_action_pla
+     ns.md, None
+INFO Deleted 1 documents with content_hash '06a2851d6c82c5b822c09cb959553892b3d859cc39a1065681e7e97df3383638'
+INFO Upserting 1 documents
+INFO Adding content from path, 5201a173-ce59-54df-bd22-9ae2217f2b47, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\05_problem_co
+     nclusion.md, None
+INFO Deleted 1 documents with content_hash 'a0a5144701e5d1e47978ba9b236b03d0fde022e2af4fef62943e8f1dd19abfe1'
+INFO Upserting 1 documents
+DEBUG ********************************** Agent ID: rca-unified-copilot **********************************
+DEBUG Tracing configured with SimpleSpanProcessor
+INFO Agno tracing successfully set up with database storage
+      INFO   Started server process [14552]
+      INFO   Waiting for application startup.
+[INFO] Iniciando RCA AI Service com AGNO_DEBUG=True...
+Indexing RCAs from http://localhost:3001/api/rcas...
+[SYNC] Processing 2822 RCAs...
+[OK] Sync Finished! New: 0 | Skipped (unchanged): 2764 | Total: 2822
+[OK] Sincronização de RCAs concluída.
+      INFO   Application startup complete.
+   WARNING   WatchFiles detected changes in 'tests\test_multimodal.py'. Reloading...
+ 
+      INFO   Shutting down
+      INFO   Waiting for application shutdown.
+[STOP] AI Service finalizando.
+      INFO   Application shutdown complete.
+      INFO   Finished server process [14552]
+DEBUG DatabaseSpanExporter shutdown
+[KNOWLEDGE] Verificando Knowledge Path: C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge
+[OK] Diretório de conhecimento encontrado.
+INFO Adding content from path, 808cf4c3-a24e-511e-b9c9-66560bf3d8a0, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge, None        
+INFO Adding content from path, cea00f04-63a5-5a97-a0b3-1b8314e98358, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\01_rca_overvi
+     ew.md, None
+INFO Deleted 1 documents with content_hash '4bac8d4ffa051678d04b430ed2fc148fb457381e59af7275535cfbbd4752b6f1'
+INFO Upserting 1 documents
+INFO Adding content from path, d42716f1-c827-5ac1-8652-9da7e6467a6b, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\02_5_whys.md,
+     None
+INFO Deleted 1 documents with content_hash '085912ccb8ce07a91e23d4faf40e7bc3c62b8a7eb669d2fdd74bd9d4a4bc8a3e'
+INFO Upserting 1 documents
+INFO Adding content from path, 289185af-6a1b-5dcf-8bc4-4b385b90c0b2, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\03_ishikawa_6
+     m.md, None
+INFO Deleted 1 documents with content_hash 'bb3cebe0e489bf16b6d3f453ec116373635c4fbad2a77e9252fe4a468443852a'
+INFO Upserting 1 documents
+INFO Adding content from path, a64842dd-d8bc-55bd-8610-0b811a6aa9ae, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\04_action_pla
+     ns.md, None
+INFO Deleted 1 documents with content_hash '06a2851d6c82c5b822c09cb959553892b3d859cc39a1065681e7e97df3383638'
+INFO Upserting 1 documents
+INFO Adding content from path, 5201a173-ce59-54df-bd22-9ae2217f2b47, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\05_problem_co
+     nclusion.md, None
+INFO Deleted 1 documents with content_hash 'a0a5144701e5d1e47978ba9b236b03d0fde022e2af4fef62943e8f1dd19abfe1'
+INFO Upserting 1 documents
+DEBUG ********************************** Agent ID: rca-unified-copilot **********************************
+DEBUG Tracing configured with SimpleSpanProcessor
+INFO Agno tracing successfully set up with database storage
+      INFO   Started server process [28256]
+      INFO   Waiting for application startup.
+[INFO] Iniciando RCA AI Service com AGNO_DEBUG=True...
+Indexing RCAs from http://localhost:3001/api/rcas...
+[SYNC] Processing 2822 RCAs...
+[OK] Sync Finished! New: 0 | Skipped (unchanged): 2764 | Total: 2822
+[OK] Sincronização de RCAs concluída.
+      INFO   Application startup complete.
+   WARNING   WatchFiles detected changes in 'tests\test_multimodal.py'. Reloading...
+ 
+      INFO   Shutting down
+      INFO   Waiting for application shutdown.
+[STOP] AI Service finalizando.
+      INFO   Application shutdown complete.
+      INFO   Finished server process [28256]
+DEBUG DatabaseSpanExporter shutdown
+[KNOWLEDGE] Verificando Knowledge Path: C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge
+[OK] Diretório de conhecimento encontrado.
+INFO Adding content from path, 808cf4c3-a24e-511e-b9c9-66560bf3d8a0, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge, None        
+INFO Adding content from path, cea00f04-63a5-5a97-a0b3-1b8314e98358, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\01_rca_overvi
+     ew.md, None
+INFO Deleted 1 documents with content_hash '4bac8d4ffa051678d04b430ed2fc148fb457381e59af7275535cfbbd4752b6f1'
+INFO Upserting 1 documents
+INFO Adding content from path, d42716f1-c827-5ac1-8652-9da7e6467a6b, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\02_5_whys.md,
+     None
+INFO Deleted 1 documents with content_hash '085912ccb8ce07a91e23d4faf40e7bc3c62b8a7eb669d2fdd74bd9d4a4bc8a3e'
+INFO Upserting 1 documents
+INFO Adding content from path, 289185af-6a1b-5dcf-8bc4-4b385b90c0b2, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\03_ishikawa_6
+     m.md, None
+INFO Deleted 1 documents with content_hash 'bb3cebe0e489bf16b6d3f453ec116373635c4fbad2a77e9252fe4a468443852a'
+INFO Upserting 1 documents
+INFO Adding content from path, a64842dd-d8bc-55bd-8610-0b811a6aa9ae, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\04_action_pla
+     ns.md, None
+INFO Deleted 1 documents with content_hash '06a2851d6c82c5b822c09cb959553892b3d859cc39a1065681e7e97df3383638'
+INFO Upserting 1 documents
+INFO Adding content from path, 5201a173-ce59-54df-bd22-9ae2217f2b47, None,
+     C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\..\data\knowledge\05_problem_co
+     nclusion.md, None
+INFO Deleted 1 documents with content_hash 'a0a5144701e5d1e47978ba9b236b03d0fde022e2af4fef62943e8f1dd19abfe1'
+INFO Upserting 1 documents
+DEBUG ********************************** Agent ID: rca-unified-copilot **********************************
+DEBUG Tracing configured with SimpleSpanProcessor
+INFO Agno tracing successfully set up with database storage
+      INFO   Started server process [31848]
+      INFO   Waiting for application startup.
+[INFO] Iniciando RCA AI Service com AGNO_DEBUG=True...
+Indexing RCAs from http://localhost:3001/api/rcas...
+[SYNC] Processing 2822 RCAs...
+[OK] Sync Finished! New: 0 | Skipped (unchanged): 2764 | Total: 2822
+[OK] Sincronização de RCAs concluída.
+      INFO   Application startup complete.
+   WARNING   WatchFiles detected changes in 'core\prompts.py'. Reloading...
+ 
+      INFO   Shutting down
+      INFO   Waiting for application shutdown.
+[STOP] AI Service finalizando.
+      INFO   Application shutdown complete.
+      INFO   Finished server process [31848]
+DEBUG DatabaseSpanExporter shutdown
+C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\prompts.py:44: SyntaxWarning: invalid escape sequence '\`'
+  - PROIBIDO ESCAPES com `\`. Use aspas simples para citações.
+Process SpawnProcess-6:
+Traceback (most recent call last):
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run       
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\site-packages\uvicorn\server.py", line 67, in run   
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\site-packages\uvicorn\server.py", line 71, in serve 
+    await self._serve(sockets)
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\site-packages\uvicorn\server.py", line 78, in _serve
+    config.load()
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\site-packages\uvicorn\config.py", line 439, in load 
+    self.loaded_app = import_from_string(self.app)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\site-packages\uvicorn\importer.py", line 19, in import_from_string
+    module = importlib.import_module(module_str)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py", line 90, in import_module   
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\main.py", line 11, in <module>   
+    from api.routes import router as api_router
+  File "C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\api\routes.py", line 9, in <module>
+    from core.prompts import GLOBAL_RULES, FMEA_EXTRACTION_PROMPT
+ImportError: cannot import name 'FMEA_EXTRACTION_PROMPT' from 'core.prompts' (C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\prompts.py)
+   WARNING   WatchFiles detected changes in 'agents\main_agent.py'. Reloading...
+ Process SpawnProcess-7:
+Traceback (most recent call last):
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run       
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\site-packages\uvicorn\server.py", line 67, in run   
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\site-packages\uvicorn\server.py", line 71, in serve 
+    await self._serve(sockets)
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\site-packages\uvicorn\server.py", line 78, in _serve
+    config.load()
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\site-packages\uvicorn\config.py", line 439, in load 
+    self.loaded_app = import_from_string(self.app)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\site-packages\uvicorn\importer.py", line 19, in import_from_string
+    module = importlib.import_module(module_str)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leona\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py", line 90, in import_module   
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\main.py", line 11, in <module>   
+    from api.routes import router as api_router
+  File "C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\api\routes.py", line 9, in <module>
+    from core.prompts import GLOBAL_RULES, FMEA_EXTRACTION_PROMPT
+ImportError: cannot import name 'FMEA_EXTRACTION_PROMPT' from 'core.prompts' (C:\Users\leona\OneDrive\Documentos\01_PYTHON\GuimaraesL\RCA-System\ai_service\core\prompts.py)

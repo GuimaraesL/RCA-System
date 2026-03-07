@@ -68,7 +68,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const timeoutId = setTimeout(() => controller.abort(), 3000);
 
       try {
-        const response = await fetch('http://localhost:3001/api/health', {
+        const response = await fetch('/api/health', {
           signal: controller.signal
         });
         clearTimeout(timeoutId);

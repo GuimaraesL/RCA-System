@@ -72,6 +72,7 @@ export interface Rca {
     lessons_learned?: any[];
     general_moc_number?: string;
     additional_info?: any;
+    attachments?: Attachment[];
 }
 
 export interface TaxonomyConfig {
