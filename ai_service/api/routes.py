@@ -3,9 +3,10 @@
 
 from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import StreamingResponse
-from .models import AnalysisRequest, AnalysisResponse, RecurrenceInfo
+from .models import AnalysisRequest, AnalysisResponse, RecurrenceInfo, FmeaExtractionRequest, FmeaExtractionResponse
 from core.knowledge import get_rca_history_knowledge
 from core.config import INTERNAL_AUTH_KEY, AGENT_MEMORY_PATH
+from core.prompts import GLOBAL_RULES, FMEA_EXTRACTION_PROMPT
 from agno.utils.log import logger
 import json
 import asyncio
@@ -15,6 +16,52 @@ router = APIRouter()
 @router.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+@router.post("/extract-fmea")
+async def extract_fmea(request: FmeaExtractionRequest, x_internal_key: str = Header(None)):
+    """
+    Extrai modos de falha estruturados de um texto bruto (manual ou OCR).
+    Retorna uma lista de objetos FmeaItem.
+    """
+    if x_internal_key != INTERNAL_AUTH_KEY:
+        raise HTTPException(status_code=403, detail="Invalid Internal Key")
+    
+    try:
+        from agno.agent import Agent
+        from agno.models.google import Gemini
+        
+        # Criamos um agente temporário especialista em extração
+        extractor = Agent(
+            name="FMEA_Extractor",
+            model=Gemini(id="gemini-2.0-flash"), # Usamos o 2.0 flash para extração rápida e barata
+            instructions=[
+                GLOBAL_RULES.replace("{idioma}", request.ui_language),
+                FMEA_EXTRACTION_PROMPT.replace("{idioma}", request.ui_language)
+            ],
+            markdown=True
+        )
+
+        response = extractor.run(request.text)
+        content = response.content
+
+        # Tenta limpar o conteúdo se vier com blocos de código markdown
+        if "```json" in content:
+            content = content.split("```json")[-1].split("```")[0].strip()
+        elif "```" in content:
+            content = content.split("```")[-1].split("```")[0].strip()
+        
+        # Parseia o JSON
+        try:
+            data = json.loads(content)
+            # Retorna no modelo esperado
+            return FmeaExtractionResponse(modes=data)
+        except json.JSONDecodeError:
+            logger.error(f"Erro ao parsear JSON da IA: {content}")
+            raise HTTPException(status_code=500, detail="A IA gerou um formato de dados inválido.")
+
+    except Exception as e:
+        logger.error(f"Erro na extração FMEA: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/analyze/history/{rca_id}")
 async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):

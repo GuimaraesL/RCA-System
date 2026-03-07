@@ -904,5 +904,36 @@ export const en: TranslationSchema = {
         similarHistory: "Similar History",
         chatConversations: "Conversation with Detectives",
         match: "Match"
+    },
+    fmea: {
+        title: "FMEA Management",
+        subtitle: "Asset Failure Modes and Effects",
+        addMode: "Add Mode",
+        importAi: "Import with AI",
+        table: {
+            mode: "Failure Mode",
+            effects: "Potential Effects",
+            severity: "S",
+            causes: "Potential Causes",
+            occurrence: "O",
+            controls: "Current Controls",
+            detection: "D",
+            rpn: "RPN",
+            actions: "Recommended Actions"
+        },
+        modal: {
+            addTitle: "New Failure Mode",
+            editTitle: "Edit Failure Mode",
+            importTitle: "Import FMEA Data",
+            importPlaceholder: "Paste manual text here or drag PDF...",
+            importHint: "AI will process the text and automatically identify failure modes, effects, and causes.",
+            processing: "Processing with AI..."
+        },
+        notifications: {
+            saveSuccess: "FMEA updated successfully.",
+            deleteSuccess: "Failure mode removed.",
+            importSuccess: "Data imported successfully.",
+            error: "Error processing FMEA."
+        }
     }
 };

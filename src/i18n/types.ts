@@ -869,4 +869,35 @@ export interface TranslationSchema {
         chatConversations: string;
         match: string;
     };
+    fmea: {
+        title: string;
+        subtitle: string;
+        addMode: string;
+        importAi: string;
+        table: {
+            mode: string;
+            effects: string;
+            severity: string;
+            causes: string;
+            occurrence: string;
+            controls: string;
+            detection: string;
+            rpn: string;
+            actions: string;
+        };
+        modal: {
+            addTitle: string;
+            editTitle: string;
+            importTitle: string;
+            importPlaceholder: string;
+            importHint: string;
+            processing: string;
+        };
+        notifications: {
+            saveSuccess: string;
+            deleteSuccess: string;
+            importSuccess: string;
+            error: string;
+        };
+    };
 }

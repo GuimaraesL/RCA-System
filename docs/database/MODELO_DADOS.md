@@ -1,6 +1,6 @@
 # Modelo de Dados - RCA System
 
-Este documento detalha a estrutura do banco de dados SQLite, separando o estado **Atual (Produção)** do design **Projetado (Roadmap)** para o módulo FMEA.
+Este documento detalha a estrutura do banco de dados SQLite, cobrindo as entidades operacionais e o módulo de confiabilidade (FMEA).
 
 ---
 
@@ -8,12 +8,13 @@ Este documento detalha a estrutura do banco de dados SQLite, separando o estado 
 
 O sistema utiliza um banco de dados **SQLite** local-first. Abaixo está a estrutura das entidades principais conforme o `schema.sql`.
 
-### Diagrama ER Atual
+### Diagrama ER (Estado Atual)
 
 ```mermaid
 erDiagram
     ASSETS ||--o{ ASSETS : "hierarquia (parent_id)"
     ASSETS ||--o{ TRIGGERS : "gera"
+    ASSETS ||--o{ FMEA_MODES : "possui"
     RCAS ||--o{ ACTIONS : "possui"
     RCAS ||--o{ TRIGGERS : "vincula (N:1)"
     
@@ -48,56 +49,6 @@ erDiagram
         string type "AREA, EQUIP, SUB"
         string parent_id FK
     }
-```
-
-### Dicionário de Tabelas (Atuais)
-
-| Tabela | Descrição | Chaves Principais |
-| :--- | :--- | :--- |
-| `assets` | Hierarquia física (Área > Equipamento > Subgrupo). Utiliza auto-relacionamento (parent_id referenciando id). | `id`, `parent_id` (Self-FK) |
-| `rcas` | Registros completos de investigação e análise. | `id` |
-| `triggers` | Eventos de parada brutos importados/gerados. | `id`, `rca_id` (FK) |
-| `actions` | Planos de ação derivados de uma RCA. | `id`, `rca_id` (FK) |
-| `taxonomy` | Configurações globais de status e campos (JSON). | `id` (PK fixed 1) |
-
-**Nota sobre Assets:** A linha circular no diagrama representa um auto-relacionamento. Isso significa que um ativo pode ser "pai" de outros (ex: uma Área contém vários Equipamentos). Tecnicamente, a coluna `parent_id` aponta para o `id` de outro registro na mesma tabela.
-
----
-
-## 2. Modelo de Dados Projetado (Módulo FMEA)
-
-Esta seção detalha as adições previstas para suportar a funcionalidade de FMEA e a integração com a IA. O modelo projetado estende o atual, vinculando modos de falha diretamente aos ativos.
-
-### Diagrama ER Projetado (Estado Final)
-
-```mermaid
-erDiagram
-    ASSETS ||--o{ ASSETS : "hierarquia"
-    ASSETS ||--o{ TRIGGERS : "gera"
-    ASSETS ||--o{ FMEA_MODES : "possui (Nova)"
-    RCAS ||--o{ ACTIONS : "possui"
-    RCAS ||--o{ TRIGGERS : "vincula"
-    
-    RCAS {
-        string id PK
-        string status
-    }
-
-    ACTIONS {
-        string id PK
-        string rca_id FK
-    }
-
-    TRIGGERS {
-        string id PK
-        string rca_id FK
-    }
-
-    ASSETS {
-        string id PK
-        string name
-        string type
-    }
 
     FMEA_MODES {
         string id PK
@@ -114,9 +65,22 @@ erDiagram
     }
 ```
 
-### Especificação da Nova Tabela: fmea_modes
+### Dicionário de Tabelas
 
-O FMEA será armazenado em uma tabela dedicada para permitir múltiplos modos de falha por componente/ativo.
+| Tabela | Descrição | Chaves Principais |
+| :--- | :--- | :--- |
+| `assets` | Hierarquia física (Área > Equipamento > Subgrupo). Utiliza auto-relacionamento (parent_id referenciando id). | `id`, `parent_id` (Self-FK) |
+| `rcas` | Registros completos de investigação e análise. | `id` |
+| `triggers` | Eventos de parada brutos importados/gerados. | `id`, `rca_id` (FK) |
+| `actions` | Planos de ação derivados de uma RCA. | `id`, `rca_id` (FK) |
+| `fmea_modes` | Modos de falha e efeitos (FMEA) vinculados a equipamentos. | `id`, `asset_id` (FK) |
+| `taxonomy` | Configurações globais de status e campos (JSON). | `id` (PK fixed 1) |
+
+---
+
+## 2. Detalhamento: Tabela fmea_modes
+
+O FMEA é armazenado em uma tabela dedicada para permitir múltiplos modos de falha por equipamento.
 
 | Campo | Tipo | Descrição |
 | :--- | :--- | :--- |
@@ -132,13 +96,8 @@ O FMEA será armazenado em uma tabela dedicada para permitir múltiplos modos de
 | **rpn** | INTEGER | Risk Priority Number (Calculado automaticamente: S * O * D). |
 | **recommended_actions**| TEXT | Ações recomendadas para mitigação do risco. |
 
----
-
-## Estratégia de Implementação
-
-1. Exibição na Guia Assets: A UI de Ativos será estendida para incluir uma aba "FMEA" onde o engenheiro cadastra os modos de falha para o equipamento selecionado.
-2. Consumo pela IA: O Agente de IA consultará fmea_modes via asset_id para sugerir causas raiz mais precisas durante uma RCA.
-3. Migração: A inclusão da tabela será feita via script ALTER TABLE / CREATE TABLE no MigrationRunner.ts.
+### Cálculo de RPN Automático
+A coluna `rpn` é uma **Generated Column** persistida no banco (`STORED`). Isso garante que a integridade matemática seja mantida pela engine do SQLite sem necessidade de recálculo manual no backend ou frontend.
 
 ---
 

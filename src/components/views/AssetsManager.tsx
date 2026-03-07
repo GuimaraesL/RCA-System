@@ -16,6 +16,8 @@ import { Select } from '../ui/Select';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { FmeaPanel } from './FmeaPanel';
+import { ShieldAlert, ArrowLeft } from 'lucide-react';
 
 export const AssetsManager: React.FC = () => {
   const { t } = useLanguage();
@@ -26,6 +28,13 @@ export const AssetsManager: React.FC = () => {
     handleDelete, handleUpdate, handleAddChild, startEdit, startAdd,
     deleteModalOpen, confirmDelete, cancelDelete
   } = useAssetsLogic();
+
+  const [viewMode, setViewMode] = useState<'DETAILS' | 'FMEA'>('DETAILS');
+
+  // Reseta para DETAILS ao mudar de ativo
+  useEffect(() => {
+    setViewMode('DETAILS');
+  }, [selectedNode?.id]);
 
   // --- Estado do Redimensionamento da Barra Lateral ---
   const MIN_WIDTH = 250;
@@ -129,54 +138,90 @@ export const AssetsManager: React.FC = () => {
 
 
       {/* Painel de Edição Detalhada */}
-      <div className="flex-1 bg-white dark:bg-slate-900 rounded-r-[2rem] shadow-sm border border-slate-200/60 dark:border-slate-800 p-10 lg:p-16 relative overflow-hidden group/panel">
+      <div className="flex-1 bg-white dark:bg-slate-900 rounded-r-[2rem] shadow-sm border border-slate-200/60 dark:border-slate-800 p-10 lg:p-16 relative overflow-hidden group/panel flex flex-col">
         {!isEditing && selectedNode ? (
           <div className="h-full flex flex-col animate-in fade-in slide-in-from-right-4 duration-500">
-            <div className="mb-12">
-              <Badge
-                className={`mb-4 ${selectedNode.type === 'AREA' ? 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700' :
-                  selectedNode.type === 'EQUIPMENT' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/30' : 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 border-cyan-100 dark:border-cyan-900/30'}`}
-              >
-                {t(`assets.types.${selectedNode.type}`) || selectedNode.type}
-              </Badge>
-              <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-4 tracking-tighter font-display">{selectedNode.name}</h1>
-              <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500 font-mono text-xs bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-xl w-fit border border-slate-100 dark:border-slate-700">
-                <Lock size={14} className="opacity-50" />
-                <span className="font-bold">{t('assets.systemId')}:</span> {selectedNode.id}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-auto">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => startEdit(selectedNode)}
-                className="h-16 rounded-2xl"
-                leftIcon={<Edit2 size={20} />}
-              >
-                <ShortcutLabel text={t('assets.rename')} shortcutLetter="R" />
-              </Button>
-              <Button
-                variant="danger"
-                size="lg"
-                onClick={() => handleDelete(selectedNode)}
-                className="h-16 rounded-2xl"
-                leftIcon={<Trash2 size={20} />}
-              >
-                <ShortcutLabel text={t('assets.delete')} shortcutLetter="E" />
-              </Button>
-              {selectedNode.type !== 'SUBGROUP' && (
-                <Button
-                  variant="primary"
-                  size="lg"
-                  onClick={() => startAdd(selectedNode)}
-                  className="sm:col-span-2 h-20 rounded-2xl"
-                  leftIcon={<Plus size={22} strokeWidth={3} />}
+            {/* Header do Ativo */}
+            <div className="mb-12 flex justify-between items-start">
+              <div>
+                <Badge
+                  className={`mb-4 ${selectedNode.type === 'AREA' ? 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700' :
+                    selectedNode.type === 'EQUIPMENT' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/30' : 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 border-cyan-100 dark:border-cyan-900/30'}`}
                 >
-                  {t('assets.addChild')} ({selectedNode.type === 'AREA' ? t('filters.equipment') : t('filters.subgroup')})
+                  {t(`assets.types.${selectedNode.type}`) || selectedNode.type}
+                </Badge>
+                <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-4 tracking-tighter font-display">{selectedNode.name}</h1>
+                <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500 font-mono text-xs bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-xl w-fit border border-slate-100 dark:border-slate-700">
+                  <Lock size={14} className="opacity-50" />
+                  <span className="font-bold">{t('assets.systemId')}:</span> {selectedNode.id}
+                </div>
+              </div>
+
+              {/* Toggle de Visualização (Details vs FMEA) */}
+              {viewMode === 'FMEA' && (
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setViewMode('DETAILS')}
+                  leftIcon={<ArrowLeft size={18} />}
+                  className="rounded-xl"
+                >
+                  {t('common.cancel')}
                 </Button>
               )}
             </div>
+
+            {viewMode === 'DETAILS' ? (
+              <div className="flex-1 flex flex-col">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-auto">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => startEdit(selectedNode)}
+                    className="h-16 rounded-2xl"
+                    leftIcon={<Edit2 size={20} />}
+                  >
+                    <ShortcutLabel text={t('assets.rename')} shortcutLetter="R" />
+                  </Button>
+                  
+                  {selectedNode.type === 'EQUIPMENT' && (
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => setViewMode('FMEA')}
+                      className="h-16 rounded-2xl border-blue-200 dark:border-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      leftIcon={<ShieldAlert size={20} />}
+                    >
+                      {t('fmea.title')}
+                    </Button>
+                  )}
+
+                  <Button
+                    variant="danger"
+                    size="lg"
+                    onClick={() => handleDelete(selectedNode)}
+                    className="h-16 rounded-2xl"
+                    leftIcon={<Trash2 size={20} />}
+                  >
+                    <ShortcutLabel text={t('assets.delete')} shortcutLetter="E" />
+                  </Button>
+                  {selectedNode.type !== 'SUBGROUP' && (
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      onClick={() => startAdd(selectedNode)}
+                      className="sm:col-span-2 h-20 rounded-2xl"
+                      leftIcon={<Plus size={22} strokeWidth={3} />}
+                    >
+                      {t('assets.addChild')} ({selectedNode.type === 'AREA' ? t('filters.equipment') : t('filters.subgroup')})
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                <FmeaPanel asset={selectedNode} />
+              </div>
+            )}
           </div>
         ) : isEditing ? (
           <div className="h-full flex flex-col max-w-lg mx-auto justify-center animate-in fade-in zoom-in-95 duration-300">

@@ -26,13 +26,14 @@ Estratégias e manuais de verificação.
 ## ⚙️ Processos & Negócio
 Regras de governança e histórico de dados.
 - [Regras de Negócio](./processes/REGRAS_NEGOCIO.md) - Ciclo de vida da RCA e validações.
+- [Gestão de FMEA](./processes/FMEA.md) - Processo de cadastro e extração de modos de falha via IA.
 - [Migração de Dados](./processes/MIGRACAO_DADOS.md) - Procedimentos de carga e normalização.
 
 ## 🤖 Inteligência Artificial (Issue #7)
-Roadmap e design técnico da IA 'RCA Detective'.
-- [Roadmap de IA](./ai/ROADMAP.md) - Fases de implementação.
-- [Design Técnico de IA](./ai/DESIGN_TECNICO.md) - RAG, Sincronização e Arquitetura REST.
-- [Setup e Infraestrutura de IA](./ai/SETUP_IA.md) - Guia de instalação e ambiente.
+Arquitetura e funcionamento do Copiloto RCA.
+- [Arquitetura do Agente Unificado](./ai/architecture_unified_agent.md) - Design do cérebro central e postura proativa.
+- [Knowledge & Tools](./ai/knowledge_tools.md) - Mapeamento de ferramentas e bases de conhecimento.
+- [Pipeline de RAG](./ai/rag_pipeline.md) - Fluxo de busca vetorial e injeção de contexto.
 
 ---
 

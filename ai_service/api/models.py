@@ -26,3 +26,21 @@ class AnalysisResponse(BaseModel):
     ai_insight: str
     status: str
     recurrences: List[RecurrenceInfo] = []
+
+class FmeaItem(BaseModel):
+    failure_mode: str
+    potential_effects: Optional[str] = None
+    severity: int
+    potential_causes: Optional[str] = None
+    occurrence: int
+    current_controls: Optional[str] = None
+    detection: int
+    recommended_actions: Optional[str] = None
+
+class FmeaExtractionRequest(BaseModel):
+    text: str
+    ui_language: Optional[str] = "Português-BR"
+
+class FmeaExtractionResponse(BaseModel):
+    modes: List[FmeaItem]
+

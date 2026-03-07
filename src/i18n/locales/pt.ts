@@ -890,5 +890,36 @@ export const pt: TranslationSchema = {
         similarHistory: "Histórico Similares",
         chatConversations: "Conversa com Detectives",
         match: "Match"
+    },
+    fmea: {
+        title: "Gestão de FMEA",
+        subtitle: "Modos de Falha e Efeitos do Ativo",
+        addMode: "Adicionar Modo",
+        importAi: "Importar com IA",
+        table: {
+            mode: "Modo de Falha",
+            effects: "Efeitos Potenciais",
+            severity: "S",
+            causes: "Causas Potenciais",
+            occurrence: "O",
+            controls: "Controles Atuais",
+            detection: "D",
+            rpn: "RPN",
+            actions: "Ações Recomendadas"
+        },
+        modal: {
+            addTitle: "Novo Modo de Falha",
+            editTitle: "Editar Modo de Falha",
+            importTitle: "Importar Dados de FMEA",
+            importPlaceholder: "Cole aqui o texto do manual ou arraste o PDF...",
+            importHint: "A IA irá processar o texto e identificar automaticamente os modos de falha, efeitos e causas.",
+            processing: "Processando com IA..."
+        },
+        notifications: {
+            saveSuccess: "FMEA atualizado com sucesso.",
+            deleteSuccess: "Modo de falha removido.",
+            importSuccess: "Dados importados com sucesso.",
+            error: "Erro ao processar FMEA."
+        }
     }
 };

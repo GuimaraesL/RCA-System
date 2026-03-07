@@ -274,6 +274,24 @@ export interface RcaRecord {
   trigger_ids?: string[]; // IDs dos Gatilhos vinculados (Issue #80 - Relação N:1)
 }
 
+// --- Tipos de FMEA ---
+
+export interface FmeaMode {
+  id: string;
+  asset_id: string;
+  failure_mode: string;
+  potential_effects?: string;
+  severity: number;
+  potential_causes?: string;
+  occurrence: number;
+  current_controls?: string;
+  detection: number;
+  rpn?: number; // Calculado no banco: S * O * D
+  recommended_actions?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 /**
  * Estrutura integral de dados para Backup e Restauração.
  */

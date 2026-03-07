@@ -31,6 +31,7 @@ Testam a lógica do Agente RCA Detective e a API de análise.
 | **test_api** | Valida os endpoints `/health` e `/analyze` (segurança e roteamento). |
 | **test_tools** | Testa as ferramentas do agente (buscas no backend) com mocks. |
 | **test_agent** | Valida a configuração e factory do agente Agno. |
+| **test_fmea** | Valida a extração inteligente de modos de falha via Gemini 2.0 Flash. |
 
 ---
 
