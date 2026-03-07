@@ -41,21 +41,15 @@ from core.memory import get_agent_memory
 storage = get_agent_memory("rca_system_storage")
 
 # 2. Instanciar Agentes/Times/Workflows para Visibilidade no Dashboard (Studio)
-from agents.super_agent import get_super_agent
-from agents.chat_agent import get_chat_agent
-from workflows.rca import get_rca_workflow
+from agents.main_agent import get_rca_agent
 
 # Preview dos componentes de IA para o AgentOS monitorar
-rca_team_preview = get_super_agent("preview_super")
-chat_agent_preview = get_chat_agent("preview_chat")
-rca_workflow_preview = get_rca_workflow("preview_workflow")
+rca_agent_preview = get_rca_agent("preview_agent")
 
 # 3. Inicializar o AgentOS
 agent_os = AgentOS(
     name="RCA System OS",
-    agents=[chat_agent_preview],
-    teams=[rca_team_preview],
-    workflows=[rca_workflow_preview],
+    agents=[rca_agent_preview],
     knowledge=[history_kb, methodology_kb], 
     db=storage,             
     tracing=True

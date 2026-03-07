@@ -25,8 +25,8 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
     if x_internal_key != INTERNAL_AUTH_KEY:
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
     
-    from agents.chat_agent import get_chat_agent
-    agent = get_chat_agent(rca_id)
+    from agents.main_agent import get_rca_agent
+    agent = get_rca_agent(rca_id)
     
     messages = []
     session_msgs = agent.get_session_messages(rca_id)
@@ -68,7 +68,7 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
 @router.post("/analyze")
 async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(None)):
     """
-    Realiza a análise da RCA usando o time de multi-agentes.
+    Realiza a análise da RCA usando o agente unificado.
     Retorna um StreamingResponse (SSE) para uma UX fluida.
     """
     if x_internal_key != INTERNAL_AUTH_KEY:
@@ -86,26 +86,6 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         equipment_id = request.equipment_id
         subgroup_id = request.subgroup_id
         asset_info = "Ativo não identificado explicitamente"
-
-        # 1. (DESATIVADO PARA TESTE DE DUPLICIDADE) Se os IDs estão faltando mas o RCA já existe, buscar no backend
-        # if not all([area_id, equipment_id, subgroup_id]) and request.rca_id and not str(request.rca_id).startswith("TEST"):
-        #     try:
-        #         print(f"DEBUG: Buscando metadados do ativo para RCA {request.rca_id} no backend...")
-        #         rca_url = f"{BACKEND_URL}/api/rcas/{request.rca_id}"
-        #         backend_resp = httpx.get(rca_url, timeout=5.0)
-        #         if backend_resp.status_code == 200:
-        #             rca_data = backend_resp.json()
-        #             if isinstance(rca_data, dict) and 'data' in rca_data:
-        #                 rca_data = rca_data['data']
-        #             
-        #             # Atualiza os IDs se eles vierem do backend
-        #             area_id = area_id or rca_data.get('area_id')
-        #             equipment_id = equipment_id or rca_data.get('equipment_id')
-        #             subgroup_id = subgroup_id or rca_data.get('subgroup_id')
-        #             asset_info = rca_data.get('asset', asset_info)
-        #             print(f"DEBUG: Metadados recuperados: Area={area_id}, Equip={equipment_id}, Sub={subgroup_id}")
-        #     except Exception as backend_e:
-        #         print(f"WARNING: Falha ao recuperar metadados do backend: {backend_e}")
 
         # 2. Se for uma análise nova (não salva ainda), capturar do contexto
         query_text = ""
@@ -160,19 +140,19 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                             recurrences.append(RecurrenceInfo(
                                 rca_id=rid,
                                 similarity=1.0,
-                                title=content_lines[0].replace("TÍTULO DA FALHA: ", ""),
+                                title=content_lines[0].replace("TÍTULO DA Falha: ", "").replace("TÍTULO DA FALHA: ", ""),
                                 level=level_name,
                                 root_causes=causes,
                                 actions=actions
                             ))
                             seen_ids.add(rid)
 
-        # Fase 3: Motor de IA Unificado (Team) para consistência de memória
+        # Fase 3: Motor de IA Unificado para consistência de memória
         ui_lang = request.ui_language or "Português-BR"
         is_initial_analysis = not (request.user_prompt and str(request.user_prompt).strip())
         
-        from agents.super_agent import get_super_agent
-        ai_engine = get_super_agent(str(request.rca_id), language=ui_lang)
+        from agents.main_agent import get_rca_agent
+        ai_engine = get_rca_agent(str(request.rca_id), language=ui_lang)
 
         # 1. Constrói o Contexto Global (Formulário + Recorrências)
         context_block = "<!-- RCA_SYSTEM_CONTEXT -->"
@@ -193,10 +173,10 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
 
         # 2. Monta o prompt final (Chat ou Análise Inicial)
         if not is_initial_analysis:
-            logger.info("📡 ROTA: Mensagem de chat recebida -> Team Mode.")
+            logger.info("📡 ROTA: Mensagem de chat recebida -> Unified Agent Mode.")
             prompt = f"{context_block}\n<!-- USER_MESSAGE -->\n{request.user_prompt}"
         else:
-            logger.info("📡 ROTA: Análise inicial automática -> Workflow Formal.")
+            logger.info("📡 ROTA: Análise inicial automática -> Unified Agent Mode.")
             prompt = f"{context_block}\n<!-- INITIAL_ANALYSIS_REQUEST -->\nRealize a análise completa de causa raiz para a RCA ID: {request.rca_id} baseando-se nos dados acima."
 
         logger.info(f"🔍 ROTA: Motor={type(ai_engine).__name__}, Prompt ({len(prompt)} chars)")
@@ -211,9 +191,9 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
             try:
                 logger.info(f"📡 DEBUG: Chamando motor de IA para prompt de {len(prompt)} chars")
                 
-                # Team.arun(stream=True) retorna AsyncIterator nativo
-                async for event in ai_engine.arun(prompt, stream=True, session_id=str(request.rca_id)):
-                    logger.debug(f"📡 DEBUG: Evento Team: {type(event)}")
+                # ai_engine.arun(stream=True) retorna AsyncIterator nativo
+                async for event in ai_engine.arun(prompt, stream=True, stream_intermediate_steps=True):
+                    logger.debug(f"📡 DEBUG: Evento Agent: {type(event)}")
                     
                     event_type = type(event).__name__
                     if event_type in ("WorkflowCompletedEvent", "WorkflowAgentCompletedEvent", "RunCompletedEvent"):

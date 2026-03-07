@@ -1,13 +1,135 @@
-Com os dados da RCA e o histórico de falhas, vamos iniciar a análise completa.
+      qual o espaçamento de tempo entre as essas falhas no cm2?
+DEBUG ============================================ assistant ============================================
+DEBUG Com base nos dados fornecidos, **não é possível determinar o espaçamento de tempo entre as falhas no CM2**, pois 
+      as informações do `[HISTÓRICO ENCONTRADO]` não contêm as datas das ocorrências passadas.
 
-Vou analisar o histórico de falhas para identificar recorrências e padrões.
-Em seguida, vou verificar o FMEA para validar as hipóteses levantadas.
-Por fim, vou gerar um diagrama de Ishikawa (6M) e um plano de ação (5W2H) para a causa raiz identificada.
-Com base na análise de recorrência, vou agora verificar o FMEA para validar as hipóteses levantadas sobre as causas da falha.
+      Apenas a falha atual, "Roletes do Módulo 25 do conveyor não giram", tem a data de **2025-11-07**.
+DEBUG =============================================== user ==============================================
+DEBUG <!-- RCA_SYSTEM_CONTEXT -->
+      [DADOS ATUAIS DA TELA]:
+      Ativo: Ativo em rascunho
+      {"title":"Roletes do Módulo 25 do conveyor não giram","description":"Parada do CM2 durante 63 minutos devido     
+      rompimento da corrente de acionamento dos roletes do módulo 25 do conveyor malha 2.","asset_display":"Ativo em   
+      rascunho","date":"2025-11-07","hierarchy":{"area":"LF","equipment":"CM_2","subgroup":"10 - CONVEYOR DE BOBINAS - 
+      CONVEYOR 02"},"current_causes":"Roteiro do plano não contém o método de execução e parâmetro para tensionamento  
+      das correntes."}
 
-Não foi encontrado um FMEA cadastrado para o ativo. Com os dados do histórico e a falta de FMEA, vou gerar o diagrama de Ishikawa e o plano de ação.
+      [HISTÓRICO ENCONTRADO]:
+      - [RCA a75016b7...](#/rca/a75016b7-a8a8-48a2-ab52-46396c16f7bb): ID DA RCA: a75016b7-a8a8-48a2-ab52-46396c16f7bb 
+      TÍTULO/O QUE (What): Parada do módulo 18 do conveyor QUEM (Who): Plantão CM2 ONDE (Where): DESCRIÇÃO TÉCNICA:    
+      Parada de 130 min por quebra da corrente de transmissão do modulo 8 do conveyor. Foi necessario cortar a chaparia
+      de proteção e aguaradar a liberação dos bombeiros. TIPO DE COMPONENTE: Correntes TIPO DE ANÁLISE: Mini RCA       
+      (Nível: subgroup)
+      - [RCA 557fc9fe...](#/rca/557fc9fe-0697-44a3-80dc-3cb1f9d84502): ID DA RCA: 557fc9fe-0697-44a3-80dc-3cb1f9d84502 
+      TÍTULO/O QUE (What): Quebra do esticador do módulo 18 do conveyor QUEM (Who): Turno ONDE (Where): Conveyor 2 -   
+      Módulo 18 DESCRIÇÃO TÉCNICA: Módulo 18 não movimenta devido a quebra do esticador. TIPO DE COMPONENTE: Correntes 
+      TIPO DE ANÁLISE: Mini RCA (Nível: subgroup)
+      - [RCA 8720ba10...](#/rca/8720ba10-03a0-4407-92e5-b66207c4a4da): ID DA RCA: 8720ba10-03a0-4407-92e5-b66207c4a4da 
+      TÍTULO/O QUE (What): Quebra do pescoço do rolete. QUEM (Who): Turno Mecância ONDE (Where): Rolete - Conveyor 01  
+      DESCRIÇÃO TÉCNICA: Parada no CM2 durante 63 minutos, devido quebra do pescoço do rolete, conveyor 01. TIPO DE    
+      COMPONENTE: Rolo TIPO DE ANÁLISE: Mini RCA (Nível: equipment)
+      - [RCA 825613ba...](#/rca/825613ba-bf04-4c3b-808c-5f540b96553e): ID DA RCA: 825613ba-bf04-4c3b-808c-5f540b96553e 
+      TÍTULO/O QUE (What): Perda do acionamento dos roletes do módulo I2 do conveyor malha 2 QUEM (Who): Alex,
+      Henrique, Washington e Gutierrez - Tec Mecanico Turno ONDE (Where): Mesa I2 - Conveyor Malha 2 DESCRIÇÃO TÉCNICA:
+      Parada de 241min no CM1 devido desprendimento dos 4 parafusos de fixação do redutor da mesa I2 do conveyor.      
+      Inicialmente o que foi observado que a corrente da coroa principal havia soltado e o parafuso de fixação da base 
+      do eixo de transmissão estava solto. TIPO DE COMPONENTE: Redutores TIPO DE ANÁLISE: Mini RCA (Nível: area)       
+      - [RCA 38ba3a23...](#/rca/38ba3a23-9b78-4d77-9c84-7f27ead401bb): ID DA RCA: 38ba3a23-9b78-4d77-9c84-7f27ead401bb 
+      TÍTULO/O QUE (What): Quebra do rolete do Conveyor QUEM (Who): Turno - Mecânica ONDE (Where): Conveyor - Mlalha 1 
+      DESCRIÇÃO TÉCNICA: Durante operação do CM#1, houve atraso na movimentação de bobinas devido rolete da mesa C1    
+      quebrado. TIPO DE COMPONENTE: Eixo TIPO DE ANÁLISE: RCA (Nível: area)
+      <!-- END_RCA_SYSTEM_CONTEXT -->
+      <!-- USER_MESSAGE -->
+      busque no historico
+      INFO   127.0.0.1:55881 - "POST /analyze HTTP/1.1" 200
+DEBUG ============================================ assistant ============================================
+DEBUG Tool Calls:
+        - ID: '130088a8-84c8-4e70-bd43-8e72c43d5816'
+          Name: 'get_historical_rca_summary'
+          Arguments: 'rca_id: a75016b7-a8a8-48a2-ab52-46396c16f7bb'
+        - ID: '10e847e8-e09c-4073-bc89-b04f8dafdd77'
+          Name: 'get_historical_rca_summary'
+          Arguments: 'rca_id: 557fc9fe-0697-44a3-80dc-3cb1f9d84502'
+        - ID: 'eb5611a8-10d7-4114-8c91-75e6eece358d'
+          Name: 'get_historical_rca_summary'
+          Arguments: 'rca_id: 8720ba10-03a0-4407-92e5-b66207c4a4da'
+        - ID: '5daff2be-e1ff-46cd-a111-add985da5aef'
+          Name: 'get_historical_rca_summary'
+          Arguments: 'rca_id: 825613ba-bf04-4c3b-808c-5f540b96553e'
+DEBUG ********************************************  METRICS  ********************************************
+DEBUG * Tokens:                      input=15670, output=222, total=15892, cached=3979, reasoning=565
+DEBUG * Duration:                    4.7079s
+DEBUG * Tokens per second:           47.1547 tokens/s
+DEBUG ********************************************  METRICS  ********************************************
+DEBUG Running: get_historical_rca_summary(rca_id=a75016b7-a8a8-48a2-ab52-46396c16f7bb)
+DEBUG Running: get_historical_rca_summary(rca_id=557fc9fe-0697-44a3-80dc-3cb1f9d84502)
+DEBUG Running: get_historical_rca_summary(rca_id=8720ba10-03a0-4407-92e5-b66207c4a4da)
+DEBUG Running: get_historical_rca_summary(rca_id=825613ba-bf04-4c3b-808c-5f540b96553e)
+DEBUG =============================================== tool ==============================================
+DEBUG Tool call Id: 130088a8-84c8-4e70-bd43-8e72c43d5816
+DEBUG RCA a75016b7-a8a8-48a2-ab52-46396c16f7bb - Parada do módulo 18 do conveyor
+      Ativo: None
+      Data/Quando: 2026-02-20 19:00:47
+      Quem: Plantão CM2
+      Onde:
+      Status: STATUS-01
+      Tipo de Análise: Mini RCA
+      Descrição: Parada de 130 min por quebra da corrente de transmissão do modulo 8 do conveyor. Foi necessario cortar
+      a chaparia de proteção e aguaradar a liberação dos bombeiros.
+DEBUG =============================================== tool ==============================================
+DEBUG Tool call Id: 10e847e8-e09c-4073-bc89-b04f8dafdd77
+DEBUG RCA 557fc9fe-0697-44a3-80dc-3cb1f9d84502 - Quebra do esticador do módulo 18 do conveyor
+      Ativo: None
+      Data/Quando: 2026-02-20 19:00:47
+      Quem: Turno
+      Onde: Conveyor 2 - Módulo 18
+      Status: STATUS-02
+      Tipo de Análise: Mini RCA
+      Descrição: Módulo 18 não movimenta devido a quebra do esticador.
+DEBUG =============================================== tool ==============================================
+DEBUG Tool call Id: eb5611a8-10d7-4114-8c91-75e6eece358d
+DEBUG RCA 8720ba10-03a0-4407-92e5-b66207c4a4da - Quebra do pescoço do rolete.
+      Ativo: None
+      Data/Quando: 2026-02-20 19:00:47
+      Quem: Turno Mecância
+      Onde: Rolete - Conveyor 01
+      Status: STATUS-02
+      Tipo de Análise: Mini RCA
+      Descrição: Parada no CM2 durante 63 minutos, devido quebra do pescoço do rolete, conveyor 01.
+DEBUG =============================================== tool ==============================================
+DEBUG Tool call Id: 5daff2be-e1ff-46cd-a111-add985da5aef
+DEBUG RCA 825613ba-bf04-4c3b-808c-5f540b96553e - Perda do acionamento dos roletes do módulo I2 do conveyor malha 2     
+      Ativo: None
+      Data/Quando: 2026-02-20 19:00:47
+      Quem: Alex, Henrique, Washington e Gutierrez - Tec Mecanico Turno
+      Onde: Mesa I2 - Conveyor Malha 2
+      Status: STATUS-02
+      Tipo de Análise: Mini RCA
+      Descrição: Parada de 241min no CM1 devido desprendimento dos 4 parafusos de fixação do redutor da mesa I2 do     
+      conveyor. Inicialmente o que foi observado que a corrente da coroa principal havia soltado e o parafuso de       
+      fixação da base do eixo de transmissão estava solto.
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
+DEBUG ============================================ assistant ============================================
+DEBUG Com base nos dados históricos obtidos:
 
-Análise de Causa Raiz - "Roletes do Módulo 25 do conveyor não giram"
-Causa Raiz Identificada:
+      Todos os registros de RCA históricas relacionados ao CM2 (ou incidentes que causaram parada no CM2, como a quebra
+      do pescoço do rolete no conveyor 01) e ao CM1 apresentam a mesma data e hora: **2026-02-20 19:00:47**.
 
-A causa raiz principal identificada é a falta de um plano de manutenção preventiva adequado, com instruções detalhadas para o tensionamento das correntes, o que leva a um tensionamento inadequado, desgaste prematuro e, finalmente, ao rompimento da corrente de acionamento dos roletes do conveyor.
+      Isso significa que, com as informações disponíveis no histórico, **não é possível calcular o espaçamento de tempo
+      entre essas falhas**, pois as datas são idênticas para todos os incidentes passados.
+
+      Para o incidente atual de "Roletes do Módulo 25 do conveyor não giram", a data registrada é **2025-11-07**.      
+DEBUG ********************************************  METRICS  ********************************************
+DEBUG * Tokens:                      input=17179, output=161, total=17340, cached=14941, reasoning=497
+DEBUG * Duration:                    3.5044s
+DEBUG * Tokens per second:           45.9426 tokens/s
+DEBUG * Time to first token:         2.9876s
+DEBUG ********************************************  METRICS  ********************************************
+DEBUG --------------------------------- Google Async Response Stream End --------------------------------
+DEBUG Added RunOutput to Agent Session
+DEBUG Created or updated AgentSession record: dc057f5b-0683-4494-af6a-ae361b67d177
+DEBUG *********************** Agent Run End: 05e11a0a-9f75-43aa-bab6-9ef3cabaa5e7 ***********************
+DEBUG: Stream finalizado.

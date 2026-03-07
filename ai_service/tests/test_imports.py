@@ -18,7 +18,7 @@ def check_import(module_name):
 
 if __name__ == "__main__":
     # Adiciona o diretório atual ao sys.path para garantir que os módulos locais sejam encontrados
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     print("--- Testando Importações do AI Service ---")
     
@@ -28,8 +28,7 @@ if __name__ == "__main__":
         "core.prompts",
         "core.tools",
         "core.knowledge",
-        "agents.super_agent",
-        "agents.chat_agent",
+        "agents.main_agent",
         "api.routes",
         "api.models",
     ]

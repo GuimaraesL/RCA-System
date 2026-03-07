@@ -141,10 +141,18 @@ def get_historical_rca_summary(rca_id: str) -> str:
             res = client.get(f"/api/rcas/{rca_id}")
             if res.status_code != 200: return f"RCA {rca_id} não encontrada."
             data = res.json()
+            
+            # Extrair todas as datas possíveis para garantir precisão
+            data_criacao = data.get('created_at', 'N/A')
+            data_ocorrencia = data.get('date', data_criacao)
+            data_atualizacao = data.get('updated_at', 'N/A')
+            
             return (
                 f"RCA {rca_id} - {data.get('what', 'N/A')}\n"
                 f"Ativo: {data.get('asset_name_display', data.get('asset', 'N/A'))}\n"
-                f"Data/Quando: {data.get('date', data.get('created_at', 'N/A'))}\n"
+                f"Data da Ocorrência: {data_ocorrencia}\n"
+                f"Data de Criação do Relatório: {data_criacao}\n"
+                f"Última Atualização: {data_atualizacao}\n"
                 f"Quem: {data.get('who', 'N/A')}\n"
                 f"Onde: {data.get('where_description', 'N/A')}\n"
                 f"Status: {data.get('status', 'N/A')}\n"
@@ -177,17 +185,29 @@ def get_historical_rca_action_plan(rca_id: str) -> str:
     """
     try:
         with httpx.Client(base_url=BACKEND_URL, timeout=5.0) as client:
+            # Tenta buscar do endpoint de ações primeiro (V2)
+            actions_res = client.get(f"/api/actions?rca_id={rca_id}")
+            actions_data = []
+            if actions_res.status_code == 200:
+                actions_data = actions_res.json()
+
+            # Se a API de ações retornou dados, usa eles
+            if actions_data and isinstance(actions_data, list) and len(actions_data) > 0:
+                import json
+                return f"PLANO DE AÇÃO DA RCA {rca_id}:\n{json.dumps(actions_data, indent=2, ensure_ascii=False)}"
+
+            # Fallback para o legado
             res = client.get(f"/api/rcas/{rca_id}")
             if res.status_code != 200: return f"RCA {rca_id} não encontrada."
             data = res.json()
-            
+
             plan = {
                 "containment_actions": data.get("containment_actions", []),
                 "root_cause_actions": [action for rc in data.get("root_causes", []) for action in rc.get("actions", [])],
                 "human_reliability": data.get("human_reliability", [])
             }
             import json
-            return f"PLANO DE AÇÃO DA RCA {rca_id}:\n{json.dumps(plan, indent=2, ensure_ascii=False)}"
+            return f"PLANO DE AÇÃO DA RCA {rca_id}:\n{json.dumps(plan, indent=2, ensure_ascii=False)}"  
     except Exception as e: return str(e)
 
 def get_historical_rca_triggers(rca_id: str) -> str:

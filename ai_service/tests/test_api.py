@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Importa o app após configurar o path
 from main import app
-from config import INTERNAL_AUTH_KEY
+from core.config import INTERNAL_AUTH_KEY
 import json
 
 client = TestClient(app)
@@ -33,7 +33,7 @@ def test_analyze_rca_invalid_key():
     assert response.json()["detail"] == "Invalid Internal Key"
 
 @patch("api.routes.get_rca_history_knowledge")
-@patch("api.routes.get_super_agent")
+@patch("agents.main_agent.get_rca_agent")
 def test_analyze_rca_success(mock_get_agent, mock_get_kb):
     """Valida o fluxo de análise com sucesso (mockando o time de IA)."""
     
