@@ -56,8 +56,7 @@ export const en: TranslationSchema = {
         ptAbbr: "PT",
         enAbbr: "EN",
         attachments: "Attachments & Evidence",
-        add: "Add",
-        remove: "Remove"
+        add: "Add"
     },
     filters: {
         title: "Filters",

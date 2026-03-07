@@ -337,7 +337,7 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
             <Button 
               variant="primary" 
               onClick={handleImportAi} 
-              loading={isProcessingAi}
+              isLoading={isProcessingAi}
               className="bg-purple-600 hover:bg-purple-700 shadow-purple-500/20"
               leftIcon={<Sparkles size={18} />}
             >

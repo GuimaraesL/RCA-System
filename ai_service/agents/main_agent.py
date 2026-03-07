@@ -60,7 +60,7 @@ def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context:
         db=get_agent_memory(session_id),
         read_chat_history=True,
         add_history_to_context=True,
-        num_history_runs=4,
+        num_history_runs=3, # OTIMIZAÇÃO: Lembra das últimas 3 interações para não estourar tokens
         debug_mode=True,
         markdown=True,
     )

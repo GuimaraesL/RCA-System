@@ -60,7 +60,6 @@ export interface TranslationSchema {
         enAbbr: string;
         attachments: string;
         add: string;
-        remove: string;
     };
     filters: {
         title: string;

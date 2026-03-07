@@ -196,10 +196,14 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                             ))
                             seen_ids.add(rid)
 
+        ui_lang = request.ui_language or "Português-BR"
+        is_initial_analysis = not (request.user_prompt and str(request.user_prompt).strip())
+
         # Processamento de Mídia (Multimodal)
         images = []
         videos = []
-        if request.attachments:
+        # OTIMIZAÇÃO: Baixa e envia mídias apenas na análise inicial para poupar milhares de tokens no chat
+        if request.attachments and is_initial_analysis:
             async with httpx.AsyncClient() as client:
                 for att in request.attachments:
                     # Constrói URL absoluta se for relativa
@@ -230,15 +234,14 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                         logger.error(f"[Media] Falha ao baixar midia {media_url}: {media_err}")
 
         # Fase 3: Motor de IA Unificado para consistência de memória
-        ui_lang = request.ui_language or "Português-BR"
-        is_initial_analysis = not (request.user_prompt and str(request.user_prompt).strip())
-
         # 1. Constrói o Contexto Global (Formulário + Recorrências)
         context_block = ""
+        # Os DADOS ATUAIS DA TELA devem ir em todo request para manter o LLM ciente se o usuário alterou títulos/causas no input
         if request.context:
             context_block += f"\n[DADOS ATUAIS DA TELA]:\nAtivo: {asset_info}\n{request.context}\n"
 
-        if recurrences:
+        # OTIMIZAÇÃO: Injeta histórico pesado do RAG (RCA) apenas na primeira mensagem. Evita bloat de prompt.
+        if recurrences and is_initial_analysis:
             recurr_items = []
             for r in recurrences:
                 item = f"- [RCA {r.rca_id[:8]}...](#/rca/{r.rca_id}): {r.title} (Nível: {r.level})"
@@ -249,7 +252,7 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                 recurr_items.append(item)
             context_block += f"\n[HISTÓRICO ENCONTRADO]:\n" + "\n".join(recurr_items) + "\n"
 
-        if images or videos:
+        if (images or videos) and is_initial_analysis:
             context_block += f"\n[EVIDÊNCIAS VISUAIS]: Existem {len(images)} imagens e {len(videos)} vídeos anexados para sua análise técnica.\n"
 
         # Injetamos o contexto no agente via instructions para evitar repetição no DB de chat
