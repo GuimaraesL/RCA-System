@@ -1,48 +1,187 @@
-
-DEBUG =============================================== user ==============================================
-DEBUG qual a conclusao?
-DEBUG Images added: 7
-DEBUG Videos added: 1
-      INFO   127.0.0.1:52801 - "POST /analyze HTTP/1.1" 200
-DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
-DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
-DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
-DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
-DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
-DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
-DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
-DEBUG 📡 DEBUG: Evento Agent: <class 'agno.run.agent.RunContentEvent'>
-DEBUG ============================================ assistant ============================================
-DEBUG Com base na análise das evidências visuais (vídeo e imagens) e, crucialmente, no relatório de análise de
-      lubrificante, a conclusão é a seguinte:
-
-      O **travamento do rolamento dianteiro do mandril enrolador** no CM2, que levou às múltiplas paradas, foi
-      diretamente causado por **lubrificação inadequada e severa degradação do lubrificante**.
-
-      Isso é confirmado pelas seguintes evidências:
-
-      1.  **Desgaste Extremo do Rolamento:** As imagens mostram superfícies de rolamento com sinais claros de atrito e 
-      desgaste severo.
-      2.  **Partículas de Desgaste:** A análise microscópica revelou a presença de partículas de aço por fadiga (até 88
-      mícrons) e arrastamento (até 5 mícrons), além de um acúmulo significativo de partículas metálicas ferrosas,      
-      indicando falha estrutural e atrito metal-metal.
-      3.  **Relatório de Análise de Óleo CRÍTICO:** O relatório da Lubrin validou o problema ao indicar status
-      "CRÍTICO" para o lubrificante do redutor do enrolador. As recomendações para descontaminar o óleo devido à       
-      presença de partículas e água, e a alta concentração de Fósforo e Zinco (indicativos de degradação de aditivos ou
-      contaminação), reforçam que o óleo não estava cumprindo sua função protetora.
-
-      A causa raiz mais profunda reside na **deficiência sistêmica dos procedimentos de manutenção e monitoramento**,  
-      especificamente na ausência de uma rotina para verificar o fluxo de óleo e o setpoint do fluxostato. Essa lacuna 
-      permitiu a degradação e contaminação do lubrificante, levando à falha do rolamento e às consequentes paradas do  
-      equipamento.
-DEBUG ********************************************  METRICS  ********************************************
-DEBUG * Tokens:                      input=29785, output=389, total=30174, reasoning=320
-DEBUG * Duration:                    11.9929s
-DEBUG * Tokens per second:           32.4357 tokens/s
-DEBUG * Time to first token:         10.4556s
-DEBUG ********************************************  METRICS  ********************************************
-DEBUG --------------------------------- Google Async Response Stream End --------------------------------
-DEBUG Added RunOutput to Agent Session
-DEBUG Created or updated AgentSession record: 96ff6526-7418-4920-ad8e-dbf82e65ccb6
-DEBUG *********************** Agent Run End: a7283e79-e384-4294-922b-be3825c4620d ***********************
-DEBUG: Stream finalizado.
+2026-03-07T22:38:54.6147789Z FFmpeg (playwright ffmpeg v1011) downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+2026-03-07T22:38:55.3250304Z ##[group]Run npx playwright test tests/e2e/modals-ui.spec.ts \
+2026-03-07T22:38:55.3251473Z [36;1mnpx playwright test tests/e2e/modals-ui.spec.ts \[0m
+2026-03-07T22:38:55.3252171Z [36;1m                  tests/e2e/rca-validation-rules.spec.ts \[0m
+2026-03-07T22:38:55.3252793Z [36;1m                  tests/e2e/rca-i18n.spec.ts \[0m
+2026-03-07T22:38:55.3253365Z [36;1m                  tests/e2e/rca-performance-stress.spec.ts[0m
+2026-03-07T22:38:55.3309656Z shell: /usr/bin/bash -e {0}
+2026-03-07T22:38:55.3309897Z env:
+2026-03-07T22:38:55.3310151Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.14/x64
+2026-03-07T22:38:55.3310569Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib/pkgconfig
+2026-03-07T22:38:55.3311213Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+2026-03-07T22:38:55.3311611Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+2026-03-07T22:38:55.3311982Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+2026-03-07T22:38:55.3312396Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib
+2026-03-07T22:38:55.3312693Z   CI: true
+2026-03-07T22:38:55.3312862Z ##[endgroup]
+2026-03-07T22:38:57.3971144Z [WebServer]   [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m3005[22m/[39m
+2026-03-07T22:38:58.6749159Z 
+2026-03-07T22:38:58.6750432Z Running 9 tests using 1 worker
+2026-03-07T22:38:58.6752144Z 
+2026-03-07T22:39:01.1747226Z [CONSOLE log]: Sincronizando dados... (Modo API: null )
+2026-03-07T22:39:01.1886666Z [CONSOLE log]: Context: API disponível - Operando em modo conectado
+2026-03-07T22:39:01.2337423Z [CONSOLE log]: Sincronizando dados... (Modo API: true )
+2026-03-07T22:39:01.2394956Z [CONSOLE log]: API: Buscando lista resumida de análises...
+2026-03-07T22:39:01.2396176Z [CONSOLE log]: API: Buscando árvore de ativos...
+2026-03-07T22:39:01.2397401Z [CONSOLE log]: API: Buscando lista de planos de ação...
+2026-03-07T22:39:01.2398354Z [CONSOLE log]: API: Buscando lista de gatilhos...
+2026-03-07T22:39:01.2530560Z [CONSOLE log]: API: Buscando taxonomia e configurações...
+2026-03-07T22:39:01.2885587Z [CONSOLE log]: Sincronização completa via API
+2026-03-07T22:39:02.3354638Z   ✓  1 [chromium] › tests/e2e/modals-ui.spec.ts:54:3 › Fluxos de Modais Unificados › Modal de Gatilhos - Ciclo Completo (1.4s)
+2026-03-07T22:39:02.5868375Z [CONSOLE log]: Sincronizando dados... (Modo API: null )
+2026-03-07T22:39:02.6015130Z [CONSOLE log]: Context: API disponível - Operando em modo conectado
+2026-03-07T22:39:02.6164346Z [CONSOLE log]: Sincronizando dados... (Modo API: true )
+2026-03-07T22:39:02.6201575Z [CONSOLE log]: API: Buscando lista resumida de análises...
+2026-03-07T22:39:02.6212745Z [CONSOLE log]: API: Buscando árvore de ativos...
+2026-03-07T22:39:02.6213610Z [CONSOLE log]: API: Buscando lista de planos de ação...
+2026-03-07T22:39:02.6214304Z [CONSOLE log]: API: Buscando lista de gatilhos...
+2026-03-07T22:39:02.6215143Z [CONSOLE log]: API: Buscando taxonomia e configurações...
+2026-03-07T22:39:02.6614071Z [CONSOLE log]: Sincronização completa via API
+2026-03-07T22:39:03.7465865Z [CONSOLE log]: Sincronizando dados... (Modo API: true )
+2026-03-07T22:39:03.7556713Z [CONSOLE log]: API: Buscando lista resumida de análises...
+2026-03-07T22:39:03.7557919Z [CONSOLE log]: API: Buscando árvore de ativos...
+2026-03-07T22:39:03.7559002Z [CONSOLE log]: API: Buscando lista de planos de ação...
+2026-03-07T22:39:03.7559939Z [CONSOLE log]: API: Buscando lista de gatilhos...
+2026-03-07T22:39:03.7584368Z [CONSOLE log]: API: Buscando taxonomia e configurações...
+2026-03-07T22:39:03.7886756Z [CONSOLE log]: Sincronização completa via API
+2026-03-07T22:39:03.8211755Z   ✓  2 [chromium] › tests/e2e/modals-ui.spec.ts:72:3 › Fluxos de Modais Unificados › Editor de RCA - Ciclo Completo (1.4s)
+2026-03-07T22:39:04.0543323Z [CONSOLE log]: Sincronizando dados... (Modo API: null )
+2026-03-07T22:39:04.0646099Z [CONSOLE log]: Context: API disponível - Operando em modo conectado
+2026-03-07T22:39:04.0747813Z [CONSOLE log]: Sincronizando dados... (Modo API: true )
+2026-03-07T22:39:04.0814838Z [CONSOLE log]: API: Buscando lista resumida de análises...
+2026-03-07T22:39:04.0844233Z [CONSOLE log]: API: Buscando árvore de ativos...
+2026-03-07T22:39:04.0881566Z [CONSOLE log]: API: Buscando lista de planos de ação...
+2026-03-07T22:39:04.0889041Z [CONSOLE log]: API: Buscando lista de gatilhos...
+2026-03-07T22:39:04.0890145Z [CONSOLE log]: API: Buscando taxonomia e configurações...
+2026-03-07T22:39:04.1475122Z [CONSOLE log]: Sincronização completa via API
+2026-03-07T22:39:05.0731094Z   ✓  3 [chromium] › tests/e2e/modals-ui.spec.ts:99:3 › Fluxos de Modais Unificados › Plano de Ação - Ciclo Completo (1.2s)
+2026-03-07T22:39:05.3359202Z [CONSOLE log]: Sincronizando dados... (Modo API: null )
+2026-03-07T22:39:05.3504219Z [CONSOLE log]: Context: API disponível - Operando em modo conectado
+2026-03-07T22:39:05.3582220Z [CONSOLE log]: Sincronizando dados... (Modo API: true )
+2026-03-07T22:39:05.3583467Z [CONSOLE log]: API: Buscando lista resumida de análises...
+2026-03-07T22:39:05.3661325Z [CONSOLE log]: API: Buscando árvore de ativos...
+2026-03-07T22:39:05.3662374Z [CONSOLE log]: API: Buscando lista de planos de ação...
+2026-03-07T22:39:05.3827201Z [CONSOLE log]: API: Buscando lista de gatilhos...
+2026-03-07T22:39:05.3828198Z [CONSOLE log]: API: Buscando taxonomia e configurações...
+2026-03-07T22:39:05.4267576Z [CONSOLE log]: Sincronização completa via API
+2026-03-07T22:39:06.2675849Z   ✓  4 [chromium] › tests/e2e/modals-ui.spec.ts:117:3 › Fluxos de Modais Unificados › Confirmação de Exclusão - Fluxo (1.2s)
+2026-03-07T22:39:06.4974191Z [CONSOLE log]: Sincronizando dados... (Modo API: null )
+2026-03-07T22:39:06.5117524Z [CONSOLE log]: Context: API disponível - Operando em modo conectado
+2026-03-07T22:39:06.5202993Z [CONSOLE log]: Sincronizando dados... (Modo API: true )
+2026-03-07T22:39:06.5222139Z [CONSOLE log]: API: Buscando lista resumida de análises...
+2026-03-07T22:39:06.5342416Z [CONSOLE log]: API: Buscando árvore de ativos...
+2026-03-07T22:39:06.5374126Z [CONSOLE log]: API: Buscando lista de planos de ação...
+2026-03-07T22:39:06.5375067Z [CONSOLE log]: API: Buscando lista de gatilhos...
+2026-03-07T22:39:06.5376045Z [CONSOLE log]: API: Buscando taxonomia e configurações...
+2026-03-07T22:39:06.6009639Z [CONSOLE log]: Sincronização completa via API
+2026-03-07T22:39:07.4915920Z [CONSOLE log]: Contexto: Adicionando gatilho... TRG-MMGWNZS1-944
+2026-03-07T22:39:07.4933910Z [CONSOLE log]: API: Persistindo gatilho: TRG-MMGWNZS1-944
+2026-03-07T22:39:07.5399624Z   ✓  5 [chromium] › tests/e2e/modals-ui.spec.ts:143:3 › Fluxos de Modais Unificados › Modal de Gatilhos - Interação de Salvamento (1.2s)
+2026-03-07T22:39:10.1234789Z   ✓  6 [chromium] › tests/e2e/rca-i18n.spec.ts:94:5 › RCA System - I18N Mastery Suite › Deve validar Tradução Core, Persistência e Modais (1.9s)
+2026-03-07T22:39:12.4058751Z   ✓  7 [chromium] › tests/e2e/rca-i18n.spec.ts:138:5 › RCA System - I18N Mastery Suite › Deve auditar profundamente fluxos complexos (Crawler) (2.3s)
+2026-03-07T22:39:13.7591515Z [I18N STATIC AUDIT FAILED] Textos vazados diretamente no JSX (sem t()): [
+2026-03-07T22:39:13.7597876Z   { file: [32m'FmeaPanel.tsx'[39m, text: [32m'Falha na extração'[39m },
+2026-03-07T22:39:13.7599194Z   { file: [32m'FmeaPanel.tsx'[39m, text: [32m'RPN'[39m },
+2026-03-07T22:39:13.7605075Z   { file: [32m'MediaManager.tsx'[39m, text: [32m'Erro ao enviar arquivos'[39m },
+2026-03-07T22:39:13.7606587Z   { file: [32m'MediaManager.tsx'[39m, text: [32m'Erro ao excluir arquivo'[39m },
+2026-03-07T22:39:13.7607633Z   {
+2026-03-07T22:39:13.7608487Z     file: [32m'MediaManager.tsx'[39m,
+2026-03-07T22:39:13.7609524Z     text: [32m'Nenhum anexo encontrado para esta análise.'[39m
+2026-03-07T22:39:13.7610316Z   },
+2026-03-07T22:39:13.7610807Z   {
+2026-03-07T22:39:13.7611727Z     file: [32m'MediaManager.tsx'[39m,
+2026-03-07T22:39:13.7612956Z     text: [32m'Arraste fotos ou vídeos aqui para começar.'[39m
+2026-03-07T22:39:13.7613767Z   },
+2026-03-07T22:39:13.7615134Z   { file: [32m'MediaManager.tsx'[39m, text: [32m'Enviando...'[39m },
+2026-03-07T22:39:13.7616698Z   { file: [32m'MediaManager.tsx'[39m, text: [32m'Limites de Upload:'[39m },
+2026-03-07T22:39:13.7617586Z   {
+2026-03-07T22:39:13.7618268Z     file: [32m'MediaManager.tsx'[39m,
+2026-03-07T22:39:13.7619411Z     text: [32m'Imagens (5MB), Vídeos (50MB), Documentos (10MB).'[39m
+2026-03-07T22:39:13.7620225Z   },
+2026-03-07T22:39:13.7620724Z   {
+2026-03-07T22:39:13.7664674Z     file: [32m'MediaManager.tsx'[39m,
+2026-03-07T22:39:13.7665410Z     text: [32m'Formatos sugeridos: JPG, PNG, MP4, PDF.'[39m
+2026-03-07T22:39:13.7709865Z   }
+2026-03-07T22:39:13.7710164Z ]
+2026-03-07T22:39:13.8639272Z   ✘  8 [chromium] › tests/e2e/rca-i18n.spec.ts:196:5 › RCA System - I18N Mastery Suite › AST Static Analysis: Deve detectar textos JSX hardcoded que não utilizam t() (1.4s)
+2026-03-07T22:39:15.4272808Z [WebServer] [2m10:39:15 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/health[39m
+2026-03-07T22:39:15.4273815Z [WebServer] AggregateError [ECONNREFUSED]: 
+2026-03-07T22:39:15.4274597Z [WebServer]     at internalConnectMultiple (node:net:1122:18)
+2026-03-07T22:39:15.4275389Z [WebServer]     at afterConnectMultiple (node:net:1689:7)
+2026-03-07T22:39:17.1757848Z [WebServer] [2m10:39:17 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/health[39m
+2026-03-07T22:39:17.1759238Z [WebServer] AggregateError [ECONNREFUSED]: 
+2026-03-07T22:39:17.1760910Z [WebServer]     at internalConnectMultiple (node:net:1122:18)
+2026-03-07T22:39:17.1762174Z [WebServer]     at afterConnectMultiple (node:net:1689:7)
+2026-03-07T22:39:18.0093545Z  Tempo de carga para 1.000 itens: 2864ms
+2026-03-07T22:39:18.0184488Z  Total de linhas detectadas: 101
+2026-03-07T22:39:18.0493717Z   ✓  9 [chromium] › tests/e2e/rca-performance-stress.spec.ts:15:3 › RCA System - Stress Testing (Frontend) › Deve carregar 1.000 registros e manter a interatividade (3.0s)
+2026-03-07T22:39:18.1306002Z 
+2026-03-07T22:39:18.1313441Z 
+2026-03-07T22:39:18.1326600Z   1) [chromium] › tests/e2e/rca-i18n.spec.ts:196:5 › RCA System - I18N Mastery Suite › AST Static Analysis: Deve detectar textos JSX hardcoded que não utilizam t() 
+2026-03-07T22:39:18.1330672Z 
+2026-03-07T22:39:18.1334383Z     Error: Vazamentos detectados por análise estática na UI
+2026-03-07T22:39:18.1336480Z 
+2026-03-07T22:39:18.1337517Z     [2mexpect([22m[31mreceived[39m[2m).[22mtoHaveLength[2m([22m[32mexpected[39m[2m)[22m
+2026-03-07T22:39:18.1339991Z 
+2026-03-07T22:39:18.1342129Z     Expected length: [32m0[39m
+2026-03-07T22:39:18.1344413Z     Received length: [31m10[39m
+2026-03-07T22:39:18.1350072Z     Received array:  [31m[{"file": "FmeaPanel.tsx", "text": "Falha na extração"}, {"file": "FmeaPanel.tsx", "text": "RPN"}, {"file": "MediaManager.tsx", "text": "Erro ao enviar arquivos"}, {"file": "MediaManager.tsx", "text": "Erro ao excluir arquivo"}, {"file": "MediaManager.tsx", "text": "Nenhum anexo encontrado para esta análise."}, {"file": "MediaManager.tsx", "text": "Arraste fotos ou vídeos aqui para começar."}, {"file": "MediaManager.tsx", "text": "Enviando..."}, {"file": "MediaManager.tsx", "text": "Limites de Upload:"}, {"file": "MediaManager.tsx", "text": "Imagens (5MB), Vídeos (50MB), Documentos (10MB)."}, {"file": "MediaManager.tsx", "text": "Formatos sugeridos: JPG, PNG, MP4, PDF."}][39m
+2026-03-07T22:39:18.1354207Z 
+2026-03-07T22:39:18.1354379Z       280 |         }
+2026-03-07T22:39:18.1354740Z       281 |
+2026-03-07T22:39:18.1355746Z     > 282 |         expect(leaks, `Vazamentos detectados por análise estática na UI`).toHaveLength(0);
+2026-03-07T22:39:18.1356736Z           |                                                                           ^
+2026-03-07T22:39:18.1357315Z       283 |     });
+2026-03-07T22:39:18.1357665Z       284 |
+2026-03-07T22:39:18.1357969Z       285 | });
+2026-03-07T22:39:18.1358629Z         at /home/runner/work/RCA-System/RCA-System/tests/e2e/rca-i18n.spec.ts:282:75
+2026-03-07T22:39:18.1359180Z 
+2026-03-07T22:39:18.1360512Z     Error Context: test-results/e2e-rca-i18n-RCA-System----6549d-rdcoded-que-não-utilizam-t--chromium/error-context.md
+2026-03-07T22:39:18.1366042Z 
+2026-03-07T22:39:18.1366194Z   1 failed
+2026-03-07T22:39:18.1367671Z     [chromium] › tests/e2e/rca-i18n.spec.ts:196:5 › RCA System - I18N Mastery Suite › AST Static Analysis: Deve detectar textos JSX hardcoded que não utilizam t() 
+2026-03-07T22:39:18.1368843Z   8 passed (21.3s)
+2026-03-07T22:39:18.1964914Z ##[error]Process completed with exit code 1.
+2026-03-07T22:39:18.2044494Z ##[group]Run actions/upload-artifact@v4
+2026-03-07T22:39:18.2044783Z with:
+2026-03-07T22:39:18.2044978Z   name: playwright-report
+2026-03-07T22:39:18.2045218Z   path: playwright-report/
+2026-03-07T22:39:18.2045447Z   retention-days: 30
+2026-03-07T22:39:18.2045648Z   if-no-files-found: warn
+2026-03-07T22:39:18.2045858Z   compression-level: 6
+2026-03-07T22:39:18.2046058Z   overwrite: false
+2026-03-07T22:39:18.2046249Z   include-hidden-files: false
+2026-03-07T22:39:18.2046459Z env:
+2026-03-07T22:39:18.2046687Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.14/x64
+2026-03-07T22:39:18.2047119Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib/pkgconfig
+2026-03-07T22:39:18.2047515Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+2026-03-07T22:39:18.2047884Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+2026-03-07T22:39:18.2048247Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+2026-03-07T22:39:18.2048635Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib
+2026-03-07T22:39:18.2048934Z ##[endgroup]
+2026-03-07T22:39:18.4302589Z With the provided path, there will be 2 files uploaded
+2026-03-07T22:39:18.4309505Z Artifact name is valid!
+2026-03-07T22:39:18.4312132Z Root directory input is valid!
+2026-03-07T22:39:18.5193299Z Beginning upload of artifact content to blob storage
+2026-03-07T22:39:18.5948080Z Uploaded bytes 214525
+2026-03-07T22:39:18.6138435Z Finished uploading artifact content to blob storage!
+2026-03-07T22:39:18.6143483Z SHA256 digest of uploaded artifact zip is d34b0d3cd4bda77ed04b14ba06691df0f7f6c41555d78d346f60afe5adcf7893
+2026-03-07T22:39:18.6147984Z Finalizing artifact upload
+2026-03-07T22:39:18.6885397Z Artifact playwright-report.zip successfully finalized. Artifact ID 5813984037
+2026-03-07T22:39:18.6887983Z Artifact playwright-report has been successfully uploaded! Final size is 214525 bytes. Artifact ID is 5813984037
+2026-03-07T22:39:18.6895605Z Artifact download URL: https://github.com/GuimaraesL/RCA-System/actions/runs/22808692664/artifacts/5813984037
+2026-03-07T22:39:18.7043399Z Post job cleanup.
+2026-03-07T22:39:18.8027789Z [command]/usr/bin/git version
+2026-03-07T22:39:18.8071143Z git version 2.53.0
+2026-03-07T22:39:18.8150576Z Temporarily overriding HOME='/home/runner/work/_temp/359add2e-b144-4734-8d93-92fff1afcaa7' before making global git config changes
+2026-03-07T22:39:18.8153378Z Adding repository directory to the temporary git global config as a safe directory
+2026-03-07T22:39:18.8158776Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/RCA-System/RCA-System
+2026-03-07T22:39:18.8235441Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-03-07T22:39:18.8291242Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-03-07T22:39:18.8742420Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-03-07T22:39:18.8778619Z http.https://github.com/.extraheader
+2026-03-07T22:39:18.8803462Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-03-07T22:39:18.8850271Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-03-07T22:39:18.9242533Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-03-07T22:39:18.9298858Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-03-07T22:39:18.9677685Z Cleaning up orphan processes

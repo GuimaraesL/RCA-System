@@ -26,6 +26,22 @@ export const fetchChatHistory = async (rcaId: string) => {
     }
 };
 
+export const deleteChatHistory = async (rcaId: string) => {
+    try {
+        const url = AI_API_URL.replace('/analyze', `/analyze/history/${rcaId}`);
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'x-internal-key': INTERNAL_KEY
+            }
+        });
+        return response.ok;
+    } catch (e) {
+        console.error('Failed to clear AI chat history', e);
+        return false;
+    }
+};
+
 /**
  * Consome o endpoint de IA via streaming (SSE-like via POST ReadableStream)
  */

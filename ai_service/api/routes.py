@@ -65,6 +65,25 @@ async def extract_fmea(request: FmeaExtractionRequest, x_internal_key: str = Hea
         logger.error(f"Erro na extração FMEA: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.delete("/analyze/history/{rca_id}")
+async def clear_chat_history(rca_id: str, x_internal_key: str = Header(None)):
+    """Limpa o histórico de chat de uma sessão do banco SQLite do agente."""
+    if x_internal_key != INTERNAL_AUTH_KEY:
+        raise HTTPException(status_code=403, detail="Invalid Internal Key")
+
+    from agents.main_agent import get_rca_agent
+    agent = get_rca_agent(rca_id)
+    
+    if hasattr(agent, "memory") and agent.memory and hasattr(agent.memory, "db") and agent.memory.db:
+        try:
+            agent.memory.db.delete_session(agent.session_id)
+            return {"status": "success", "message": "Histórico limpo"}
+        except Exception as e:
+            logger.error(f"Erro ao limpar histórico {rca_id}: {e}")
+            raise HTTPException(status_code=500, detail=f"Erro ao limpar banco: {e}")
+            
+    return {"status": "ok", "message": "Nenhum histórico ativo encontrado."}
+
 @router.get("/analyze/history/{rca_id}")
 async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
     """

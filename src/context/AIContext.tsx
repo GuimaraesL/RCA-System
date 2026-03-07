@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { RcaRecord } from '../types';
-import { streamAiAnalysis, StreamUpdate, fetchChatHistory } from '../services/aiStreamingService';
+import { streamAiAnalysis, StreamUpdate, fetchChatHistory, deleteChatHistory } from '../services/aiStreamingService';
 import { useLanguage } from './LanguageDefinition';
 
 export interface Message {
@@ -21,7 +21,7 @@ interface AiContextType {
     analyzeRca: (rca: RcaRecord) => Promise<void>;
     chatWithAi: (rca: RcaRecord, message: string) => Promise<void>;
     loadHistory: (rcaId: string) => Promise<void>;
-    clearAi: () => void;
+    clearAi: (rcaId?: string) => void;
 }
 
 const AiContext = createContext<AiContextType | undefined>(undefined);
@@ -42,7 +42,10 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         return 'Português-BR';
     };
 
-    const clearAi = useCallback(() => {
+    const clearAi = useCallback(async (rcaId?: string) => {
+        if (rcaId) {
+            await deleteChatHistory(rcaId);
+        }
         setMessages([]);
         setInsight('');
         setReasoning('');

@@ -43,7 +43,9 @@ def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context:
         name="RCA_Unified_Copilot",
         session_id=session_id,
         role="Engenheiro Sênior de Confiabilidade e Copiloto RCA",
-        model=Gemini(id="gemini-2.5-flash"),
+        # OTIMIZAÇÃO DE CUSTO: gemini-1.5-flash ou gemini-2.5-flash suportam "Context Caching"
+        # O Agno e a API do GenAI usam caching para arquivos e textão pesados no prompt se você especificar
+        model=Gemini(id="gemini-2.5-flash"), 
         instructions=agent_instructions,
         tools=[
             search_historical_rcas_tool, 

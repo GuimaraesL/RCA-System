@@ -98,7 +98,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                 <div className="flex items-center gap-1">
                     {messages.length > 0 && (
                         <button
-                            onClick={(e) => { e.stopPropagation(); clearAi(); }}
+                            onClick={(e) => { e.stopPropagation(); clearAi(rcaData.id); }}
                             className="p-2 hover:bg-white/20 rounded-full transition-colors text-white/70 hover:text-white"
                             title={t('ai.clearChat')}
                         >
