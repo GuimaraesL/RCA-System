@@ -905,7 +905,24 @@ export const en: TranslationSchema = {
         copyReport: "Copy Report",
         similarHistory: "Similar History",
         chatConversations: "Conversation with Detectives",
-        match: "Match"
+        match: "Match",
+        suggestions: {
+            initial: {
+                analyze: "Analyze root cause",
+                history: "Check failure history",
+                ishikawa: "Generate Ishikawa"
+            },
+            postAnalysis: {
+                fiveWhys: "Generate 5 Whys",
+                actionPlan: "Create action plan",
+                media: "Analyze attached media"
+            },
+            postRootCause: {
+                register: "Register cause in form",
+                suggestActions: "Suggest corrective actions",
+                compareHistory: "Compare with history"
+            }
+        }
     },
     fmea: {
         title: "FMEA Management",

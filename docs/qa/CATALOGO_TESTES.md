@@ -74,6 +74,8 @@ Testam funções isoladas, hooks de lógica e utilitários.
 | **services/aiService** | Valida integração frontend com o serviço de análise de IA. |
 | **services/csvService.*** | Suite completa de testes para geração e leitura de CSV/Excel. |
 | **services/i18n-audit** | **Auditoria.** Varre o código para garantir zero strings hardcoded. |
+| **components/ai/SuggestionChips** | Valida a renderização e interação dos chips de sugestão da IA. |
+| **components/ai/AiSuggestionsLogic** | Valida a lógica contextual das sugestões do chat da IA. |
 | **utils/statusUtils** | Helpers de formatação visual de status. |
 | **utils/triggerUtils** | Manipulação e sanitização de objetos de gatilho. |
 | **Accessibility Tests** | Valida acessibilidade (Aria-labels, navegação via teclado) em componentes globais e steps. |

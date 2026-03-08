@@ -14,6 +14,17 @@ O coração da inteligência artificial reside no main_agent.py. Este agente atu
 
 A unificação reduz a latência evitando handoffs (transferência de chamadas entre agentes), mitiga a diluição de contexto e soluciona problemas de vazamento de contexto indesejado (onde respostas entre o Super Agent e seus Workers poluíam o histórico).
 
+## Interface e UX do Chat (Estilo Copilot)
+
+O chat do copiloto foi aprimorado para oferecer uma experiência de descoberta progressiva e guiada.
+
+### Sugestões Contextuais (Suggestion Chips)
+Implementamos um sistema de chips dinâmicos que sugerem o próximo passo da investigação baseando-se no estado da conversa:
+- **Estado Inicial:** Sugere análise de causa raiz, busca no histórico ou geração de Ishikawa.
+- **Pós-Análise:** Sugere aprofundamento via 5 Porquês, criação de Plano de Ação ou análise de mídias anexadas.
+- **Conclusão Identificada:** Quando o assistente identifica a Causa Raiz, sugere automaticamente o registro no formulário e a proposição de ações corretivas.
+- **Reatividade:** As sugestões são geradas via lógica isolada (`aiSuggestionsLogic.ts`), garantindo que o usuário sempre tenha um caminho claro para a solução do incidente.
+
 ## Análise Multimodal (Imagens e Vídeos)
 
 O Agente Unificado é nativamente Multimodal. Ele utiliza as capacidades do motor Gemini 2.5 Flash para processar não apenas texto, mas também evidências visuais diretamente integradas à investigação.

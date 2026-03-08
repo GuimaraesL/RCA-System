@@ -870,6 +870,23 @@ export interface TranslationSchema {
         similarHistory: string;
         chatConversations: string;
         match: string;
+        suggestions: {
+            initial: {
+                analyze: string;
+                history: string;
+                ishikawa: string;
+            };
+            postAnalysis: {
+                fiveWhys: string;
+                actionPlan: string;
+                media: string;
+            };
+            postRootCause: {
+                register: string;
+                suggestActions: string;
+                compareHistory: string;
+            };
+        };
     };
     fmea: {
         title: string;

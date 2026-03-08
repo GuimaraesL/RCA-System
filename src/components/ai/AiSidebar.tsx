@@ -7,6 +7,8 @@ import { Button } from '../ui/Button';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Mermaid } from '../ui/Mermaid';
+import { SuggestionChips } from './SuggestionChips';
+import { getSuggestionsForContext } from './aiSuggestionsLogic';
 import './AiSidebar.css';
 
 interface AiSidebarProps {
@@ -68,10 +70,11 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
         }
     }, [isOpen, hasLoadedHistory, messages.length, status, rcaData, analyzeRca]);
 
-    const handleSend = () => {
-        if (!chatInput.trim() || status === 'thinking' || status === 'streaming') return;
-        chatWithAi(rcaData, chatInput);
-        setChatInput('');
+    const handleSend = (text?: string) => {
+        const messageToSend = text || chatInput;
+        if (!messageToSend.trim() || status === 'thinking' || status === 'streaming') return;
+        chatWithAi(rcaData, messageToSend);
+        if (!text) setChatInput('');
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -79,6 +82,17 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
             e.preventDefault();
             handleSend();
         }
+    };
+
+    const getContextualSuggestions = (): string[] => {
+        const lastMsg = messages.length > 0 ? messages[messages.length - 1] : undefined;
+        return getSuggestionsForContext({
+            messageCount: messages.length,
+            lastMessageContent: lastMsg?.content,
+            lastMessageRole: lastMsg?.role,
+            hasRecurrences: recurrences.length > 0,
+            t
+        });
     };
 
     const markdownComponents = {
@@ -215,6 +229,12 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
             </main>
 
             <footer className="ai-sidebar-footer-chat">
+                <SuggestionChips 
+                    suggestions={getContextualSuggestions()}
+                    onSuggestionClick={(text) => handleSend(text)}
+                    visible={(status === 'idle' || status === 'done' || status === 'error') && !insight}
+                />
+
                 <div className="ai-input-container">
                     <textarea
                         className="ai-chat-input"
@@ -255,3 +275,4 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
         </div>
     );
 };
+

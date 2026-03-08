@@ -891,7 +891,24 @@ export const pt: TranslationSchema = {
         copyReport: "Copiar Relatório",
         similarHistory: "Histórico Similares",
         chatConversations: "Conversa com Detectives",
-        match: "Match"
+        match: "Match",
+        suggestions: {
+            initial: {
+                analyze: "Analisar causa raiz",
+                history: "Verificar histórico de falhas",
+                ishikawa: "Gerar Ishikawa"
+            },
+            postAnalysis: {
+                fiveWhys: "Gerar 5 Porquês",
+                actionPlan: "Criar plano de ação",
+                media: "Analisar mídias anexadas"
+            },
+            postRootCause: {
+                register: "Registrar causa no formulário",
+                suggestActions: "Sugerir ações corretivas",
+                compareHistory: "Comparar com histórico"
+            }
+        }
     },
     fmea: {
         title: "Gestão de FMEA",
