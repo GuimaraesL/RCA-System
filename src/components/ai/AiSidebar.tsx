@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Sparkles, AlertTriangle, Check, Copy, RefreshCw, MessageSquare, History, BrainCircuit, Send, Zap, Trash2 } from 'lucide-react';
 import { RcaRecord } from '../../types';
 import { useLanguage } from '../../context/LanguageDefinition';
@@ -41,7 +41,38 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
     const { status, messages, insight, reasoning, recurrences, error, analyzeRca, chatWithAi, clearAi, loadHistory } = useAi();
     const [chatInput, setChatInput] = useState('');
     const [hasLoadedHistory, setHasLoadedHistory] = useState(false);
+    const [width, setWidth] = useState(750);
+    const [isResizing, setIsResizing] = useState(false);
     const contentEndRef = useRef<HTMLDivElement>(null);
+    const sidebarRef = useRef<HTMLDivElement>(null);
+
+    // Resize Logic
+    const startResizing = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsResizing(true);
+    }, []);
+
+    const stopResizing = useCallback(() => {
+        setIsResizing(false);
+    }, []);
+
+    const resize = useCallback((e: MouseEvent) => {
+        if (isResizing) {
+            const newWidth = window.innerWidth - e.clientX;
+            if (newWidth > 400 && newWidth < window.innerWidth * 0.8) {
+                setWidth(newWidth);
+            }
+        }
+    }, [isResizing]);
+
+    useEffect(() => {
+        window.addEventListener('mousemove', resize);
+        window.addEventListener('mouseup', stopResizing);
+        return () => {
+            window.removeEventListener('mousemove', resize);
+            window.removeEventListener('mouseup', stopResizing);
+        };
+    }, [resize, stopResizing]);
 
     // Auto-scroll durante o streaming ou novas mensagens
     useEffect(() => {
@@ -101,9 +132,18 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
 
     return (
         <div
-            className={`ai-sidebar ${isOpen ? 'open' : 'minimized'}`}
+            ref={sidebarRef}
+            className={`ai-sidebar ${isOpen ? 'open' : 'minimized'} ${isResizing ? 'resizing' : ''}`}
+            style={{ width: isOpen ? `${width}px` : undefined }}
             onClick={() => !isOpen && onOpen?.()}
         >
+            {isOpen && (
+                <div 
+                    className="ai-sidebar-resizer" 
+                    onMouseDown={startResizing}
+                />
+            )}
+            
             <header className="ai-sidebar-header">
                 <div className="ai-sidebar-title">
                     <BrainCircuit size={24} />
