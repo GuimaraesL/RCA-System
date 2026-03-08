@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { RcaRecord } from '../types';
-import { streamAiAnalysis, StreamUpdate, fetchChatHistory, deleteChatHistory } from '../services/aiStreamingService';
+import { streamAiAnalysis, StreamUpdate, fetchChatHistory, deleteChatHistory, fetchRecurrencesOnly } from '../services/aiStreamingService';
 import { useLanguage } from './LanguageDefinition';
+import { RecurrenceInfo } from '../services/aiService';
 
 export interface Message {
     role: 'user' | 'assistant';
@@ -9,18 +10,27 @@ export interface Message {
     timestamp: Date;
 }
 
+export interface RecurrenceData {
+    subgroup: RecurrenceInfo[];
+    equipment: RecurrenceInfo[];
+    area: RecurrenceInfo[];
+}
+
+const EMPTY_RECURRENCE: RecurrenceData = { subgroup: [], equipment: [], area: [] };
+
 interface AiContextType {
     isAiOpen: boolean;
     setAiOpen: (open: boolean) => void;
     status: 'idle' | 'thinking' | 'streaming' | 'done' | 'error';
     messages: Message[];
-    insight: string; // Resposta corrente (streaming)
-    reasoning: string; // O que a IA está pensando/fazendo no momento
-    recurrences: any[];
+    insight: string;
+    reasoning: string;
+    recurrenceData: RecurrenceData;
     error: string | null;
     analyzeRca: (rca: RcaRecord) => Promise<void>;
     chatWithAi: (rca: RcaRecord, message: string) => Promise<void>;
     loadHistory: (rcaId: string) => Promise<void>;
+    loadRecurrences: (rca: RcaRecord) => Promise<void>;
     clearAi: (rcaId?: string) => Promise<void>;
 }
 
@@ -33,7 +43,7 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     const [messages, setMessages] = useState<Message[]>([]);
     const [insight, setInsight] = useState('');
     const [reasoning, setReasoning] = useState('');
-    const [recurrences, setRecurrences] = useState<any[]>([]);
+    const [recurrenceData, setRecurrenceData] = useState<RecurrenceData>(EMPTY_RECURRENCE);
     const [error, setError] = useState<string | null>(null);
 
     const getFullLanguageName = (lang: string) => {
@@ -49,10 +59,25 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         setMessages([]);
         setInsight('');
         setReasoning('');
-        setRecurrences([]);
+        setRecurrenceData(EMPTY_RECURRENCE);
         setError(null);
         setStatus('idle');
     }, []);
+
+    const loadRecurrences = useCallback(async (rca: RcaRecord) => {
+        try {
+            const data = await fetchRecurrencesOnly(rca, getFullLanguageName(language));
+            if (data && (data.subgroup_matches?.length || data.equipment_matches?.length || data.area_matches?.length)) {
+                setRecurrenceData({
+                    subgroup: data.subgroup_matches || [],
+                    equipment: data.equipment_matches || [],
+                    area: data.area_matches || []
+                });
+            }
+        } catch (e) {
+            console.error('Failed to load recurrences', e);
+        }
+    }, [language]);
 
     const loadHistory = useCallback(async (rcaId: string) => {
         try {
@@ -76,7 +101,7 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         setError(null);
         setInsight('');
         setReasoning('');
-        setRecurrences([]);
+        setRecurrenceData(EMPTY_RECURRENCE);
 
         await streamAiAnalysis(rca, (update: StreamUpdate) => {
             if (update.type === 'content' && update.text) {
@@ -85,7 +110,20 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
             } else if (update.type === 'reasoning' && update.text) {
                 setReasoning(update.text);
             } else if (update.type === 'recurrence' && update.data) {
-                setRecurrences(prev => [...prev, update.data]);
+                // Novo formato estruturado
+                if (update.data.subgroup || update.data.equipment || update.data.area) {
+                    setRecurrenceData({
+                        subgroup: update.data.subgroup || [],
+                        equipment: update.data.equipment || [],
+                        area: update.data.area || []
+                    });
+                } else {
+                    // Fallback legado: item individual
+                    setRecurrenceData(prev => ({
+                        ...prev,
+                        subgroup: [...prev.subgroup, update.data]
+                    }));
+                }
             } else if (update.type === 'done') {
                 setStatus('done');
                 setMessages(prev => [...prev, { role: 'assistant', content: update.text || '', timestamp: new Date() }]);
@@ -129,7 +167,7 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
     return (
         <AiContext.Provider value={{
-            isAiOpen, setAiOpen, status, messages, insight, reasoning, recurrences, error, analyzeRca, chatWithAi, loadHistory, clearAi
+            isAiOpen, setAiOpen, status, messages, insight, reasoning, recurrenceData, error, analyzeRca, chatWithAi, loadHistory, loadRecurrences, clearAi
         }}>
             {children}
         </AiContext.Provider>

@@ -28,8 +28,8 @@ import { Step4Investigation } from '../steps/Step4Investigation';
 import { Step5Actions } from '../steps/Step5Actions';
 import { Step6Checklist } from '../steps/Step6Checklist';
 import { Step7Additional } from '../steps/Step7Additional';
+import { Step8Recurrences } from '../steps/Step8Recurrences';
 import { StepHRA } from '../steps/StepHRA';
-import { RecurrenceBanner } from '../ui/RecurrenceBanner';
 
 // IA Integration
 import { AiProvider, useAi } from '../../context/AIContext';
@@ -44,7 +44,7 @@ interface RcaEditorProps {
 
 const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, onSave }) => {
     const { t } = useLanguage();
-    const { isAiOpen, setAiOpen, analyzeRca, recurrences: aiRecurrences } = useAi();
+    const { isAiOpen, setAiOpen, analyzeRca, recurrenceData, loadRecurrences } = useAi();
 
     const {
         formData, setFormData,
@@ -71,7 +71,12 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         onEscape: onClose
     });
 
-    // ... (rest of component)
+    // Carrega recorrências automaticamente se for um registro existente com dados básicos
+    useEffect(() => {
+        if (existingRecord?.id && (existingRecord.what || existingRecord.problem_description)) {
+            loadRecurrences(existingRecord);
+        }
+    }, [existingRecord?.id, loadRecurrences]);
 
     // Controle de modais internos de Ação (UI Only)
     const [isActionModalOpen, setIsActionModalOpen] = useState(false);
@@ -133,13 +138,13 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     // Atalhos de navegação entre steps (Alt+← / Alt+→)
     const goToPrev = useCallback(() => {
         setStep(s => {
-            if (s === 8) return 4;
+            if (s === 9) return 4; // Volta do HRA para Investigação (onde ele é ativado)
             return Math.max(1, s - 1);
         });
     }, [setStep]);
 
     const goToNext = useCallback(() => {
-        setStep(s => Math.min(7, s + 1));
+        setStep(s => Math.min(8, s + 1));
     }, [setStep]);
 
     useEffect(() => {
@@ -250,13 +255,13 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                     {showHra && (
                         <div className="flex justify-center mt-6 pt-4 border-t border-slate-200/60 dark:border-slate-700/60 w-full">
                             <Button
-                                variant={step === 8 ? 'secondary' : 'outline'}
+                                variant={step === 9 ? 'secondary' : 'outline'}
                                 size="sm"
-                                onClick={() => setStep(8)}
-                                className={`flex items-center gap-2 rounded-full ${step === 8 ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800' : ''}`}
+                                onClick={() => setStep(9)}
+                                className={`flex items-center gap-2 rounded-full ${step === 9 ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800' : ''}`}
                                 data-testid="btn-show-hra"
                             >
-                                <span className={`w-2 h-2 rounded-full ${step === 8 ? 'bg-indigo-500' : 'bg-slate-300'}`} />
+                                <span className={`w-2 h-2 rounded-full ${step === 9 ? 'bg-indigo-500' : 'bg-slate-300'}`} />
                                 {t('wizard.stepHRA.hraAvailableTitle')}
                             </Button>
                         </div>
@@ -266,7 +271,6 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                 {/* Conteúdo */}
                 <div className="flex-1 overflow-y-auto p-8 lg:p-12 bg-slate-50 dark:bg-slate-950 custom-scrollbar">
                     <div key={step} className="w-full min-h-full animate-slide-up">
-                        <RecurrenceBanner recurrences={aiRecurrences} />
                         {step === 1 && <Step1General data={formData} onChange={handleChange} assets={assets} taxonomy={taxonomy} onAssetSelect={handleAssetSelect} onRefreshAssets={refreshAssets} errors={validationErrors} isFieldRequired={isFieldRequired} />}
                         {step === 2 && <Step2Problem data={formData} onChange={handleChange} taxonomy={taxonomy} errors={validationErrors} isFieldRequired={isFieldRequired} />}
                         {step === 3 && <Step3Technical data={formData} onChange={handleChange} taxonomy={taxonomy} errors={validationErrors} isFieldRequired={isFieldRequired} />}
@@ -274,7 +278,8 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                         {step === 5 && <Step5Actions data={formData} onChange={handleChange} linkedActions={linkedActions} onAddActionPlan={handleAddAction} onEditActionPlan={handleEditAction} onDeleteActionPlan={handleDeleteActionUI} isFieldRequired={isFieldRequired} errors={validationErrors} />}
                         {step === 6 && <Step6Checklist data={formData} onChange={handleChange} isFieldRequired={isFieldRequired} />}
                         {step === 7 && <Step7Additional data={formData} onChange={handleChange} isFieldRequired={isFieldRequired} />}
-                        {step === 8 && showHra && <StepHRA data={formData} onChange={handleChange} />}
+                        {step === 8 && <Step8Recurrences data={formData} onChange={handleChange} />}
+                        {step === 9 && showHra && <StepHRA data={formData} onChange={handleChange} />}
                     </div>
                 </div>
 
@@ -297,7 +302,7 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                         <Button variant="primary" onClick={handleSave} isLoading={isSaving} className="gap-2">
                             <Save size={18} /> {t('common.save')}
                         </Button>
-                        {step < 7 && (
+                        {step < 8 && (
                             <Button
                                 variant="primary"
                                 onClick={goToNext}

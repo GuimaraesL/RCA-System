@@ -11,6 +11,8 @@ class RecurrenceInfo(BaseModel):
     level: str # 'subgroup', 'equipment', 'area'
     root_causes: Optional[str] = None
     actions: Optional[str] = None
+    equipment_name: Optional[str] = None
+    area_name: Optional[str] = None
 
 class MediaItem(BaseModel):
     type: str # 'image', 'video'
@@ -25,6 +27,8 @@ class AnalysisRequest(BaseModel):
     subgroup_id: Optional[str] = None
     user_prompt: Optional[str] = None
     ui_language: Optional[str] = "Português-BR"
+    stream: Optional[bool] = False
+    metadata_only: Optional[bool] = False
     attachments: Optional[List[MediaItem]] = None
 
 class AnalysisResponse(BaseModel):

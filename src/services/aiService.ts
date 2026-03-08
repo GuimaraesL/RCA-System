@@ -9,6 +9,10 @@ export interface RecurrenceInfo {
     similarity: number;
     title: string;
     level: 'subgroup' | 'equipment' | 'area';
+    root_causes?: string;
+    actions?: string;
+    equipment_name?: string;
+    area_name?: string;
 }
 
 export interface AIAnalysisResponse {

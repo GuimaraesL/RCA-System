@@ -138,16 +138,16 @@ const mockTaxonomy = {
 };
 
 describe('Acessibilidade Global - Associação de Labels', () => {
-    
+
     describe('Componentes UI Base', () => {
         it('o componente Input deve associar o label ao input via ID único', () => {
             const testId = 'test-input';
             const labelText = 'Nome do Facilitador';
-            render(<Input id={testId} label={labelText} onChange={() => {}} />);
-            
+            render(<Input id={testId} label={labelText} onChange={() => { }} />);
+
             const label = screen.getByText(labelText);
             const input = screen.getByRole('textbox');
-            
+
             expect(label.getAttribute('for')).toBe(testId);
             expect(input.getAttribute('id')).toBe(testId);
         });
@@ -155,11 +155,11 @@ describe('Acessibilidade Global - Associação de Labels', () => {
         it('o componente Select deve associar o label ao select via ID único', () => {
             const testId = 'test-select';
             const labelText = 'Tipo de Análise';
-            render(<Select id={testId} label={labelText} options={[]} onChange={() => {}} />);
-            
+            render(<Select id={testId} label={labelText} options={[]} onChange={() => { }} />);
+
             const label = screen.getByText(labelText);
             const select = screen.getByRole('combobox');
-            
+
             expect(label.getAttribute('for')).toBe(testId);
             expect(select.getAttribute('id')).toBe(testId);
         });
@@ -167,11 +167,11 @@ describe('Acessibilidade Global - Associação de Labels', () => {
         it('o componente Textarea deve associar o label ao campo via ID único', () => {
             const testId = 'test-textarea';
             const labelText = 'Descrição do Problema';
-            render(<Textarea id={testId} label={labelText} onChange={() => {}} />);
-            
+            render(<Textarea id={testId} label={labelText} onChange={() => { }} />);
+
             const label = screen.getByText(labelText);
             const textarea = screen.getByRole('textbox');
-            
+
             expect(label.getAttribute('for')).toBe(testId);
             expect(textarea.getAttribute('id')).toBe(testId);
         });
@@ -180,11 +180,11 @@ describe('Acessibilidade Global - Associação de Labels', () => {
     describe('Passos do Editor (RcaEditor Steps)', () => {
         it('Step2Problem: todos os campos devem ter labels associados', () => {
             const { container } = render(
-                <Step2Problem 
-                    data={mockRcaData} 
-                    onChange={vi.fn()} 
-                    taxonomy={mockTaxonomy} 
-                    isFieldRequired={() => false} 
+                <Step2Problem
+                    data={mockRcaData}
+                    onChange={vi.fn()}
+                    taxonomy={mockTaxonomy}
+                    isFieldRequired={() => false}
                 />
             );
 
@@ -209,11 +209,11 @@ describe('Acessibilidade Global - Associação de Labels', () => {
 
         it('Step3Technical: todos os campos devem ter labels associados', () => {
             const { container } = render(
-                <Step3Technical 
-                    data={mockRcaData} 
-                    onChange={vi.fn()} 
-                    taxonomy={mockTaxonomy} 
-                    isFieldRequired={() => false} 
+                <Step3Technical
+                    data={mockRcaData}
+                    onChange={vi.fn()}
+                    taxonomy={mockTaxonomy}
+                    isFieldRequired={() => false}
                 />
             );
 
@@ -236,13 +236,11 @@ describe('Acessibilidade Global - Associação de Labels', () => {
 
         it('Step4Investigation: campos de Ishikawa e Causa Raiz devem ter labels', () => {
             const { container } = render(
-                <Step4Investigation 
-                    data={mockRcaData} 
-                    onChange={vi.fn()} 
-                    onAnalyzeAI={vi.fn()}
-                    isAnalyzing={false}
-                    taxonomy={mockTaxonomy} 
-                    isFieldRequired={() => false} 
+                <Step4Investigation
+                    data={mockRcaData}
+                    onChange={vi.fn()}
+                    taxonomy={mockTaxonomy}
+                    isFieldRequired={() => false}
                 />
             );
 
@@ -264,14 +262,14 @@ describe('Acessibilidade Global - Associação de Labels', () => {
 
         it('Step5Actions: campos de ações de contenção devem ter labels', () => {
             const { container } = render(
-                <Step5Actions 
-                    data={mockRcaData} 
-                    onChange={vi.fn()} 
+                <Step5Actions
+                    data={mockRcaData}
+                    onChange={vi.fn()}
                     linkedActions={[]}
                     onAddActionPlan={vi.fn()}
                     onEditActionPlan={vi.fn()}
                     onDeleteActionPlan={vi.fn()}
-                    isFieldRequired={() => false} 
+                    isFieldRequired={() => false}
                 />
             );
 
@@ -294,10 +292,10 @@ describe('Acessibilidade Global - Associação de Labels', () => {
     describe('Modais do Sistema', () => {
         it('ActionModal: todos os campos devem ter labels associados', () => {
             const { container } = render(
-                <ActionModal 
-                    isOpen={true} 
-                    onClose={vi.fn()} 
-                    onSave={vi.fn()} 
+                <ActionModal
+                    isOpen={true}
+                    onClose={vi.fn()}
+                    onSave={vi.fn()}
                     initialData={null}
                 />
             );
@@ -322,7 +320,7 @@ describe('Acessibilidade Global - Associação de Labels', () => {
 
         it('TriggerModal: todos os campos devem ter labels associados', () => {
             const { container } = render(
-                <TriggerModal 
+                <TriggerModal
                     editingTrigger={mockTriggerData}
                     setEditingTrigger={vi.fn()}
                     setIsModalOpen={vi.fn()}
@@ -361,7 +359,7 @@ describe('Acessibilidade Global - Associação de Labels', () => {
 
         it('ConfirmModal: deve possuir estrutura acessível', () => {
             render(
-                <ConfirmModal 
+                <ConfirmModal
                     isOpen={true}
                     message="Deseja excluir?"
                     onConfirm={vi.fn()}
@@ -379,19 +377,19 @@ describe('Acessibilidade Global - Associação de Labels', () => {
 
     describe('Barra de Filtros (FilterBar)', () => {
         it('todos os controles de filtro devem possuir labels associados', () => {
-            const mockFilters = { 
-                searchTerm: '', year: '', months: [], status: 'ALL', area: 'ALL', 
+            const mockFilters = {
+                searchTerm: '', year: '', months: [], status: 'ALL', area: 'ALL',
                 equipment: 'ALL', subgroup: 'ALL', specialty: 'ALL', analysisType: 'ALL',
-                failureMode: 'ALL', failureCategory: 'ALL', componentType: 'ALL', rootCause6M: 'ALL' 
+                failureMode: 'ALL', failureCategory: 'ALL', componentType: 'ALL', rootCause6M: 'ALL'
             };
-            
+
             const { container } = render(
-                <FilterBar 
-                    isOpen={true} 
-                    onToggle={vi.fn()} 
-                    filters={mockFilters} 
-                    onFilterChange={vi.fn()} 
-                    onReset={vi.fn()} 
+                <FilterBar
+                    isOpen={true}
+                    onToggle={vi.fn()}
+                    filters={mockFilters}
+                    onFilterChange={vi.fn()}
+                    onReset={vi.fn()}
                 />
             );
 

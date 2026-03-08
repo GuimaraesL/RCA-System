@@ -689,6 +689,25 @@ export const pt: TranslationSchema = {
         required: "Obrigatório",
         add: "Adicionar",
         remove: "Remover",
+        step8: {
+            title: "Centro de Memória Técnica",
+            subtitle: "Análise comparativa de falhas anteriores",
+            comparisonTitle: "Comparação de Lições Aprendidas",
+            noRecurrences: "Nenhuma recorrência detectada para comparação profunda.",
+            currentRca: "RCA Atual",
+            previousRca: "RCA Histórica",
+            rootCauses: "Causas Raiz",
+            actions: "Planos de Ação",
+            similarity: "Similaridade Contextual",
+            viewFullRca: "Ver RCA Completa",
+            applyLessons: "Aplicar Lições Aprendidas",
+            impactLevel: "Nível de Impacto",
+            recurrenceLevels: {
+                subgroup: "Mesmo Subgrupo",
+                equipment: "Mesmo Equipamento",
+                area: "Equipamentos Diferentes"
+            }
+        },
         stepNames: {
             step1: { title: "Dados Gerais", subtitle: "Informações básicas" },
             step2: { title: "Problema", subtitle: "5W1H" },
@@ -696,7 +715,8 @@ export const pt: TranslationSchema = {
             step4: { title: "Investigação", subtitle: "5 Porquês e Ishikawa" },
             step5: { title: "Ações", subtitle: "Plano de ação" },
             step6: { title: "Checklist", subtitle: "Manutenção" },
-            step7: { title: "Info. Adicionais", subtitle: "Notas e Comentários" }
+            step7: { title: "Info. Adicionais", subtitle: "Notas e Comentários" },
+            step8: { title: "Histórico Técnico", subtitle: "Recorrências e Lições" }
         },
         step1: {
             title: "0. Componente / Localização",

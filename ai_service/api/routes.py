@@ -174,45 +174,119 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         from core.knowledge import get_rca_history_knowledge
         knowledge_base = get_rca_history_knowledge()
 
-        # 3. Busca Hierárquica de Recorrências (Acumulativa)
-        recurrences = []
-        levels = [
-            ("subgroup", subgroup_id),
-            ("equipment", equipment_id),
-            ("area", area_id)
-        ]
+        # 3. Busca Hierárquica de Recorrências (SEPARADA por nível)
+        subgroup_matches = []
+        equipment_matches = []
+        area_matches = []
+
+        import re
+        def clean_title(content: str) -> str:
+            """Extrai o título limpo via Regex ignorando IDs e campos vizinhos."""
+            match = re.search(r'TÍTULO/O QUE \(What\):\s*(.+?)(?=\s*QUEM \(Who\):|\Z)', content, flags=re.DOTALL)
+            if match:
+                # remove quebras de linha que possam ter vindo junto
+                return match.group(1).replace('\n', ' ').strip()
+            
+            # Fallback
+            lines = content.split('\n')
+            for line in lines:
+                if 'TÍTULO' in line or 'O QUE' in line:
+                    return re.sub(r'^.*?:\s*', '', line).strip()
+            return lines[0][:100] if lines else "Sem título"
+
+        def extract_recurrence(doc, level_name: str, rank: int) -> RecurrenceInfo:
+            """Extrai RecurrenceInfo de um documento do VectorDB."""
+            content_lines = doc.content.split("\n")
+            causes = "N/A"
+            actions = "N/A"
+            equip_name = doc.meta_data.get("asset", "")
+            area_name_val = ""
+
+            for line in content_lines:
+                if line.startswith("CAUSAS RAIZ:"): causes = line.replace("CAUSAS RAIZ: ", "")
+                if line.startswith("AÇÕES TOMADAS:"): actions = line.replace("AÇÕES TOMADAS: ", "")
+
+            # Removendo a similaridade mockada/indexada - enviamos 0 ou omitimos visualmente no front
+            similarity = 0.0 
+
+            title = clean_title(doc.content)
+
+            return RecurrenceInfo(
+                rca_id=doc.meta_data.get("rca_id", "unknown"),
+                similarity=similarity,
+                title=title,
+                level=level_name,
+                root_causes=causes,
+                actions=actions,
+                equipment_name=equip_name,
+                area_name=area_name_val
+            )
 
         if query_text:
             seen_ids = set()
-            for level_name, level_id in levels:
-                if not level_id: continue
-                search_filter = {f"{level_name}_id": str(level_id)}
+
+            # Nível 1: Mesmo Subgrupo (filtro rigoroso: subgroup + equipment + area)
+            if subgroup_id and equipment_id and area_id:
+                filters = {
+                    "$and": [
+                        {"subgroup_id": str(subgroup_id)},
+                        {"equipment_id": str(equipment_id)},
+                        {"area_id": str(area_id)}
+                    ]
+                }
                 results = knowledge_base.vector_db.search(
-                    query=query_text,
-                    limit=3,
-                    filters=search_filter
+                    query=query_text, limit=10,
+                    filters=filters
                 )
                 if results:
-                    for doc in results:
+                    for rank, doc in enumerate(results):
                         rid = doc.meta_data.get("rca_id", "unknown")
                         if rid not in seen_ids and rid != request.rca_id:
-                            # Extrair causas e ações do conteúdo formatado no documento
-                            content_lines = doc.content.split("\n")
-                            causes = "N/A"
-                            actions = "N/A"
-                            for line in content_lines:
-                                if line.startswith("CAUSAS RAIZ:"): causes = line.replace("CAUSAS RAIZ: ", "")
-                                if line.startswith("AÇÕES TOMADAS:"): actions = line.replace("AÇÕES TOMADAS: ", "")
-
-                            recurrences.append(RecurrenceInfo(
-                                rca_id=rid,
-                                similarity=1.0,
-                                title=content_lines[0].replace("TÍTULO DA Falha: ", "").replace("TÍTULO DA FALHA: ", ""),
-                                level=level_name,
-                                root_causes=causes,
-                                actions=actions
-                            ))
+                            subgroup_matches.append(extract_recurrence(doc, "subgroup", rank))
                             seen_ids.add(rid)
+
+            # Nível 2: Mesmo Equipamento (exclui os já encontrados no subgrupo)
+            if equipment_id and area_id:
+                filters = {
+                    "$and": [
+                        {"equipment_id": str(equipment_id)},
+                        {"area_id": str(area_id)}
+                    ]
+                }
+                results = knowledge_base.vector_db.search(
+                    query=query_text, limit=10,
+                    filters=filters
+                )
+                if results:
+                    for rank, doc in enumerate(results):
+                        rid = doc.meta_data.get("rca_id", "unknown")
+                        if rid not in seen_ids and rid != request.rca_id:
+                            equipment_matches.append(extract_recurrence(doc, "equipment", rank))
+                            seen_ids.add(rid)
+
+            # Nível 3: Equipamentos Diferentes (Mesma Área/Manufatura)
+            if area_id:
+                results = knowledge_base.vector_db.search(
+                    query=query_text, limit=15,
+                    filters={"area_id": str(area_id)}
+                )
+                if results:
+                    for rank, doc in enumerate(results):
+                        rid = doc.meta_data.get("rca_id", "unknown")
+                        if rid not in seen_ids and rid != request.rca_id:
+                            area_matches.append(extract_recurrence(doc, "area", rank))
+                            seen_ids.add(rid)
+
+        # Se for apenas para buscar os metadados (persistência de estado do banner) e pular o Agent
+        if request.metadata_only:
+            return {
+                "subgroup_matches": [m.dict() for m in subgroup_matches],
+                "equipment_matches": [m.dict() for m in equipment_matches],
+                "area_matches": [m.dict() for m in area_matches]
+            }
+
+        # Lista unificada para injeção no contexto do LLM (concat das 3)
+        recurrences = subgroup_matches + equipment_matches + area_matches
 
         ui_lang = request.ui_language or "Português-BR"
         is_initial_analysis = not (request.user_prompt and str(request.user_prompt).strip())
@@ -291,7 +365,7 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
             logger.debug(f"📡 DEBUG: Iniciando stream ASYNC para RCA {request.rca_id}")
             # Alertas de recorrência imediatos via metadata (apenas na análise inicial)
             if recurrences and not request.user_prompt:
-                yield f"data: {json.dumps({'type': 'metadata', 'recurrences': [r.dict() for r in recurrences]})}\n\n"
+                yield f"data: {json.dumps({'type': 'metadata', 'subgroup_matches': [r.dict() for r in subgroup_matches], 'equipment_matches': [r.dict() for r in equipment_matches], 'area_matches': [r.dict() for r in area_matches]})}\n\n"
 
             try:
                 logger.info(f"📡 DEBUG: Chamando motor de IA para prompt de {len(prompt)} chars")

@@ -105,15 +105,12 @@ def index_historical_rcas(api_url=None):
             rca_id = str(rca.get('id'))
             
             import json
-            # Formata o conteúdo para busca semântica leve (Foco em Título, Descrição, Quem e Onde)
+            # Formata o conteúdo para busca semântica focada no problema
             content_parts = [
-                f"ID DA RCA: {rca_id}",
                 f"TÍTULO/O QUE (What): {rca.get('what', 'N/A')}",
-                f"QUEM (Who): {rca.get('who', 'N/A')}",
-                f"ONDE (Where): {rca.get('where_description', 'N/A')}",
                 f"DESCRIÇÃO TÉCNICA: {rca.get('problem_description', rca.get('description', 'N/A'))}",
-                f"TIPO DE COMPONENTE: {rca.get('component_type', 'N/A')}",
-                f"TIPO DE ANÁLISE: {rca.get('analysis_type', 'N/A')}"
+                f"CAUSAS RAIZ: " + "; ".join([c.get('cause', '') for c in rca.get('root_causes', [])]),
+                f"AÇÕES TOMADAS: " + "; ".join([a.get('action_title', '') for a in rca.get('action_plans', [])])
             ]
             
             content = "\n".join(content_parts).strip()

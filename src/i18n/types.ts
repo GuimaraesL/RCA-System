@@ -686,6 +686,26 @@ export interface TranslationSchema {
             step5: { title: string; subtitle: string; };
             step6: { title: string; subtitle: string; };
             step7: { title: string; subtitle: string; };
+            step8: { title: string; subtitle: string; };
+        };
+        step8: {
+            title: string;
+            subtitle: string;
+            comparisonTitle: string;
+            noRecurrences: string;
+            currentRca: string;
+            previousRca: string;
+            rootCauses: string;
+            actions: string;
+            similarity: string;
+            viewFullRca: string;
+            applyLessons: string;
+            impactLevel: string;
+            recurrenceLevels: {
+                subgroup: string;
+                equipment: string;
+                area: string;
+            };
         };
         step1: {
             title: string;
