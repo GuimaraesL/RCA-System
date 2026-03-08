@@ -10,15 +10,11 @@ import { useRcaContext } from '../context/RcaContext';
 import { STATUS_IDS, ROOT_CAUSE_M_IDS } from '../constants/SystemConstants';
 import { updateDeep } from '../utils/objectUtils';
 import { useToast } from '../context/ToastContext';
-import { analyzeRcaWithAI, RecurrenceInfo } from '../services/aiService';
 
 export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () => void) => {
     const { assets, taxonomy, actions, addRecord, updateRecord, addAction, updateAction, deleteAction, refreshAll } = useRcaContext();
 
     const [step, setStep] = useState(1);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [aiInsight, setAiInsight] = useState<string | null>(null);
-    const [recurrences, setRecurrences] = useState<RecurrenceInfo[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
     const [linkedActions, setLinkedActions] = useState<ActionRecord[]>([]);
@@ -233,28 +229,6 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
         }
     };
 
-    const handleAnalyzeAI = async () => {
-        if (!formData.what && !formData.problem_description) {
-            toast.error('Preencha ao menos o Título ou Descrição do problema para a IA analisar.');
-            return;
-        }
-
-        setIsAnalyzing(true);
-        setAiInsight(null);
-        try {
-            const result = await analyzeRcaWithAI(formData);
-            setAiInsight(result.ai_insight);
-            if (result.recurrences) {
-                setRecurrences(result.recurrences);
-            }
-            toast.success('Análise de IA concluída!');
-        } catch (error) {
-            console.error('AI Error:', error);
-            toast.error('Falha ao obter análise da IA. Verifique se o serviço está rodando.');
-        } finally {
-            setIsAnalyzing(false);
-        }
-    };
 
     const hasStepError = useCallback((stepFields: string[]) => {
         return stepFields.some(field => validationErrors[field]);
@@ -263,9 +237,6 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
     return {
         formData, setFormData,
         step, setStep,
-        isAnalyzing,
-        aiInsight, setAiInsight,
-        recurrences, setRecurrences,
         isSaving,
         validationErrors,
         linkedActions,
@@ -274,7 +245,6 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
         handleSave,
         handleSaveAction,
         handleDeleteAction: deleteAction,
-        handleAnalyzeAI,
         isFieldRequired,
         showHra,
         hasStepError,

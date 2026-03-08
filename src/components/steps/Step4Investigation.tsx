@@ -18,15 +18,13 @@ import { useLanguage } from '../../context/LanguageDefinition';
 interface Step4Props {
     data: RcaRecord;
     onChange: (field: string, value: any) => void;
-    onAnalyzeAI: () => void;
-    isAnalyzing: boolean;
     taxonomy: TaxonomyConfig;
     showHra?: boolean;
     isFieldRequired: (field: string) => boolean;
     errors?: Record<string, boolean>;
 }
 
-const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onAnalyzeAI, isAnalyzing, taxonomy, showHra, isFieldRequired, errors }) => {
+const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, taxonomy, showHra, isFieldRequired, errors }) => {
     const { t } = useLanguage();
     const [newIshikawaItem, setNewIshikawaItem] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<keyof IshikawaDiagram>('method');
@@ -109,17 +107,6 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, onA
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('wizard.step4.title')}</h2>
                     <p className="text-gray-600 dark:text-slate-400">{t('wizard.step4.subtitle')}</p>
                 </div>
-
-                <Button
-                    variant="secondary"
-                    onClick={onAnalyzeAI}
-                    isLoading={isAnalyzing}
-                    className="bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100 dark:bg-sky-900/20 dark:text-sky-300 dark:border-sky-800 transition-colors shadow-sm self-start md:self-auto"
-                    title={t('ai.assistTooltip')}
-                >
-                    <Wand2 className="mr-2" size={16} />
-                    {t('ai.assistButton')}
-                </Button>
             </div>
 
             {/* Bloco dos 5 Porquês */}

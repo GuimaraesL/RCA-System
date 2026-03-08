@@ -44,14 +44,11 @@ interface RcaEditorProps {
 
 const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, onSave }) => {
     const { t } = useLanguage();
-    const { isAiOpen, setAiOpen, analyzeRca } = useAi();
+    const { isAiOpen, setAiOpen, analyzeRca, recurrences: aiRecurrences } = useAi();
 
     const {
         formData, setFormData,
         step, setStep,
-        isAnalyzing,
-        aiInsight, setAiInsight,
-        recurrences,
         isSaving,
         validationErrors,
         linkedActions,
@@ -60,7 +57,6 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         handleSave,
         handleSaveAction,
         handleDeleteAction,
-        handleAnalyzeAI,
         isFieldRequired,
         showHra,
         hasStepError,
@@ -270,11 +266,11 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                 {/* Conteúdo */}
                 <div className="flex-1 overflow-y-auto p-8 lg:p-12 bg-slate-50 dark:bg-slate-950 custom-scrollbar">
                     <div key={step} className="w-full min-h-full animate-slide-up">
-                        <RecurrenceBanner recurrences={recurrences} />
+                        <RecurrenceBanner recurrences={aiRecurrences} />
                         {step === 1 && <Step1General data={formData} onChange={handleChange} assets={assets} taxonomy={taxonomy} onAssetSelect={handleAssetSelect} onRefreshAssets={refreshAssets} errors={validationErrors} isFieldRequired={isFieldRequired} />}
                         {step === 2 && <Step2Problem data={formData} onChange={handleChange} taxonomy={taxonomy} errors={validationErrors} isFieldRequired={isFieldRequired} />}
                         {step === 3 && <Step3Technical data={formData} onChange={handleChange} taxonomy={taxonomy} errors={validationErrors} isFieldRequired={isFieldRequired} />}
-                        {step === 4 && <Step4Investigation data={formData} onChange={handleChange} onAnalyzeAI={handleAnalyzeAI} isAnalyzing={isAnalyzing} taxonomy={taxonomy} showHra={showHra} isFieldRequired={isFieldRequired} errors={validationErrors} />}
+                        {step === 4 && <Step4Investigation data={formData} onChange={handleChange} taxonomy={taxonomy} showHra={showHra} isFieldRequired={isFieldRequired} errors={validationErrors} />}
                         {step === 5 && <Step5Actions data={formData} onChange={handleChange} linkedActions={linkedActions} onAddActionPlan={handleAddAction} onEditActionPlan={handleEditAction} onDeleteActionPlan={handleDeleteActionUI} isFieldRequired={isFieldRequired} errors={validationErrors} />}
                         {step === 6 && <Step6Checklist data={formData} onChange={handleChange} isFieldRequired={isFieldRequired} />}
                         {step === 7 && <Step7Additional data={formData} onChange={handleChange} isFieldRequired={isFieldRequired} />}
@@ -283,7 +279,7 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                 </div>
 
                 {/* Rodapé */}
-                <div 
+                <div
                     className="px-8 py-5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-b-xl flex justify-between items-center z-20 shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.05)]"
                     data-testid="rca-editor-footer"
                 >
