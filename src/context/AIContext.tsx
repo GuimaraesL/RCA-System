@@ -21,7 +21,7 @@ interface AiContextType {
     analyzeRca: (rca: RcaRecord) => Promise<void>;
     chatWithAi: (rca: RcaRecord, message: string) => Promise<void>;
     loadHistory: (rcaId: string) => Promise<void>;
-    clearAi: (rcaId?: string) => void;
+    clearAi: (rcaId?: string) => Promise<void>;
 }
 
 const AiContext = createContext<AiContextType | undefined>(undefined);
