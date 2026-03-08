@@ -286,7 +286,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                     />
                     <button
                         className="ai-send-button"
-                        onClick={handleSend}
+                        onClick={() => handleSend()}
                         disabled={!chatInput.trim() || status === 'thinking' || status === 'streaming'}
                     >
                         <Send size={18} />
