@@ -56,7 +56,12 @@ export const en: TranslationSchema = {
         ptAbbr: "PT",
         enAbbr: "EN",
         attachments: "Attachments & Evidence",
-        add: "Add"
+        add: "Add",
+        dragMedia: "Drag photos or videos here to start.",
+        sending: "Sending...",
+        uploadLimits: "Upload Limits:",
+        uploadLimitsDesc: "Images (5MB), Videos (50MB), Documents (10MB).",
+        suggestedFormats: "Suggested formats: JPG, PNG, MP4, PDF."
     },
     filters: {
         title: "Filters",
@@ -326,7 +331,9 @@ export const en: TranslationSchema = {
     errors: {
         somethingWentWrong: "Something went wrong in {0}.",
         verifyData: "Please verify your data or contact support.",
-        stackTrace: "Stack Trace"
+        stackTrace: "Stack Trace",
+        uploadFailed: "Error uploading files",
+        deleteFailed: "Error deleting file"
     },
     settings: {
         title: "Settings",
@@ -910,6 +917,9 @@ export const en: TranslationSchema = {
         toggleSidebar: "Toggle Sidebar",
         pressToClose: "Press Esc to close"
     },
+    mediaManager: {
+        noAttachments: "No attachments found for this analysis."
+    },
     ai: {
         analysisTitle: "AI Intelligence Analysis",
         assistButton: "Assist with IA",
@@ -942,6 +952,10 @@ export const en: TranslationSchema = {
                 suggestActions: "Suggest corrective actions",
                 compareHistory: "Compare with history"
             }
+        },
+        tooltips: {
+            similarEquipment: "View similar failures in this Equipment (but different subgroup)",
+            similarArea: "View similar failures in this Area / Plant"
         }
     },
     fmea: {
@@ -966,6 +980,7 @@ export const en: TranslationSchema = {
             importTitle: "Import FMEA Data",
             importPlaceholder: "Paste manual text here or drag PDF...",
             importHint: "AI will process the text and automatically identify failure modes, effects, and causes.",
+            dropFile: "Drop the file to read its contents!",
             processing: "Processing with AI..."
         },
         notifications: {

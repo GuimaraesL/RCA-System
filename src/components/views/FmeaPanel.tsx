@@ -125,7 +125,7 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
         body: JSON.stringify({ text: importText, ui_language: t('common.portuguese') })
       });
 
-      if (!response.ok) throw new Error('Falha na extração');
+      if (!response.ok) throw new Error(t('errors.somethingWentWrong').replace('{0}', 'IA Extraction'));
       
       const data = await response.json();
       const extractedModes: FmeaItem[] = data.modes;
@@ -224,7 +224,7 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
                 <th className="px-6 py-5">{t('fmea.table.causes')}</th>
                 <th className="px-4 py-5 text-center">O</th>
                 <th className="px-4 py-5 text-center">D</th>
-                <th className="px-4 py-5 text-center">RPN</th>
+                <th className="px-4 py-5 text-center">{t('fmea.table.rpn')}</th>
                 <th className="px-6 py-5 text-right">{t('common.actions')}</th>
               </tr>
             </thead>
@@ -386,7 +386,7 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
           }`}>
             <Sparkles size={24} className={`${dragActive ? "text-purple-600 animate-bounce" : "text-purple-500"} flex-shrink-0`} />
             <p className={`text-sm font-medium leading-relaxed ${dragActive ? "text-purple-700" : "text-purple-700 dark:text-purple-300"}`}>
-              {dragActive ? "Solte o arquivo para ler o conteúdo!" : t('fmea.modal.importHint')}
+              {dragActive ? t('fmea.modal.dropFile') : t('fmea.modal.importHint')}
             </p>
           </div>
           <Textarea 

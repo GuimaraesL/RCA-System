@@ -56,7 +56,12 @@ export const pt: TranslationSchema = {
         ptAbbr: "PT",
         enAbbr: "EN",
         attachments: "Anexos e Evidências",
-        add: "Adicionar"
+        add: "Adicionar",
+        dragMedia: "Arraste fotos ou vídeos aqui para começar.",
+        sending: "Enviando...",
+        uploadLimits: "Limites de Upload:",
+        uploadLimitsDesc: "Imagens (5MB), Vídeos (50MB), Documentos (10MB).",
+        suggestedFormats: "Formatos sugeridos: JPG, PNG, MP4, PDF."
     },
     filters: {
         title: "Filtros",
@@ -326,7 +331,9 @@ export const pt: TranslationSchema = {
     errors: {
         somethingWentWrong: "Ocorreu um erro no componente {0}.",
         verifyData: "Por favor, verifique seus dados ou entre em contato com o suporte.",
-        stackTrace: "Rastro do Erro (Stack Trace)"
+        stackTrace: "Rastro do Erro (Stack Trace)",
+        uploadFailed: "Erro ao enviar arquivos",
+        deleteFailed: "Erro ao excluir arquivo"
     },
     settings: {
         title: "Configurações",
@@ -896,6 +903,9 @@ export const pt: TranslationSchema = {
         toggleSidebar: "Alternar Sidebar",
         pressToClose: "Pressione Esc para fechar"
     },
+    mediaManager: {
+        noAttachments: "Nenhum anexo encontrado para esta análise."
+    },
     ai: {
         analysisTitle: "Análise de Inteligência Artificial",
         assistButton: "Assistir com IA",
@@ -928,6 +938,10 @@ export const pt: TranslationSchema = {
                 suggestActions: "Sugerir ações corretivas",
                 compareHistory: "Comparar com histórico"
             }
+        },
+        tooltips: {
+            similarEquipment: "Ver falhas similares neste Equipamento (mas em outro subgrupo)",
+            similarArea: "Ver falhas similares nesta Área / Manufatura"
         }
     },
     fmea: {
@@ -952,6 +966,7 @@ export const pt: TranslationSchema = {
             importTitle: "Importar Dados de FMEA",
             importPlaceholder: "Cole aqui o texto do manual ou arraste o PDF...",
             importHint: "A IA irá processar o texto e identificar automaticamente os modos de falha, efeitos e causas.",
+            dropFile: "Solte o arquivo para ler o conteúdo!",
             processing: "Processando com IA..."
         },
         notifications: {

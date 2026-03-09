@@ -60,6 +60,11 @@ export interface TranslationSchema {
         enAbbr: string;
         attachments: string;
         add: string;
+        dragMedia: string;
+        sending: string;
+        uploadLimits: string;
+        uploadLimitsDesc: string;
+        suggestedFormats: string;
     };
     filters: {
         title: string;
@@ -330,7 +335,9 @@ export interface TranslationSchema {
         somethingWentWrong: string;
         verifyData: string;
         stackTrace: string;
-    },
+        uploadFailed: string;
+        deleteFailed: string;
+    };
     settings: {
         title: string;
         description: string;
@@ -874,6 +881,9 @@ export interface TranslationSchema {
         toggleSidebar: string;
         pressToClose: string;
     };
+    mediaManager: {
+        noAttachments: string;
+    };
     ai: {
         analysisTitle: string;
         assistButton: string;
@@ -907,6 +917,10 @@ export interface TranslationSchema {
                 compareHistory: string;
             };
         };
+        tooltips: {
+            similarEquipment: string;
+            similarArea: string;
+        };
     };
     fmea: {
         title: string;
@@ -930,6 +944,7 @@ export interface TranslationSchema {
             importTitle: string;
             importPlaceholder: string;
             importHint: string;
+            dropFile: string;
             processing: string;
         };
         notifications: {

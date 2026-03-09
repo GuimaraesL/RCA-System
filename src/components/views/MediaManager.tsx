@@ -49,7 +49,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
       onChange(newAttachments);
     } catch (err) {
       console.error(err);
-      alert('Erro ao enviar arquivos');
+      alert(t('errors.uploadFailed'));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -84,7 +84,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
       await mediaService.delete(rcaId, filename);
       onChange(attachments.filter(a => a.filename !== filename));
     } catch (err) {
-      alert('Erro ao excluir arquivo');
+      alert(t('errors.deleteFailed'));
     }
   };
 
@@ -117,7 +117,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
           <ImageIcon className="text-blue-600" size={20} />
-          {t('common.attachments') || 'Anexos e Evidências'}
+          {t('common.attachments')}
         </h3>
         
         <input 
@@ -137,7 +137,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
           leftIcon={uploading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
           className="rounded-xl"
         >
-          {uploading ? t('common.loading') : t('common.add') || 'Adicionar'}
+          {uploading ? t('common.loading') : t('common.add')}
         </Button>
       </div>
 
@@ -149,9 +149,9 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
         }`}>
           <Upload size={40} className={`${dragActive ? "text-blue-500 animate-bounce" : "text-slate-200 dark:text-slate-700"} mb-4`} />
           <p className={`${dragActive ? "text-blue-600" : "text-slate-400"} text-sm font-medium`}>
-            {dragActive ? "Solte para enviar!" : "Nenhum anexo encontrado para esta análise."}
+            {dragActive ? t('common.dragMedia') : t('mediaManager.noAttachments')}
           </p>
-          <p className="text-slate-300 text-xs mt-1 italic">Arraste fotos ou vídeos aqui para começar.</p>
+          <p className="text-slate-300 text-xs mt-1 italic">{t('common.dragMedia')}</p>
         </Card>
       ) : (
         <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-2 rounded-2xl transition-all ${
@@ -193,7 +193,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
           {uploading && (
             <div className="aspect-square rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-900/30 flex flex-col items-center justify-center gap-3 bg-blue-50/20">
               <Loader2 size={32} className="text-blue-500 animate-spin" />
-              <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest animate-pulse">Enviando...</p>
+              <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest animate-pulse">{t('common.sending')}</p>
             </div>
           )}
         </div>
@@ -203,8 +203,8 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
       <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex gap-3">
         <AlertCircle size={18} className="text-slate-400 flex-shrink-0 mt-0.5" />
         <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-          <p><strong>Limites de Upload:</strong> Imagens (5MB), Vídeos (50MB), Documentos (10MB).</p>
-          <p>Formatos sugeridos: JPG, PNG, MP4, PDF.</p>
+          <p><strong>{t('common.uploadLimits')}</strong> {t('common.uploadLimitsDesc')}</p>
+          <p>{t('common.suggestedFormats')}</p>
         </div>
       </div>
     </div>
