@@ -121,13 +121,24 @@ def search_historical_rcas_tool(query: str, subgroup_id: str = None, equipment_i
         formatted_results = []
         for doc in results:
             rid = doc.meta_data.get("rca_id", "Desconhecido")
-            # Retorna o conteúdo COMPLETO da RCA formatada no knowledge.py
+            asset = doc.meta_data.get("asset", "N/A")
+            
+            # Extrai apenas titulo e causa para o resumo (economiza tokens)
+            title = "Sem titulo"
+            cause = "Causa nao identificada"
+            for line in doc.content.split('\n'):
+                if "TITULO/O QUE" in line or "TÍTULO/O QUE" in line: 
+                    title = line.split(":", 1)[-1].strip() if ":" in line else line.strip()
+                if "CAUSAS RAIZ" in line: 
+                    cause = line.split(":", 1)[-1].strip()[:150] if ":" in line else line.strip()[:150]
+
             formatted_results.append(
-                f"--- RCA ID: {rid} (Similaridade encontrada no nível: {level_found.upper()}) ---\n"
-                f"{doc.content.strip()}"
+                f"- ID: {rid} | Ativo: {asset} | Nivel: {level_found.upper()}\n"
+                f"  Titulo: {title}\n"
+                f"  Causa: {cause}"
             )
             
-        return "RCAS HISTÓRICAS ENCONTRADAS (DADOS COMPLETOS):\n\n" + "\n\n".join(formatted_results)
+        return "RCAS HISTORICAS (RESUMO - use get_full_rca_detail_tool para detalhes):\n\n" + "\n".join(formatted_results)
     except Exception as e:
         return f"Erro ao realizar a busca RAG: {str(e)}"
 

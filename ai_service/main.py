@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from agno.os import AgentOS
 
 from core.config import KNOWLEDGE_PATH
-from core.knowledge import get_rca_history_knowledge, get_methodology_knowledge, index_historical_rcas
+from core.knowledge import get_rca_history_knowledge, index_historical_rcas
 from api.routes import router as api_router
 
 @asynccontextmanager
@@ -29,14 +29,7 @@ async def lifespan(app: FastAPI):
 print(f"[KNOWLEDGE] Verificando Knowledge Path: {KNOWLEDGE_PATH}")
 if os.path.exists(KNOWLEDGE_PATH):
     print(f"[OK] Diretório de conhecimento encontrado.")
-else:
-    print(f"[WARNING] AVISO: Diretório {KNOWLEDGE_PATH} NÃO encontrado.")
-
 history_kb = get_rca_history_knowledge()
-methodology_kb = get_methodology_knowledge()
-methodology_kb.add_content(path=KNOWLEDGE_PATH)
-
-# Usamos a memória padrão para o AgentOS monitorar
 from core.memory import get_agent_memory
 storage = get_agent_memory("rca_system_storage")
 
@@ -50,7 +43,7 @@ rca_agent_preview = get_rca_agent("preview_agent", rca_context="Contexto de prev
 agent_os = AgentOS(
     name="RCA System OS",
     agents=[rca_agent_preview],
-    knowledge=[history_kb, methodology_kb], 
+    knowledge=[history_kb], 
     db=storage,             
     tracing=True
 )

@@ -12,14 +12,14 @@ from core.tools import (
     get_historical_rca_action_plan,
     get_historical_rca_triggers
 )
-from core.knowledge import get_rca_history_knowledge, get_methodology_knowledge
 from core.prompts import GLOBAL_RULES, MAIN_AGENT_PROMPT, MEDIA_ANALYSIS_RULES
 from core.memory import get_agent_memory
 
-def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context: str = None):
+def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context: str = None, validated_recurrences: str = None):
     """
-    Cria um Agente Único Unificado com acesso a todas as ferramentas, conhecimentos (RAG) 
-    e habilidades para realizar análises de RCA, gerar artefatos e interagir via chat.
+    Cria o Agente Copiloto RCA (Estágio 3 do Pipeline).
+    Recebe contexto do incidente e recorrências já validadas pelo RAG Validator.
+    Tem acesso à metodologia (.md) via search_knowledge e ferramentas de detalhe sob demanda.
     """
     skills_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "skills")
 
@@ -28,24 +28,20 @@ def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context:
     if os.path.exists(skills_path):
         loaders.append(LocalSkills(skills_path))
 
-    # Prepara as instruções base
+    # Prepara as instruções base (SEM injetar contexto pesado dinamico aqui)
     agent_instructions = [
         GLOBAL_RULES.format(idioma=language), 
         MAIN_AGENT_PROMPT,
         MEDIA_ANALYSIS_RULES
     ]
 
-    # Injeta o contexto atual do formulário/RAG como instrução de sistema (não salva no histórico de chat)
-    if rca_context:
-        agent_instructions.append(f"\n### CONTEXTO ATUAL DO INCIDENTE (VERDADE ABSOLUTA):\n{rca_context}\n")
-
     return Agent(
         name="RCA_Unified_Copilot",
         session_id=session_id,
         role="Engenheiro Sênior de Confiabilidade e Copiloto RCA",
-        # OTIMIZAÇÃO DE CUSTO: gemini-1.5-flash ou gemini-2.5-flash suportam "Context Caching"
-        # O Agno e a API do GenAI usam caching para arquivos e textão pesados no prompt se você especificar
-        model=Gemini(id="gemini-2.5-flash"), 
+        # OTIMIZAÇÃO DE CUSTO: gemini-2.0-flash suportam "Context Caching"
+        # O modelo gemini-2.0-flash é a versão final mais estável
+        model=Gemini(id="gemini-2.0-flash"), 
         instructions=agent_instructions,
         tools=[
             search_historical_rcas_tool, 
@@ -57,12 +53,13 @@ def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context:
             DuckDuckGoTools()
         ],
         skills=Skills(loaders=loaders) if loaders else None, 
-        knowledge=[get_rca_history_knowledge(), get_methodology_knowledge()], 
-        search_knowledge=True, 
+        # PIPELINE: Conhecimento de metodologia ja vem nas instructions/skills.
+        # Removemos knowledge completamente para eliminar buscas automaticas do Agno.
+        search_knowledge=False,
         db=get_agent_memory(session_id),
         read_chat_history=True,
         add_history_to_context=True,
-        num_history_runs=3, # OTIMIZAÇÃO: Lembra das últimas 3 interações para não estourar tokens
+        num_history_runs=3, # RESTAURADO: Permite o Agente lembrar do historico sem quebrar fio da meada
         debug_mode=True,
         markdown=True,
     )

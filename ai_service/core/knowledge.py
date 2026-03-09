@@ -4,45 +4,34 @@
 import hashlib
 import sqlite3
 from agno.knowledge import Knowledge
-from agno.knowledge.reader.text_reader import TextReader
 from agno.vectordb.chroma import ChromaDb
 from agno.knowledge.embedder.google import GeminiEmbedder
-from .config import VECTOR_DB_PATH, KNOWLEDGE_DB_PATH, GOOGLE_API_KEY, BACKEND_URL, KNOWLEDGE_PATH
+from .config import VECTOR_DB_PATH, KNOWLEDGE_DB_PATH, GOOGLE_API_KEY, BACKEND_URL
 
 # Configuração do Embedder (Google Gemini 2.0 Flash)
 embedder = GeminiEmbedder(api_key=GOOGLE_API_KEY)
 
+from agno.knowledge.reader.text_reader import TextReader
+from agno.knowledge.chunking.fixed import FixedSizeChunking
+
 # Base de Conhecimento para Histórico de RCAs (Dinamica - RAG)
 rca_history_knowledge = Knowledge(
     vector_db=ChromaDb(
-        collection="rca_history_v1", # Versão explícita para evitar conflitos
+        collection="rca_history_v1",
         path=VECTOR_DB_PATH,
         persistent_client=True,
         embedder=embedder
     ),
-    name="RCA History",
-    readers=[] # Alimentado via index_historical_rcas em tools/main
-)
-
-# Base de Conhecimento para Documentação/Metodologia (Estática)
-methodology_knowledge = Knowledge(
-    vector_db=ChromaDb(
-        collection="methodology_docs",
-        path=VECTOR_DB_PATH,
-        persistent_client=True,
-        embedder=embedder
-    ),
-    name="Methodology Docs",
-    readers=[]
+    # Configura o leitor com chunk gigante (50k) para evitar fatiamento das RCAs
+    readers=[
+        TextReader(chunking_strategy=FixedSizeChunking(chunk_size=50000))
+    ],
+    name="RCA History"
 )
 
 def get_rca_history_knowledge():
     """Retorna a base de conhecimento do histórico de RCAs."""
     return rca_history_knowledge
-
-def get_methodology_knowledge():
-    """Retorna a base de conhecimento da metodologia."""
-    return methodology_knowledge
 
 def init_hash_db():
     """Inicializa um banco SQLite simples para controlar os hashes das RCAs indexadas."""
@@ -60,24 +49,19 @@ def init_hash_db():
 def index_historical_rcas(api_url=None):
     """
     Busca RCAs concluídas no backend principal e as indexa no VectorDB.
-    Usa um banco local de hashes para evitar re-indexar o que não mudou (Saves Credits).
     """
     if api_url is None:
         base_url = BACKEND_URL.rstrip('/')
         api_url = f"{base_url}/api/rcas"
     
     import httpx
-    from agno.knowledge.document import Document
     
     print(f"Indexing RCAs from {api_url}...")
     try:
-        # Inicializa controle de hashes
         conn = init_hash_db()
         cursor = conn.cursor()
 
-        # Busca todas as RCAs
-        response = httpx.get(f"{api_url}", timeout=10.0)
-        
+        response = httpx.get(f"{api_url}", timeout=15.0)
         if response.status_code != 200:
             print(f"Failed to fetch RCAs: {response.status_code}")
             return
@@ -97,53 +81,75 @@ def index_historical_rcas(api_url=None):
         skipped_count = 0
         
         for rca in rcas:
-            # Pula RCAs sem descrição ou causa raiz (rascunhos vazios)
+            # Inicialização segura de variáveis para evitar NameError
+            rca_id = str(rca.get('id', 'unknown'))
+            if rca_id == 'unknown': continue
+            
+            # Pula rascunhos vazios
             if not rca.get('what') and not rca.get('description'):
                 continue
 
-            # Garante que o ID seja string para busca consistente no SQLite
-            rca_id = str(rca.get('id'))
+            area_id = rca.get('area_id', "")
+            equip_id = rca.get('equipment_id', "")
+            subg_id = rca.get('subgroup_id', "")
             
-            import json
-            # Formata o conteúdo para busca semântica focada no problema
-            content_parts = [
-                f"TÍTULO/O QUE (What): {rca.get('what', 'N/A')}",
-                f"DESCRIÇÃO TÉCNICA: {rca.get('problem_description', rca.get('description', 'N/A'))}",
-                f"CAUSAS RAIZ: " + "; ".join([c.get('cause', '') for c in rca.get('root_causes', [])]),
-                f"AÇÕES TOMADAS: " + "; ".join([a.get('action_title', '') for a in rca.get('action_plans', [])])
-            ]
+            asset_dict = rca.get('asset', {})
+            area_name = asset_dict.get('area_name') if isinstance(asset_dict, dict) else None
+            equip_name = asset_dict.get('equipment_name') if isinstance(asset_dict, dict) else None
+            subg_name = asset_dict.get('subgroup_name') if isinstance(asset_dict, dict) else None
+            comp_type = rca.get('component_type')
             
-            content = "\n".join(content_parts).strip()
+            area_label = area_name or area_id
+            equip_label = equip_name or equip_id
+            subg_label = subg_name or subg_id
 
+            # Montagem da Narrativa
+            location_parts = []
+            if area_label: location_parts.append(f"na área {area_label}")
+            if equip_label: location_parts.append(f"afetando o equipamento {equip_label}")
+            if subg_label: location_parts.append(f"com impacto focado no subgrupo {subg_label}")
+            if comp_type: location_parts.append(f"no componente {comp_type}")
+
+            content_parts = []
+            if location_parts:
+                content_parts.append(f"LOCALIZAÇÃO DO ATIVO: O incidente ocorreu {', '.join(location_parts)}.")
             
-            # Gera hash do conteúdo atual
+            what_desc = rca.get('what')
+            if what_desc: content_parts.append(f"RESUMO DO PROBLEMA: {what_desc}")
+            
+            problem_desc = rca.get('problem_description', rca.get('description'))
+            if problem_desc: content_parts.append(f"DESCRIÇÃO TÉCNICA (SINTOMAS): {problem_desc}")
+            
+            causes = [c.get('cause', '') for c in rca.get('root_causes', [])]
+            if causes: content_parts.append(f"CAUSAS RAIZ: " + " | ".join(causes))
+                
+            actions = [a.get('action_title', '') for a in rca.get('action_plans', [])]
+            if actions: content_parts.append(f"AÇÕES DO PLANO: " + " | ".join(actions))
+            
+            content = "\n\n".join(content_parts).strip()
             current_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()
             
-            # Verifica se já está indexado com este mesmo hash
             cursor.execute("SELECT content_hash FROM indexed_rcas WHERE rca_id = ?", (rca_id,))
             row = cursor.fetchone()
-            
             if row and row[0] == current_hash:
                 skipped_count += 1
                 continue
             
-            # Se mudou ou é novo, indexa no Vector DB
             try:
+                # Agora o add_content usará o reader configurado globalmente (50k chunk)
                 rca_history_knowledge.add_content(
                     name=f"rca_{rca_id}",
                     text_content=content,
                     metadata={
                         "rca_id": rca_id,
-                        "asset": str(rca.get('asset_name_display', rca.get('asset', ''))),
                         "status": rca.get('status'),
-                        "area_id": str(rca.get('area_id', '')),
-                        "equipment_id": str(rca.get('equipment_id', '')),
-                        "subgroup_id": str(rca.get('subgroup_id', ''))
+                        "area_id": str(area_id or ""),
+                        "equipment_id": str(equip_id or ""),
+                        "subgroup_id": str(subg_id or "")
                     },
                     upsert=True
                 )
                 
-                # Atualiza o banco de hashes
                 cursor.execute("INSERT OR REPLACE INTO indexed_rcas (rca_id, content_hash) VALUES (?, ?)", (rca_id, current_hash))
                 conn.commit()
                 indexed_count += 1
@@ -152,7 +158,7 @@ def index_historical_rcas(api_url=None):
                 print(f"[WARNING] Error indexing RCA {rca_id}: {doc_e}")
                 continue
                 
-        print(f"[OK] Sync Finished! New: {indexed_count} | Skipped (unchanged): {skipped_count} | Total: {total}")
+        print(f"[OK] Sync Finished! New: {indexed_count} | Skipped: {skipped_count} | Total: {total}")
         conn.close()
         
     except Exception as e:

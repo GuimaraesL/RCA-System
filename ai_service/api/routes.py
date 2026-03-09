@@ -182,44 +182,42 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         import re
         def clean_title(content: str) -> str:
             """Extrai o título limpo via Regex ignorando IDs e campos vizinhos."""
-            match = re.search(r'TÍTULO/O QUE \(What\):\s*(.+?)(?=\s*QUEM \(Who\):|\Z)', content, flags=re.DOTALL)
+            # Novo Formato (RESUMO DO PROBLEMA)
+            match = re.search(r'RESUMO DO PROBLEMA:\s*(.*?)(?=\n\n|$|DESCRIÇÃO)', content, flags=re.DOTALL)
             if match:
-                # remove quebras de linha que possam ter vindo junto
                 return match.group(1).replace('\n', ' ').strip()
             
-            # Fallback
+            # Fallback Legacy
+            match_legacy = re.search(r'TÍTULO/O QUE \(What\):\s*(.+?)(?=\s*QUEM \(Who\):|\Z)', content, flags=re.DOTALL)
+            if match_legacy:
+                return match_legacy.group(1).replace('\n', ' ').strip()
+            
             lines = content.split('\n')
-            for line in lines:
-                if 'TÍTULO' in line or 'O QUE' in line:
-                    return re.sub(r'^.*?:\s*', '', line).strip()
             return lines[0][:100] if lines else "Sem título"
 
         def extract_recurrence(doc, level_name: str, rank: int) -> RecurrenceInfo:
             """Extrai RecurrenceInfo de um documento do VectorDB."""
-            content_lines = doc.content.split("\n")
-            causes = "N/A"
-            actions = "N/A"
-            equip_name = doc.meta_data.get("asset", "")
-            area_name_val = ""
-
-            for line in content_lines:
-                if line.startswith("CAUSAS RAIZ:"): causes = line.replace("CAUSAS RAIZ: ", "")
-                if line.startswith("AÇÕES TOMADAS:"): actions = line.replace("AÇÕES TOMADAS: ", "")
-
-            # Removendo a similaridade mockada/indexada - enviamos 0 ou omitimos visualmente no front
-            similarity = 0.0 
+            content = doc.content
+            
+            # Pega as chaves reais que salvamos na indexação
+            area_val = doc.meta_data.get("area_id", "")
+            equip_val = doc.meta_data.get("equipment_id", "")
+            subg_val = doc.meta_data.get("subgroup_id", "")
 
             title = clean_title(doc.content)
 
             return RecurrenceInfo(
                 rca_id=doc.meta_data.get("rca_id", "unknown"),
-                similarity=similarity,
+                similarity=0.0,
                 title=title,
                 level=level_name,
-                root_causes=causes,
-                actions=actions,
-                equipment_name=equip_name,
-                area_name=area_name_val
+                symptoms="N/A", # Não precisamos mais espelhar sintoma a sintoma no pydantic
+                root_causes="", 
+                equipment_name=f"Área: {area_val} > Equip: {equip_val} > Subgrupo: {subg_val}",
+                area_name=area_val,
+                subgroup_name=subg_val,
+                actions="N/A",
+                raw_content=content # Injetamos toda a riqueza do texto original aqui
             )
 
         if query_text:
@@ -325,39 +323,65 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                     except Exception as media_err:
                         logger.error(f"[Media] Falha ao baixar midia {media_url}: {media_err}")
 
-        # Fase 3: Motor de IA Unificado para consistência de memória
-        # 1. Constrói o Contexto Global (Formulário + Recorrências)
+        # ============================================================
+        # ESTÁGIO 2: VALIDAÇÃO LLM DAS RECORRÊNCIAS (Pipeline 2-Stage RAG)
+        # ============================================================
+        validated_recurrences_text = None
+        if recurrences and is_initial_analysis:
+            try:
+                from agents.rag_validator import get_rag_validator
+                validator = get_rag_validator()
+                
+                # Monta o prompt de validação com os candidatos BRUTOS (Toda a história)
+                candidate_texts = []
+                for r in recurrences:
+                    # Aqui formatamos a exibição real para o LLM injetando raw_content
+                    item = f"ID_RCA: {r.rca_id} | Hierarquia do Incidente: {r.equipment_name} | Algoritmo do RAG (Nível): {r.level}\n"
+                    item += f"--- CONTEÚDO INTEGRAL DA ANÁLISE ---\n{r.raw_content}\n------------------------------------"
+                    candidate_texts.append(item)
+                
+                validation_prompt = (
+                    f"PROBLEMA ATUAL:\n{query_text}\n"
+                    f"Ativo Atual: {asset_info}\n\n"
+                    f"CANDIDATOS DO RAG (ChromaDB):\n" + "\n\n".join(candidate_texts)
+                )
+                
+                logger.info(f"[RAG-VALIDATOR] Validando {len(recurrences)} candidatos (Texto Bruto Injetado)...")
+                validation_response = validator.run(validation_prompt)
+                validated_recurrences_text = validation_response.content
+                logger.info(f"[RAG-VALIDATOR] Resultado: {validated_recurrences_text[:200]}...")
+            except Exception as val_err:
+                logger.error(f"[RAG-VALIDATOR] Erro na validação: {val_err}")
+                # Fallback: se o validador falhar, injeta tudo como antes
+                validated_recurrences_text = "\n".join([f"- RCA {r.rca_id}: {r.raw_content[:200]}..." for r in recurrences])
+
+        # ============================================================
+        # ESTÁGIO 3: COPILOTO RCA (Agente Principal)
+        # ============================================================
+        # Contexto do incidente (dados da tela + evidencias visuais)
         context_block = ""
-        # Os DADOS ATUAIS DA TELA devem ir em todo request para manter o LLM ciente se o usuário alterou títulos/causas no input
         if request.context:
             context_block += f"\n[DADOS ATUAIS DA TELA]:\nAtivo: {asset_info}\n{request.context}\n"
-
-        # OTIMIZAÇÃO: Injeta histórico pesado do RAG (RCA) apenas na primeira mensagem. Evita bloat de prompt.
-        if recurrences and is_initial_analysis:
-            recurr_items = []
-            for r in recurrences:
-                item = f"- [RCA {r.rca_id[:8]}...](#/rca/{r.rca_id}): {r.title} (Nível: {r.level})"
-                if r.root_causes and r.root_causes != "N/A":
-                    item += f"\n  - Causa Raiz: {r.root_causes}"
-                if r.actions and r.actions != "N/A":
-                    item += f"\n  - Ações anteriores: {r.actions}"
-                recurr_items.append(item)
-            context_block += f"\n[HISTÓRICO ENCONTRADO]:\n" + "\n".join(recurr_items) + "\n"
 
         if (images or videos) and is_initial_analysis:
             context_block += f"\n[EVIDÊNCIAS VISUAIS]: Existem {len(images)} imagens e {len(videos)} vídeos anexados para sua análise técnica.\n"
 
-        # Injetamos o contexto no agente via instructions para evitar repetição no DB de chat
         from agents.main_agent import get_rca_agent
-        ai_engine = get_rca_agent(str(request.rca_id), language=ui_lang, rca_context=context_block)
+        ai_engine = get_rca_agent(str(request.rca_id), language=ui_lang)
 
-        # 2. Monta o prompt final
+        # 2. Monta o prompt final (Contexto Risco-Zero: só gasta tokens 1 vez na vida da sessao)
         if not is_initial_analysis:
             logger.info(f"📡 ROTA: Mensagem de chat recebida -> Unified Agent Mode. (Multimodal: {len(images)} imgs, {len(videos)} vids)")
             prompt = request.user_prompt
         else:
             logger.info(f"📡 ROTA: Análise inicial automática -> Unified Agent Mode. (Multimodal: {len(images)} imgs, {len(videos)} vids)")
-            prompt = f"Realize a análise completa de causa raiz para a RCA ID: {request.rca_id} baseando-se nos dados fornecidos e nas evidências visuais."
+            
+            # Constrói o blocão da Análise Inicial (DADOS DA TELA + VALIDAÇÕES)
+            prompt = f"Realize a análise completa de causa raiz para a RCA ID: {request.rca_id} baseando-se nos dados abaixo:\n"
+            if context_block:
+                prompt += f"{context_block}\n"
+            if validated_recurrences_text:
+                prompt += f"\n### RECORRÊNCIAS VALIDADAS:\n{validated_recurrences_text}\n"
         logger.info(f"🔍 ROTA: Motor={type(ai_engine).__name__}, Prompt ({len(prompt)} chars)")
 
         # 4. Gerador de Streaming para SSE compatível com Agno 2.x e o Frontend
@@ -405,8 +429,14 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                             continue
                         elif content_str.startswith("get_rca_context_tool"):
                             continue
-                        elif content_str.startswith("Transferring") or content_str.startswith("Running"):
-                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Coordenando especialistas...'})}\n\n"
+                        elif content_str.startswith("Transferring"):
+                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Coordenando fluxo de trabalho...'})}\n\n"
+                            continue
+                        elif content_str.startswith("Running"):
+                            # Extrai o nome real da ferramenta que o Agno loga (ex: "Running tool get_skill_reference")
+                            tool_name = content_str.replace("Running tool", "").strip() or "especializada"
+                            if "DuckDuckGo" in tool_name or tool_name == "duckduckgo": tool_name = "Busca Web Livre"
+                            yield f"data: {json.dumps({'type': 'reasoning', 'text': f'Acionando habilidade: {tool_name}...'})}\n\n"
                             continue
 
                         yield f"data: {json.dumps({'type': 'content', 'delta': content_str})}\n\n"
