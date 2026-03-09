@@ -60,11 +60,11 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
-                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest w-24">ID</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest w-1/3">Título</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest w-1/4">Causa Raiz</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Ações Tomadas</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest w-16 text-center">Ver</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest w-24">{t('table.id')}</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest w-1/3">{t('table.what')}</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest w-1/4">{t('fields.rootCauses')}</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{t('table.actions')}</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest w-16 text-center">{t('common.view')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50 dark:divide-white/5">
@@ -73,7 +73,7 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                                     <td colSpan={5} className="px-6 py-12 text-center">
                                         <div className="flex flex-col items-center justify-center opacity-40">
                                             <Inbox className="w-8 h-8 mb-2" />
-                                            <span className="text-sm italic font-medium">Nenhum histórico encontrado para este nível</span>
+                                            <span className="text-sm italic font-medium">{t('analysesPage.noRecords')}</span>
                                         </div>
                                     </td>
                                 </tr>

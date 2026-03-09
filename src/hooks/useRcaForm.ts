@@ -131,7 +131,7 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
         if (Array.isArray(value)) {
             if (value.length === 0) return true; // Array vazio é inválido se obrigatório
 
-            if (field === 'five_whys') return value.filter(w => w.answer && w.answer.trim()).length < 3; // Regra de negócio específica dos 5 Porquês
+            if (field === 'five_whys') return 3 > value.filter(w => w.answer && w.answer.trim()).length; // Regra de negócio específica dos 5 Porquês
             if (field === 'root_causes') return value.length === 0; // Basta ter uma causa
             if (field === 'lessons_learned') return value.every(l => typeof l === 'string' && l.trim() === ''); // Array de strings vazio ou só strings vazias
 

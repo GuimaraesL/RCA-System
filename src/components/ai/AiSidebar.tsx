@@ -206,7 +206,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                         <div
                             className="ai-section-label flex justify-between items-center cursor-pointer hover:text-slate-200 transition-colors"
                             onClick={() => setEquipExpanded(!equipExpanded)}
-                            title="Ver falhas similares neste Equipamento (mas em outro subgrupo)"
+                            title={t('ai.tooltips.similarEquipment')}
                         >
                             <span className="flex items-center gap-1.5 font-semibold">
                                 <History size={14} className="text-slate-400" /> Mesmo Equipamento ({recurrenceData.equipment.length})
@@ -236,7 +236,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                         <div
                             className="ai-section-label flex justify-between items-center cursor-pointer hover:text-slate-200 transition-colors"
                             onClick={() => setAreaExpanded(!areaExpanded)}
-                            title="Ver falhas similares nesta Área / Manufatura"
+                            title={t('ai.tooltips.similarArea')}
                         >
                             <span className="flex items-center gap-1.5 font-semibold">
                                 <MapPin size={14} className="text-slate-400" /> Mesma Área ({recurrenceData.area.length})
