@@ -37,9 +37,35 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [importText, setImportPlaceholder] = useState('');
   const [isProcessingAi, setIsProcessingAi] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
 
   // Estados para Deleção
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        setImportPlaceholder(evt.target?.result as string);
+      };
+      reader.readAsText(file);
+    }
+  };
 
   const fetchModes = async () => {
     try {
@@ -326,7 +352,7 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
       {/* Modal de Importação IA */}
       <Modal
         isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
+        onClose={() => { setIsImportModalOpen(false); setDragActive(false); }}
         title={t('fmea.modal.importTitle')}
         icon={<Brain size={24} className="text-purple-500" />}
         footer={
@@ -346,16 +372,28 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
           </>
         }
       >
-        <div className="space-y-4">
-          <div className="p-4 bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-900/30 rounded-2xl flex gap-4">
-            <Sparkles size={24} className="text-purple-500 flex-shrink-0" />
-            <p className="text-sm text-purple-700 dark:text-purple-300 font-medium leading-relaxed">
-              {t('fmea.modal.importHint')}
+        <div 
+          className="space-y-4"
+          onDragEnter={handleDrag}
+          onDragOver={handleDrag}
+          onDragLeave={handleDrag}
+          onDrop={handleDrop}
+        >
+          <div className={`p-4 transition-all duration-300 border-2 border-dashed rounded-2xl flex gap-4 ${
+            dragActive 
+              ? "bg-purple-50 dark:bg-purple-900/20 border-purple-500 ring-4 ring-purple-500/10 scale-[1.01]" 
+              : "bg-purple-50 dark:bg-purple-900/10 border-purple-100 dark:border-purple-900/30"
+          }`}>
+            <Sparkles size={24} className={`${dragActive ? "text-purple-600 animate-bounce" : "text-purple-500"} flex-shrink-0`} />
+            <p className={`text-sm font-medium leading-relaxed ${dragActive ? "text-purple-700" : "text-purple-700 dark:text-purple-300"}`}>
+              {dragActive ? "Solte o arquivo para ler o conteúdo!" : t('fmea.modal.importHint')}
             </p>
           </div>
           <Textarea 
             placeholder={t('fmea.modal.importPlaceholder')}
-            className="min-h-[300px] font-mono text-sm"
+            className={`min-h-[300px] font-mono text-sm transition-all duration-300 ${
+              dragActive ? "border-purple-400 bg-purple-50/30" : ""
+            }`}
             value={importText}
             onChange={e => setImportPlaceholder(e.target.value)}
           />
