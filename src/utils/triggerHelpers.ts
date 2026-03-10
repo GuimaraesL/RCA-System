@@ -77,7 +77,7 @@ export const getStatusColor = (statusId: string, _taxonomy: TaxonomyConfig) =>
  * Calcula o indicador de Farol (SLA) com base nos dias de abertura.
  */
 export const getFarol = (startDate: string, statusId: string, taxonomy: TaxonomyConfig) => {
-    if (!startDate) return { days: 0, color: 'bg-gray-100 text-gray-500' };
+    if (!startDate) return { days: 0, color: 'bg-slate-100 text-slate-500' };
 
     try {
         if (statusId === STATUS_IDS.CONCLUDED || statusId === TRIGGER_STATUS_IDS.CONVERTED) {
@@ -91,7 +91,7 @@ export const getFarol = (startDate: string, statusId: string, taxonomy: Taxonomy
             statusId === 'REMOVED' || statusId === 'IGNORADA';
 
         const start = new Date(startDate);
-        if (isNaN(start.getTime())) return { days: 0, color: 'bg-gray-100 text-gray-500' };
+        if (isNaN(start.getTime())) return { days: 0, color: 'bg-slate-100 text-slate-500' };
 
         const now = new Date();
         const diffTime = Math.abs(now.getTime() - start.getTime());
@@ -102,7 +102,7 @@ export const getFarol = (startDate: string, statusId: string, taxonomy: Taxonomy
         if (days >= 7) color = 'bg-red-100 text-red-700';
 
         if (isClosed) {
-            color = 'bg-gray-100 text-gray-400'; // Estilo esmaecido para itens encerrados
+            color = 'bg-slate-100 text-slate-400'; // Estilo esmaecido para itens encerrados
         }
 
         return { days, color };

@@ -64,9 +64,9 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             button: 'bg-yellow-600 hover:bg-yellow-700'
         },
         info: {
-            bg: 'bg-blue-50',
-            icon: 'text-blue-500',
-            button: 'bg-blue-600 hover:bg-blue-700'
+            bg: 'bg-primary-50',
+            icon: 'text-primary-500',
+            button: 'bg-primary-600 hover:bg-primary-700'
         }
     };
 

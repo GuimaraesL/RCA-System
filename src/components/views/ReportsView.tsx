@@ -39,7 +39,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                 );
             case ACTION_STATUS_IDS.COMPLETED:
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-[10px] font-black uppercase tracking-wider border border-blue-100 dark:border-blue-900/30 shadow-sm">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 text-[10px] font-black uppercase tracking-wider border border-primary-100 dark:border-primary-900/30 shadow-sm">
                         <ShieldCheck size={12} strokeWidth={3} />
                         {t('actionModal.statusOptions.completed')}
                     </span>
@@ -51,7 +51,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                         {t('actionModal.statusOptions.verified')}
                     </span>
                 );
-            default: return <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-xs font-mono">{status || '-'}</span>;
+            default: return <span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-mono">{status || '-'}</span>;
         }
     };
 
@@ -137,16 +137,16 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-800 transition-all hover:shadow-xl hover:shadow-blue-500/5 dark:hover:shadow-blue-900/10 group">
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-800 transition-all hover:shadow-xl hover:shadow-primary-500/5 dark:hover:shadow-primary-900/10 group">
                     <div className="flex justify-between items-start mb-6">
-                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-2xl shadow-sm group-hover:scale-110 transition-transform"><Activity size={24} /></div>
+                        <div className="p-3 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-2xl shadow-sm group-hover:scale-110 transition-transform"><Activity size={24} /></div>
                         {overdueActions.length > 0 && <span className="text-[10px] font-black text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 px-3 py-1 rounded-full border border-rose-100 dark:border-rose-900/30 animate-pulse uppercase tracking-widest">{overdueActions.length} {t('reports.overdue')}</span>}
                     </div>
                     <div className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter mb-1">{filteredRecords.length}</div>
                     <div className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.15em]">{t('reports.totalAnalyses')}</div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-800 transition-all hover:shadow-xl hover:shadow-blue-500/5 dark:hover:shadow-blue-900/10 group">
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-800 transition-all hover:shadow-xl hover:shadow-primary-500/5 dark:hover:shadow-primary-900/10 group">
                     <div className="flex justify-between items-start mb-6">
                         <div className="p-3 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-2xl shadow-sm group-hover:scale-110 transition-transform"><AlertCircle size={24} /></div>
                     </div>
@@ -154,7 +154,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                     <div className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.15em]">{t('reports.openAnalyses')}</div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-800 transition-all hover:shadow-xl hover:shadow-blue-500/5 dark:hover:shadow-blue-900/10 group">
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-800 transition-all hover:shadow-xl hover:shadow-primary-500/5 dark:hover:shadow-primary-900/10 group">
                     <div className="flex justify-between items-start mb-6">
                         <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-2xl shadow-sm group-hover:scale-110 transition-transform"><CheckCircle2 size={24} /></div>
                     </div>
@@ -162,7 +162,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                     <div className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.15em]">{t('reports.concluded')}</div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-800 transition-all hover:shadow-xl hover:shadow-blue-500/5 dark:hover:shadow-blue-900/10 group">
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-800 transition-all hover:shadow-xl hover:shadow-primary-500/5 dark:hover:shadow-primary-900/10 group">
                     <div className="flex justify-between items-start mb-6">
                         <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-2xl shadow-sm group-hover:scale-110 transition-transform"><Calendar size={24} /></div>
                     </div>
@@ -199,7 +199,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ records }) => {
                             {openActions.map((action, idx) => {
                                 const isOverdue = new Date(action.date) < new Date();
                                 return (
-                                    <tr key={`${action.rca_id}-${idx}`} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-all">
+                                    <tr key={`${action.rca_id}-${idx}`} className="hover:bg-primary-50/30 dark:hover:bg-primary-900/10 transition-all">
                                         <td className={`px-8 py-6 font-mono text-xs ${isOverdue ? 'text-rose-600 dark:text-rose-400 font-black' : 'text-slate-400 dark:text-slate-500 font-bold'}`}>
                                             {action.date} {isOverdue && <span className="ml-3 text-[10px] bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 px-2 py-0.5 rounded-full border border-rose-100 dark:border-rose-900/30 uppercase tracking-widest">{t('reports.overdue')}</span>}
                                         </td>

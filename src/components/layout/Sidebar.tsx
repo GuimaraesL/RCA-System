@@ -76,7 +76,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onSh
             className={`
                 w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm tracking-tight
                 ${view === id
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
+                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/20'
                     : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}
                 ${isCollapsed ? 'justify-center px-2' : ''}
                 disabled:opacity-20 disabled:cursor-not-allowed
@@ -85,7 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onSh
             data-testid={`nav-${id}`}
             disabled={isBlocked}
         >
-            <Icon size={20} className={`flex-shrink-0 ${view === id ? 'text-white' : 'text-slate-500 group-hover:text-blue-400'}`} />
+            <Icon size={20} className={`flex-shrink-0 ${view === id ? 'text-white' : 'text-slate-500 group-hover:text-primary-400'}`} />
             {!isCollapsed && <span className="flex-1 text-left"><ShortcutLabel text={label} shortcutLetter={shortcutLetter} /></span>}
         </button>
     );
@@ -94,7 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onSh
         <>
             <button
                 onClick={toggleMobile}
-                className="lg:hidden fixed bottom-6 right-6 z-50 p-4 bg-blue-600 text-white rounded-full shadow-2xl shadow-blue-900/40 hover:bg-blue-700 hover:scale-105 transition-all border border-blue-500/50 flex items-center justify-center active:scale-95"
+                className="lg:hidden fixed bottom-6 right-6 z-50 p-4 bg-primary-600 text-white rounded-full shadow-2xl shadow-primary-900/40 hover:bg-primary-700 hover:scale-105 transition-all border border-primary-500/50 flex items-center justify-center active:scale-95"
                 aria-label={t('sidebar.menu')}
             >
                 <Menu size={24} strokeWidth={3} />
@@ -108,7 +108,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onSh
             `}>
                 <div className={`p-8 border-b border-slate-800/50 flex ${isCollapsed ? 'flex-col items-center gap-6' : 'items-center justify-between'}`}>
                     <div className="flex items-center gap-3 text-white font-black text-xl overflow-hidden tracking-tighter font-display">
-                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20 flex-shrink-0">
+                        <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-600/20 flex-shrink-0">
                             <AlertTriangle size={22} className="text-white" />
                         </div>
                         {!isCollapsed && <span className="whitespace-nowrap uppercase">{t('common.appTitle')}</span>}

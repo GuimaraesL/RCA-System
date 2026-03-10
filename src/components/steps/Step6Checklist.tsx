@@ -44,7 +44,7 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange, isFieldRe
             {/* Cabeçalho e Barra de Progresso */}
             <div className={`bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border ${errors?.precision_maintenance ? 'border-rose-300 dark:border-rose-700 ring-4 ring-rose-50 dark:ring-rose-900/20' : 'border-slate-200/60 dark:border-slate-800'} flex items-center justify-between gap-10 transition-all`}>
                 <div className="flex items-center gap-5">
-                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-800">
+                    <div className="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-xl text-primary-600 dark:text-primary-400 shadow-sm border border-primary-100 dark:border-primary-800">
                         <ListChecks size={28} />
                     </div>
                     <div>
@@ -58,11 +58,11 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange, isFieldRe
                 <div className="flex-1 max-w-md">
                     <div className="flex justify-between text-[10px] mb-2 font-black uppercase tracking-widest">
                         <span className="text-slate-400 dark:text-slate-500">{t('wizard.step6.completionStatus')}</span>
-                        <span className="text-blue-600 dark:text-blue-400">{percent}% ({completed}/{total})</span>
+                        <span className="text-primary-600 dark:text-primary-400">{percent}% ({completed}/{total})</span>
                     </div>
                     <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
                         <div
-                            className="bg-blue-600 dark:bg-blue-500 h-full rounded-full transition-all duration-700 ease-in-out shadow-[0_0_8px_rgba(37,99,235,0.3)]"
+                            className="bg-primary-600 dark:bg-primary-500 h-full rounded-full transition-all duration-700 ease-in-out shadow-[0_0_8px_rgba(37,99,235,0.3)]"
                             style={{ width: `${percent}%` }}
                         ></div>
                     </div>
@@ -83,7 +83,7 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange, isFieldRe
                     </thead>
                     <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                         {precisionMaintenance.map((item) => (
-                            <tr key={item.id} className="hover:bg-blue-50/20 dark:hover:bg-blue-900/10 transition-colors">
+                            <tr key={item.id} className="hover:bg-primary-50/20 dark:hover:bg-primary-900/10 transition-colors">
                                 <td className="px-6 py-4 font-bold text-slate-700 dark:text-slate-200 leading-relaxed">
                                     {t(item.activity || '')}
                                 </td>
@@ -117,13 +117,13 @@ export const Step6Checklist: React.FC<Step6Props> = ({ data, onChange, isFieldRe
                                             id={`${idPrefix}-checklist-comment-${item.id}`}
                                             name={`checklist_comment_${item.id}`}
                                             type="text"
-                                            className="w-full border-b border-slate-200 dark:border-slate-700 focus:border-blue-500 outline-none bg-transparent text-sm py-1.5 text-slate-900 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-600 transition-colors font-medium"
+                                            className="w-full border-b border-slate-200 dark:border-slate-700 focus:border-primary-500 outline-none bg-transparent text-sm py-1.5 text-slate-900 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-600 transition-colors font-medium"
                                             placeholder={t('wizard.step6.addComment')}
                                             aria-label={`${t('wizard.step6.comment')} - ${item.activity || item.question_snapshot || ''}`}
                                             value={item.comment || ''}
                                             onChange={(e) => updatePrecision(item.id, 'comment', e.target.value)}
                                         />
-                                        <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-focus-within/input:w-full"></div>
+                                        <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-500 transition-all duration-300 group-focus-within/input:w-full"></div>
                                     </div>
                                 </td>
                             </tr>

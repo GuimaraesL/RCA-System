@@ -130,7 +130,7 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                 <button
                     onClick={onNew}
                     data-testid="btn-new-analysis"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+                    className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-primary-600/20 transition-all active:scale-95"
                     title={t('common.shortcuts.altN')}
                 >
                     <Plus size={20} strokeWidth={3} /><ShortcutLabel text={t('analysesPage.newButton')} shortcutLetter="N" />
@@ -197,9 +197,9 @@ export const AnalysesView: React.FC<AnalysesViewProps> = ({ onNew, onEdit }) => 
                                 const rawName = getName('analysisStatuses', r.status);
                                 const statusName = translateStatus(r.status, rawName, t);
                                 return (
-                                    <tr key={r.id} onClick={() => onEdit(r)} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 cursor-pointer transition-all group">
+                                    <tr key={r.id} onClick={() => onEdit(r)} className="hover:bg-primary-50/30 dark:hover:bg-primary-900/10 cursor-pointer transition-all group">
                                         <td className="px-8 py-6">
-                                            <div className="font-mono text-[10px] text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors mb-1 font-bold">{'#RCA-'}{r.id.substring(0, 6)}</div>
+                                            <div className="font-mono text-[10px] text-slate-400 dark:text-slate-500 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors mb-1 font-bold">{'#RCA-'}{r.id.substring(0, 6)}</div>
                                             <div className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">{getName('analysisTypes', r.analysis_type)}</div>
                                         </td>
                                         <td className="px-8 py-6 max-w-sm">

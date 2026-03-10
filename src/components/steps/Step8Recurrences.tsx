@@ -81,12 +81,12 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                                 items.map((item) => (
                                     <tr key={item.rca_id} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors duration-200">
                                         <td className="px-6 py-4 align-top">
-                                            <Badge variant="neutral" className="bg-slate-100 dark:bg-white/10 border-slate-200 dark:border-white/10 font-mono text-[10px] text-blue-600 dark:text-blue-300">
+                                            <Badge variant="neutral" className="bg-slate-100 dark:bg-white/10 border-slate-200 dark:border-white/10 font-mono text-[10px] text-primary-600 dark:text-primary-300">
                                                 {item.rca_id?.substring(0, 8)}
                                             </Badge>
                                         </td>
                                         <td className="px-6 py-4 align-top">
-                                            <div className="text-sm font-bold text-slate-900 dark:text-white leading-tight mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                            <div className="text-sm font-bold text-slate-900 dark:text-white leading-tight mb-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                                                 {item.title}
                                             </div>
                                             <div className="text-[10px] text-slate-400 dark:text-slate-500 bg-slate-100/50 dark:bg-white/5 w-fit px-2 py-0.5 rounded-md mt-1 italic">
@@ -108,7 +108,7 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                                                 href={`#/rca/${item.rca_id}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="inline-flex p-2 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-400 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500 transition-all duration-300 shadow-sm"
+                                                className="inline-flex p-2 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-400 hover:bg-primary-600 hover:text-white dark:hover:bg-primary-500 transition-all duration-300 shadow-sm"
                                             >
                                                 <ArrowUpRight className="w-4 h-4" />
                                             </a>
@@ -127,7 +127,7 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Introductory Header */}
             <div className="flex items-center gap-4 px-2">
-                <div className="p-3 rounded-2xl bg-blue-600 shadow-lg shadow-blue-600/20">
+                <div className="p-3 rounded-2xl bg-primary-600 shadow-lg shadow-primary-600/20">
                     <Search className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -145,8 +145,8 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                 title={t('wizard.step8.recurrenceLevels.subgroup')}
                 icon={Activity}
                 items={recurrenceData.subgroup}
-                colorClass="from-blue-50 dark:from-blue-500/10 to-transparent"
-                accentClass="bg-blue-600"
+                colorClass="from-primary-50 dark:from-primary-500/10 to-transparent"
+                accentClass="bg-primary-600"
             />
 
             {/* Same Equipment Section */}

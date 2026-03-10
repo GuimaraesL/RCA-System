@@ -3,26 +3,22 @@
 
 @theme {
   /* Brand Colors - Blue base (Primary) */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  --color-primary-50: var(--color-blue-50);
+  --color-primary-100: var(--color-blue-100);
+  --color-primary-200: var(--color-blue-200);
+  --color-primary-300: var(--color-blue-300);
+  --color-primary-400: var(--color-blue-400);
+  --color-primary-500: var(--color-blue-500);
+  --color-primary-600: var(--color-blue-600);
+  --color-primary-700: var(--color-blue-700);
+  --color-primary-800: var(--color-blue-800);
+  --color-primary-900: var(--color-blue-900);
 
   /* Status Colors */
-  --color-status-success: #10b981;
-  /* Emerald-500 */
-  --color-status-warning: #f59e0b;
-  /* Amber-500 */
-  --color-status-error: #f43f5e;
-  /* Rose-500 */
-  --color-status-info: #3b82f6;
-  /* Blue-500 */
+  --color-status-success: var(--color-emerald-500);
+  --color-status-warning: var(--color-amber-500);
+  --color-status-error: var(--color-rose-500);
+  --color-status-info: var(--color-blue-500);
 
   /* Legacy status mapping for existing code */
   --color-status-concluded: var(--color-status-success);
@@ -39,25 +35,25 @@
    Theme Custom Properties (Semantic Tokens)
    ============================================ */
 :root {
-  --surface-primary: #ffffff;
-  --surface-secondary: #f8fafc;
-  --surface-elevated: #ffffff;
+  --surface-primary: var(--color-white);
+  --surface-secondary: var(--color-slate-50);
+  --surface-elevated: var(--color-white);
   --surface-overlay: rgba(0, 0, 0, 0.5);
-  --surface-hover: #f1f5f9;
+  --surface-hover: var(--color-slate-100);
 
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --text-inverted: #ffffff;
+  --text-primary: var(--color-slate-900);
+  --text-secondary: var(--color-slate-600);
+  --text-muted: var(--color-slate-400);
+  --text-inverted: var(--color-white);
 
-  --border-primary: #e2e8f0;
-  --border-subtle: #f1f5f9;
-  --border-focus: #3b82f6;
+  --border-primary: var(--color-slate-200);
+  --border-subtle: var(--color-slate-100);
+  --border-focus: var(--color-primary-500);
 
-  --scrollbar-thumb: #cbd5e1;
-  --scrollbar-thumb-hover: #94a3b8;
+  --scrollbar-thumb: var(--color-slate-300);
+  --scrollbar-thumb-hover: var(--color-slate-400);
 
-  --page-gradient: linear-gradient(to bottom right, #f8fafc, #f1f5f9, #eff6ff);
+  --page-gradient: linear-gradient(to bottom right, var(--color-slate-50), var(--color-slate-100), var(--color-primary-50));
 
   --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-border: rgba(255, 255, 255, 0.5);
@@ -65,25 +61,25 @@
 }
 
 .dark {
-  --surface-primary: #0f172a;
-  --surface-secondary: #1e293b;
-  --surface-elevated: #1e293b;
+  --surface-primary: var(--color-slate-900);
+  --surface-secondary: var(--color-slate-800);
+  --surface-elevated: var(--color-slate-800);
   --surface-overlay: rgba(0, 0, 0, 0.7);
-  --surface-hover: #334155;
+  --surface-hover: var(--color-slate-700);
 
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-inverted: #0f172a;
+  --text-primary: var(--color-slate-50);
+  --text-secondary: var(--color-slate-400);
+  --text-muted: var(--color-slate-500);
+  --text-inverted: var(--color-slate-900);
 
-  --border-primary: #334155;
-  --border-subtle: #1e293b;
-  --border-focus: #60a5fa;
+  --border-primary: var(--color-slate-700);
+  --border-subtle: var(--color-slate-800);
+  --border-focus: var(--color-primary-400);
 
-  --scrollbar-thumb: #475569;
-  --scrollbar-thumb-hover: #64748b;
+  --scrollbar-thumb: var(--color-slate-600);
+  --scrollbar-thumb-hover: var(--color-slate-500);
 
-  --page-gradient: linear-gradient(to bottom right, #0f172a, #1e293b, #0f172a);
+  --page-gradient: linear-gradient(to bottom right, var(--color-slate-900), var(--color-slate-800), var(--color-slate-900));
 
   --glass-bg: rgba(15, 23, 42, 0.8);
   --glass-border: rgba(30, 41, 59, 0.5);

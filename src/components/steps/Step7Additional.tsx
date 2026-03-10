@@ -54,7 +54,7 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange, isFieldR
             </div>
 
             {/* Gestão de Mídias e Evidências */}
-            <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-blue-200 dark:hover:border-blue-800 transition-all">
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-primary-200 dark:hover:border-primary-800 transition-all">
                 <MediaManager 
                     rcaId={data.id} 
                     attachments={data.attachments || []} 
@@ -63,9 +63,9 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange, isFieldR
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-blue-200 dark:hover:border-blue-800 transition-all">
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-primary-200 dark:hover:border-primary-800 transition-all">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg"><MessageSquare size={20} /></div>
+                        <div className="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg"><MessageSquare size={20} /></div>
                         <h3 className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest text-[10px]">{t('wizard.step7.meetingNotes')}</h3>
                     </div>
                     <Textarea
@@ -79,9 +79,9 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange, isFieldR
 
                 <div className="space-y-10">
                     {/* Seção de Links Relacionados (Evidências Externas) */}
-                    <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-blue-200 dark:hover:border-blue-800 transition-all">
+                    <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-primary-200 dark:hover:border-primary-800 transition-all">
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg"><LinkIcon size={20} /></div>
+                            <div className="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg"><LinkIcon size={20} /></div>
                             <h3 className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest text-[10px]">{t('wizard.step7.links')}</h3>
                         </div>
                         <div className="grid grid-cols-1 gap-6">
@@ -104,9 +104,9 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange, isFieldR
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-blue-200 dark:hover:border-blue-800 transition-all">
+                    <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-primary-200 dark:hover:border-primary-800 transition-all">
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg"><Info size={20} /></div>
+                            <div className="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg"><Info size={20} /></div>
                             <h3 className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest text-[10px]">{t('wizard.step7.generalComments')}</h3>
                         </div>
                         <Textarea
@@ -119,9 +119,9 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange, isFieldR
                     </div>
                 </div>
 
-                <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-blue-200 dark:hover:border-blue-800 transition-all">
+                <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-primary-200 dark:hover:border-primary-800 transition-all">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg"><History size={20} /></div>
+                        <div className="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg"><History size={20} /></div>
                         <h3 className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest text-[10px]">{t('wizard.step7.historicalInfo')}</h3>
                     </div>
                     <Textarea
@@ -138,10 +138,10 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange, isFieldR
             <div className={`bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border transition-all ${errors?.lessons_learned ? 'border-rose-300 dark:border-rose-700 ring-4 ring-rose-50 dark:ring-rose-900/20' : 'border-slate-200/60 dark:border-slate-800'}`}>
                 <div className="flex justify-between items-center mb-8 border-b border-slate-100 dark:border-slate-800 pb-4">
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                        <span className="w-1.5 h-6 bg-blue-600 rounded-full"></span>
+                        <span className="w-1.5 h-6 bg-primary-600 rounded-full"></span>
                         {t('wizard.step7.lessonsLearned')} {isFieldRequired && isFieldRequired('lessons_learned') && <span className="text-rose-500">*</span>}
                     </h3>
-                    <button onClick={addLesson} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition-all">
+                    <button onClick={addLesson} className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition-all">
                         <Plus size={16} /> {t('wizard.add')}
                     </button>
                 </div>
@@ -155,7 +155,7 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange, isFieldR
                                 id={`${idPrefix}-lesson-${idx}`}
                                 name={`lesson_${idx}`}
                                 type="text"
-                                className="flex-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-100 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm"
+                                className="flex-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-100 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all shadow-sm"
                                 value={lesson}
                                 onChange={e => updateLesson(idx, e.target.value)}
                             />
@@ -172,13 +172,13 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange, isFieldR
                 </div>
             </div>
 
-            <div className="mt-10 p-6 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 rounded-xl flex items-start gap-4">
-                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800/50 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 flex-shrink-0">
+            <div className="mt-10 p-6 bg-primary-50/50 dark:bg-primary-900/10 border border-primary-100 dark:border-primary-800 rounded-xl flex items-start gap-4">
+                <div className="w-10 h-10 bg-primary-100 dark:bg-primary-800/50 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 flex-shrink-0">
                     <Info size={24} />
                 </div>
                 <div>
-                    <strong className="text-blue-900 dark:text-blue-100 font-bold block mb-1 uppercase tracking-tight text-xs">{t('wizard.step7.tip')}</strong>
-                    <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed font-medium opacity-80">{t('wizard.step7.tipText')}</p>
+                    <strong className="text-primary-900 dark:text-primary-100 font-bold block mb-1 uppercase tracking-tight text-xs">{t('wizard.step7.tip')}</strong>
+                    <p className="text-sm text-primary-800 dark:text-primary-200 leading-relaxed font-medium opacity-80">{t('wizard.step7.tipText')}</p>
                 </div>
             </div>
         </div>

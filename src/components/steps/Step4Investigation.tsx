@@ -30,7 +30,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
     const [selectedCategory, setSelectedCategory] = useState<keyof IshikawaDiagram>('method');
 
     const ishikawaCategories = [
-        { key: 'method', label: t('wizard.step4.ishikawaCategories.method'), color: 'bg-blue-100 text-blue-800 border-blue-200' },
+        { key: 'method', label: t('wizard.step4.ishikawaCategories.method'), color: 'bg-primary-100 text-primary-800 border-primary-200' },
         { key: 'machine', label: t('wizard.step4.ishikawaCategories.machine'), color: 'bg-green-100 text-green-800 border-green-200' },
         { key: 'manpower', label: t('wizard.step4.ishikawaCategories.manpower'), color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
         { key: 'material', label: t('wizard.step4.ishikawaCategories.material'), color: 'bg-red-100 text-red-800 border-red-200' },
@@ -104,23 +104,23 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
         <div className="space-y-8 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('wizard.step4.title')}</h2>
-                    <p className="text-gray-600 dark:text-slate-400">{t('wizard.step4.subtitle')}</p>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('wizard.step4.title')}</h2>
+                    <p className="text-slate-600 dark:text-slate-400">{t('wizard.step4.subtitle')}</p>
                 </div>
             </div>
 
             {/* Bloco dos 5 Porquês */}
             <div
                 data-testid="section-five-whys"
-                className={`p-6 rounded-xl border shadow-sm transition-all ${errors?.five_whys ? 'border-red-500 ring-2 ring-red-50 dark:ring-red-900/20' : ''} ${useAdvancedMode ? 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800' : 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800'}`}
+                className={`p-6 rounded-xl border shadow-sm transition-all ${errors?.five_whys ? 'border-red-500 ring-2 ring-red-50 dark:ring-red-900/20' : ''} ${useAdvancedMode ? 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800' : 'bg-gradient-to-br from-primary-50 to-indigo-50 dark:from-primary-950/20 dark:to-indigo-950/20 border-primary-200 dark:border-primary-800'}`}
             >
                 <div className="flex justify-between items-center mb-6">
                     <div>
-                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <h3 className="text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                             {t('wizard.step4.fiveWhysTitle')} {isFieldRequired('five_whys') && <span className="text-red-500">*</span>}
-                            {useAdvancedMode && <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-800">{t('wizard.step4.advancedMode')}</span>}
+                            {useAdvancedMode && <span className="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs px-2 py-0.5 rounded-full border border-primary-200 dark:border-primary-800">{t('wizard.step4.advancedMode')}</span>}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-slate-400">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                             {useAdvancedMode
                                 ? t('wizard.step4.advancedModeDesc')
                                 : t('wizard.step4.linearModeDesc')}
@@ -129,7 +129,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
 
                     <div className="flex gap-2">
                         {!useAdvancedMode && (
-                            <Button variant="ghost" onClick={() => setUseAdvancedMode(true)} className="text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30">
+                            <Button variant="ghost" onClick={() => setUseAdvancedMode(true)} className="text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/30">
                                 <GitBranch size={16} className="mr-2" /> {t('wizard.step4.switchToAdvanced')}
                             </Button>
                         )}
@@ -149,8 +149,8 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
                 ) : (
                     <div className="space-y-4">
                         {(data.five_whys || []).length === 0 && (
-                            <div className="text-center p-8 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-lg bg-blue-50/50 dark:bg-blue-900/10">
-                                <p className="text-blue-800 dark:text-blue-200 font-medium mb-2">{t('wizard.step4.addWhy')}</p>
+                            <div className="text-center p-8 border-2 border-dashed border-primary-200 dark:border-primary-800 rounded-lg bg-primary-50/50 dark:bg-primary-900/10">
+                                <p className="text-primary-800 dark:text-primary-200 font-medium mb-2">{t('wizard.step4.addWhy')}</p>
                                 <Button
                                     onClick={addLegacyWhy}
                                     variant="primary"
@@ -163,12 +163,12 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
 
                         {(data.five_whys || []).map((w, index) => (
                             <div key={index} className="flex items-start gap-3 group">
-                                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 dark:bg-blue-500 text-white rounded-full flex items-center justify-center font-bold mt-2 shadow-sm">
+                                <div className="flex-shrink-0 w-8 h-8 bg-primary-600 dark:bg-primary-500 text-white rounded-full flex items-center justify-center font-bold mt-2 shadow-sm">
                                     {index + 1}
                                 </div>
                                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1 uppercase">{t('wizard.step4.fiveWhys.whyEffect')}</label>
+                                        <label className="block text-xs font-semibold text-primary-700 dark:text-primary-300 mb-1 uppercase">{t('wizard.step4.fiveWhys.whyEffect')}</label>
                                         <Input
                                             id={`five_whys_${index}_question`}
                                             data-testid={`input-five-why-question-${index}`}
@@ -183,7 +183,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1 uppercase">{t('wizard.step4.fiveWhys.whyCause')}</label>
+                                        <label className="block text-xs font-semibold text-primary-700 dark:text-primary-300 mb-1 uppercase">{t('wizard.step4.fiveWhys.whyCause')}</label>
                                         <Input
                                             id={`five_whys_${index}_answer`}
                                             data-testid={`input-five-why-answer-${index}`}
@@ -200,7 +200,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
                                 </div>
                                 <button
                                     onClick={() => removeLegacyWhy(index)}
-                                    className="mt-8 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                                    className="mt-8 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
                                 >
                                     <Trash2 size={16} />
                                 </button>
@@ -209,8 +209,8 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
 
                         {(data.five_whys || []).length > 0 && (
                             <div className="flex justify-between items-center mt-4">
-                                <div className="p-2 bg-white/60 dark:bg-slate-800/60 rounded-lg border border-blue-300 dark:border-blue-700">
-                                    <p className="text-sm font-medium text-blue-900 dark:text-blue-300">
+                                <div className="p-2 bg-white/60 dark:bg-slate-800/60 rounded-lg border border-primary-300 dark:border-primary-700">
+                                    <p className="text-sm font-medium text-primary-900 dark:text-primary-300">
                                         {linearWhysCount}/5
                                     </p>
                                 </div>
@@ -218,7 +218,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
                                     onClick={addLegacyWhy}
                                     variant="secondary"
                                     size="sm"
-                                    className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"
+                                    className="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-primary-200 dark:border-primary-800"
                                     data-testid="btn-add-why"
                                 >
                                     <Plus size={16} className="mr-1" /> {t('wizard.step4.addWhy')}
@@ -235,7 +235,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
                 className={`bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 p-6 rounded-xl border shadow-sm ${errors?.ishikawa ? 'border-red-500 ring-2 ring-red-50 dark:ring-red-900/20' : 'border-green-200 dark:border-green-800'}`}
             >
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{t('wizard.step4.ishikawaTitle')} {isFieldRequired('ishikawa') && <span className="text-red-500">*</span>}</h3>
+                    <h3 className="text-xl font-semibold text-slate-900 dark:text-white">{t('wizard.step4.ishikawaTitle')} {isFieldRequired('ishikawa') && <span className="text-red-500">*</span>}</h3>
                 </div>
 
                 <div className="mb-8 bg-white dark:bg-slate-900 p-4 rounded-lg border border-green-200 dark:border-green-800 shadow-sm flex flex-col md:flex-row gap-3 items-end">
@@ -272,14 +272,14 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {ishikawaCategories.map((category) => (
-                        <div key={category.key} className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+                        <div key={category.key} className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
                             <h4 className={`font-semibold mb-3 px-3 py-1 rounded-full inline-block text-xs uppercase tracking-wider border ${category.color}`}>
                                 {category.label}
                             </h4>
                             <ul className="space-y-2">
                                 {(data.ishikawa?.[category.key as keyof IshikawaDiagram] || []).map((item, index) => (
-                                    <li key={index} className="flex items-center justify-between gap-3 text-sm bg-white dark:bg-slate-700 p-3 rounded-md border border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-md hover:border-blue-200 dark:hover:border-blue-700 transition-all group animate-in zoom-in-95 duration-200">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-blue-400 transition-colors"></div>
+                                    <li key={index} className="flex items-center justify-between gap-3 text-sm bg-white dark:bg-slate-700 p-3 rounded-md border border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-md hover:border-primary-200 dark:hover:border-primary-700 transition-all group animate-in zoom-in-95 duration-200">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-primary-400 transition-colors"></div>
                                         <span className="text-slate-700 dark:text-slate-200 break-words flex-1 leading-relaxed font-medium">{item}</span>
                                         <button
                                             onClick={() => removeIshikawaItem(category.key as any, index)}
@@ -291,7 +291,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
                                     </li>
                                 ))}
                                 {(data.ishikawa?.[category.key as keyof IshikawaDiagram] || []).length === 0 && (
-                                    <li className="text-gray-300 text-xs italic py-2 text-center border border-dashed border-gray-200 rounded">
+                                    <li className="text-slate-300 text-xs italic py-2 text-center border border-dashed border-slate-200 rounded">
                                         -
                                     </li>
                                 )}
@@ -304,10 +304,10 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
             {/* Definição de Causas Raiz */}
             <div
                 data-testid="section-root-causes"
-                className={`p-6 rounded-xl border-2 shadow-sm transition-all ${errors?.root_causes ? 'border-red-500 ring-2 ring-red-50 dark:ring-red-900/20' : 'border-yellow-300 dark:border-yellow-700'} ${canDefineRootCause ? 'bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20' : 'bg-gray-100 dark:bg-slate-800 border-gray-300 dark:border-slate-700'}`}
+                className={`p-6 rounded-xl border-2 shadow-sm transition-all ${errors?.root_causes ? 'border-red-500 ring-2 ring-red-50 dark:ring-red-900/20' : 'border-yellow-300 dark:border-yellow-700'} ${canDefineRootCause ? 'bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20' : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}`}
             >
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{t('wizard.step4.rootCausesTitle')} {isFieldRequired('root_causes') && <span className="text-red-500">*</span>}</h3>
+                    <h3 className="text-xl font-semibold text-slate-900 dark:text-white">{t('wizard.step4.rootCausesTitle')} {isFieldRequired('root_causes') && <span className="text-red-500">*</span>}</h3>
                     {canDefineRootCause && (
                         <button
                             onClick={addRootCause}
@@ -330,7 +330,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
 
                 <div className="space-y-4">
                     {(data.root_causes || []).length === 0 && canDefineRootCause && (
-                        <p className="text-sm text-gray-500 dark:text-slate-400 italic text-center p-4 bg-white/50 dark:bg-slate-900/50 rounded-lg border border-dashed border-yellow-200 dark:border-yellow-800">
+                        <p className="text-sm text-slate-500 dark:text-slate-400 italic text-center p-4 bg-white/50 dark:bg-slate-900/50 rounded-lg border border-dashed border-yellow-200 dark:border-yellow-800">
                             {t('wizard.step4.addRootCause')}
                         </p>
                     )}
@@ -359,7 +359,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
                                 />
                             </div>
                             <div className="col-span-12 md:col-span-1 flex justify-center pt-8">
-                                <button onClick={() => removeRootCause(idx)} className="text-gray-300 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-full">
+                                <button onClick={() => removeRootCause(idx)} className="text-slate-300 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-full">
                                     <Trash2 size={18} />
                                 </button>
                             </div>

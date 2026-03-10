@@ -26,9 +26,9 @@ export const SuggestionChips: React.FC<SuggestionChipsProps> = ({
                 <button
                     key={index}
                     onClick={() => onSuggestionClick(suggestion)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-900/30 text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 text-xs font-bold border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-800 transition-all shadow-sm active:scale-95 group"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-primary-50 dark:bg-slate-800 dark:hover:bg-primary-900/30 text-slate-600 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400 text-xs font-bold border border-slate-200 dark:border-slate-700 hover:border-primary-200 dark:hover:border-primary-800 transition-all shadow-sm active:scale-95 group"
                 >
-                    <Sparkles size={12} className="text-blue-500 group-hover:animate-pulse" />
+                    <Sparkles size={12} className="text-primary-500 group-hover:animate-pulse" />
                     {suggestion}
                 </button>
             ))}

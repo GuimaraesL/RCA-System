@@ -57,7 +57,7 @@ export const LinkedTriggersTable: React.FC<LinkedTriggersTableProps> = ({
                         return (
                             <tr
                                 key={trigger.id}
-                                className="hover:bg-blue-50/30 dark:hover:bg-slate-800/50 cursor-pointer transition-all group"
+                                className="hover:bg-primary-50/30 dark:hover:bg-slate-800/50 cursor-pointer transition-all group"
                                 onClick={() => onEdit(trigger)}
                                 title={t('triggersPage.tooltips.edit')}
                             >

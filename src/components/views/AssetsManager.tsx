@@ -130,7 +130,7 @@ export const AssetsManager: React.FC = () => {
       {/* Alça de Redimensionamento (Resize Handle) */}
       <div
         onMouseDown={handleMouseDown}
-        className="w-1.5 cursor-col-resize bg-slate-100 dark:bg-slate-800 hover:bg-blue-400 dark:hover:bg-blue-600 flex items-center justify-center transition-all border-y border-slate-200 dark:border-slate-800 z-10"
+        className="w-1.5 cursor-col-resize bg-slate-100 dark:bg-slate-800 hover:bg-primary-400 dark:hover:bg-primary-600 flex items-center justify-center transition-all border-y border-slate-200 dark:border-slate-800 z-10"
         title={t('common.tooltips.resize')}
       >
         <div className="w-px h-8 bg-slate-300 dark:bg-slate-600 rounded-full"></div>
@@ -146,7 +146,7 @@ export const AssetsManager: React.FC = () => {
               <div>
                 <Badge
                   className={`mb-4 ${selectedNode.type === 'AREA' ? 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700' :
-                    selectedNode.type === 'EQUIPMENT' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/30' : 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 border-cyan-100 dark:border-cyan-900/30'}`}
+                    selectedNode.type === 'EQUIPMENT' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-primary-100 dark:border-primary-900/30' : 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 border-cyan-100 dark:border-cyan-900/30'}`}
                 >
                   {t(`assets.types.${selectedNode.type}`) || selectedNode.type}
                 </Badge>
@@ -188,7 +188,7 @@ export const AssetsManager: React.FC = () => {
                       variant="outline"
                       size="lg"
                       onClick={() => setViewMode('FMEA')}
-                      className="h-16 rounded-2xl border-blue-200 dark:border-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      className="h-16 rounded-2xl border-primary-200 dark:border-primary-900/30 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                       leftIcon={<ShieldAlert size={20} />}
                     >
                       {t('fmea.title')}
@@ -226,7 +226,7 @@ export const AssetsManager: React.FC = () => {
         ) : isEditing ? (
           <div className="h-full flex flex-col max-w-lg mx-auto justify-center animate-in fade-in zoom-in-95 duration-300">
             <div className="mb-10 text-center">
-              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-blue-100">
+              <div className="w-16 h-16 bg-primary-50 text-primary-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-primary-100">
                 {parentNode || (!selectedNode && !parentNode) ? <Plus size={32} strokeWidth={2.5} /> : <Edit2 size={32} strokeWidth={2.5} />}
               </div>
               <h2 className="text-3xl font-black text-slate-900 tracking-tight font-display">
@@ -269,7 +269,7 @@ export const AssetsManager: React.FC = () => {
               )}
 
               {(parentNode || (!selectedNode && !parentNode)) && (
-                <div className="p-4 bg-blue-50/50 dark:bg-blue-900/10 text-blue-700 dark:text-blue-400 text-xs rounded-xl border border-blue-100 dark:border-blue-900/30 flex gap-3">
+                <div className="p-4 bg-primary-50/50 dark:bg-primary-900/10 text-primary-700 dark:text-primary-400 text-xs rounded-xl border border-primary-100 dark:border-primary-900/30 flex gap-3">
                   <Info size={18} className="flex-shrink-0" />
                   <p className="font-medium leading-relaxed">{t('assets.idHint')}</p>
                 </div>
@@ -307,7 +307,7 @@ export const AssetsManager: React.FC = () => {
         )}
 
         {/* Elemento Decorativo */}
-        <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-blue-50 opacity-0 group-hover/panel:opacity-30 rounded-full transition-all duration-1000 blur-3xl -z-10"></div>
+        <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-primary-50 opacity-0 group-hover/panel:opacity-30 rounded-full transition-all duration-1000 blur-3xl -z-10"></div>
       </div>
 
       <ConfirmModal

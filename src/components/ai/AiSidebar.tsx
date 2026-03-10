@@ -218,10 +218,10 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                                 {recurrenceData.equipment.map((r, i) => (
                                     <div
                                         key={i}
-                                        className="py-2 border-b border-white/5 last:border-0 hover:text-blue-400 transition-colors cursor-pointer flex items-baseline gap-2 group"
+                                        className="py-2 border-b border-white/5 last:border-0 hover:text-primary-400 transition-colors cursor-pointer flex items-baseline gap-2 group"
                                         onClick={() => window.open(`#/rca/${r.rca_id}`, '_blank')}
                                     >
-                                        <span className="text-[10px] font-mono text-slate-500 group-hover:text-blue-500">#{r.rca_id.substring(0, 8)}</span>
+                                        <span className="text-[10px] font-mono text-slate-500 group-hover:text-primary-500">#{r.rca_id.substring(0, 8)}</span>
                                         <p className="text-xs font-medium line-clamp-1">{r.title}</p>
                                     </div>
                                 ))}
@@ -263,7 +263,7 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                 {/* Chat Section */}
                 <div className="ai-chat-section">
                     <h4 className="ai-section-label">
-                        <Sparkles size={14} className="text-blue-500" /> {t('ai.chatConversations')}
+                        <Sparkles size={14} className="text-primary-500" /> {t('ai.chatConversations')}
                     </h4>
 
                     <div className="ai-messages-container">
@@ -313,10 +313,10 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                         {/* Reasoning Streaming / Thinking */}
                         {(status === 'thinking' || reasoning) && !insight && (
                             <div className="ai-thinking">
-                                <RefreshCw size={32} className="animate-spin text-blue-500" />
+                                <RefreshCw size={32} className="animate-spin text-primary-500" />
                                 <div className="ai-thinking-text">
                                     <p>{reasoning ? 'Processando raciocínio...' : t('ai.thinking')}</p>
-                                    {reasoning && <span className="ai-reasoning-detail text-sm text-gray-400 block mt-1">{reasoning}</span>}
+                                    {reasoning && <span className="ai-reasoning-detail text-sm text-slate-400 block mt-1">{reasoning}</span>}
                                 </div>
                             </div>
                         )}

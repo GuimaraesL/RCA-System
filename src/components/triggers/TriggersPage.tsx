@@ -217,7 +217,7 @@ export const TriggersPage: React.FC<TriggersPageProps> = ({ onCreateRca, onOpenR
                             {t('triggersPage.createRcaBatch') || `Criar RCA (${selectedTriggerIds.size})`}
                         </button>
                     )}
-                    <button onClick={handleNew} data-testid="btn-new-trigger" accessKey="g" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95" title={t('common.shortcuts.altG')}>
+                    <button onClick={handleNew} data-testid="btn-new-trigger" accessKey="g" className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-primary-600/20 transition-all active:scale-95" title={t('common.shortcuts.altG')}>
                         <Plus size={20} strokeWidth={3} /><ShortcutLabel text={t('triggersPage.newTrigger')} shortcutLetter="G" />
                     </button>
                 </div>

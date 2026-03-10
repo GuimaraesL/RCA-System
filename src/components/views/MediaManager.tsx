@@ -116,7 +116,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
     >
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-          <ImageIcon className="text-blue-600" size={20} />
+          <ImageIcon className="text-primary-600" size={20} />
           {t('common.attachments') || 'Anexos e Evidências'}
         </h3>
         
@@ -144,18 +144,18 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
       {attachments.length === 0 && !uploading ? (
         <Card className={`flex flex-col items-center justify-center p-12 text-center border-dashed transition-all ${
           dragActive 
-            ? "border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 ring-4 ring-blue-500/10 scale-[1.01]" 
+            ? "border-primary-500 bg-primary-50/50 dark:bg-primary-900/20 ring-4 ring-primary-500/10 scale-[1.01]" 
             : "bg-slate-50/30 border-slate-200 dark:border-slate-800"
         }`}>
-          <Upload size={40} className={`${dragActive ? "text-blue-500 animate-bounce" : "text-slate-200 dark:text-slate-700"} mb-4`} />
-          <p className={`${dragActive ? "text-blue-600" : "text-slate-400"} text-sm font-medium`}>
+          <Upload size={40} className={`${dragActive ? "text-primary-500 animate-bounce" : "text-slate-200 dark:text-slate-700"} mb-4`} />
+          <p className={`${dragActive ? "text-primary-600" : "text-slate-400"} text-sm font-medium`}>
             {dragActive ? t('media.dropToUpload') : t('media.noAttachments')}
           </p>
           <p className="text-slate-300 text-xs mt-1 italic">{t('media.dragHint')}</p>
         </Card>
       ) : (
         <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-2 rounded-2xl transition-all ${
-          dragActive ? "bg-blue-50/30 ring-2 ring-blue-500/20 ring-dashed" : ""
+          dragActive ? "bg-primary-50/30 ring-2 ring-primary-500/20 ring-dashed" : ""
         }`}>
           {attachments.map((att) => (
             <div key={att.id} className="group relative aspect-square rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-all hover:shadow-md">
@@ -191,9 +191,9 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
           ))}
           
           {uploading && (
-            <div className="aspect-square rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-900/30 flex flex-col items-center justify-center gap-3 bg-blue-50/20">
-              <Loader2 size={32} className="text-blue-500 animate-spin" />
-              <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest animate-pulse">{t('media.uploading')}</p>
+            <div className="aspect-square rounded-2xl border-2 border-dashed border-primary-200 dark:border-primary-900/30 flex flex-col items-center justify-center gap-3 bg-primary-50/20">
+              <Loader2 size={32} className="text-primary-500 animate-spin" />
+              <p className="text-[10px] font-bold text-primary-600 uppercase tracking-widest animate-pulse">{t('media.uploading')}</p>
             </div>
           )}
         </div>

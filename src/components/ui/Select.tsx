@@ -29,7 +29,7 @@ export const Select: React.FC<SelectProps> = ({ label, options, error, required,
                     w-full px-3 py-2 bg-white dark:bg-slate-900 border rounded-lg text-sm transition-all outline-none cursor-pointer
                     ${error
                         ? 'border-red-500 bg-red-50 dark:bg-red-900/10 focus:ring-2 focus:ring-red-100 dark:focus:ring-red-900/30'
-                        : 'border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/30'}
+                        : 'border-slate-200 dark:border-slate-700 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/30'}
                     ${props.disabled ? 'bg-slate-50 dark:bg-slate-800 text-slate-400 cursor-not-allowed' : 'text-slate-900 dark:text-slate-100'}
                     ${className}
                 `}

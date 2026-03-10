@@ -47,7 +47,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
         );
       case ACTION_STATUS_IDS.COMPLETED:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-wider border border-blue-100 shadow-sm">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-50 text-primary-700 text-[10px] font-black uppercase tracking-wider border border-primary-100 shadow-sm">
             <ShieldCheck size={12} strokeWidth={3} />
             {t('actionModal.statusOptions.completed')}
           </span>
@@ -59,7 +59,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
             {t('actionModal.statusOptions.verified')}
           </span>
         );
-      default: return <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-500 text-xs font-mono">{status || '-'}</span>;
+      default: return <span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-500 text-xs font-mono">{status || '-'}</span>;
     }
   };
 
@@ -112,7 +112,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
         <button
           onClick={openNew}
           accessKey="o"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+          className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-primary-600/20 transition-all active:scale-95"
           title={t('common.shortcuts.altO')}
         >
           <Plus size={20} strokeWidth={3} /><ShortcutLabel text={t('table.actions')} shortcutLetter="O" />
@@ -165,7 +165,7 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
               {filteredActions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map(action => (
                 <tr
                   key={action.id}
-                  className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 cursor-pointer transition-all group"
+                  className="hover:bg-primary-50/30 dark:hover:bg-primary-900/10 cursor-pointer transition-all group"
                   onClick={() => openEdit(action)}
                 >
                   <td className="px-8 py-6">{getStatusBadge(action.status)}</td>
@@ -178,11 +178,11 @@ export const ActionsView: React.FC<ActionsViewProps> = ({ onOpenRca }) => {
                       className="group text-left focus:outline-none"
                       title={t('common.tooltips.viewDetails')}
                     >
-                      <div className="text-xs font-black text-blue-600 dark:text-blue-400 truncate max-w-[200px] flex items-center gap-1.5 group-hover:underline">
+                      <div className="text-xs font-black text-primary-600 dark:text-primary-400 truncate max-w-[200px] flex items-center gap-1.5 group-hover:underline">
                         {action.rcaTitle}
                         <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-all" />
                       </div>
-                      <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 group-hover:text-blue-400 transition-colors mt-0.5">{action.assetName}</div>
+                      <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 group-hover:text-primary-400 transition-colors mt-0.5">{action.assetName}</div>
                     </button>
                   </td>
                   <td className="px-8 py-6 text-right">

@@ -60,12 +60,12 @@ export const ROOT_CAUSE_COLORS: Record<string, string> = {
 
 // Mapa centralizado de estilos visuais para badges de status (Issue #92)
 export const STATUS_BADGE_STYLES: Record<string, string> = {
-    [STATUS_IDS.IN_PROGRESS]: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-900/30',
+    [STATUS_IDS.IN_PROGRESS]: 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 border-primary-100 dark:border-primary-900/30',
     [STATUS_IDS.WAITING_VERIFICATION]: 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-900/30',
     [STATUS_IDS.CONCLUDED]: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30',
     [STATUS_IDS.DELAYED]: 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 border-rose-100 dark:border-rose-900/30',
     [STATUS_IDS.CANCELLED]: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 line-through',
-    [TRIGGER_STATUS_IDS.NEW]: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/30',
+    [TRIGGER_STATUS_IDS.NEW]: 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-primary-100 dark:border-primary-900/30',
     [TRIGGER_STATUS_IDS.IN_ANALYSIS]: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900/30',
     [TRIGGER_STATUS_IDS.CONVERTED]: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30',
     [TRIGGER_STATUS_IDS.ARCHIVED]: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700',

@@ -272,7 +272,7 @@ export const TriggerModal: React.FC<TriggerModalProps> = ({
                     <button
                         onClick={onSaveClick}
                         data-testid="btn-save-trigger"
-                        className="px-10 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+                        className="px-10 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-primary-600/20 transition-all active:scale-95"
                         title={t('common.shortcuts.ctrlS')}
                     >
                         <ShortcutLabel text={t('triggerModal.save')} shortcutLetter="S" />

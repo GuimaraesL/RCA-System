@@ -13,7 +13,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
         const variants = {
             default: '',
             hoverable: 'hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-black/50 hover:-translate-y-1',
-            interactive: 'cursor-pointer hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg hover:shadow-blue-500/10 active:scale-[0.98]',
+            interactive: 'cursor-pointer hover:border-primary-400 dark:hover:border-primary-600 hover:shadow-lg hover:shadow-primary-500/10 active:scale-[0.98]',
         };
 
         const paddings = {

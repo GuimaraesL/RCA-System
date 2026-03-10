@@ -45,7 +45,7 @@ export const AssetTreeNode: React.FC<AssetTreeNodeProps> = ({
                 className={`
           flex items-center justify-between py-2 px-3 
           cursor-pointer rounded-md mb-1 transition-colors duration-200
-          ${isSelected && !isEditing ? 'bg-blue-100 text-blue-700' : 'hover:bg-slate-100 text-slate-700'}
+          ${isSelected && !isEditing ? 'bg-primary-100 text-primary-700' : 'hover:bg-slate-100 text-slate-700'}
         `}
                 style={{ paddingLeft: `${depth * 20 + 12}px` }} // Recuo progressivo para visualização clara da hierarquia
                 onClick={handleSelect}
@@ -68,8 +68,8 @@ export const AssetTreeNode: React.FC<AssetTreeNodeProps> = ({
                     </div>
 
                     {/* Ícones de Nível Hierárquico */}
-                    {node.type === 'AREA' && <Folder size={16} className={`mr-2 ${isSelected ? 'text-blue-600' : 'text-slate-400'}`} />}
-                    {node.type === 'EQUIPMENT' && <Database size={16} className={`mr-2 ${isSelected ? 'text-blue-500' : 'text-blue-400'}`} />}
+                    {node.type === 'AREA' && <Folder size={16} className={`mr-2 ${isSelected ? 'text-primary-600' : 'text-slate-400'}`} />}
+                    {node.type === 'EQUIPMENT' && <Database size={16} className={`mr-2 ${isSelected ? 'text-primary-500' : 'text-primary-400'}`} />}
                     {node.type === 'SUBGROUP' && <Layers size={16} className={`mr-2 ${isSelected ? 'text-indigo-500' : 'text-indigo-400'}`} />}
 
                     {/* Rótulo do Ativo */}

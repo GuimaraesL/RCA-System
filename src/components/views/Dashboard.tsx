@@ -46,7 +46,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         return (
             <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm p-3 border border-slate-200 dark:border-slate-700 shadow-lg rounded-lg text-sm z-50">
                 <p className="font-bold text-slate-800 dark:text-slate-100 mb-1">{label || payload[0].payload.name}</p>
-                <p className="text-blue-600 dark:text-blue-400 font-medium">
+                <p className="text-primary-600 dark:text-primary-400 font-medium">
                     {formattedValue} <span className="text-slate-500 dark:text-slate-400 text-xs">{t('dashboard.tooltips.records')}</span>
                 </p>
                 {payload[0].payload.id && (
@@ -80,11 +80,11 @@ const ChartCard: React.FC<{
             title={tooltip}
             variant="hoverable"
             padding="lg"
-            className="flex flex-col min-h-[480px] transition-all hover:shadow-blue-500/5 group cursor-help"
+            className="flex flex-col min-h-[480px] transition-all hover:shadow-primary-500/5 group cursor-help"
         >
             <div title={tooltip} className="flex items-center justify-between mb-8 border-b border-slate-50 dark:border-slate-800 pb-4 flex-shrink-0">
                 <div title={tooltip} className="flex items-center gap-3">
-                    <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-400 dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-all">
+                    <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-400 dark:text-slate-500 group-hover:text-primary-600 dark:group-hover:text-primary-400 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20 transition-all">
                         {icon}
                     </div>
                     <h3 title={tooltip} className="font-black text-slate-700 dark:text-slate-200 text-xs uppercase tracking-[0.2em]">{title}</h3>
@@ -249,7 +249,7 @@ export const Dashboard: React.FC = () => {
             <div className="flex justify-between items-end animate-in fade-in duration-1000 slide-in-from-top-4">
                 <div>
                     <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display flex items-center gap-3">
-                        <Activity className="text-blue-600 dark:text-blue-500 w-10 h-10" /> {t('dashboard.title')}
+                        <Activity className="text-primary-600 dark:text-primary-500 w-10 h-10" /> {t('dashboard.title')}
                     </h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium text-lg leading-relaxed">{t('dashboard.description')}</p>
                 </div>
@@ -284,7 +284,7 @@ export const Dashboard: React.FC = () => {
             {/* Cartões de KPI */}
             <div ref={kpiRef as any} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {[
-                    { label: t('dashboard.kpi.durationMin'), value: totalDowntimeMin, icon: <Clock size={16} />, color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-50 dark:bg-blue-900/20', tooltip: t('dashboard.tooltips.durationMin') },
+                    { label: t('dashboard.kpi.durationMin'), value: totalDowntimeMin, icon: <Clock size={16} />, color: 'text-primary-600 dark:text-primary-400', bgColor: 'bg-primary-50 dark:bg-primary-900/20', tooltip: t('dashboard.tooltips.durationMin') },
                     { label: t('dashboard.kpi.durationHours'), value: Number(totalDowntimeHours.toFixed(1)), icon: <Clock size={16} />, color: 'text-indigo-600 dark:text-indigo-400', bgColor: 'bg-indigo-50 dark:bg-indigo-900/20', tooltip: t('dashboard.tooltips.durationHours') },
                     { label: t('dashboard.kpi.totalCost'), value: totalCost, icon: <TrendingUp size={16} />, color: 'text-emerald-600 dark:text-emerald-400', bgColor: 'bg-emerald-50 dark:bg-emerald-900/20', prefix: language === 'pt' ? 'R$ ' : '$', tooltip: t('dashboard.tooltips.totalCost') },
                     { label: t('dashboard.kpi.totalRcas'), value: filteredRecords.length, icon: <PieIcon size={16} />, color: 'text-slate-600 dark:text-slate-400', bgColor: 'bg-slate-50 dark:bg-slate-800', tooltip: t('dashboard.tooltips.totalRcas') }
@@ -304,7 +304,7 @@ export const Dashboard: React.FC = () => {
                             </div>
                         </div>
                         <div title={kpi.tooltip} className="space-y-1">
-                            <div title={kpi.tooltip} className={`text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}>{kpi.label}</div>
+                            <div title={kpi.tooltip} className={`text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors`}>{kpi.label}</div>
                             <div title={kpi.tooltip} className="text-4xl font-black text-slate-900 dark:text-white relative z-10 whitespace-nowrap truncate leading-tight tracking-tighter">
                                 {isLoading ? (
                                     <Skeleton className="h-12 w-3/4 rounded-lg" />

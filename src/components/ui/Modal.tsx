@@ -50,7 +50,7 @@ export const Modal: React.FC<ModalProps> = ({
                 {/* Cabeçalho */}
                 <div className="px-8 py-6 flex items-center gap-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
                     {icon && (
-                        <div className="p-2.5 rounded-xl bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400">
+                        <div className="p-2.5 rounded-xl bg-white dark:bg-slate-700 shadow-sm text-primary-600 dark:text-primary-400">
                             {icon}
                         </div>
                     )}

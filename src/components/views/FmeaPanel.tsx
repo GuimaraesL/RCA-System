@@ -171,7 +171,7 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3 tracking-tight">
-            <ShieldAlert className="text-blue-600" size={28} />
+            <ShieldAlert className="text-primary-600" size={28} />
             {t('fmea.title')}
           </h2>
           <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">{t('fmea.subtitle')}</p>
@@ -192,7 +192,7 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
               setIsModalOpen(true);
             }}
             leftIcon={<Plus size={18} />}
-            className="rounded-xl shadow-lg shadow-blue-500/20"
+            className="rounded-xl shadow-lg shadow-primary-500/20"
           >
             {t('fmea.addMode')}
           </Button>

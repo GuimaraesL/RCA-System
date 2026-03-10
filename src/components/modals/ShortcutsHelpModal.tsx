@@ -69,8 +69,8 @@ export const ShortcutsHelpModal: React.FC<ShortcutsHelpModalProps> = ({ isOpen, 
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Cabeçalho */}
-                <div className="px-8 py-6 bg-gradient-to-r from-blue-50 to-indigo-50 flex items-center gap-4 border-b border-slate-100">
-                    <div className="p-2.5 rounded-xl bg-white shadow-sm text-blue-500">
+                <div className="px-8 py-6 bg-gradient-to-r from-primary-50 to-indigo-50 flex items-center gap-4 border-b border-slate-100">
+                    <div className="p-2.5 rounded-xl bg-white shadow-sm text-primary-500">
                         <Keyboard size={24} strokeWidth={2.5} />
                     </div>
                     <h3 className="font-black text-xl text-slate-900 font-display tracking-tight">
