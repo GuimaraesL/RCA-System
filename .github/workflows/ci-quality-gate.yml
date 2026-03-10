@@ -69,9 +69,8 @@ jobs:
 
     - name: Auditoria Lighthouse (Performance & SEO)
       run: |
-        npm install -g lighthouse
-        npm run preview -- --port 4173 &
-        sleep 5
+        npm run preview -- --port 4173 --host 127.0.0.1 &
+        sleep 10
         npm run audit
 
     - name: Salvar Relatório Lighthouse

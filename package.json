@@ -10,7 +10,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit && npm run lint --prefix server",
-    "audit": "lighthouse http://localhost:4173 --output=html --output=json --output-path=./lighthouse-report"
+    "audit": "lighthouse http://127.0.0.1:4173 --output=html --output=json --output-path=./lighthouse-report --chrome-flags=\"--headless --disable-gpu --no-sandbox --disable-dev-shm-usage\""
   },
   "dependencies": {
     "animejs": "^3.2.2",
@@ -39,6 +39,7 @@
     "autoprefixer": "^10.4.23",
     "concurrently": "^9.2.1",
     "jsdom": "^28.0.0",
+    "lighthouse": "^13.0.3",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.8.2",
