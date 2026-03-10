@@ -1,4 +1,10 @@
-/**
+export const LEGACY_getFns = () => ({
+  fetchRecords: async () => LEGACY_getRecords(),
+  fetchAssets: async () => LEGACY_getAssets(),
+  fetchActions: async () => LEGACY_getActions(),
+  fetchTriggers: async () => LEGACY_getTriggers(),
+  fetchTaxonomy: async () => LEGACY_getTaxonomy(),
+});/**
  * Proposta: Serviço de persistência local utilizando LocalStorage.
  * Fluxo: Atua como fonte de dados em modo offline (ou legada), gerenciando o ciclo de vida de RCAs, Ativos, Ações e Gatilhos, além de prover lógica de migração e normalização de dados importados.
  */

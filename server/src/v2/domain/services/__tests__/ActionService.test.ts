@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mocked } from 'vitest';
 import { ActionService } from '../ActionService';
 import { SqlActionRepository } from '../../../infrastructure/repositories/SqlActionRepository';
 import { SqlRcaRepository } from '../../../infrastructure/repositories/SqlRcaRepository';
@@ -15,27 +15,28 @@ vi.mock('../../../infrastructure/logger');
 
 describe('Domain Service: ActionService', () => {
     let actionService: ActionService;
-    let actionRepo: vi.Mocked<SqlActionRepository>;
-    let rcaRepo: vi.Mocked<SqlRcaRepository>;
-    let taxonomyRepo: vi.Mocked<SqlTaxonomyRepository>;
-    let triggerRepo: vi.Mocked<SqlTriggerRepository>;
+    let actionRepo: Mocked<SqlActionRepository>;
+    let rcaRepo: Mocked<SqlRcaRepository>;
+    let taxonomyRepo: Mocked<SqlTaxonomyRepository>;
+    let triggerRepo: Mocked<SqlTriggerRepository>;
 
     beforeEach(() => {
         vi.clearAllMocks();
         
-        actionRepo = new SqlActionRepository(null as any) as vi.Mocked<SqlActionRepository>;
-        rcaRepo = new SqlRcaRepository(null as any) as vi.Mocked<SqlRcaRepository>;
-        taxonomyRepo = new SqlTaxonomyRepository(null as any) as vi.Mocked<SqlTaxonomyRepository>;
-        triggerRepo = new SqlTriggerRepository(null as any) as vi.Mocked<SqlTriggerRepository>;
+        // Criar instâncias mockadas usando o utilitário do Vitest
+        actionRepo = vi.mocked(new SqlActionRepository(null as any));
+        rcaRepo = vi.mocked(new SqlRcaRepository(null as any));
+        taxonomyRepo = vi.mocked(new SqlTaxonomyRepository(null as any));
+        triggerRepo = vi.mocked(new SqlTriggerRepository(null as any));
 
-        // Set default returns to avoid TypeError in internal RcaService calls
+        // Configurar retornos padrão para evitar TypeError nas chamadas internas do RcaService
         actionRepo.findByRcaId.mockReturnValue([]);
         rcaRepo.findById.mockReturnValue(null);
         triggerRepo.findByRcaId.mockReturnValue([]);
 
         actionService = new ActionService(actionRepo, rcaRepo, taxonomyRepo);
         
-        // Setup internal rcaService mocks
+        // Configurar mocks do rcaService interno (que é privado e criado no construtor)
         (actionService as any).rcaService.rcaRepo = rcaRepo;
         (actionService as any).rcaService.actionRepo = actionRepo;
         (actionService as any).rcaService.triggerRepo = triggerRepo;
@@ -143,7 +144,7 @@ describe('Domain Service: ActionService', () => {
             actionService.bulkImport(actions);
 
             expect(actionRepo.bulkCreate).toHaveBeenCalledWith(actions);
-            // Should call recalculation once for R1 and once for R2
+            // Deve chamar o recálculo uma vez para R1 e uma vez para R2
             expect(rcaRepo.findById).toHaveBeenCalledWith('R1');
             expect(rcaRepo.findById).toHaveBeenCalledWith('R2');
             expect(rcaRepo.findById).toHaveBeenCalledTimes(2);
@@ -155,7 +156,7 @@ describe('Domain Service: ActionService', () => {
                 throw new Error('Recalculation Failed');
             });
 
-            // Should not throw
+            // Não deve lançar exceção
             expect(() => actionService.bulkImport(actions)).not.toThrow();
         });
     });
@@ -169,7 +170,7 @@ describe('Domain Service: ActionService', () => {
 
             expect(taxonomyRepo.getTaxonomy).toHaveBeenCalled();
             expect(rcaRepo.findById).toHaveBeenCalledWith('NON_EXISTENT');
-            // rcaService.updateRca is not called if rca is null
+            // rcaService.updateRca não é chamado se rca for null
         });
     });
 });

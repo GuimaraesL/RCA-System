@@ -3,7 +3,7 @@
  * Fluxo: Centraliza o acesso a RCAs, Ativos, Ações e Gatilhos, gerenciando a alternância automática entre a API (Backend) e o LocalStorage (Modo Offline/Legado) conforme a disponibilidade do servidor.
  */
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { RcaRecord, AssetNode, ActionRecord, TriggerRecord, TaxonomyConfig } from '../types';
 import * as api from '../services/apiService';
 import * as storage from '../services/storageService';
@@ -15,7 +15,7 @@ interface RcaContextType {
   triggers: TriggerRecord[];
   taxonomy: TaxonomyConfig;
   isLoading: boolean;
-  useApi: boolean;
+  useApi: boolean | null;
 
   // Métodos de Gestão de Registros
   addRecord: (record: RcaRecord) => Promise<void>;
@@ -68,9 +68,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const timeoutId = setTimeout(() => controller.abort(), 3000);
 
       try {
-        const response = await fetch('/api/health', {
-          signal: controller.signal
-        });
+        const response = await fetch('/api/health', { signal: controller.signal });
         clearTimeout(timeoutId);
         if (response.ok) {
           console.log('Context: API disponível - Operando em modo conectado');
@@ -80,7 +78,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
       } catch (err: any) {
         clearTimeout(timeoutId);
-        console.log('Context: API indisponível - Utilizando LocalStorage (Modo Offline)', err.name === 'AbortError' ? '(Timeout)' : '');
+        console.log('Context: API indisponível - Utilizando LocalStorage (Modo Offline)');
         setUseApi(false);
       }
     };
@@ -91,14 +89,11 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
    * Recarrega todos os dados do sistema a partir da fonte ativa.
    */
   const refreshAll = useCallback(async () => {
+    if (useApi === null) return;
+    
     console.log('Sincronizando dados... (Modo API:', useApi, ')');
     setIsLoading(true);
     try {
-      if (useApi === null) {
-        setIsLoading(false);
-        return;
-      }
-
       if (useApi) {
         const [recs, assts, acts, trigs, tax] = await Promise.all([
           api.fetchRecords(),
@@ -123,7 +118,7 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
     } catch (error) {
       console.error('Erro ao sincronizar dados:', error);
-      // Fallback de segurança para LocalStorage em caso de falha na carga da API
+      // Fallback de segurança para LocalStorage
       setRecords(storage.LEGACY_getRecords());
       setAssets(storage.LEGACY_getAssets());
       setActions(storage.LEGACY_getActions());
@@ -135,211 +130,179 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, [useApi]);
 
   useEffect(() => {
-    refreshAll();
-  }, [refreshAll]);
+    if (useApi !== null) {
+      refreshAll();
+    }
+  }, [useApi, refreshAll]);
 
-  /**
-   * Listener para sincronização entre abas (Storage Event).
-   * Garante que alterações no LocalStorage em outras abas reflitam imediatamente no estado atual.
-   */
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
-      // Verifica se a mudança ocorreu em chaves relevantes para o sistema (prefixo padronizado ou legadas)
       const isRelevantKey = event.key && (event.key.startsWith('rca_app_v1_') || event.key.startsWith('rca_'));
-
       if (isRelevantKey) {
-        console.log('Storage alterado externamente (outra aba). Sincronizando...', event.key);
         refreshAll();
       }
     };
-
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [refreshAll]);
 
-  // --- Wrappers de Persistência para Análises ---
+  // --- Funções de Mutação Granulares ---
 
-  const addRecord = async (record: RcaRecord): Promise<void> => {
-    console.log('Contexto: Adicionando RCA...', record.id);
+  const addRecord = useCallback(async (record: RcaRecord): Promise<void> => {
     try {
-      if (useApi) {
-        await api.saveRecordToApi(record, false);
-      } else {
-        storage.saveRecord(record);
-      }
-      await refreshAll();
+      if (useApi) await api.saveRecordToApi(record, false);
+      else storage.saveRecord(record);
+      setRecords(prev => [...prev, record]);
     } catch (error) {
       console.error('Erro ao adicionar RCA:', error);
+      await refreshAll();
       throw error;
     }
-  };
+  }, [useApi, refreshAll]);
 
-  const updateRecord = async (record: RcaRecord): Promise<void> => {
-    console.log('Contexto: Atualizando RCA...', record.id);
+  const updateRecord = useCallback(async (record: RcaRecord): Promise<void> => {
     try {
-      if (useApi) {
-        await api.saveRecordToApi(record, true);
-      } else {
-        storage.saveRecord(record);
-      }
-      await refreshAll();
+      if (useApi) await api.saveRecordToApi(record, true);
+      else storage.saveRecord(record);
+      setRecords(prev => prev.map(r => r.id === record.id ? record : r));
     } catch (error) {
       console.error('Erro ao atualizar RCA:', error);
+      await refreshAll();
       throw error;
     }
-  };
+  }, [useApi, refreshAll]);
 
-  const deleteRecord = async (id: string): Promise<void> => {
-    console.log('Contexto: Excluindo RCA...', id);
+  const deleteRecord = useCallback(async (id: string): Promise<void> => {
     try {
       if (useApi) {
         await api.deleteRecordFromApi(id);
       } else {
-        const newRecords = records.filter(r => r.id !== id);
-        storage.saveRecords(newRecords);
+        const current = storage.LEGACY_getRecords();
+        storage.saveRecords(current.filter(r => r.id !== id));
       }
-      await refreshAll();
+      setRecords(prev => prev.filter(r => r.id !== id));
     } catch (error) {
       console.error('Erro ao excluir RCA:', error);
-      throw error;
-    }
-  };
-
-  // --- Wrappers para Ativos ---
-
-  const updateAssets = async (newAssets: AssetNode[]): Promise<void> => {
-    console.log('Contexto: Atualizando árvore de ativos...');
-    try {
-      if (useApi) {
-        await api.importAssetsToApi(newAssets);
-      } else {
-        storage.saveAssets(newAssets);
-      }
-      setAssets(newAssets);
-    } catch (error) {
-      console.error('Erro ao atualizar ativos:', error);
-      throw error;
-    }
-  };
-
-  // --- Wrappers para Planos de Ação ---
-
-  const addAction = async (action: ActionRecord): Promise<void> => {
-    console.log('Contexto: Adicionando ação...', action.id);
-    try {
-      if (useApi) {
-        await api.saveActionToApi(action, false);
-      } else {
-        storage.saveAction(action);
-      }
       await refreshAll();
+      throw error;
+    }
+  }, [useApi, refreshAll]);
+
+  const addAction = useCallback(async (action: ActionRecord): Promise<void> => {
+    try {
+      if (useApi) await api.saveActionToApi(action, false);
+      else storage.saveAction(action);
+      setActions(prev => [...prev, action]);
     } catch (error) {
       console.error('Erro ao adicionar ação:', error);
+      await refreshAll();
       throw error;
     }
-  };
+  }, [useApi, refreshAll]);
 
-  const updateAction = async (action: ActionRecord): Promise<void> => {
+  const updateAction = useCallback(async (action: ActionRecord): Promise<void> => {
     try {
-      if (useApi) {
-        await api.saveActionToApi(action, true);
-      } else {
-        storage.saveAction(action);
-      }
-      await refreshAll();
+      if (useApi) await api.saveActionToApi(action, true);
+      else storage.saveAction(action);
+      setActions(prev => prev.map(a => a.id === action.id ? action : a));
     } catch (error) {
       console.error('Erro ao atualizar ação:', error);
+      await refreshAll();
       throw error;
     }
-  };
+  }, [useApi, refreshAll]);
 
-  const deleteActionInternal = async (id: string): Promise<void> => {
-    console.log('Contexto: Excluindo ação...', id);
+  const deleteAction = useCallback(async (id: string): Promise<void> => {
     try {
       if (useApi) {
         await api.deleteActionFromApi(id);
       } else {
         storage.deleteAction(id);
       }
-      await refreshAll();
+      setActions(prev => prev.filter(a => a.id !== id));
     } catch (error) {
       console.error('Erro ao excluir ação:', error);
+      await refreshAll();
       throw error;
     }
-  };
+  }, [useApi, refreshAll]);
 
-  // --- Wrappers para Gatilhos ---
-
-  const addTrigger = async (trigger: TriggerRecord): Promise<void> => {
-    console.log('Contexto: Adicionando gatilho...', trigger.id);
+  const addTrigger = useCallback(async (trigger: TriggerRecord): Promise<void> => {
     try {
-      if (useApi) {
-        await api.saveTriggerToApi(trigger, false);
-      } else {
-        storage.saveTrigger(trigger);
-      }
-      await refreshAll();
+      if (useApi) await api.saveTriggerToApi(trigger, false);
+      else storage.saveTrigger(trigger);
+      setTriggers(prev => [...prev, trigger]);
     } catch (error) {
       console.error('Erro ao adicionar gatilho:', error);
+      await refreshAll();
       throw error;
     }
-  };
+  }, [useApi, refreshAll]);
 
-  const updateTrigger = async (trigger: TriggerRecord): Promise<void> => {
-    console.log('Contexto: Atualizando gatilho...', trigger.id);
+  const updateTrigger = useCallback(async (trigger: TriggerRecord): Promise<void> => {
     try {
-      if (useApi) {
-        await api.saveTriggerToApi(trigger, true);
-      } else {
-        storage.saveTrigger(trigger);
-      }
-      await refreshAll();
+      if (useApi) await api.saveTriggerToApi(trigger, true);
+      else storage.saveTrigger(trigger);
+      setTriggers(prev => prev.map(t => t.id === trigger.id ? trigger : t));
     } catch (error) {
       console.error('Erro ao atualizar gatilho:', error);
+      await refreshAll();
       throw error;
     }
-  };
+  }, [useApi, refreshAll]);
 
-  const deleteTriggerInternal = async (id: string): Promise<void> => {
-    console.log('Contexto: Excluindo gatilho...', id);
+  const deleteTrigger = useCallback(async (id: string): Promise<void> => {
     try {
       if (useApi) {
         await api.deleteTriggerFromApi(id);
       } else {
         storage.deleteTrigger(id);
       }
-      await refreshAll();
+      setTriggers(prev => prev.filter(t => t.id !== id));
     } catch (error) {
       console.error('Erro ao excluir gatilho:', error);
+      await refreshAll();
       throw error;
     }
-  };
+  }, [useApi, refreshAll]);
 
-  // --- Wrappers para Taxonomia ---
-
-  const updateTaxonomyInternal = async (newTaxonomy: TaxonomyConfig): Promise<void> => {
-    console.log('Contexto: Atualizando configurações de taxonomia...');
+  const updateAssets = useCallback(async (newAssets: AssetNode[]): Promise<void> => {
     try {
-      if (useApi) {
-        await api.saveTaxonomyToApi(newTaxonomy);
-      } else {
-        storage.saveTaxonomy(newTaxonomy);
-      }
+      if (useApi) await api.importAssetsToApi(newAssets);
+      else storage.saveAssets(newAssets);
+      setAssets(newAssets);
+    } catch (error) {
+      console.error('Erro ao atualizar ativos:', error);
+      await refreshAll();
+      throw error;
+    }
+  }, [useApi, refreshAll]);
+
+  const updateTaxonomy = useCallback(async (newTaxonomy: TaxonomyConfig): Promise<void> => {
+    try {
+      if (useApi) await api.saveTaxonomyToApi(newTaxonomy);
+      else storage.saveTaxonomy(newTaxonomy);
       setTaxonomy(newTaxonomy);
     } catch (error) {
       console.error('Erro ao atualizar taxonomia:', error);
+      await refreshAll();
       throw error;
     }
-  };
+  }, [useApi, refreshAll]);
 
-  const contextValue = React.useMemo(() => ({
+  const contextValue = useMemo(() => ({
     records, assets, actions, triggers, taxonomy, isLoading, useApi,
     addRecord, updateRecord, deleteRecord, updateAssets,
-    addAction, updateAction, deleteAction: deleteActionInternal,
-    addTrigger, updateTrigger, deleteTrigger: deleteTriggerInternal,
-    updateTaxonomy: updateTaxonomyInternal,
-    refreshAll, setUseApi
-  }), [records, assets, actions, triggers, taxonomy, isLoading, useApi, refreshAll]);
+    addAction, updateAction, deleteAction,
+    addTrigger, updateTrigger, deleteTrigger,
+    updateTaxonomy, refreshAll, setUseApi
+  }), [
+    records, assets, actions, triggers, taxonomy, isLoading, useApi,
+    addRecord, updateRecord, deleteRecord, updateAssets,
+    addAction, updateAction, deleteAction,
+    addTrigger, updateTrigger, deleteTrigger,
+    updateTaxonomy, refreshAll
+  ]);
 
   return (
     <RcaContext.Provider value={contextValue}>
