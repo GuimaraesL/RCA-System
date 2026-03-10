@@ -67,28 +67,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onSh
 
     const toggleMobile = () => setIsMobileOpen(!isMobileOpen);
 
-    const NavItem = ({ id, icon: Icon, label, shortcutLetter }: { id: string, icon: any, label: string, shortcutLetter?: string }) => (
-        <button
-            onClick={() => {
-                setView(id);
-                setIsMobileOpen(false);
-            }}
-            className={`
+    const NavItem = ({ id, icon: Icon, label, shortcutLetter }: { id: string, icon: any, label: string, shortcutLetter?: string }) => {
+        const isActive = view === id;
+        return (
+            <button
+                onClick={() => {
+                    setView(id);
+                    setIsMobileOpen(false);
+                }}
+                className={`
                 w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm tracking-tight
-                ${view === id
-                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/20'
-                    : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}
+                ${isActive
+                        ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/20'
+                        : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}
                 ${isCollapsed ? 'justify-center px-2' : ''}
                 disabled:opacity-20 disabled:cursor-not-allowed
             `}
-            title={isCollapsed ? `${label} (Alt+${shortcutLetter?.toUpperCase() || ''})` : `Alt+${shortcutLetter?.toUpperCase() || ''}`}
-            data-testid={`nav-${id}`}
-            disabled={isBlocked}
-        >
-            <Icon size={20} className={`flex-shrink-0 ${view === id ? 'text-white' : 'text-slate-500 group-hover:text-primary-400'}`} />
-            {!isCollapsed && <span className="flex-1 text-left"><ShortcutLabel text={label} shortcutLetter={shortcutLetter} /></span>}
-        </button>
-    );
+                title={isCollapsed ? `${label} (Alt+${shortcutLetter?.toUpperCase() || ''})` : `Alt+${shortcutLetter?.toUpperCase() || ''}`}
+                aria-label={`${label}${shortcutLetter ? ` (Alt+${shortcutLetter.toUpperCase()})` : ''}`}
+                aria-current={isActive ? 'page' : undefined}
+                data-testid={`nav-${id}`}
+                disabled={isBlocked}
+            >
+                <Icon size={20} aria-hidden="true" className={`flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-primary-400'}`} />
+                {!isCollapsed && <span className="flex-1 text-left"><ShortcutLabel text={label} shortcutLetter={shortcutLetter} /></span>}
+            </button>
+        );
+    };
 
     return (
         <>
@@ -114,14 +119,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onSh
                         {!isCollapsed && <span className="whitespace-nowrap uppercase">{t('common.appTitle')}</span>}
                     </div>
 
-                    <button onClick={toggleCollapse} className="hidden lg:flex p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-white transition-all active:scale-95 border border-transparent hover:border-slate-700">
-                        {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                    <button
+                        onClick={toggleCollapse}
+                        aria-label={isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+                        className="hidden lg:flex p-1.5 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-white transition-all active:scale-95 border border-transparent hover:border-slate-700"
+                    >
+                        {isCollapsed ? <ChevronRight size={20} aria-hidden="true" /> : <ChevronLeft size={20} aria-hidden="true" />}
                     </button>
                 </div>
 
-                <nav className="flex-1 p-6 space-y-3 overflow-y-auto custom-scrollbar">
+                <nav aria-label={t('sidebar.mainNavigation')} className="flex-1 p-6 space-y-3 overflow-y-auto custom-scrollbar">
                     <div className="space-y-1">
-                        {!isCollapsed && <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4 px-4">{t('sidebar.menu')}</p>}
+                        {!isCollapsed && <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 px-4">{t('sidebar.menu')}</p>}
                         <NavItem id="DASHBOARD" icon={LayoutDashboard} label={t('sidebar.dashboard')} shortcutLetter="D" />
                         <NavItem id="TRIGGERS" icon={Siren} label={t('sidebar.triggers')} shortcutLetter="T" />
                         <NavItem id="ANALYSES" icon={List} label={t('sidebar.analyses')} shortcutLetter="A" />
@@ -130,7 +139,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onSh
                     </div>
 
                     <div className="pt-6 mt-6 border-t border-slate-800/50 space-y-1">
-                        {!isCollapsed && <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4 px-4">{t('sidebar.system')}</p>}
+                        {!isCollapsed && <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 px-4">{t('sidebar.system')}</p>}
                         <NavItem id="SETTINGS" icon={Settings} label={t('sidebar.settings')} shortcutLetter="C" />
                         <NavItem id="MIGRATION" icon={Upload} label={t('sidebar.migration')} shortcutLetter="M" />
                     </div>
@@ -158,7 +167,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onSh
                     </div>
                     {!isCollapsed && (
                         <div className="mt-6 pt-6 border-t border-slate-800/30">
-                            <div className="flex items-center justify-between text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+                            <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                 <span>{t('common.engineWithVersion')}</span>
                                 <span className="px-1.5 py-0.5 bg-slate-800 rounded">{t('common.revisionWithNumber')}</span>
                             </div>

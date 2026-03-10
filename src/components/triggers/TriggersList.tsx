@@ -69,6 +69,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                             <th className="px-4 py-5 text-center border-b border-slate-100 dark:border-slate-700 w-12">
                                 <input
                                     type="checkbox"
+                                    aria-label={t('triggersPage.table.selectAll') || 'Select all triggers'}
                                     className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary-600 focus:ring-primary-500 cursor-pointer"
                                     onChange={(e) => { e.stopPropagation(); onSelectAll(); }}
                                     checked={filteredTriggers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).filter(t => canSelectTrigger(t)).length > 0 && filteredTriggers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).filter(t => canSelectTrigger(t)).every(t => selectedTriggerIds.has(t.id))}
@@ -86,7 +87,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                             <SortHeader label={t('table.type')} sortKey="analysis_type_id" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
                             <SortHeader label={t('table.responsible')} sortKey="responsible" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
                             <SortHeader label={t('triggersPage.table.rcaLink')} sortKey="rca_id" currentSort={sortConfig} onSort={handleSort} className="px-6 py-5 text-[10px] uppercase tracking-widest border-b border-slate-100 dark:border-slate-700" />
-                            <th className="px-6 py-5 text-right border-b border-slate-100 dark:border-slate-700 font-black text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500">{t('table.actions') || 'Acoes'}</th>
+                            <th className="px-6 py-5 text-right border-b border-slate-100 dark:border-slate-700 font-black text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-300">{t('table.actions') || 'Acoes'}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
@@ -120,6 +121,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                     <td className="px-4 py-5 text-center" onClick={(e) => e.stopPropagation()}>
                                         <input
                                             type="checkbox"
+                                            aria-label={`${t('triggersPage.table.select')} ${trigger.id}`}
                                             className={`h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary-600 focus:ring-primary-500 ${isSelectable ? 'cursor-pointer' : 'cursor-not-allowed opacity-30'}`}
                                             checked={isSelected}
                                             disabled={!isSelectable && !isSelected}
@@ -135,27 +137,29 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                     <td className="px-6 py-5">
                                         <StatusBadge statusId={trigger.status} label={statusName} />
                                     </td>
-                                    <td className="px-6 py-5 font-mono text-[11px] font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap">{formatDate(trigger.start_date)}</td>
+                                    <td className="px-6 py-5 font-mono text-[11px] font-bold text-slate-400 dark:text-slate-300 whitespace-nowrap">{formatDate(trigger.start_date)}</td>
                                     <td className="px-6 py-5 max-w-[150px] truncate font-bold text-slate-700 dark:text-slate-200" title={getAssetName(trigger.area_id, assets)}>{getAssetName(trigger.area_id, assets)}</td>
                                     <td className="px-6 py-5 max-w-[150px] truncate font-bold text-slate-700 dark:text-slate-200" title={getAssetName(trigger.equipment_id, assets)}>{getAssetName(trigger.equipment_id, assets)}</td>
                                     <td className="px-6 py-5 max-w-[150px] truncate font-bold text-slate-700 dark:text-slate-200" title={getAssetName(trigger.subgroup_id, assets)}>{getAssetName(trigger.subgroup_id, assets)}</td>
-                                    <td className="px-6 py-5 font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">{trigger.duration_minutes} <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold tracking-widest">{t('common.minAbbr')}</span></td>
+                                    <td className="px-6 py-5 font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">{trigger.duration_minutes} <span className="text-[10px] text-slate-400 dark:text-slate-300 font-bold tracking-widest">{t('common.minAbbr')}</span></td>
                                     <td className="px-6 py-5 max-w-[200px]">
                                         <div className="font-black text-slate-800 dark:text-slate-100 uppercase text-[11px] tracking-tight">{trigger.stop_type}</div>
-                                        <div className="truncate text-xs text-slate-400 dark:text-slate-500 font-medium" title={trigger.stop_reason}>{trigger.stop_reason}</div>
+                                        <div className="truncate text-xs text-slate-400 dark:text-slate-300 font-medium" title={trigger.stop_reason}>{trigger.stop_reason}</div>
                                     </td>
                                     <td className="px-6 py-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">{analysisTypeName}</td>
                                     <td className="px-6 py-5 text-xs font-medium text-slate-500 dark:text-slate-400">{trigger.responsible}</td>
                                     <td className="px-6 py-5">
                                         {trigger.rca_id ? (
                                             <div className="flex items-center gap-2">
-                                                <div
+                                                <button
+                                                    type="button"
                                                     className="flex items-center gap-2 text-primary-600 dark:text-primary-400 font-black text-[10px] uppercase tracking-widest bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-900/30 px-3 py-1.5 rounded-lg w-fit cursor-pointer hover:bg-primary-100 dark:hover:bg-primary-800 transition-all shadow-sm"
                                                     onClick={(e) => { e.stopPropagation(); onOpenRca(trigger.rca_id!); }}
                                                     title={t('triggersPage.tooltips.openRca')}
+                                                    aria-label={t('triggersPage.tooltips.openRca')}
                                                 >
                                                     <Link size={14} strokeWidth={3} /> {linkedRca?.what ? (linkedRca.what.length > 15 ? linkedRca.what.substring(0, 15) + '...' : linkedRca.what) : `#RCA-${trigger.rca_id.substring(0, 4)}`}
-                                                </div>
+                                                </button>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onLinkRca(trigger); }}
                                                     className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all"
@@ -228,6 +232,6 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                     </div>
                 )}
             </div>
-        </Card>
+        </Card >
     );
 };

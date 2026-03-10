@@ -293,6 +293,12 @@ const AppContent: React.FC = () => {
 
     return (
         <div className="flex h-screen bg-page-gradient font-sans text-slate-900 dark:text-slate-100">
+            <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:shadow-xl focus:outline-none"
+            >
+                {t('common.skipToContent')}
+            </a>
             <Sidebar
                 view={view}
                 setView={handleViewChange}
@@ -301,7 +307,7 @@ const AppContent: React.FC = () => {
                 isBlocked={isEditorOpen}
             />
 
-            <main className="flex-1 overflow-hidden relative flex flex-col w-full">
+            <main id="main-content" className="flex-1 overflow-hidden relative flex flex-col w-full">
                 <Suspense fallback={
                     <div className="flex-1 flex items-center justify-center bg-slate-50/50" data-testid="app-suspense-loading">
                         <div className="flex flex-col items-center gap-3 text-slate-400">

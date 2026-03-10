@@ -246,17 +246,17 @@ export const Dashboard: React.FC = () => {
     return (
         <div className="p-8 lg:p-12 space-y-12 max-w-[1600px] mx-auto pb-32">
             {/* Cabeçalho */}
-            <div className="flex justify-between items-end animate-in fade-in duration-1000 slide-in-from-top-4">
+            <header className="flex justify-between items-end animate-in fade-in duration-1000 slide-in-from-top-4">
                 <div>
                     <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight font-display flex items-center gap-3">
-                        <Activity className="text-primary-600 dark:text-primary-500 w-10 h-10" /> {t('dashboard.title')}
+                        <Activity aria-hidden="true" className="text-primary-600 dark:text-primary-500 w-10 h-10" /> {t('dashboard.title')}
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium text-lg leading-relaxed">{t('dashboard.description')}</p>
+                    <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium text-lg leading-relaxed">{t('dashboard.description')}</p>
                 </div>
-            </div>
+            </header>
 
             {/* Barra de Filtros */}
-            <div className="animate-in fade-in duration-1000 slide-in-from-top-4 delay-100">
+            <section aria-label={t('dashboard.filters')} className="animate-in fade-in duration-1000 slide-in-from-top-4 delay-100">
                 <FilterBar
                     isOpen={showFilters}
                     onToggle={() => setShowFilters(!showFilters)}
@@ -279,15 +279,15 @@ export const Dashboard: React.FC = () => {
                     onGlobalToggle={toggleGlobal}
                     availableOptions={availableOptions}
                 />
-            </div>
+            </section>
 
             {/* Cartões de KPI */}
-            <div ref={kpiRef as any} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <section aria-label={t('dashboard.kpis')} ref={kpiRef as any} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {[
                     { label: t('dashboard.kpi.durationMin'), value: totalDowntimeMin, icon: <Clock size={16} />, color: 'text-primary-600 dark:text-primary-400', bgColor: 'bg-primary-50 dark:bg-primary-900/20', tooltip: t('dashboard.tooltips.durationMin') },
                     { label: t('dashboard.kpi.durationHours'), value: Number(totalDowntimeHours.toFixed(1)), icon: <Clock size={16} />, color: 'text-indigo-600 dark:text-indigo-400', bgColor: 'bg-indigo-50 dark:bg-indigo-900/20', tooltip: t('dashboard.tooltips.durationHours') },
                     { label: t('dashboard.kpi.totalCost'), value: totalCost, icon: <TrendingUp size={16} />, color: 'text-emerald-600 dark:text-emerald-400', bgColor: 'bg-emerald-50 dark:bg-emerald-900/20', prefix: language === 'pt' ? 'R$ ' : '$', tooltip: t('dashboard.tooltips.totalCost') },
-                    { label: t('dashboard.kpi.totalRcas'), value: filteredRecords.length, icon: <PieIcon size={16} />, color: 'text-slate-600 dark:text-slate-400', bgColor: 'bg-slate-50 dark:bg-slate-800', tooltip: t('dashboard.tooltips.totalRcas') }
+                    { label: t('dashboard.kpi.totalRcas'), value: filteredRecords.length, icon: <PieIcon size={16} />, color: 'text-slate-600 dark:text-slate-300', bgColor: 'bg-slate-50 dark:bg-slate-800', tooltip: t('dashboard.tooltips.totalRcas') }
                 ].map((kpi, i) => (
                     <Card
                         key={i}
@@ -304,7 +304,7 @@ export const Dashboard: React.FC = () => {
                             </div>
                         </div>
                         <div title={kpi.tooltip} className="space-y-1">
-                            <div title={kpi.tooltip} className={`text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors`}>{kpi.label}</div>
+                            <div title={kpi.tooltip} className={`text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors`}>{kpi.label}</div>
                             <div title={kpi.tooltip} className="text-4xl font-black text-slate-900 dark:text-white relative z-10 whitespace-nowrap truncate leading-tight tracking-tighter">
                                 {isLoading ? (
                                     <Skeleton className="h-12 w-3/4 rounded-lg" />
@@ -317,10 +317,10 @@ export const Dashboard: React.FC = () => {
                         <div className={`absolute -right-4 -bottom-4 w-24 h-24 ${kpi.bgColor} opacity-0 group-hover:opacity-20 rounded-full transition-all duration-500 blur-3xl`}></div>
                     </Card>
                 ))}
-            </div>
+            </section>
 
             {/* Grade Principal de Gráficos */}
-            <div ref={chartsRef as any} className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <section aria-label={t('dashboard.charts.title') || 'Charts'} ref={chartsRef as any} className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <ChartCard
                     title={t('dashboard.charts.totalByStatus')}
                     icon={<CheckCircle size={16} />}
@@ -559,7 +559,7 @@ export const Dashboard: React.FC = () => {
                         </SafeResponsiveContainer>
                     ) : <div className="h-full flex items-center justify-center text-slate-300 text-sm">{t('dashboard.charts.noData')}</div>}
                 </ChartCard>
-            </div>
+            </section>
         </div>
     );
 };
