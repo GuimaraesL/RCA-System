@@ -906,6 +906,8 @@ export interface TranslationSchema {
         copyReport: string;
         similarHistory: string;
         chatConversations: string;
+        greetingWithSubgroup: string;
+        greetingMissingData: string;
         match: string;
         suggestions: {
             initial: {

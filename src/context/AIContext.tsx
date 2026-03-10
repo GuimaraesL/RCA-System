@@ -26,12 +26,14 @@ interface AiContextType {
     insight: string;
     reasoning: string;
     recurrenceData: RecurrenceData;
+    loadingRecurrences: boolean;
     error: string | null;
     analyzeRca: (rca: RcaRecord) => Promise<void>;
     chatWithAi: (rca: RcaRecord, message: string) => Promise<void>;
     loadHistory: (rcaId: string) => Promise<void>;
     loadRecurrences: (rca: RcaRecord) => Promise<void>;
     clearAi: (rcaId?: string) => Promise<void>;
+    setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
 const AiContext = createContext<AiContextType | undefined>(undefined);
@@ -44,6 +46,7 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     const [insight, setInsight] = useState('');
     const [reasoning, setReasoning] = useState('');
     const [recurrenceData, setRecurrenceData] = useState<RecurrenceData>(EMPTY_RECURRENCE);
+    const [loadingRecurrences, setLoadingRecurrences] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const getFullLanguageName = (lang: string) => {
@@ -65,6 +68,7 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     }, []);
 
     const loadRecurrences = useCallback(async (rca: RcaRecord) => {
+        setLoadingRecurrences(true);
         try {
             const data = await fetchRecurrencesOnly(rca, getFullLanguageName(language));
             if (data && (data.subgroup_matches?.length || data.equipment_matches?.length || data.area_matches?.length)) {
@@ -76,6 +80,8 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
             }
         } catch (e) {
             console.error('Failed to load recurrences', e);
+        } finally {
+            setLoadingRecurrences(false);
         }
     }, [language]);
 
@@ -167,7 +173,7 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
     return (
         <AiContext.Provider value={{
-            isAiOpen, setAiOpen, status, messages, insight, reasoning, recurrenceData, error, analyzeRca, chatWithAi, loadHistory, loadRecurrences, clearAi
+            isAiOpen, setAiOpen, status, messages, insight, reasoning, recurrenceData, loadingRecurrences, error, analyzeRca, chatWithAi, loadHistory, loadRecurrences, clearAi, setMessages
         }}>
             {children}
         </AiContext.Provider>

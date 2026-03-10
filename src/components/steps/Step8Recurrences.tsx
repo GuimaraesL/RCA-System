@@ -9,9 +9,11 @@ import {
     ArrowUpRight,
     Search,
     Inbox,
-    Target
+    Target,
+    RefreshCw
 } from 'lucide-react';
 import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
 
 interface Step8RecurrencesProps {
     data: RcaRecord;
@@ -20,13 +22,14 @@ interface Step8RecurrencesProps {
 
 export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
     const { t } = useLanguage();
-    const { recurrenceData, loadRecurrences } = useAi();
+    const { recurrenceData, loadRecurrences, loadingRecurrences } = useAi();
 
-    useEffect(() => {
-        if (!recurrenceData.subgroup.length && !recurrenceData.equipment.length && !recurrenceData.area.length) {
-            loadRecurrences(data);
-        }
-    }, [data, loadRecurrences, recurrenceData]);
+    // Carregamento automático removido para ser sob demanda (Issue 125)
+    // useEffect(() => {
+    //     if (!recurrenceData.subgroup.length && !recurrenceData.equipment.length && !recurrenceData.area.length) {
+    //         loadRecurrences(data);
+    //     }
+    // }, [data, loadRecurrences, recurrenceData]);
 
     // Optional: Sort items globally by failure_date to find earliest/latest if needed
     const getSectionGroupDate = (items: any[]) => {
@@ -159,52 +162,75 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
-            {/* Introductory Header */}
-            <div className="flex items-center gap-4 px-2">
-                <div className="p-3 rounded-2xl bg-primary-600 shadow-lg shadow-primary-600/20">
-                    <Search className="w-6 h-6 text-white" />
+            <div className="flex items-center justify-between px-2">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-2xl bg-primary-600 shadow-lg shadow-primary-600/20">
+                        <Search className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                            {t('wizard.step8.title')}
+                        </h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                            Exploração contextual de falhas sistêmicas para evitar reincidências
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                        {t('wizard.step8.title')}
-                    </h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                        Exploração contextual de falhas sistêmicas para evitar reincidências
-                    </p>
-                </div>
+
+                <Button
+                    onClick={() => loadRecurrences(data)}
+                    isLoading={loadingRecurrences}
+                    leftIcon={<RefreshCw className="w-4 h-4" />}
+                    variant="primary"
+                    size="md"
+                    className="shadow-md"
+                >
+                    Buscar Recorrências
+                </Button>
             </div>
 
             {/* Timeline Container */}
             <div className="relative border-l-2 border-slate-300 dark:border-slate-700 ml-36 pl-10 space-y-16 pb-4">
-                {/* Same Subgroup Section */}
-                <RecurrenceTable
-                    title={t('wizard.step8.recurrenceLevels.subgroup')}
-                    icon={Activity}
-                    items={recurrenceData.subgroup}
-                    colorClass="from-primary-50 dark:from-primary-500/10 to-transparent"
-                    accentClass="bg-primary-600"
-                    groupDate={getSectionGroupDate(recurrenceData.subgroup)}
-                />
+                {!loadingRecurrences && recurrenceData.subgroup.length === 0 && recurrenceData.equipment.length === 0 && recurrenceData.area.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-center animate-pulse">
+                        <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
+                            <Search className="w-8 h-8 text-slate-300" />
+                        </div>
+                        <h4 className="text-slate-400 font-medium italic">Clique em "Buscar Recorrências" para explorar o histórico técnico.</h4>
+                    </div>
+                ) : (
+                    <>
+                        {/* Same Subgroup Section */}
+                        <RecurrenceTable
+                            title={t('wizard.step8.recurrenceLevels.subgroup')}
+                            icon={Activity}
+                            items={recurrenceData.subgroup}
+                            colorClass="from-primary-50 dark:from-primary-500/10 to-transparent"
+                            accentClass="bg-primary-600"
+                            groupDate={getSectionGroupDate(recurrenceData.subgroup)}
+                        />
 
-                {/* Same Equipment Section */}
-                <RecurrenceTable
-                    title={t('wizard.step8.recurrenceLevels.equipment')}
-                    icon={History}
-                    items={recurrenceData.equipment}
-                    colorClass="from-amber-50 dark:from-amber-500/10 to-transparent"
-                    accentClass="bg-amber-500"
-                    groupDate={getSectionGroupDate(recurrenceData.equipment)}
-                />
+                        {/* Same Equipment Section */}
+                        <RecurrenceTable
+                            title={t('wizard.step8.recurrenceLevels.equipment')}
+                            icon={History}
+                            items={recurrenceData.equipment}
+                            colorClass="from-amber-50 dark:from-amber-500/10 to-transparent"
+                            accentClass="bg-amber-500"
+                            groupDate={getSectionGroupDate(recurrenceData.equipment)}
+                        />
 
-                {/* Different Equipment Section */}
-                <RecurrenceTable
-                    title={t('wizard.step8.recurrenceLevels.area')}
-                    icon={MapPin}
-                    items={recurrenceData.area}
-                    colorClass="from-emerald-50 dark:from-emerald-500/10 to-transparent"
-                    accentClass="bg-emerald-500"
-                    groupDate={getSectionGroupDate(recurrenceData.area)}
-                />
+                        {/* Different Equipment Section */}
+                        <RecurrenceTable
+                            title={t('wizard.step8.recurrenceLevels.area')}
+                            icon={MapPin}
+                            items={recurrenceData.area}
+                            colorClass="from-emerald-50 dark:from-emerald-500/10 to-transparent"
+                            accentClass="bg-emerald-500"
+                            groupDate={getSectionGroupDate(recurrenceData.area)}
+                        />
+                    </>
+                )}
             </div>
         </div>
     );

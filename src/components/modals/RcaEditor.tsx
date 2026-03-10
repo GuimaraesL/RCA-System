@@ -71,12 +71,7 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         onEscape: onClose
     });
 
-    // Carrega recorrências automaticamente se for um registro existente com dados básicos
-    useEffect(() => {
-        if (existingRecord?.id && (existingRecord.what || existingRecord.problem_description)) {
-            loadRecurrences(existingRecord);
-        }
-    }, [existingRecord?.id, loadRecurrences]);
+    // Carregamento de recorrências removido (agora é manual via Step 8)
 
     // Controle de modais internos de Ação (UI Only)
     const [isActionModalOpen, setIsActionModalOpen] = useState(false);

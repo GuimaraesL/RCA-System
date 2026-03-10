@@ -926,8 +926,10 @@ export const pt: TranslationSchema = {
         inputPlaceholder: "Pergunte sobre modos de falha, 5 Porquês...",
         reanalyze: "Reanalisar Tudo",
         copyReport: "Copiar Relatório",
-        similarHistory: "Histórico Similares",
-        chatConversations: "Conversa com Detectives",
+        similarHistory: "Histórico Semelhante",
+        chatConversations: "Conversas com Detetives",
+        greetingWithSubgroup: "Olá! Sou seu assistente técnico. Identifiquei que esta falha pertence ao subgrupo **{0}**. Deseja que eu realize uma análise completa buscando padrões históricos?",
+        greetingMissingData: "Olá! Para que eu possa te ajudar melhor com análises históricas e sugestões inteligentes, por favor, preencha o dado de **Subgrupo** no Passo 1.",
         match: "Match",
         suggestions: {
             initial: {

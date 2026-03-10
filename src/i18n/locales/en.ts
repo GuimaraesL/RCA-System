@@ -942,6 +942,8 @@ export const en: TranslationSchema = {
         copyReport: "Copy Report",
         similarHistory: "Similar History",
         chatConversations: "Conversation with Detectives",
+        greetingWithSubgroup: "Hello! I am your technical assistant. I identified that this failure belongs to the subgroup **{0}**. Would you like me to perform a full analysis looking for historical patterns?",
+        greetingMissingData: "Hello! To better help you with historical analysis and smart suggestions, please fill in the **Subgroup** data in Step 1.",
         match: "Match",
         suggestions: {
             initial: {

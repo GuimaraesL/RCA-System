@@ -38,7 +38,7 @@ const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
 
 export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, rcaData, onApplySuggestion }) => {
     const { t } = useLanguage();
-    const { status, messages, insight, reasoning, recurrenceData, error, analyzeRca, chatWithAi, clearAi, loadHistory } = useAi();
+    const { status, messages, insight, reasoning, recurrenceData, error, analyzeRca, chatWithAi, clearAi, loadHistory, setMessages } = useAi();
     const [chatInput, setChatInput] = useState('');
     const [hasLoadedHistory, setHasLoadedHistory] = useState(false);
     const [subExpanded, setSubExpanded] = useState(true);
@@ -96,18 +96,46 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
         initChat();
     }, [isOpen, rcaData.id, hasLoadedHistory, loadHistory]);
 
-    // Dispara análise inicial se abrir pela primeira vez, não tiver histórico e tiver dados
+    // Saudação inicial baseada no contexto (Issue 125)
     useEffect(() => {
-        if (isOpen && hasLoadedHistory && messages.length === 0 && status === 'idle' && (rcaData.what || rcaData.problem_description)) {
-            const timer = setTimeout(() => analyzeRca(rcaData), 500);
-            return () => clearTimeout(timer);
+        if (isOpen && hasLoadedHistory && messages.length === 0 && status === 'idle') {
+            const subgroup = rcaData.asset_name_display || rcaData.subgroup_id;
+            
+            let greeting = "";
+            if (subgroup) {
+                greeting = t('ai.greetingWithSubgroup').replace('{0}', subgroup);
+            } else {
+                greeting = t('ai.greetingMissingData');
+            }
+
+            setMessages([{
+                role: 'assistant',
+                content: greeting,
+                timestamp: new Date()
+            }]);
         }
-    }, [isOpen, hasLoadedHistory, messages.length, status, rcaData, analyzeRca]);
+    }, [isOpen, hasLoadedHistory, messages.length, status, rcaData, setMessages]);
 
     const handleSend = (text?: string) => {
         const messageToSend = text || chatInput;
         if (!messageToSend.trim() || status === 'thinking' || status === 'streaming') return;
-        chatWithAi(rcaData, messageToSend);
+
+        // Se for a primeira interação após a saudação e for uma afirmação, dispara análise completa
+        const isFirstInteraction = messages.length === 1 && messages[0].role === 'assistant';
+        const isAffirmative = ["sim", "pode", "ok", "claro", "analisar", "fazer", "bora", "com certeza"].some(v => 
+            messageToSend.toLowerCase().includes(v)
+        );
+
+        if (isFirstInteraction && isAffirmative) {
+            // Adiciona a mensagem do usuário localmente
+            setMessages(prev => [...prev, { role: 'user', content: messageToSend, timestamp: new Date() }]);
+            // Dispara análise completa (Initial Analysis no Backend)
+            analyzeRca(rcaData);
+        } else {
+            // Segue fluxo normal de chat
+            chatWithAi(rcaData, messageToSend);
+        }
+
         if (!text) setChatInput('');
     };
 

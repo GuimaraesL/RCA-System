@@ -96,7 +96,10 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
     agent = get_rca_agent(rca_id)
 
     messages = []
-    session_msgs = agent.get_session_messages(rca_id)
+    try:
+        session_msgs = agent.get_session_messages(rca_id)
+    except Exception:
+        session_msgs = []
 
     if session_msgs:
         for msg in session_msgs:
@@ -405,19 +408,36 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         from agents.main_agent import get_rca_agent
         ai_engine = get_rca_agent(str(request.rca_id), language=ui_lang)
 
-        # 2. Monta o prompt final (Contexto Risco-Zero: só gasta tokens 1 vez na vida da sessao)
+        # 2. Monta o prompt final (Contexto Risco-Zero)
+        # Verifica se o histórico está vazio para saber se é a primeira mensagem de chat real
+        try:
+            session_messages = ai_engine.get_session_messages(str(request.rca_id))
+            is_new_session = len(session_messages) == 0
+        except Exception:
+            # Agno lança erro se a sessão não existir no banco ainda
+            is_new_session = True
+
         if not is_initial_analysis:
-            logger.info(f"📡 ROTA: Mensagem de chat recebida -> Unified Agent Mode. (Multimodal: {len(images)} imgs, {len(videos)} vids)")
+            logger.info(f"📡 ROTA: Mensagem de chat recebida -> Unified Agent Mode.")
             prompt = request.user_prompt
-        else:
-            logger.info(f"📡 ROTA: Análise inicial automática -> Unified Agent Mode. (Multimodal: {len(images)} imgs, {len(videos)} vids)")
             
-            # Constrói o blocão da Análise Inicial (DADOS DA TELA + VALIDAÇÕES)
+            # Se for sessão nova e o usuário responder de forma afirmativa à saudação do frontend
+            is_brief_affirmative = str(prompt).lower().strip() in ["sim", "ok", "pode ser", "claro", "analisar", "fazer", "bora", "com certeza"]
+            
+            if is_new_session:
+                if is_brief_affirmative:
+                    prompt = f"O usuário confirmou a análise sugerida. Realize a análise completa de causa raiz para a RCA ID: {request.rca_id} baseando-se no contexto abaixo:\n"
+                else:
+                    prompt = f"Contexto inicial da RCA:\n{context_block}\n\nPergunta do Usuário: {prompt}"
+                
+                # Injeta context_block e recurrences se for a primeira vez que o Agente atua
+                if context_block and "Contexto inicial" not in prompt: prompt = f"{context_block}\n" + prompt
+                if validated_recurrences_text: prompt += f"\n### RECORRÊNCIAS VALIDADAS:\n{validated_recurrences_text}\n"
+        else:
+            logger.info(f"📡 ROTA: Análise inicial automática -> Unified Agent Mode.")
             prompt = f"Realize a análise completa de causa raiz para a RCA ID: {request.rca_id} baseando-se nos dados abaixo:\n"
-            if context_block:
-                prompt += f"{context_block}\n"
-            if validated_recurrences_text:
-                prompt += f"\n### RECORRÊNCIAS VALIDADAS:\n{validated_recurrences_text}\n"
+            if context_block: prompt += f"{context_block}\n"
+            if validated_recurrences_text: prompt += f"\n### RECORRÊNCIAS VALIDADAS:\n{validated_recurrences_text}\n"
         logger.info(f"🔍 ROTA: Motor={type(ai_engine).__name__}, Prompt ({len(prompt)} chars)")
 
         # 4. Gerador de Streaming para SSE compatível com Agno 2.x e o Frontend
