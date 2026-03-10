@@ -393,15 +393,15 @@ test.describe('Workflow RCA - Ciclo de Estados e Gatilhos', () => {
 
     // 2. Navegar para Análises
     await page.keyboard.press('Alt+A');
-    await expect(page.getByTestId('nav-ANALYSES')).toHaveAttribute('class', /bg-blue-600/); // Verifica classe ativa
+    await expect(page.getByTestId('nav-ANALYSES')).toHaveAttribute('class', /bg-primary-600/); // Verifica classe ativa
 
     // 3. Navegar para Ativos
     await page.keyboard.press('Alt+H');
-    await expect(page.getByTestId('nav-ASSETS')).toHaveAttribute('class', /bg-blue-600/);
+    await expect(page.getByTestId('nav-ASSETS')).toHaveAttribute('class', /bg-primary-600/);
 
     // 4. Configurações
     await page.keyboard.press('Alt+C');
-    await expect(page.getByTestId('nav-SETTINGS')).toHaveAttribute('class', /bg-blue-600/);
+    await expect(page.getByTestId('nav-SETTINGS')).toHaveAttribute('class', /bg-primary-600/);
     await expect(page.getByText(/Tipos de Análise|Analysis Types/i).first()).toBeVisible();
   });
 
