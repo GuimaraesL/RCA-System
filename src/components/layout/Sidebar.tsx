@@ -145,28 +145,28 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onSh
                     </div>
                 </nav>
 
-                <div className={`p-8 border-t border-slate-800/50 bg-slate-950/30 ${isCollapsed ? 'text-center flex flex-col items-center gap-6' : ''}`}>
-                    <div className={`flex items-center ${isCollapsed ? 'flex-col gap-4' : 'gap-3'}`}>
-                        <div className="flex-1">
+                <div className={`p-4 lg:p-6 border-t border-slate-800/50 bg-slate-950/30 ${isCollapsed ? 'text-center flex flex-col items-center gap-4' : ''}`}>
+                    <div className={`flex items-center w-full ${isCollapsed ? 'flex-col gap-4' : 'gap-3 justify-between'}`}>
+                        <div className={`${isCollapsed ? 'w-full flex justify-center' : 'flex-1'}`}>
                             <LanguageSelector compact={isCollapsed} />
                         </div>
 
-                        <div className="flex items-center">
+                        <div className={`flex items-center ${isCollapsed ? 'flex-col gap-4' : 'gap-2'}`}>
                             <ThemeToggle />
-                        </div>
 
-                        {onShowHelp && (
-                            <button
-                                onClick={onShowHelp}
-                                className="p-2 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-white transition-all active:scale-95 border border-transparent hover:border-slate-700"
-                                title={t('sidebar.shortcutsTooltip')}
-                            >
-                                <CircleHelp size={20} />
-                            </button>
-                        )}
+                            {onShowHelp && (
+                                <button
+                                    onClick={onShowHelp}
+                                    className="p-2 hover:bg-slate-800 rounded-lg text-slate-500 hover:text-white transition-all active:scale-95 border border-transparent hover:border-slate-700 flex-shrink-0"
+                                    title={t('sidebar.shortcutsTooltip')}
+                                >
+                                    <CircleHelp size={20} />
+                                </button>
+                            )}
+                        </div>
                     </div>
                     {!isCollapsed && (
-                        <div className="mt-6 pt-6 border-t border-slate-800/30">
+                        <div className="mt-4 pt-4 border-t border-slate-800/30">
                             <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                 <span>{t('common.engineWithVersion')}</span>
                                 <span className="px-1.5 py-0.5 bg-slate-800 rounded">{t('common.revisionWithNumber')}</span>
