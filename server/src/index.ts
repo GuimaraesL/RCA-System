@@ -33,7 +33,9 @@ app.use(helmet({
     },
     frameguard: {
         action: 'deny'
-    }
+    },
+    xContentTypeOptions: true,
+    referrerPolicy: { policy: 'same-origin' }
 }));
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));

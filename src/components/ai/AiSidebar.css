@@ -139,12 +139,12 @@
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #64748b;
+    color: #475569; /* Melhorado para contraste WCAG */
     margin-bottom: 12px;
 }
 
 .dark .ai-section-label {
-    color: #94a3b8;
+    color: #cbd5e1; /* Melhorado para contraste no modo escuro */
 }
 
 /* Recurrences */

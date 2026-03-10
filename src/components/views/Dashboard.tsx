@@ -121,7 +121,11 @@ export const Dashboard: React.FC = () => {
     const [isMounted, setIsMounted] = useState(false);
     useEffect(() => {
         setIsMounted(true);
-    }, []);
+        // SEO: Atualização dinâmica do título e meta descrição
+        document.title = `${t('dashboard.title')} | Global RCA System`;
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', t('dashboard.description'));
+    }, [t]);
 
     const defaultFilters: FilterState = {
         searchTerm: '', year: '', months: [], status: 'ALL', area: 'ALL',
