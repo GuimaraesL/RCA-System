@@ -14,6 +14,7 @@ class RecurrenceInfo(BaseModel):
     equipment_name: Optional[str] = None
     area_name: Optional[str] = None
     raw_content: Optional[str] = None
+    failure_date: Optional[str] = None
 
 class MediaItem(BaseModel):
     type: str # 'image', 'video'

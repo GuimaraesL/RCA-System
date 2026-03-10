@@ -195,6 +195,13 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
             lines = content.split('\n')
             return lines[0][:100] if lines else "Sem título"
 
+        def clean_root_causes(content: str) -> str:
+            match = re.search(r'CAUSAS RAIZ:\s*(.*?)(?=\n\n|$|AÇÕES DO PLANO:)', content, flags=re.DOTALL)
+            if match:
+                causes = match.group(1).strip()
+                return causes.replace(" | ", "\n")
+            return ""
+
         def extract_recurrence(doc, level_name: str, rank: int) -> RecurrenceInfo:
             """Extrai RecurrenceInfo de um documento do VectorDB."""
             content = doc.content
@@ -205,6 +212,30 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
             subg_val = doc.meta_data.get("subgroup_id", "")
 
             title = clean_title(doc.content)
+            root_causes = clean_root_causes(doc.content)
+            
+            # Buscar data da falha (pode estar no conteudo via regex, metadados futuros ou via fetch real-time)
+            fail_date = doc.meta_data.get("failure_date", "")
+            if not fail_date:
+                match_dt = re.search(r'DATA DA FALHA:\s*([^\n]+)', doc.content)
+                if match_dt:
+                    fail_date = match_dt.group(1).strip()
+            
+            # Backup: fetch real-time from server since we just added support and old chromadb doesn't have it
+            if not fail_date:
+                rca_i = doc.meta_data.get("rca_id", "unknown")
+                if rca_i != "unknown":
+                    try:
+                        base_url = BACKEND_URL.rstrip('/')
+                        # Autenticação interna via key configurada
+                        headers = {"x-internal-key": INTERNAL_AUTH_KEY}
+                        resp = httpx.get(f"{base_url}/api/rcas/{rca_i}", timeout=3.0, headers=headers)
+                        if resp.status_code == 200:
+                            j_resp = resp.json()
+                            if 'failure_date' in j_resp and j_resp['failure_date']:
+                                fail_date = j_resp['failure_date']
+                    except Exception as e:
+                        pass # Silently fail fetch and keep doing things
 
             return RecurrenceInfo(
                 rca_id=doc.meta_data.get("rca_id", "unknown"),
@@ -212,7 +243,8 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                 title=title,
                 level=level_name,
                 symptoms="N/A", # Não precisamos mais espelhar sintoma a sintoma no pydantic
-                root_causes="", 
+                root_causes=root_causes, 
+                failure_date=fail_date,
                 equipment_name=f"Área: {area_val} > Equip: {equip_val} > Subgrupo: {subg_val}",
                 area_name=area_val,
                 subgroup_name=subg_val,
@@ -258,7 +290,9 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                 if results:
                     for rank, doc in enumerate(results):
                         rid = doc.meta_data.get("rca_id", "unknown")
-                        if rid not in seen_ids and rid != request.rca_id:
+                        doc_subg_id = str(doc.meta_data.get("subgroup_id", ""))
+                        # Se for o mesmo subgrupo do incidente atual, já foi pego no nível 1!
+                        if rid not in seen_ids and rid != request.rca_id and doc_subg_id != str(subgroup_id):
                             equipment_matches.append(extract_recurrence(doc, "equipment", rank))
                             seen_ids.add(rid)
 
@@ -271,7 +305,9 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                 if results:
                     for rank, doc in enumerate(results):
                         rid = doc.meta_data.get("rca_id", "unknown")
-                        if rid not in seen_ids and rid != request.rca_id:
+                        doc_equip_id = str(doc.meta_data.get("equipment_id", ""))
+                        # Se for o mesmo equipamento, já foi pego no nível 1 ou 2!
+                        if rid not in seen_ids and rid != request.rca_id and doc_equip_id != str(equipment_id):
                             area_matches.append(extract_recurrence(doc, "area", rank))
                             seen_ids.add(rid)
 
