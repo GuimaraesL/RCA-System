@@ -65,7 +65,7 @@ Testam funções isoladas, hooks de lógica e utilitários.
 
 | Arquivo (`.test.ts / .tsx`) | Descrição |
 | :--- | :--- |
-| **context/RcaContext** | Estado global, persistência offline e comunicação entre abas. |
+| **context/RcaContext** | Estado global, persistência offline e comunicação entre abas. **Cobertura de Branches: 81.1%**. |
 | **hooks/useRcaLogic** | Orquestração principal da lógica de edição de uma RCA. |
 | **hooks/useRcaForm.validation** | Validação extensiva de campos obrigatórios via Zod. |
 | **hooks/useActionsLogic** | Lógica de gestão de ações de planos de ação (CAPA). |

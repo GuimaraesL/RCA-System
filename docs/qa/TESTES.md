@@ -30,6 +30,7 @@ graph TD
   - Frontend: `src/**/__tests__/*.test.ts(x)`
   - Backend: `server/src/**/__tests__/*.test.ts`
 - **Ferramenta:** Vitest com JSDOM para simulação de ambiente de navegador no frontend.
+- **Métrica Alvo:** Cobertura de branches > 80% em contextos críticos (ex: RcaContext).
 
 ### 1.3. Testes de Integração (Vitest)
 - **Escopo:** Validação da interação entre serviços, repositórios e banco de dados SQLite.
