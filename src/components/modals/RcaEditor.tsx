@@ -299,7 +299,13 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                                 {t('pagination.previous')}
                             </Button>
                         )}
-                        <Button variant="primary" onClick={handleSave} isLoading={isSaving} className="gap-2">
+                        <Button 
+                            variant="primary" 
+                            onClick={handleSave} 
+                            isLoading={isSaving} 
+                            className="gap-2"
+                            data-testid="btn-save-rca"
+                        >
                             <Save size={18} /> {t('common.save')}
                         </Button>
                         {step < 8 && (
