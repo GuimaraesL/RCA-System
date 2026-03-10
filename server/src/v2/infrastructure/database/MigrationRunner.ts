@@ -32,7 +32,7 @@ export class MigrationRunner {
 
         if (existsSync(schemaPath)) {
             const schema = readFileSync(schemaPath, 'utf-8');
-            this.db.exec(schema);
+            this.db.dangerouslyExec(schema);
         } else {
             logger.error(`[V2] ❌ Arquivo de schema não encontrado em: ${schemaPath}`, { schemaPath });
             throw new Error('Arquivo de schema base ausente');

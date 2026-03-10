@@ -7,6 +7,7 @@ import { Request, Response } from 'express';
 import { FmeaService } from '../../domain/services/FmeaService';
 import { SqlFmeaRepository } from '../../infrastructure/repositories/SqlFmeaRepository';
 import { NotFoundError, ValidationError } from '../../infrastructure/errors/AppError';
+import { fmeaSchema } from '../schemas/validation';
 
 export class FmeaController {
     private fmeaService: FmeaService;
@@ -35,12 +36,23 @@ export class FmeaController {
     };
 
     public create = (req: Request, res: Response): void => {
-        const mode = this.fmeaService.createMode(req.body);
+        const validation = fmeaSchema.safeParse(req.body);
+        if (!validation.success) {
+            throw new ValidationError('Dados inválidos', validation.error.format());
+        }
+
+        const mode = this.fmeaService.createMode(validation.data as any);
         res.status(201).json(mode);
     };
 
     public update = (req: Request, res: Response): void => {
-        const mode = this.fmeaService.updateMode(req.params.id, req.body);
+        const { id } = req.params;
+        const validation = fmeaSchema.partial().safeParse(req.body);
+        if (!validation.success) {
+            throw new ValidationError('Dados inválidos', validation.error.format());
+        }
+
+        const mode = this.fmeaService.updateMode(id, validation.data as any);
         res.json(mode);
     };
 

@@ -13,6 +13,8 @@ import { SqlActionRepository } from '../../infrastructure/repositories/SqlAction
 import { SqlRcaRepository } from '../../infrastructure/repositories/SqlRcaRepository';
 import { SqlTaxonomyRepository } from '../../infrastructure/repositories/SqlTaxonomyRepository';
 import { NotFoundError, ValidationError } from '../../infrastructure/errors/AppError';
+import { actionSchema } from '../schemas/validation';
+import { z } from 'zod';
 
 export class ActionController {
     private actionService: ActionService;
@@ -37,13 +39,23 @@ export class ActionController {
     };
 
     public create = (req: Request, res: Response): void => {
-        // Os services internamente laçam erros caso os dados sejam invalidos
-        this.actionService.createAction(req.body);
+        const validation = actionSchema.safeParse(req.body);
+        if (!validation.success) {
+            throw new ValidationError('Dados inválidos', validation.error.format());
+        }
+
+        this.actionService.createAction(validation.data as any);
         res.status(201).json({ message: 'Ação criada com sucesso' });
     };
 
     public update = (req: Request, res: Response): void => {
-        this.actionService.updateAction(req.params.id, req.body);
+        const { id } = req.params;
+        const validation = actionSchema.partial().safeParse(req.body);
+        if (!validation.success) {
+            throw new ValidationError('Dados inválidos', validation.error.format());
+        }
+
+        this.actionService.updateAction(id, validation.data as any);
         res.json({ message: 'Ação atualizada com sucesso' });
     };
 
@@ -53,7 +65,12 @@ export class ActionController {
     };
 
     public bulkImport = (req: Request, res: Response): void => {
-        this.actionService.bulkImport(req.body);
+        const validation = z.array(actionSchema).safeParse(req.body);
+        if (!validation.success) {
+            throw new ValidationError('Dados inválidos no lote de importação', validation.error.format());
+        }
+
+        this.actionService.bulkImport(validation.data as any[]);
         res.json({ message: 'Ações importadas com sucesso' });
     };
 

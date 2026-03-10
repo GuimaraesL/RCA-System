@@ -163,9 +163,9 @@ export class DatabaseConnection {
 
     /**
      * Executa múltiplas instruções sem vinculação de parâmetros.
-     * Ideal para scripts de schema e migrações.
+     * PERIGOSO: Use apenas para scripts estáticos, migrações ou comandos sem entrada de usuário.
      */
-    public exec(sql: string): void {
+    public dangerouslyExec(sql: string): void {
         const db = this.getRawDatabase();
         db.exec(sql);
         if (!this.inTransaction) {
@@ -191,15 +191,14 @@ export class DatabaseConnection {
 
         this.inTransaction = true;
         try {
-            db.exec('BEGIN TRANSACTION');
+            this.execute('BEGIN TRANSACTION');
             callback();
-            db.exec('COMMIT');
+            this.execute('COMMIT');
             this.inTransaction = false;
-            this.save();
         } catch (error) {
             this.inTransaction = false;
             try {
-                db.exec('ROLLBACK');
+                this.execute('ROLLBACK');
             } catch (rbError) {
                 logger.error('[V2] ❌ Falha no Rollback (transação provavelmente já encerrada):', { error: rbError });
             }

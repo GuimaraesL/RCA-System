@@ -12,6 +12,7 @@ import { TriggerService } from '../../domain/services/TriggerService';
 import { SqlTriggerRepository } from '../../infrastructure/repositories/SqlTriggerRepository';
 import { triggerSchema } from '../schemas/validation';
 import { NotFoundError, ValidationError } from '../../infrastructure/errors/AppError';
+import { z } from 'zod';
 
 export class TriggerController {
     private triggerService: TriggerService;
@@ -41,7 +42,7 @@ export class TriggerController {
             throw new ValidationError('Dados inválidos', validation.error.format());
         }
 
-        const trigger = this.triggerService.createTrigger(req.body);
+        const trigger = this.triggerService.createTrigger(validation.data as any);
         res.status(201).json(trigger);
     };
 
@@ -53,7 +54,7 @@ export class TriggerController {
             throw new ValidationError('Dados inválidos', validation.error.format());
         }
 
-        this.triggerService.updateTrigger(req.params.id, req.body);
+        this.triggerService.updateTrigger(req.params.id, validation.data as any);
         res.json({ message: 'Gatilho atualizado com sucesso' });
     };
 
@@ -63,7 +64,12 @@ export class TriggerController {
     };
 
     public bulkImport = (req: Request, res: Response): void => {
-        this.triggerService.bulkImport(req.body);
+        const validation = z.array(triggerSchema).safeParse(req.body);
+        if (!validation.success) {
+            throw new ValidationError('Dados inválidos no lote de importação', validation.error.format());
+        }
+
+        this.triggerService.bulkImport(validation.data as any[]);
         res.json({ message: 'Gatilhos importados com sucesso' });
     };
 

@@ -8,6 +8,12 @@ import { existsSync, mkdirSync, writeFileSync, readdirSync, unlinkSync } from 'f
 import { join, resolve } from 'path';
 import { logger } from '../../infrastructure/logger';
 import { ValidationError, NotFoundError } from '../../infrastructure/errors/AppError';
+import { z } from 'zod';
+
+const mediaParamsSchema = z.object({
+    rcaId: z.string().regex(/^[a-zA-Z0-9_\-]+$/),
+    filename: z.string().regex(/^[a-zA-Z0-9_\-\.]+$/).optional()
+});
 
 export class MediaController {
     private mediaDir: string;
@@ -42,12 +48,13 @@ export class MediaController {
      * Atualmente suporta envio de corpo bruto (raw) com metadados nos headers.
      */
     public upload = (req: Request, res: Response) => {
-        const { rcaId } = req.params;
+        const { rcaId } = mediaParamsSchema.parse(req.params);
         const filename = req.header('x-filename');
         const contentType = req.header('content-type');
-
-        if (!rcaId) throw new ValidationError('ID da RCA é obrigatório');
         if (!filename) throw new ValidationError('Header x-filename é obrigatório');
+
+        // Valida o filename do header também
+        mediaParamsSchema.shape.filename.parse(filename);
 
         const rcaFolder = join(this.mediaDir, rcaId);
         if (!existsSync(rcaFolder)) {
@@ -77,7 +84,7 @@ export class MediaController {
      * Lista todos os arquivos anexados a uma RCA.
      */
     public listByRca = (req: Request, res: Response) => {
-        const { rcaId } = req.params;
+        const { rcaId } = mediaParamsSchema.parse(req.params);
         const rcaFolder = join(this.mediaDir, rcaId);
 
         if (!existsSync(rcaFolder)) {
@@ -95,8 +102,8 @@ export class MediaController {
      * Serve um arquivo específico com tratamento de erros robusto.
      */
     public serve = (req: Request, res: Response, next: NextFunction) => {
-        const { rcaId, filename } = req.params;
-        const filePath = resolve(this.mediaDir, rcaId, filename);
+        const { rcaId, filename } = mediaParamsSchema.parse(req.params);
+        const filePath = resolve(this.mediaDir, rcaId, filename!);
 
         logger.info(`[Media] 🔍 Tentativa de servir arquivo: ${filePath}`);
 
@@ -120,7 +127,8 @@ export class MediaController {
      * Exclui um arquivo.
      */
     public delete = (req: Request, res: Response) => {
-        const { rcaId, filename } = req.params;
+        const { rcaId, filename } = mediaParamsSchema.parse(req.params);
+        if (!filename) throw new ValidationError('Nome do arquivo é obrigatório');
         const filePath = join(this.mediaDir, rcaId, filename);
 
         if (existsSync(filePath)) {

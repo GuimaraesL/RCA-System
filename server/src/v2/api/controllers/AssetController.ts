@@ -11,6 +11,8 @@ import { Request, Response } from 'express';
 import { AssetService } from '../../domain/services/AssetService';
 import { SqlAssetRepository } from '../../infrastructure/repositories/SqlAssetRepository';
 import { NotFoundError, ValidationError } from '../../infrastructure/errors/AppError';
+import { assetSchema } from '../schemas/validation';
+import { z } from 'zod';
 
 export class AssetController {
     private assetService: AssetService;
@@ -37,12 +39,23 @@ export class AssetController {
     };
 
     public create = (req: Request, res: Response): void => {
-        const asset = this.assetService.createAsset(req.body);
+        const validation = assetSchema.safeParse(req.body);
+        if (!validation.success) {
+            throw new ValidationError('Dados inválidos', validation.error.format());
+        }
+
+        const asset = this.assetService.createAsset(validation.data as any);
         res.status(201).json(asset);
     };
 
     public update = (req: Request, res: Response): void => {
-        this.assetService.updateAsset(req.params.id, req.body);
+        const { id } = req.params;
+        const validation = assetSchema.partial().safeParse(req.body);
+        if (!validation.success) {
+            throw new ValidationError('Dados inválidos', validation.error.format());
+        }
+
+        this.assetService.updateAsset(id, validation.data as any);
         res.json({ message: 'Ativo atualizado com sucesso' });
     };
 
@@ -52,7 +65,12 @@ export class AssetController {
     };
 
     public bulkImport = (req: Request, res: Response): void => {
-        this.assetService.bulkImport(req.body);
+        const validation = z.array(assetSchema).safeParse(req.body);
+        if (!validation.success) {
+            throw new ValidationError('Dados inválidos no lote de importação', validation.error.format());
+        }
+
+        this.assetService.bulkImport(validation.data as any[]);
         res.json({ message: 'Ativos importados com sucesso' });
     };
 

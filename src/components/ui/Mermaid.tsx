@@ -6,7 +6,7 @@ import { Maximize2, X as CloseIcon } from 'lucide-react';
 mermaid.initialize({
     startOnLoad: false,
     theme: 'default',
-    securityLevel: 'loose',
+    securityLevel: 'strict',
     fontFamily: 'Inter, sans-serif',
 });
 

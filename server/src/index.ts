@@ -13,7 +13,28 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Configuração de Middlewares de Segurança
-app.use(helmet()); // Proteção contra vulnerabilidades web comuns (Issue #50)
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"], // unsafe-inline necessário para alguns scripts de terceiros se houver, mas idealmente remover
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            imgSrc: ["'self'", "data:", "blob:"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            connectSrc: ["'self'", "http://localhost:*", "https://os.agno.com", "https://app.agno.com"],
+            mediaSrc: ["'self'", "blob:"],
+            objectSrc: ["'none'"],
+        }
+    },
+    hsts: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true
+    },
+    frameguard: {
+        action: 'deny'
+    }
+}));
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
