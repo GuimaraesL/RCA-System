@@ -72,7 +72,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
             <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800">
                 <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display tracking-tight">{t('wizard.step1.title')}</h2>
-                    <button onClick={onRefreshAssets} className="text-blue-600 dark:text-blue-400 text-xs font-semibold flex items-center gap-1.5 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 px-3 py-1.5 rounded-lg transition-colors">
+                    <button onClick={onRefreshAssets} className="text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center gap-1.5 hover:text-primary-700 dark:hover:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 px-3 py-1.5 rounded-lg transition-colors">
                         <RefreshCw size={14} /> {t('wizard.step1.refreshAssets')}
                     </button>
                 </div>
@@ -172,7 +172,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
             {/* Seção de Metadados da Análise */}
             <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800">
                 <h3 className="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-6 border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center gap-2">
-                    <span className="w-1 h-4 bg-blue-500 rounded-full"></span>
+                    <span className="w-1 h-4 bg-primary-500 rounded-full"></span>
                     {t('wizard.step1.analysisMetadata')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
@@ -252,7 +252,7 @@ export const Step1General: React.FC<Step1Props> = ({ data, onChange, assets, tax
                                 <input
                                     type="checkbox"
                                     id={`${idPrefix}-opSupport`}
-                                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                    className="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
                                     checked={data.requires_operation_support || false}
                                     onChange={(e) => onChange('requires_operation_support', e.target.checked)}
                                 />

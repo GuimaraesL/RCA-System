@@ -200,7 +200,7 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                                     value={formData.status}
                                     onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
                                     data-testid="select-rca-status"
-                                    className={`appearance-none cursor-pointer pl-4 pr-10 py-2 rounded-lg text-sm font-bold border transition-all focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:outline-none ${isCompleted
+                                    className={`appearance-none cursor-pointer pl-4 pr-10 py-2 rounded-lg text-sm font-bold border transition-all focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 focus:outline-none ${isCompleted
                                         ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 hover:border-emerald-300 dark:hover:border-emerald-700'
                                         : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
                                         }`}
@@ -238,16 +238,16 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                                     )}
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300 relative
                                     ${isCompletedStep ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm' :
-                                            isCurrent ? 'bg-blue-600 border-blue-600 text-white shadow-md ring-4 ring-blue-100 dark:ring-blue-900/30 scale-110' :
+                                            isCurrent ? 'bg-primary-600 border-primary-600 text-white shadow-md ring-4 ring-primary-100 dark:ring-primary-900/30 scale-110' :
                                                 hasError ? 'bg-white dark:bg-slate-800 border-rose-500 text-rose-500 shadow-sm' :
-                                                    'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-400 dark:text-slate-500 group-hover:border-blue-400 dark:group-hover:border-blue-500 group-hover:text-blue-500 dark:group-hover:text-blue-400'}`}
+                                                    'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-400 dark:text-slate-500 group-hover:border-primary-400 dark:group-hover:border-primary-500 group-hover:text-primary-500 dark:group-hover:text-primary-400'}`}
                                         style={{ zIndex: 1 }}
                                     >
                                         {isCompletedStep ? <Check size={16} strokeWidth={3} /> : s.id}
                                         {hasError && !isCurrent && !isCompletedStep && <span className="absolute -top-1 -right-1 w-3 h-3 bg-rose-500 rounded-full border-2 border-white dark:border-slate-800"></span>}
                                     </div>
-                                    <span className={`text-xs font-bold mt-3 transition-colors duration-200 ${isCurrent ? 'text-blue-700 dark:text-blue-400' : isCompletedStep ? 'text-emerald-600 dark:text-emerald-400' : hasError ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300'}`}>{s.title}</span>
-                                    <span className={`text-[10px] font-medium hidden md:block mt-0.5 transition-colors ${isCurrent ? 'text-blue-400 dark:text-blue-300' : 'text-slate-400 dark:text-slate-500'}`}>{s.subtitle}</span>
+                                    <span className={`text-xs font-bold mt-3 transition-colors duration-200 ${isCurrent ? 'text-primary-700 dark:text-primary-400' : isCompletedStep ? 'text-emerald-600 dark:text-emerald-400' : hasError ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300'}`}>{s.title}</span>
+                                    <span className={`text-[10px] font-medium hidden md:block mt-0.5 transition-colors ${isCurrent ? 'text-primary-400 dark:text-primary-300' : 'text-slate-400 dark:text-slate-500'}`}>{s.subtitle}</span>
                                 </div>
                             );
                         })}
@@ -299,7 +299,13 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                                 {t('pagination.previous')}
                             </Button>
                         )}
-                        <Button variant="primary" onClick={handleSave} isLoading={isSaving} className="gap-2">
+                        <Button 
+                            variant="primary" 
+                            onClick={handleSave} 
+                            isLoading={isSaving} 
+                            className="gap-2"
+                            data-testid="btn-save-rca"
+                        >
                             <Save size={18} /> {t('common.save')}
                         </Button>
                         {step < 8 && (

@@ -207,7 +207,7 @@ export const MigrationView: React.FC = () => {
             {/* Header com Seletor de Abas Redesenhado */}
             <div className="px-10 py-8 flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-10">
                 <div className="flex items-center gap-5">
-                    <div className="p-3 bg-blue-600 shadow-xl shadow-blue-600/20 rounded-2xl text-white">
+                    <div className="p-3 bg-primary-600 shadow-xl shadow-primary-600/20 rounded-2xl text-white">
                         <Database size={26} />
                     </div>
                     <div>
@@ -230,7 +230,7 @@ export const MigrationView: React.FC = () => {
                             className={`px-8 h-10 rounded-xl ${activeTab === tab.id
                                 ? 'bg-white dark:bg-slate-700 shadow-lg ring-1 ring-black/5 dark:ring-white/5'
                                 : ''}`}
-                            leftIcon={<tab.icon size={18} className={activeTab === tab.id ? 'text-blue-600' : 'text-slate-400'} />}
+                            leftIcon={<tab.icon size={18} className={activeTab === tab.id ? 'text-primary-600' : 'text-slate-400'} />}
                         >
                             <span className="uppercase tracking-widest text-[11px]">{tab.label}</span>
                         </Button>
@@ -270,11 +270,11 @@ export const MigrationView: React.FC = () => {
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                                     <Card
                                         padding="xl"
-                                        className="text-center group hover:border-blue-300 dark:hover:border-blue-700 relative overflow-hidden"
+                                        className="text-center group hover:border-primary-300 dark:hover:border-primary-700 relative overflow-hidden"
                                         variant="hoverable"
                                     >
                                         <div className="absolute -top-10 -right-10 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform"><Upload size={240} className="dark:text-white" /></div>
-                                        <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-all duration-500 shadow-inner"><FileJson size={48} /></div>
+                                        <div className="w-24 h-24 bg-primary-50 dark:bg-primary-900/20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-primary-600 dark:text-primary-400 group-hover:scale-110 transition-all duration-500 shadow-inner"><FileJson size={48} /></div>
                                         <h3 data-testid="title-restore-backup" className="text-3xl font-black mb-3 text-slate-900 dark:text-white tracking-tight font-display">{t('migration.restore')}</h3>
                                         <p className="text-sm text-slate-400 dark:text-slate-500 font-bold mb-10 max-w-xs mx-auto leading-relaxed uppercase tracking-widest">{t('migration.json.dragDrop')}</p>
                                         <div className="relative inline-block">
@@ -314,7 +314,7 @@ export const MigrationView: React.FC = () => {
                                     <Card padding="none">
                                         <div className="bg-slate-50/50 dark:bg-slate-800/50 p-10 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
                                             <div className="flex items-center gap-6">
-                                                <div className="p-5 bg-white dark:bg-slate-800 rounded-3xl shadow-lg text-blue-600 dark:text-blue-400 border border-slate-100 dark:border-slate-700"><ClipboardList size={40} /></div>
+                                                <div className="p-5 bg-white dark:bg-slate-800 rounded-3xl shadow-lg text-primary-600 dark:text-primary-400 border border-slate-100 dark:border-slate-700"><ClipboardList size={40} /></div>
                                                 <div>
                                                     <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight font-display uppercase italic">{t('migration.importConfig')}</h3>
                                                     <div className="flex items-center gap-3 mt-1">
@@ -338,7 +338,7 @@ export const MigrationView: React.FC = () => {
                                         <div className="p-12 space-y-16">
                                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
                                                 {[
-                                                    { label: t('sidebar.analyses'), count: previewData.records?.length || 0, icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50' },
+                                                    { label: t('sidebar.analyses'), count: previewData.records?.length || 0, icon: Activity, color: 'text-primary-600', bg: 'bg-primary-50' },
                                                     { label: t('sidebar.actions'), count: previewData.actions?.length || 0, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
                                                     { label: t('sidebar.triggers'), count: previewData.triggers?.length || 0, icon: Activity, color: 'text-amber-600', bg: 'bg-amber-50' },
                                                     { label: t('sidebar.assets'), count: previewData.assets?.length || 0, icon: Layers, color: 'text-cyan-600', bg: 'bg-cyan-50' },
@@ -383,7 +383,7 @@ export const MigrationView: React.FC = () => {
                                                             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">{t('migration.json.taxonomyTitle')}</h4>
                                                         </div>
                                                         <div className="flex gap-6">
-                                                            <Button variant="ghost" size="sm" onClick={() => setTaxonomySelection(prev => Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: true }), {}))} className="text-[10px] font-black text-blue-600 dark:text-blue-400 hover:bg-transparent px-0 uppercase tracking-widest transition-colors">{t('migration.json.selectAll')}</Button>
+                                                            <Button variant="ghost" size="sm" onClick={() => setTaxonomySelection(prev => Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: true }), {}))} className="text-[10px] font-black text-primary-600 dark:text-primary-400 hover:bg-transparent px-0 uppercase tracking-widest transition-colors">{t('migration.json.selectAll')}</Button>
                                                             <Button variant="ghost" size="sm" onClick={() => setTaxonomySelection(prev => Object.keys(prev).reduce((acc, k) => ({ ...acc, [k]: false }), {}))} className="text-[10px] font-black text-slate-400 dark:text-slate-500 hover:bg-transparent px-0 uppercase tracking-widest transition-colors">{t('migration.json.deselectAll')}</Button>
                                                         </div>
                                                     </div>
@@ -404,7 +404,7 @@ export const MigrationView: React.FC = () => {
                                                                     key={item.key}
                                                                     htmlFor={`${idPrefix}-tax-${item.key}`}
                                                                     className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all cursor-pointer ${taxonomySelection[item.key]
-                                                                        ? 'bg-white dark:bg-slate-800 border-blue-500 dark:border-blue-500 shadow-lg shadow-blue-500/5 text-blue-700 dark:text-blue-400'
+                                                                        ? 'bg-white dark:bg-slate-800 border-primary-500 dark:border-primary-500 shadow-lg shadow-primary-500/5 text-primary-700 dark:text-primary-400'
                                                                         : 'bg-transparent border-transparent text-slate-500 dark:text-slate-500 hover:bg-white/50 dark:hover:bg-slate-700/50'}`}
                                                                 >
                                                                     <input
@@ -412,18 +412,18 @@ export const MigrationView: React.FC = () => {
                                                                         type="checkbox"
                                                                         checked={!!taxonomySelection[item.key]}
                                                                         onChange={() => toggleTaxonomy(item.key)}
-                                                                        className="w-5 h-5 text-blue-600 rounded-lg border-slate-200 dark:border-slate-700 focus:ring-4 focus:ring-blue-500/10 cursor-pointer"
+                                                                        className="w-5 h-5 text-primary-600 rounded-lg border-slate-200 dark:border-slate-700 focus:ring-4 focus:ring-primary-500/10 cursor-pointer"
                                                                     />
-                                                                    <item.icon size={18} strokeWidth={2.5} className={taxonomySelection[item.key] ? 'text-blue-500' : 'text-slate-300 dark:text-slate-700'} />
+                                                                    <item.icon size={18} strokeWidth={2.5} className={taxonomySelection[item.key] ? 'text-primary-500' : 'text-slate-300 dark:text-slate-700'} />
                                                                     <span className="text-xs font-black uppercase tracking-tight truncate">{item.label}</span>
                                                                 </label>
                                                             ))}
                                                         </div>
                                                     </div>
 
-                                                    <div className="p-6 bg-blue-50/50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-900/30 flex gap-4">
-                                                        <Info size={20} className="text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                                                        <p className="text-[11px] text-blue-700 dark:text-blue-300 font-bold leading-relaxed">{t('migration.json.idConflictNote')}</p>
+                                                    <div className="p-6 bg-primary-50/50 dark:bg-primary-900/20 rounded-2xl border border-primary-100 dark:border-primary-900/30 flex gap-4">
+                                                        <Info size={20} className="text-primary-500 dark:text-primary-400 flex-shrink-0 mt-0.5" />
+                                                        <p className="text-[11px] text-primary-700 dark:text-primary-300 font-bold leading-relaxed">{t('migration.json.idConflictNote')}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -492,16 +492,16 @@ export const MigrationView: React.FC = () => {
                                                         variant="ghost"
                                                         onClick={() => { setCsvType(opt.value); setMsg(null); }}
                                                         className={`h-auto p-5 rounded-2xl border-2 text-left block w-full whitespace-normal transition-all duration-300 active:scale-[0.98] ${csvType === opt.value
-                                                            ? 'bg-white dark:bg-slate-800 border-blue-600 dark:border-blue-500 shadow-xl shadow-blue-500/5 ring-4 ring-blue-500/5'
+                                                            ? 'bg-white dark:bg-slate-800 border-primary-600 dark:border-primary-500 shadow-xl shadow-primary-500/5 ring-4 ring-primary-500/5'
                                                             : 'bg-slate-50/30 dark:bg-slate-800/30 border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-800'
                                                             }`}
                                                     >
                                                         <div className="flex items-center gap-4 w-full">
-                                                            <div className={`p-3 rounded-xl transition-all duration-300 ${csvType === opt.value ? 'bg-blue-600 text-white shadow-lg' : 'bg-white dark:bg-slate-900 text-slate-400 shadow-sm'}`}>
+                                                            <div className={`p-3 rounded-xl transition-all duration-300 ${csvType === opt.value ? 'bg-primary-600 text-white shadow-lg' : 'bg-white dark:bg-slate-900 text-slate-400 shadow-sm'}`}>
                                                                 <opt.icon size={20} strokeWidth={2.5} />
                                                             </div>
                                                             <span className={`text-xs font-black uppercase tracking-tight ${csvType === opt.value ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>{opt.label}</span>
-                                                            {csvType === opt.value && <div className="ml-auto w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.5)]" />}
+                                                            {csvType === opt.value && <div className="ml-auto w-2 h-2 rounded-full bg-primary-600 shadow-[0_0_8px_rgba(37,99,235,0.5)]" />}
                                                         </div>
                                                     </Button>
                                                 ))}
@@ -539,19 +539,19 @@ export const MigrationView: React.FC = () => {
                                             </div>
 
                                             {csvType === 'TRIGGERS' && (
-                                                <label htmlFor={`${idPrefix}-csv-inherit`} className="flex items-center gap-5 p-5 rounded-[2rem] bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 cursor-pointer group transition-all hover:bg-blue-100/50 shadow-sm">
+                                                <label htmlFor={`${idPrefix}-csv-inherit`} className="flex items-center gap-5 p-5 rounded-[2rem] bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-900/30 cursor-pointer group transition-all hover:bg-primary-100/50 shadow-sm">
                                                     <div className="relative flex items-center">
                                                         <input
                                                             type="checkbox"
                                                             id={`${idPrefix}-csv-inherit`}
                                                             checked={inheritHierarchy}
                                                             onChange={e => setInheritHierarchy(e.target.checked)}
-                                                            className="w-6 h-6 rounded-xl border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-4 focus:ring-blue-500/10 cursor-pointer"
+                                                            className="w-6 h-6 rounded-xl border-slate-300 dark:border-slate-700 text-primary-600 focus:ring-4 focus:ring-primary-500/10 cursor-pointer"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <span className="text-xs font-black text-blue-900 dark:text-blue-300 uppercase tracking-tight">{t('migration.csv.inheritHierarchy')}</span>
-                                                        <p className="text-[10px] font-bold text-blue-600/60 dark:text-blue-400/60 leading-relaxed uppercase mt-0.5">{t('migration.csv.inheritHint')}</p>
+                                                        <span className="text-xs font-black text-primary-900 dark:text-primary-300 uppercase tracking-tight">{t('migration.csv.inheritHierarchy')}</span>
+                                                        <p className="text-[10px] font-bold text-primary-600/60 dark:text-primary-400/60 leading-relaxed uppercase mt-0.5">{t('migration.csv.inheritHint')}</p>
                                                     </div>
                                                 </label>
                                             )}
@@ -570,9 +570,9 @@ export const MigrationView: React.FC = () => {
                                             variant="ghost"
                                             size="lg"
                                             onClick={handleDownloadTemplate}
-                                            className="w-full flex items-center gap-5 h-auto p-6 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-[2rem] hover:bg-white dark:hover:bg-slate-800 hover:shadow-2xl hover:shadow-blue-500/5 hover:border-blue-200 dark:hover:border-blue-900 transition-all group/btn text-left"
+                                            className="w-full flex items-center gap-5 h-auto p-6 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-[2rem] hover:bg-white dark:hover:bg-slate-800 hover:shadow-2xl hover:shadow-primary-500/5 hover:border-primary-200 dark:hover:border-primary-900 transition-all group/btn text-left"
                                         >
-                                            <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm text-slate-400 group-hover/btn:text-blue-600 group-hover/btn:scale-110 transition-all border border-slate-50 dark:border-slate-700">
+                                            <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm text-slate-400 group-hover/btn:text-primary-600 group-hover/btn:scale-110 transition-all border border-slate-50 dark:border-slate-700">
                                                 <FileDown size={28} />
                                             </div>
                                             <div className="flex-1">
@@ -611,16 +611,16 @@ export const MigrationView: React.FC = () => {
                                                 variant="primary"
                                                 size="lg"
                                                 data-testid="btn-import-csv"
-                                                className="w-full flex items-center gap-6 p-10 h-auto bg-blue-600 rounded-[2.5rem] shadow-2xl shadow-blue-600/20 hover:bg-blue-700 hover:scale-[1.02] transition-all text-left border-0"
+                                                className="w-full flex items-center gap-6 p-10 h-auto bg-primary-600 rounded-[2.5rem] shadow-2xl shadow-primary-600/20 hover:bg-primary-700 hover:scale-[1.02] transition-all text-left border-0"
                                             >
                                                 <div className="p-5 bg-white/10 rounded-[1.5rem] text-white shadow-inner">
                                                     <FileUp size={36} strokeWidth={2.5} />
                                                 </div>
                                                 <div className="flex-1">
                                                     <span className="block font-black text-white text-xl tracking-tight uppercase italic">{t('migration.importCsv')}</span>
-                                                    <span className="text-[10px] text-blue-100 font-black uppercase tracking-[0.2em] opacity-70 mt-1 block">{t('migration.clickToSelect')}</span>
+                                                    <span className="text-[10px] text-primary-100 font-black uppercase tracking-[0.2em] opacity-70 mt-1 block">{t('migration.clickToSelect')}</span>
                                                 </div>
-                                                <ChevronRight size={24} className="text-blue-200 group-hover:translate-x-2 transition-transform" strokeWidth={3} />
+                                                <ChevronRight size={24} className="text-primary-200 group-hover:translate-x-2 transition-transform" strokeWidth={3} />
                                             </Button>
                                         </div>
                                     </div>

@@ -74,14 +74,14 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
     const icons = {
         success: <CheckCircle className="w-5 h-5 text-emerald-500" />,
         error: <AlertCircle className="w-5 h-5 text-rose-500" />,
-        info: <Info className="w-5 h-5 text-blue-500" />,
+        info: <Info className="w-5 h-5 text-primary-500" />,
         warning: <AlertTriangle className="w-5 h-5 text-amber-500" />,
     };
 
     const borderColors = {
         success: 'border-l-emerald-500',
         error: 'border-l-rose-500',
-        info: 'border-l-blue-500',
+        info: 'border-l-primary-500',
         warning: 'border-l-amber-500',
     };
 

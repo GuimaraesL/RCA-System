@@ -55,21 +55,21 @@ const ListManager: React.FC<{
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-200 dark:hover:border-blue-800">
+    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary-500/5 hover:border-primary-200 dark:hover:border-primary-800">
       <div className="px-8 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
         <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{title}</h3>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-3 p-6 custom-scrollbar">
         {safeItems.map((item) => (
-          <div key={item.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-2xl group border border-slate-100 dark:border-slate-700 shadow-sm transition-all duration-200 hover:shadow-md hover:border-blue-100 dark:hover:border-blue-800 hover:-translate-y-0.5">
+          <div key={item.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-2xl group border border-slate-100 dark:border-slate-700 shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary-100 dark:hover:border-primary-800 hover:-translate-y-0.5">
             {editingId === item.id ? (
               <div className="flex-1 flex gap-3 items-center">
                 <input
                   id={`${idPrefix}-edit-${item.id}`}
                   name={`editInput_${item.id}`}
                   autoFocus
-                  className="flex-1 border-2 border-blue-400 rounded-xl px-4 py-2 text-sm outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm font-bold"
+                  className="flex-1 border-2 border-primary-400 rounded-xl px-4 py-2 text-sm outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm font-bold"
                   value={editValue}
                   onChange={(e) => setEditValue(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && saveEdit(item.id)}
@@ -82,11 +82,11 @@ const ListManager: React.FC<{
             ) : (
               <>
                 <div className="flex flex-col">
-                  <span className="text-sm text-slate-700 dark:text-slate-200 font-bold group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">{item.name}</span>
+                  <span className="text-sm text-slate-700 dark:text-slate-200 font-bold group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors">{item.name}</span>
                   <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono flex items-center gap-1.5 mt-1 font-bold"><Lock size={10} className="opacity-50" /> {item.id}</span>
                 </div>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                  <button type="button" aria-label={`${t('common.edit')} - ${item.name}`} onClick={() => startEdit(item.id, item.name)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"><Edit2 size={16} /></button>
+                  <button type="button" aria-label={`${t('common.edit')} - ${item.name}`} onClick={() => startEdit(item.id, item.name)} className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all"><Edit2 size={16} /></button>
                   <button type="button" aria-label={`${t('common.delete')} - ${item.name}`} onClick={() => setDeleteData({ id: item.id, name: item.name })} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"><Trash2 size={16} /></button>
                 </div>
               </>
@@ -109,7 +109,7 @@ const ListManager: React.FC<{
             type="text"
             placeholder={t('settings.addItemPlaceholder')}
             aria-label={`${t('settings.addItemPlaceholder')} - ${title}`}
-            className="flex-1 border border-slate-200 dark:border-slate-700 rounded-xl px-5 py-3 text-sm outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm font-bold"
+            className="flex-1 border border-slate-200 dark:border-slate-700 rounded-xl px-5 py-3 text-sm outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all shadow-sm font-bold"
             value={newItemName}
             onChange={e => setNewItemName(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
@@ -119,7 +119,7 @@ const ListManager: React.FC<{
             onClick={handleAdd}
             disabled={!newItemName.trim()}
             aria-label={`${t('settings.addItemButton')} - ${title}`}
-            className="bg-blue-600 text-white p-3 rounded-xl hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+            className="bg-primary-600 text-white p-3 rounded-xl hover:bg-primary-700 disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-primary-600/20 transition-all active:scale-95"
           >
             <Plus size={24} strokeWidth={3} />
           </button>
@@ -154,10 +154,10 @@ export const SettingsView: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<SettingsCategory>('rca-taxonomy');
 
   const categories = useMemo(() => [
-    { id: 'rca-taxonomy', label: t('settings.categories.rcaTaxonomy'), icon: ClipboardList, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { id: 'rca-taxonomy', label: t('settings.categories.rcaTaxonomy'), icon: ClipboardList, color: 'text-primary-600', bg: 'bg-primary-50' },
     { id: 'trigger-taxonomy', label: t('settings.categories.triggerTaxonomy'), icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-50' },
     { id: 'components', label: t('settings.categories.components'), icon: Cpu, color: 'text-cyan-600', bg: 'bg-cyan-50' },
-    { id: 'validation', label: t('settings.categories.validation'), icon: ShieldCheck, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { id: 'validation', label: t('settings.categories.validation'), icon: ShieldCheck, color: 'text-primary-600', bg: 'bg-primary-50' },
   ], [t]);
 
   if (!taxonomy) {
@@ -245,15 +245,15 @@ export const SettingsView: React.FC = () => {
       {/* Header Compacto */}
       <div className="px-10 py-8 flex items-center justify-between border-b border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-10">
         <div className="flex items-center gap-5">
-          <div className="p-3 bg-blue-600 shadow-xl shadow-blue-600/20 rounded-2xl text-white">
+          <div className="p-3 bg-primary-600 shadow-xl shadow-primary-600/20 rounded-2xl text-white">
             <SettingsIcon size={26} />
           </div>
           <div>
             <div className="flex items-center gap-4">
               <h1 className="text-2xl font-black text-slate-900 dark:text-white font-display tracking-tight leading-tight uppercase italic">{t('settings.title')}</h1>
               {isSaving && (
-                <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100 animate-pulse">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" />
+                <div className="flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-600 rounded-full border border-primary-100 animate-pulse">
+                  <div className="w-2 h-2 bg-primary-600 rounded-full animate-bounce" />
                   <span className="text-[10px] font-black uppercase tracking-widest">{t('settings.syncing')}</span>
                 </div>
               )}
@@ -266,7 +266,7 @@ export const SettingsView: React.FC = () => {
         <div className="hidden md:flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
           <span className="opacity-50">{t('settings.title')}</span>
           <ChevronRight size={14} className="text-slate-300" />
-          <span className="text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">{activeCategoryLabel}</span>
+          <span className="text-primary-600 bg-primary-50 px-3 py-1.5 rounded-lg border border-primary-100">{activeCategoryLabel}</span>
         </div>
       </div>
 
@@ -280,7 +280,7 @@ export const SettingsView: React.FC = () => {
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id as SettingsCategory)}
                 className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${activeCategory === cat.id
-                  ? `${cat.bg} ${cat.color} shadow-lg shadow-blue-500/5 ring-1 ring-black/5 font-black scale-[1.02]`
+                  ? `${cat.bg} ${cat.color} shadow-lg shadow-primary-500/5 ring-1 ring-black/5 font-black scale-[1.02]`
                   : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                   }`}
               >
@@ -298,13 +298,13 @@ export const SettingsView: React.FC = () => {
           <div className="mt-auto pt-8 border-t border-slate-100 dark:border-slate-800">
             <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-200/60 dark:border-slate-700 relative overflow-hidden group">
               <div className="flex items-center gap-3 text-slate-700 mb-2 relative z-10">
-                <ListTree size={20} className="text-blue-600" />
+                <ListTree size={20} className="text-primary-600" />
                 <span className="text-xs font-black uppercase tracking-widest">{t('settings.taxonomy') || 'Taxonomy'}</span>
               </div>
               <p className="text-[11px] text-slate-500 leading-relaxed font-bold relative z-10">
                 {t('settings.taxonomyIntegrity')}
               </p>
-              <div className="absolute -right-4 -bottom-4 w-20 h-24 bg-blue-100/50 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+              <div className="absolute -right-4 -bottom-4 w-20 h-24 bg-primary-100/50 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
             </div>
           </div>
         </aside>

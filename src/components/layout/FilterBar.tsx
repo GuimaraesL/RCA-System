@@ -221,7 +221,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 <div className="flex-1 flex flex-wrap gap-2 items-center px-2 py-1">
                     <button
                         onClick={onToggle}
-                        className={`text-sm font-semibold flex items-center gap-2 px-4 py-2 rounded-lg transition-all border ${isOpen ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700' : 'bg-blue-600 text-white border-blue-600 shadow-md hover:bg-blue-700'}`}
+                        className={`text-sm font-semibold flex items-center gap-2 px-4 py-2 rounded-lg transition-all border ${isOpen ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700' : 'bg-primary-600 text-white border-primary-600 shadow-md hover:bg-primary-700'}`}
                     >
                         <Filter size={16} />
                         {t('dashboard.filters')}
@@ -230,9 +230,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
                     {/* Active Filter Chips */}
                     {!isOpen && activeFilters.map((chip, idx) => (
-                        <div key={idx} className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-full text-xs font-bold border border-blue-100 dark:border-blue-800 animate-in zoom-in-95">
+                        <div key={idx} className="flex items-center gap-1 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-3 py-1.5 rounded-full text-xs font-bold border border-primary-100 dark:border-primary-800 animate-in zoom-in-95">
                             {chip?.label}
-                            <button onClick={chip?.onRemove} className="hover:bg-blue-200 dark:hover:bg-blue-700 rounded-full p-0.5 transition-colors"><X size={12} /></button>
+                            <button onClick={chip?.onRemove} className="hover:bg-primary-200 dark:hover:bg-primary-700 rounded-full p-0.5 transition-colors"><X size={12} /></button>
                         </div>
                     ))}
 
@@ -292,7 +292,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                         name="filter_search"
                                         data-shortcut-search
                                         placeholder={t('filters.searchPlaceholder')}
-                                        className="w-full pl-4 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 font-medium text-slate-900 dark:text-white"
+                                        className="w-full pl-4 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 font-medium text-slate-900 dark:text-white"
                                         value={localSearch}
                                         onChange={e => setLocalSearch(e.target.value)}
                                     />
@@ -311,7 +311,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                             name="filter_year"
                                             value={filters.year}
                                             onChange={e => handleChange('year', e.target.value)}
-                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-xl py-2.5 pl-4 pr-10 font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 outline-none appearance-none transition-all cursor-pointer hover:border-slate-300 dark:hover:border-slate-600"
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-xl py-2.5 pl-4 pr-10 font-bold focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 outline-none appearance-none transition-all cursor-pointer hover:border-slate-300 dark:hover:border-slate-600"
                                         >
                                             <option value="">{t('filters.options.all')}</option>
                                             {years.map(y => <option key={y} value={y}>{y}</option>)}
@@ -333,8 +333,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                                     className={`px-3.5 py-2 rounded-lg text-xs font-black transition-all border ${!isAvailable
                                                         ? 'bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 border-slate-100 dark:border-slate-800 cursor-not-allowed opacity-50'
                                                         : isActive
-                                                            ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20 scale-105'
-                                                            : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/30 dark:hover:bg-blue-900/10'
+                                                            ? 'bg-primary-600 text-white border-primary-600 shadow-md shadow-primary-500/20 scale-105'
+                                                            : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50/30 dark:hover:bg-primary-900/10'
                                                         }`}
                                                 >
                                                     {m.label}
@@ -368,7 +368,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                             <select
                                                 id={`${idPrefix}-area`}
                                                 name="filter_area"
-                                                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white dark:bg-slate-900 hover:border-blue-300 dark:hover:border-blue-600 transition-all focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
+                                                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white dark:bg-slate-900 hover:border-primary-300 dark:hover:border-primary-600 transition-all focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none appearance-none font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
                                                 value={filters.area}
                                                 onChange={e => handleChange('area', e.target.value)}
                                             >
@@ -384,7 +384,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                             <select
                                                 id={`${idPrefix}-equipment`}
                                                 name="filter_equipment"
-                                                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white dark:bg-slate-900 disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-600 transition-all focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
+                                                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white dark:bg-slate-900 disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-800 hover:border-primary-300 dark:hover:border-primary-600 transition-all focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none appearance-none font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
                                                 value={filters.equipment}
                                                 onChange={e => handleChange('equipment', e.target.value)}
                                                 disabled={filters.area === 'ALL'}
@@ -401,7 +401,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                             <select
                                                 id={`${idPrefix}-subgroup`}
                                                 name="filter_subgroup"
-                                                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white dark:bg-slate-900 disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-600 transition-all focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
+                                                className="w-full border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white dark:bg-slate-900 disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-800 hover:border-primary-300 dark:hover:border-primary-600 transition-all focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none appearance-none font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
                                                 value={filters.subgroup}
                                                 onChange={e => handleChange('subgroup', e.target.value)}
                                                 disabled={filters.equipment === 'ALL'}
@@ -430,7 +430,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                                 <select
                                                     id={`${idPrefix}-type`}
                                                     name="filter_analysis_type"
-                                                    className="w-full border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white dark:bg-slate-900 hover:border-blue-300 dark:hover:border-blue-600 transition-all focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
+                                                    className="w-full border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white dark:bg-slate-900 hover:border-primary-300 dark:hover:border-primary-600 transition-all focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none appearance-none font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
                                                     value={filters.analysisType}
                                                     onChange={e => handleChange('analysisType', e.target.value)}
                                                 >
@@ -448,7 +448,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                                 <select
                                                     id={`${idPrefix}-specialty`}
                                                     name="filter_specialty"
-                                                    className="w-full border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white dark:bg-slate-900 hover:border-blue-300 dark:hover:border-blue-600 transition-all focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
+                                                    className="w-full border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white dark:bg-slate-900 hover:border-primary-300 dark:hover:border-primary-600 transition-all focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none appearance-none font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
                                                     value={filters.specialty}
                                                     onChange={e => handleChange('specialty', e.target.value)}
                                                 >
@@ -466,7 +466,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                                 <select
                                                     id={`${idPrefix}-status`}
                                                     name="filter_status"
-                                                    className="w-full border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white dark:bg-slate-900 hover:border-blue-300 dark:hover:border-blue-600 transition-all focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
+                                                    className="w-full border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white dark:bg-slate-900 hover:border-primary-300 dark:hover:border-primary-600 transition-all focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none appearance-none font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
                                                     value={filters.status}
                                                     onChange={e => handleChange('status', e.target.value)}
                                                 >
@@ -484,7 +484,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                                                 <select
                                                     id={`${idPrefix}-component-type`}
                                                     name="filter_component_type"
-                                                    className="w-full border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white dark:bg-slate-900 hover:border-blue-300 dark:hover:border-blue-600 transition-all focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
+                                                    className="w-full border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-4 pr-10 text-sm bg-white dark:bg-slate-900 hover:border-primary-300 dark:hover:border-primary-600 transition-all focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none appearance-none font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
                                                     value={filters.componentType || 'ALL'}
                                                     onChange={e => handleChange('componentType', e.target.value)}
                                                 >

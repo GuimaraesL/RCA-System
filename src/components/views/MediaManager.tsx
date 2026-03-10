@@ -6,8 +6,8 @@
 import React, { useState, useRef } from 'react';
 import { Attachment } from '../../types';
 import { mediaService } from '../../services/mediaService';
-import { 
-  Image as ImageIcon, Video, FileText, Upload, Trash2, 
+import {
+  Image as ImageIcon, Video, FileText, Upload, Trash2,
   ExternalLink, Loader2, AlertCircle, Plus
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageDefinition';
@@ -49,7 +49,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
       onChange(newAttachments);
     } catch (err) {
       console.error(err);
-      alert(t('errors.uploadFailed'));
+      alert(t('media.uploadError'));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -84,7 +84,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
       await mediaService.delete(rcaId, filename);
       onChange(attachments.filter(a => a.filename !== filename));
     } catch (err) {
-      alert(t('errors.deleteFailed'));
+      alert(t('media.deleteError'));
     }
   };
 
@@ -107,7 +107,7 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
   };
 
   return (
-    <div 
+    <div
       className="space-y-6"
       onDragEnter={handleDrag}
       onDragOver={handleDrag}
@@ -116,21 +116,21 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
     >
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-          <ImageIcon className="text-blue-600" size={20} />
-          {t('common.attachments')}
+          <ImageIcon className="text-primary-600" size={20} />
+          {t('common.attachments') || 'Anexos e Evidências'}
         </h3>
-        
-        <input 
-          type="file" 
-          multiple 
-          accept="image/*,video/*,.pdf" 
-          className="hidden" 
+
+        <input
+          type="file"
+          multiple
+          accept="image/*,video/*,.pdf"
+          className="hidden"
           ref={fileInputRef}
           onChange={handleFileChange}
         />
-        
-        <Button 
-          variant="outline" 
+
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
@@ -142,37 +142,35 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
       </div>
 
       {attachments.length === 0 && !uploading ? (
-        <Card className={`flex flex-col items-center justify-center p-12 text-center border-dashed transition-all ${
-          dragActive 
-            ? "border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 ring-4 ring-blue-500/10 scale-[1.01]" 
+        <Card className={`flex flex-col items-center justify-center p-12 text-center border-dashed transition-all ${dragActive
+            ? "border-primary-500 bg-primary-50/50 dark:bg-primary-900/20 ring-4 ring-primary-500/10 scale-[1.01]"
             : "bg-slate-50/30 border-slate-200 dark:border-slate-800"
-        }`}>
-          <Upload size={40} className={`${dragActive ? "text-blue-500 animate-bounce" : "text-slate-200 dark:text-slate-700"} mb-4`} />
-          <p className={`${dragActive ? "text-blue-600" : "text-slate-400"} text-sm font-medium`}>
-            {dragActive ? t('common.dragMedia') : t('mediaManager.noAttachments')}
+          }`}>
+          <Upload size={40} className={`${dragActive ? "text-primary-500 animate-bounce" : "text-slate-200 dark:text-slate-700"} mb-4`} />
+          <p className={`${dragActive ? "text-primary-600" : "text-slate-400"} text-sm font-medium`}>
+            {dragActive ? t('media.dropToUpload') : t('media.noAttachments')}
           </p>
-          <p className="text-slate-300 text-xs mt-1 italic">{t('common.dragMedia')}</p>
+          <p className="text-slate-300 text-xs mt-1 italic">{t('media.dragHint')}</p>
         </Card>
       ) : (
-        <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-2 rounded-2xl transition-all ${
-          dragActive ? "bg-blue-50/30 ring-2 ring-blue-500/20 ring-dashed" : ""
-        }`}>
+        <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-2 rounded-2xl transition-all ${dragActive ? "bg-primary-50/30 ring-2 ring-primary-500/20 ring-dashed" : ""
+          }`}>
           {attachments.map((att) => (
             <div key={att.id} className="group relative aspect-square rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-all hover:shadow-md">
               {renderPreview(att)}
-              
+
               {/* Overlay de Ações */}
               <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
-                <a 
-                  href={att.url} 
-                  target="_blank" 
+                <a
+                  href={att.url}
+                  target="_blank"
                   rel="noreferrer"
                   className="p-2 bg-white/20 hover:bg-white/40 text-white rounded-full transition-colors"
                   title={t('common.view')}
                 >
                   <ExternalLink size={18} />
                 </a>
-                <button 
+                <button
                   onClick={() => handleDelete(att.filename)}
                   className="p-2 bg-red-500/80 hover:bg-red-500 text-white rounded-full transition-colors"
                   title={t('common.delete')}
@@ -189,11 +187,11 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
               </div>
             </div>
           ))}
-          
+
           {uploading && (
-            <div className="aspect-square rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-900/30 flex flex-col items-center justify-center gap-3 bg-blue-50/20">
-              <Loader2 size={32} className="text-blue-500 animate-spin" />
-              <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest animate-pulse">{t('common.sending')}</p>
+            <div className="aspect-square rounded-2xl border-2 border-dashed border-primary-200 dark:border-primary-900/30 flex flex-col items-center justify-center gap-3 bg-primary-50/20">
+              <Loader2 size={32} className="text-primary-500 animate-spin" />
+              <p className="text-[10px] font-bold text-primary-600 uppercase tracking-widest animate-pulse">{t('media.uploading')}</p>
             </div>
           )}
         </div>
@@ -203,8 +201,8 @@ export const MediaManager: React.FC<MediaManagerProps> = ({ rcaId, attachments, 
       <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex gap-3">
         <AlertCircle size={18} className="text-slate-400 flex-shrink-0 mt-0.5" />
         <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-          <p><strong>{t('common.uploadLimits')}</strong> {t('common.uploadLimitsDesc')}</p>
-          <p>{t('common.suggestedFormats')}</p>
+          <p>{t('media.uploadLimits')}</p>
+          <p>{t('media.suggestedFormats')}</p>
         </div>
       </div>
     </div>

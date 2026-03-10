@@ -6,8 +6,8 @@
 import React, { useState, useEffect } from 'react';
 import { FmeaMode, AssetNode } from '../../types';
 import { fmeaService } from '../../services/fmeaService';
-import { 
-  ShieldAlert, Plus, Brain, Trash2, Edit2, 
+import {
+  ShieldAlert, Plus, Brain, Trash2, Edit2,
   ChevronDown, ChevronUp, AlertCircle, Save, X, Sparkles
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageDefinition';
@@ -28,11 +28,11 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
   const [modes, setModes] = useState<FmeaMode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Estados para Modal de Edição
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMode, setEditingMode] = useState<Partial<FmeaMode> | null>(null);
-  
+
   // Estados para Importação IA
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [importText, setImportPlaceholder] = useState('');
@@ -56,7 +56,7 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       const reader = new FileReader();
@@ -86,7 +86,7 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
 
   const handleSave = async () => {
     if (!editingMode?.failure_mode) return;
-    
+
     try {
       if (editingMode.id) {
         await fmeaService.update(editingMode.id, editingMode);
@@ -113,20 +113,20 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
 
   const handleImportAi = async () => {
     if (!importText.trim()) return;
-    
+
     try {
       setIsProcessingAi(true);
       const response = await fetch('/ai/extract-fmea', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'X-Internal-Key': 'rca-system-secret-key' // TODO: Pegar do config ou env
         },
         body: JSON.stringify({ text: importText, ui_language: t('common.portuguese') })
       });
 
-      if (!response.ok) throw new Error(t('errors.somethingWentWrong').replace('{0}', 'IA Extraction'));
-      
+      if (!response.ok) throw new Error(t('fmea.notifications.extractionError'));
+
       const data = await response.json();
       const extractedModes: FmeaItem[] = data.modes;
 
@@ -171,28 +171,28 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
       <div className="flex justify-between items-end">
         <div>
           <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3 tracking-tight">
-            <ShieldAlert className="text-blue-600" size={28} />
+            <ShieldAlert className="text-primary-600" size={28} />
             {t('fmea.title')}
           </h2>
           <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">{t('fmea.subtitle')}</p>
         </div>
         <div className="flex gap-3">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => setIsImportModalOpen(true)}
             leftIcon={<Brain size={18} className="text-purple-500" />}
             className="rounded-xl border-slate-200 dark:border-slate-700 shadow-sm"
           >
             {t('fmea.importAi')}
           </Button>
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             onClick={() => {
               setEditingMode({ severity: 1, occurrence: 1, detection: 1 });
               setIsModalOpen(true);
             }}
             leftIcon={<Plus size={18} />}
-            className="rounded-xl shadow-lg shadow-blue-500/20"
+            className="rounded-xl shadow-lg shadow-primary-500/20"
           >
             {t('fmea.addMode')}
           </Button>
@@ -252,17 +252,17 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
                   </td>
                   <td className="px-6 py-5 text-right">
                     <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => { setEditingMode(mode); setIsModalOpen(true); }}
                         className="h-8 w-8 p-0 rounded-lg"
                       >
                         <Edit2 size={14} />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setDeleteId(mode.id)}
                         className="h-8 w-8 p-0 rounded-lg text-red-400 hover:text-red-600"
                       >
@@ -292,7 +292,7 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
         }
       >
         <div className="space-y-6">
-          <Input 
+          <Input
             label={t('fmea.table.mode')}
             value={editingMode?.failure_mode || ''}
             onChange={e => setEditingMode({ ...editingMode, failure_mode: e.target.value })}
@@ -300,47 +300,47 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
             required
           />
           <div className="grid grid-cols-3 gap-4">
-            <Input 
-              type="number" 
-              label={t('fmea.table.severity')} 
+            <Input
+              type="number"
+              label={t('fmea.table.severity')}
               min={1} max={10}
               value={editingMode?.severity || 1}
               onChange={e => setEditingMode({ ...editingMode, severity: parseInt(e.target.value) })}
             />
-            <Input 
-              type="number" 
-              label={t('fmea.table.occurrence')} 
+            <Input
+              type="number"
+              label={t('fmea.table.occurrence')}
               min={1} max={10}
               value={editingMode?.occurrence || 1}
               onChange={e => setEditingMode({ ...editingMode, occurrence: parseInt(e.target.value) })}
             />
-            <Input 
-              type="number" 
-              label={t('fmea.table.detection')} 
+            <Input
+              type="number"
+              label={t('fmea.table.detection')}
               min={1} max={10}
               value={editingMode?.detection || 1}
               onChange={e => setEditingMode({ ...editingMode, detection: parseInt(e.target.value) })}
             />
           </div>
-          <Textarea 
+          <Textarea
             label={t('fmea.table.effects')}
             value={editingMode?.potential_effects || ''}
             onChange={e => setEditingMode({ ...editingMode, potential_effects: e.target.value })}
             rows={2}
           />
-          <Textarea 
+          <Textarea
             label={t('fmea.table.causes')}
             value={editingMode?.potential_causes || ''}
             onChange={e => setEditingMode({ ...editingMode, potential_causes: e.target.value })}
             rows={2}
           />
-          <Textarea 
+          <Textarea
             label={t('fmea.table.controls')}
             value={editingMode?.current_controls || ''}
             onChange={e => setEditingMode({ ...editingMode, current_controls: e.target.value })}
             rows={2}
           />
-          <Textarea 
+          <Textarea
             label={t('fmea.table.actions')}
             value={editingMode?.recommended_actions || ''}
             onChange={e => setEditingMode({ ...editingMode, recommended_actions: e.target.value })}
@@ -360,9 +360,9 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
             <Button variant="ghost" onClick={() => setIsImportModalOpen(false)} disabled={isProcessingAi}>
               {t('common.cancel')}
             </Button>
-            <Button 
-              variant="primary" 
-              onClick={handleImportAi} 
+            <Button
+              variant="primary"
+              onClick={handleImportAi}
               isLoading={isProcessingAi}
               className="bg-purple-600 hover:bg-purple-700 shadow-purple-500/20"
               leftIcon={<Sparkles size={18} />}
@@ -372,35 +372,33 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
           </>
         }
       >
-        <div 
+        <div
           className="space-y-4"
           onDragEnter={handleDrag}
           onDragOver={handleDrag}
           onDragLeave={handleDrag}
           onDrop={handleDrop}
         >
-          <div className={`p-4 transition-all duration-300 border-2 border-dashed rounded-2xl flex gap-4 ${
-            dragActive 
-              ? "bg-purple-50 dark:bg-purple-900/20 border-purple-500 ring-4 ring-purple-500/10 scale-[1.01]" 
+          <div className={`p-4 transition-all duration-300 border-2 border-dashed rounded-2xl flex gap-4 ${dragActive
+              ? "bg-purple-50 dark:bg-purple-900/20 border-purple-500 ring-4 ring-purple-500/10 scale-[1.01]"
               : "bg-purple-50 dark:bg-purple-900/10 border-purple-100 dark:border-purple-900/30"
-          }`}>
+            }`}>
             <Sparkles size={24} className={`${dragActive ? "text-purple-600 animate-bounce" : "text-purple-500"} flex-shrink-0`} />
             <p className={`text-sm font-medium leading-relaxed ${dragActive ? "text-purple-700" : "text-purple-700 dark:text-purple-300"}`}>
-              {dragActive ? t('fmea.modal.dropFile') : t('fmea.modal.importHint')}
+              {dragActive ? t('fmea.modal.dropHint') : t('fmea.modal.importHint')}
             </p>
           </div>
-          <Textarea 
+          <Textarea
             placeholder={t('fmea.modal.importPlaceholder')}
-            className={`min-h-[300px] font-mono text-sm transition-all duration-300 ${
-              dragActive ? "border-purple-400 bg-purple-50/30" : ""
-            }`}
+            className={`min-h-[300px] font-mono text-sm transition-all duration-300 ${dragActive ? "border-purple-400 bg-purple-50/30" : ""
+              }`}
             value={importText}
             onChange={e => setImportPlaceholder(e.target.value)}
           />
         </div>
       </Modal>
 
-      <ConfirmModal 
+      <ConfirmModal
         isOpen={!!deleteId}
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}

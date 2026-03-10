@@ -18,7 +18,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ compact }) =
             <button
                 onClick={() => setLanguage('pt')}
                 className={`p-2 rounded-xl transition-all flex items-center justify-center gap-2 group ${language === 'pt'
-                    ? 'bg-blue-600 shadow-lg shadow-blue-600/20 text-white font-black scale-105'
+                    ? 'bg-primary-600 shadow-lg shadow-primary-600/20 text-white font-black scale-105'
                     : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'
                     } ${compact ? 'w-full' : 'px-4'}`}
                 title={t("common.portuguese")}
@@ -29,7 +29,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ compact }) =
             <button
                 onClick={() => setLanguage('en')}
                 className={`p-2 rounded-xl transition-all flex items-center justify-center gap-2 group ${language === 'en'
-                    ? 'bg-blue-600 shadow-lg shadow-blue-600/20 text-white font-black scale-105'
+                    ? 'bg-primary-600 shadow-lg shadow-primary-600/20 text-white font-black scale-105'
                     : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'
                     } ${compact ? 'w-full' : 'px-4'}`}
                 title={t("common.english")}

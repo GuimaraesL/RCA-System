@@ -14,7 +14,7 @@ export const DocumentationView: React.FC = () => {
     return (
         <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in space-y-8 pb-20">
             <div className="flex items-center gap-3 border-b border-slate-200 dark:border-slate-700 pb-6">
-                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg">
+                <div className="p-3 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 rounded-lg">
                     <Book size={32} />
                 </div>
                 <div>
@@ -24,9 +24,9 @@ export const DocumentationView: React.FC = () => {
             </div>
 
             {/* 1. Arquitetura */}
-            <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800">
+            <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md hover:border-primary-200 dark:hover:border-primary-800">
                 <div className="flex items-center gap-2 mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">
-                    <Server className="text-blue-600 dark:text-blue-400" size={24} />
+                    <Server className="text-primary-600 dark:text-primary-400" size={24} />
                     <h2 className="text-xl font-bold text-slate-800 dark:text-white">1. {t('documentation.sections.architecture')}</h2>
                 </div>
                 <div className="space-y-4 text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
@@ -36,7 +36,7 @@ export const DocumentationView: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                         <div className="space-y-2">
                             <h3 className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2"><Database size={16} /> {t('documentation.architecture.entitiesTitle')}</h3>
-                            <ul className="list-disc pl-5 space-y-1 marker:text-blue-400">
+                            <ul className="list-disc pl-5 space-y-1 marker:text-primary-400">
                                 <li><strong>{t('documentation.architecture.rcaRecordLabel')}:</strong> {t('documentation.architecture.rcaRecord')}</li>
                                 <li><strong>{t('documentation.architecture.assetNodeLabel')}:</strong> {t('documentation.architecture.assetNode')}</li>
                                 <li><strong>{t('documentation.architecture.actionRecordLabel')}:</strong> {t('documentation.architecture.actionRecord')}</li>
@@ -44,7 +44,7 @@ export const DocumentationView: React.FC = () => {
                         </div>
                         <div className="space-y-2">
                             <h3 className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2"><Layers size={16} /> {t('documentation.architecture.stateTitle')}</h3>
-                            <ul className="list-disc pl-5 space-y-1 marker:text-blue-400">
+                            <ul className="list-disc pl-5 space-y-1 marker:text-primary-400">
                                 <li><strong>{t('documentation.architecture.contextApiLabel')}:</strong> {t('documentation.architecture.contextApi')}</li>
                                 <li><strong>{t('documentation.architecture.viewModelsLabel')}:</strong> {t('documentation.architecture.viewModels')}</li>
                             </ul>
@@ -54,7 +54,7 @@ export const DocumentationView: React.FC = () => {
             </section>
 
             {/* 2. Workflow */}
-            <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800">
+            <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md hover:border-primary-200 dark:hover:border-primary-800">
                 <div className="flex items-center gap-2 mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">
                     <Workflow className="text-green-600 dark:text-green-400" size={24} />
                     <h2 className="text-xl font-bold text-slate-800 dark:text-white">2. {t('documentation.sections.workflow')}</h2>
@@ -62,7 +62,7 @@ export const DocumentationView: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="relative border-l-2 border-slate-200 dark:border-slate-700 ml-2 space-y-8 pl-6 py-2">
                         <div className="relative">
-                            <span className="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-white dark:ring-slate-900"></span>
+                            <span className="absolute -left-[33px] top-1 w-4 h-4 rounded-full bg-primary-500 ring-4 ring-white dark:ring-slate-900"></span>
                             <h3 className="font-bold text-slate-900 dark:text-white">{t('documentation.workflow.step1Title')}</h3>
                             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                                 {t('documentation.workflow.step1Desc')}
@@ -99,7 +99,7 @@ export const DocumentationView: React.FC = () => {
                                 <span className="text-slate-600 dark:text-slate-300">{t('documentation.workflow.draftTag')}</span>
                             </li>
                             <li className="flex gap-2">
-                                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] font-bold px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800">
+                                <span className="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-[10px] font-bold px-1.5 py-0.5 rounded border border-primary-200 dark:border-primary-800">
                                     {t('workflow.tags.link')}
                                 </span>
                                 <span className="text-slate-600 dark:text-slate-300">{t('documentation.workflow.linkTag')}</span>
@@ -110,7 +110,7 @@ export const DocumentationView: React.FC = () => {
             </section>
 
             {/* 3. Integrações */}
-            <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800">
+            <section className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md hover:border-primary-200 dark:hover:border-primary-800">
                 <div className="flex items-center gap-2 mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">
                     <Share2 className="text-indigo-600 dark:text-indigo-400" size={24} />
                     <h2 className="text-xl font-bold text-slate-800 dark:text-white">3. {t('documentation.sections.integrations')}</h2>
@@ -131,8 +131,8 @@ export const DocumentationView: React.FC = () => {
                         </ul>
                     </div>
 
-                    <div className="p-4 rounded-lg border border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10">
-                        <div className="flex items-center gap-2 mb-2 text-blue-800 dark:text-blue-300 font-bold">
+                    <div className="p-4 rounded-lg border border-primary-100 dark:border-primary-900/30 bg-primary-50/50 dark:bg-primary-900/10">
+                        <div className="flex items-center gap-2 mb-2 text-primary-800 dark:text-primary-300 font-bold">
                             <FileJson size={18} />
                             <h3>{t('documentation.integrations.jsonTitle')}</h3>
                         </div>

@@ -124,7 +124,7 @@ const NodeEditor: React.FC<{
                                 why.level === 2 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' :
                                     why.level === 3 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' :
                                         why.level === 4 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
-                                            'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'}
+                                            'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'}
                         `}>
                             {why.level}
                         </div>
@@ -244,7 +244,7 @@ export const FiveWhysEditor: React.FC<FiveWhysEditorProps> = ({ chains, onChange
                 </div>
             ))}
 
-            <Button onClick={addChain} variant="primary" className="w-full border-dashed border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:border-blue-300 dark:hover:border-blue-700">
+            <Button onClick={addChain} variant="primary" className="w-full border-dashed border-2 border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/40 hover:border-primary-300 dark:hover:border-primary-700">
                 <Plus size={20} className="mr-2" /> {t('wizard.step4.fiveWhys.addNewPath')}
             </Button>
         </div>

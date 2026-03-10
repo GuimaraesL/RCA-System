@@ -28,7 +28,7 @@ export const Textarea: React.FC<TextareaProps> = ({ label, error, required, clas
                     w-full px-3 py-2 bg-white dark:bg-slate-900 border rounded-lg text-sm transition-all outline-none resize-none placeholder-slate-400
                     ${error
                         ? 'border-red-500 bg-red-50 dark:bg-red-900/10 focus:ring-2 focus:ring-red-100 dark:focus:ring-red-900/30'
-                        : 'border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10'}
+                        : 'border-slate-200 dark:border-slate-700 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10'}
                     ${props.disabled ? 'bg-slate-50 dark:bg-slate-800 text-slate-400 cursor-not-allowed' : 'text-slate-900 dark:text-slate-100'}
                     ${className}
                 `}

@@ -47,7 +47,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                 );
             case ACTION_STATUS_IDS.COMPLETED:
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-wider border border-blue-100 shadow-sm">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-50 text-primary-700 text-[10px] font-black uppercase tracking-wider border border-primary-100 shadow-sm">
                         <ShieldCheck size={12} strokeWidth={3} />
                         {t('actionModal.statusOptions.completed')}
                     </span>
@@ -59,7 +59,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                         {t('actionModal.statusOptions.verified')}
                     </span>
                 );
-            default: return <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-500 text-[10px] font-mono">{status || '-'}</span>;
+            default: return <span className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-500 text-[10px] font-mono">{status || '-'}</span>;
         }
     };
 
@@ -92,12 +92,12 @@ export const Step5Actions: React.FC<Step5Props> = ({
     return (
         <div className="max-w-[1600px] mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {/* Cabeçalho de Orientação */}
-            <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 p-6 rounded-xl flex gap-4 text-blue-800 dark:text-blue-200 text-sm shadow-sm">
-                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800/50 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 flex-shrink-0">
+            <div className="bg-primary-50/50 dark:bg-primary-900/10 border border-primary-100 dark:border-primary-800 p-6 rounded-xl flex gap-4 text-primary-800 dark:text-primary-200 text-sm shadow-sm">
+                <div className="w-10 h-10 bg-primary-100 dark:bg-primary-800/50 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 flex-shrink-0">
                     <Target size={24} />
                 </div>
                 <div>
-                    <strong className="text-blue-900 dark:text-blue-100 font-bold block mb-1 text-base">{t('wizard.step5.header')}</strong>
+                    <strong className="text-primary-900 dark:text-primary-100 font-bold block mb-1 text-base">{t('wizard.step5.header')}</strong>
                     <p className="font-medium opacity-80">{t('wizard.step5.headerDesc')}</p>
                 </div>
             </div>
@@ -108,7 +108,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
                         <AlertTriangle size={24} className="text-amber-500" /> {t('wizard.step5.containmentTitle')}
                     </h3>
-                    <button onClick={addInternalAction} className="text-xs font-bold flex items-center gap-2 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 px-4 py-2 rounded-lg transition-all border border-blue-100 dark:border-blue-800">
+                    <button onClick={addInternalAction} className="text-xs font-bold flex items-center gap-2 text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/40 px-4 py-2 rounded-lg transition-all border border-primary-100 dark:border-primary-800">
                         <Plus size={16} /> {t('wizard.step5.containmentAdd')}
                     </button>
                 </div>
@@ -126,7 +126,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                                 <input
                                     id={`${idPrefix}-cont-act-${idx}`}
                                     name={`containment_action_${idx}_action`}
-                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
+                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all"
                                     placeholder={t('wizard.step5.whatPlaceholder')}
                                     value={action.action}
                                     onChange={e => updateInternalAction(idx, 'action', e.target.value)}
@@ -137,7 +137,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                                 <input
                                     id={`${idPrefix}-cont-resp-${idx}`}
                                     name={`containment_action_${idx}_responsible`}
-                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all"
+                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all"
                                     value={action.responsible}
                                     onChange={e => updateInternalAction(idx, 'responsible', e.target.value)}
                                 />
@@ -148,7 +148,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                                     id={`${idPrefix}-cont-date-${idx}`}
                                     name={`containment_action_${idx}_date`}
                                     type="date"
-                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500"
+                                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500"
                                     value={action.date}
                                     onChange={e => updateInternalAction(idx, 'date', e.target.value)}
                                 />
@@ -170,7 +170,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                     <div className="flex gap-2">
                         <button
                             onClick={() => onAddActionPlan('CORRECTIVE')}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-sm shadow-blue-500/20 transition-all"
+                            className="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-sm shadow-primary-500/20 transition-all"
                         >
                             <Plus size={18} /> {t('wizard.step5.correctiveAdd')}
                         </button>
@@ -199,7 +199,7 @@ export const Step5Actions: React.FC<Step5Props> = ({
                             {sortedActions.map(act => (
                                 <tr
                                     key={act.id}
-                                    className="hover:bg-blue-50/30 dark:hover:bg-blue-900/20 cursor-pointer transition-all opacity-0"
+                                    className="hover:bg-primary-50/30 dark:hover:bg-primary-900/20 cursor-pointer transition-all opacity-0"
                                     onClick={() => onEditActionPlan(act)}
                                 >
                                     <td className="px-6 py-4">

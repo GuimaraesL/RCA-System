@@ -944,7 +944,7 @@ export interface TranslationSchema {
             importTitle: string;
             importPlaceholder: string;
             importHint: string;
-            dropFile: string;
+            dropHint: string;
             processing: string;
         };
         notifications: {
@@ -952,6 +952,17 @@ export interface TranslationSchema {
             deleteSuccess: string;
             importSuccess: string;
             error: string;
+            extractionError: string;
         };
+    };
+    media: {
+        uploadError: string;
+        deleteError: string;
+        dropToUpload: string;
+        noAttachments: string;
+        dragHint: string;
+        uploading: string;
+        uploadLimits: string;
+        suggestedFormats: string;
     };
 }

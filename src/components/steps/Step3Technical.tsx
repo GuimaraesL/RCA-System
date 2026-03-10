@@ -121,11 +121,11 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                     </div>
                 </div>
 
-                <div className="mt-8 p-5 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 rounded-xl flex items-center gap-4">
-                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800/50 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
+                <div className="mt-8 p-5 bg-primary-50/50 dark:bg-primary-900/10 border border-primary-100 dark:border-primary-800 rounded-xl flex items-center gap-4">
+                    <div className="w-10 h-10 bg-primary-100 dark:bg-primary-800/50 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold">
                         $
                     </div>
-                    <p className="text-sm text-blue-800 dark:text-blue-100 leading-relaxed">
+                    <p className="text-sm text-primary-800 dark:text-primary-100 leading-relaxed">
                         <strong className="font-bold">{t('wizard.step3.estimatedImpact')}</strong><br />
                         <span className="text-lg font-black dark:text-white">
                             {(data.financial_impact || 0).toLocaleString(language === 'pt' ? 'pt-BR' : 'en-US', {
@@ -133,7 +133,7 @@ export const Step3Technical: React.FC<Step3Props> = ({ data, onChange, taxonomy,
                                 currency: language === 'pt' ? 'BRL' : 'USD'
                             })}
                         </span>
-                        <span className="ml-2 text-blue-600 dark:text-blue-400 font-medium italic">
+                        <span className="ml-2 text-primary-600 dark:text-primary-400 font-medium italic">
                             em {data.downtime_minutes || 0} {t('wizard.step3.minutesOfDowntime')}
                         </span>
                     </p>

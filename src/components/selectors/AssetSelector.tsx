@@ -49,7 +49,7 @@ const AssetTreeNode: React.FC<{
   return (
     <div className="select-none">
       <div
-        className={`flex items-center py-2 px-3 rounded-xl transition-all duration-200 group ${isSelected ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' :
+        className={`flex items-center py-2 px-3 rounded-xl transition-all duration-200 group ${isSelected ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20' :
           isSelectable ? 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer border border-transparent hover:border-slate-100 dark:hover:border-slate-700' : 'text-slate-500 dark:text-slate-500 cursor-default'
           }`}
         style={{ marginLeft: `${depth * 20}px` }}
@@ -65,9 +65,9 @@ const AssetTreeNode: React.FC<{
         </div>
 
         {/* Ícones específicos por tipo de nível hierárquico */}
-        <div className={`p-1.5 rounded-lg mr-2.5 transition-colors ${isSelected ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-800 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20'}`}>
+        <div className={`p-1.5 rounded-lg mr-2.5 transition-colors ${isSelected ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-800 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/20'}`}>
           {node.type === 'AREA' && <Folder size={14} className={isSelected ? 'text-white' : isSelectable ? 'text-slate-500 dark:text-slate-400' : 'text-slate-600 dark:text-slate-500'} />}
-          {node.type === 'EQUIPMENT' && <Database size={14} className={isSelected ? 'text-white' : isSelectable ? 'text-blue-500' : 'text-blue-600'} />}
+          {node.type === 'EQUIPMENT' && <Database size={14} className={isSelected ? 'text-white' : isSelectable ? 'text-primary-500' : 'text-primary-600'} />}
           {node.type === 'SUBGROUP' && <Layers size={14} className={isSelected ? 'text-white' : isSelectable ? 'text-cyan-500' : 'text-cyan-600'} />}
         </div>
 

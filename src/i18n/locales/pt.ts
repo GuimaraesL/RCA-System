@@ -966,14 +966,25 @@ export const pt: TranslationSchema = {
             importTitle: "Importar Dados de FMEA",
             importPlaceholder: "Cole aqui o texto do manual ou arraste o PDF...",
             importHint: "A IA irá processar o texto e identificar automaticamente os modos de falha, efeitos e causas.",
-            dropFile: "Solte o arquivo para ler o conteúdo!",
+            dropHint: "Solte o arquivo para ler o conteúdo!",
             processing: "Processando com IA..."
         },
         notifications: {
             saveSuccess: "FMEA atualizado com sucesso.",
             deleteSuccess: "Modo de falha removido.",
             importSuccess: "Dados importados com sucesso.",
-            error: "Erro ao processar FMEA."
+            error: "Erro ao processar FMEA.",
+            extractionError: "Falha na extração"
         }
+    },
+    media: {
+        uploadError: "Erro ao enviar arquivos",
+        deleteError: "Erro ao excluir arquivo",
+        dropToUpload: "Solte para enviar!",
+        noAttachments: "Nenhum anexo encontrado para esta análise.",
+        dragHint: "Arraste fotos ou vídeos aqui para começar.",
+        uploading: "Enviando...",
+        uploadLimits: "Limites de Upload: Imagens (5MB), Vídeos (50MB), Documentos (10MB).",
+        suggestedFormats: "Formatos sugeridos: JPG, PNG, MP4, PDF."
     }
 };

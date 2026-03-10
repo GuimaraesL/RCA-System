@@ -44,12 +44,12 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
     return (
         <div className="max-w-[1600px] mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {/* Cabeçalho de Contexto HRA */}
-            <div className="bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-6 rounded-xl flex gap-4 text-blue-800 dark:text-blue-200 text-sm shadow-sm">
-                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800/50 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 flex-shrink-0">
+            <div className="bg-primary-50/50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 p-6 rounded-xl flex gap-4 text-primary-800 dark:text-primary-200 text-sm shadow-sm">
+                <div className="w-10 h-10 bg-primary-100 dark:bg-primary-800/50 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 flex-shrink-0">
                     <UserCheck size={24} />
                 </div>
                 <div>
-                    <strong className="text-blue-900 dark:text-blue-100 font-bold block mb-1 text-base">{t('wizard.stepHRA.title')}</strong>
+                    <strong className="text-primary-900 dark:text-primary-100 font-bold block mb-1 text-base">{t('wizard.stepHRA.title')}</strong>
                     <p className="font-medium opacity-80">{t('wizard.stepHRA.subtitle')}</p>
                 </div>
             </div>
@@ -58,7 +58,7 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
             <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800 overflow-hidden">
                 <div className="px-8 py-5 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                     <h3 className="text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                        <span className="w-1.5 h-4 bg-blue-500 rounded-full"></span>
+                        <span className="w-1.5 h-4 bg-primary-500 rounded-full"></span>
                         {t('wizard.stepHRA.questionnaire')}
                     </h3>
                 </div>
@@ -74,9 +74,9 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                         </thead>
                         <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                             {questions.map(q => (
-                                <tr key={q.id} className="hover:bg-blue-50/20 dark:hover:bg-blue-900/10 transition-all group">
+                                <tr key={q.id} className="hover:bg-primary-50/20 dark:hover:bg-primary-900/10 transition-all group">
                                     <td className="px-6 py-5">
-                                        <div className="text-[10px] text-blue-600 dark:text-blue-400 mb-1.5 font-black uppercase tracking-widest opacity-70">{t(q.category || '')}</div>
+                                        <div className="text-[10px] text-primary-600 dark:text-primary-400 mb-1.5 font-black uppercase tracking-widest opacity-70">{t(q.category || '')}</div>
                                         <div className="text-slate-700 dark:text-slate-200 font-bold leading-relaxed">{t(q.question || '')}</div>
                                     </td>
                                     <td className="px-4 py-5 text-center">
@@ -101,13 +101,13 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
                                                 id={`${idPrefix}-hra-comment-${q.id}`}
                                                 name={`hra_comment_${q.id}`}
                                                 type="text"
-                                                className="w-full border-b border-slate-200 dark:border-slate-700 focus:border-blue-500 outline-none bg-transparent text-sm py-1.5 text-slate-900 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-600 transition-colors font-medium"
+                                                className="w-full border-b border-slate-200 dark:border-slate-700 focus:border-primary-500 outline-none bg-transparent text-sm py-1.5 text-slate-900 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-600 transition-colors font-medium"
                                                 placeholder={t('wizard.stepHRA.addComment')}
                                                 aria-label={`${t('wizard.stepHRA.comments')} - ${t(q.question_snapshot || '') || t(q.question || '')}`}
                                                 value={q.comment}
                                                 onChange={e => updateHraQuestion(q.id, 'comment', e.target.value)}
                                             />
-                                            <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-focus-within/input:w-full"></div>
+                                            <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-500 transition-all duration-300 group-focus-within/input:w-full"></div>
                                         </div>
                                     </td>
                                 </tr>
@@ -120,24 +120,24 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
             {/* Conclusão da Análise de Fatores Humanos */}
             <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800">
                 <h3 className="text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-8 flex items-center gap-2">
-                    <span className="w-1.5 h-4 bg-blue-500 rounded-full"></span>
+                    <span className="w-1.5 h-4 bg-primary-500 rounded-full"></span>
                     {t('wizard.stepHRA.conclusion')}
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {(data.human_reliability.conclusions || []).map(c => (
-                        <div key={c.id} className={`p-6 rounded-xl border transition-all duration-300 ${c.selected ? 'border-blue-300 dark:border-blue-700 bg-blue-50/30 dark:bg-blue-900/30 shadow-sm' : 'border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/10 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+                        <div key={c.id} className={`p-6 rounded-xl border transition-all duration-300 ${c.selected ? 'border-primary-300 dark:border-primary-700 bg-primary-50/30 dark:bg-primary-900/30 shadow-sm' : 'border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/10 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
                             <div className="flex items-start gap-4 mb-4">
                                 <button
                                     id={`${idPrefix}-btn-hra-concl-${c.id}`}
                                     onClick={() => updateHraConclusion(c.id, 'selected', !c.selected)}
-                                    className={`mt-0.5 transition-colors ${c.selected ? 'text-blue-600 dark:text-blue-400' : 'text-slate-300 dark:text-slate-600'}`}
+                                    className={`mt-0.5 transition-colors ${c.selected ? 'text-primary-600 dark:text-primary-400' : 'text-slate-300 dark:text-slate-600'}`}
                                     aria-pressed={c.selected}
                                     aria-labelledby={`${idPrefix}-label-hra-concl-${c.id}`}
                                 >
                                     {c.selected ? <CheckSquare size={24} strokeWidth={2.5} /> : <Square size={24} />}
                                 </button>
-                                <label id={`${idPrefix}-label-hra-concl-${c.id}`} htmlFor={`${idPrefix}-btn-hra-concl-${c.id}`} className={`font-bold text-sm cursor-pointer leading-tight ${c.selected ? 'text-blue-900 dark:text-blue-100' : 'text-slate-600 dark:text-slate-400'}`}>
+                                <label id={`${idPrefix}-label-hra-concl-${c.id}`} htmlFor={`${idPrefix}-btn-hra-concl-${c.id}`} className={`font-bold text-sm cursor-pointer leading-tight ${c.selected ? 'text-primary-900 dark:text-primary-100' : 'text-slate-600 dark:text-slate-400'}`}>
                                     {t(c.label || '')}
                                 </label>
                             </div>
@@ -159,7 +159,7 @@ export const StepHRA: React.FC<StepHRAProps> = ({ data, onChange }) => {
             </div>
 
             {/* Validação Institucional */}
-            <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-blue-200 dark:hover:border-blue-800 transition-all">
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-primary-200 dark:hover:border-primary-800 transition-all">
                 <h3 className="text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-8 flex items-center gap-2">
                     <span className="w-1.5 h-4 bg-emerald-500 rounded-full"></span>
                     {t('wizard.stepHRA.validation')}

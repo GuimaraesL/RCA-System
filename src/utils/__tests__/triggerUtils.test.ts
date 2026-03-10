@@ -98,7 +98,7 @@ describe('triggerHelpers', () => {
         };
 
         it('deve retornar azul para T-STATUS-01 (NEW)', () => {
-            expect(getStatusColor('T-STATUS-01', mockTaxonomy)).toContain('bg-blue-50');
+            expect(getStatusColor('T-STATUS-01', mockTaxonomy)).toContain('bg-primary-50');
         });
 
         it('deve retornar amber para T-STATUS-02 (IN_ANALYSIS)', () => {

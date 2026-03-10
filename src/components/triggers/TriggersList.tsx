@@ -69,7 +69,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                             <th className="px-4 py-5 text-center border-b border-slate-100 dark:border-slate-700 w-12">
                                 <input
                                     type="checkbox"
-                                    className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                    className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary-600 focus:ring-primary-500 cursor-pointer"
                                     onChange={(e) => { e.stopPropagation(); onSelectAll(); }}
                                     checked={filteredTriggers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).filter(t => canSelectTrigger(t)).length > 0 && filteredTriggers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).filter(t => canSelectTrigger(t)).every(t => selectedTriggerIds.has(t.id))}
                                     data-testid="checkbox-select-all"
@@ -114,13 +114,13 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                             return (
                                 <tr
                                     key={trigger.id}
-                                    className={`hover:bg-blue-50/30 dark:hover:bg-slate-800/50 cursor-pointer transition-all group border-b border-slate-50 dark:border-slate-800 last:border-0 ${isSelected ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
+                                    className={`hover:bg-primary-50/30 dark:hover:bg-slate-800/50 cursor-pointer transition-all group border-b border-slate-50 dark:border-slate-800 last:border-0 ${isSelected ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''}`}
                                     onClick={() => onEdit(trigger)}
                                 >
                                     <td className="px-4 py-5 text-center" onClick={(e) => e.stopPropagation()}>
                                         <input
                                             type="checkbox"
-                                            className={`h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 ${isSelectable ? 'cursor-pointer' : 'cursor-not-allowed opacity-30'}`}
+                                            className={`h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary-600 focus:ring-primary-500 ${isSelectable ? 'cursor-pointer' : 'cursor-not-allowed opacity-30'}`}
                                             checked={isSelected}
                                             disabled={!isSelectable && !isSelected}
                                             onChange={() => onToggleSelect(trigger.id)}
@@ -150,7 +150,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                         {trigger.rca_id ? (
                                             <div className="flex items-center gap-2">
                                                 <div
-                                                    className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-black text-[10px] uppercase tracking-widest bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 px-3 py-1.5 rounded-lg w-fit cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800 transition-all shadow-sm"
+                                                    className="flex items-center gap-2 text-primary-600 dark:text-primary-400 font-black text-[10px] uppercase tracking-widest bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-900/30 px-3 py-1.5 rounded-lg w-fit cursor-pointer hover:bg-primary-100 dark:hover:bg-primary-800 transition-all shadow-sm"
                                                     onClick={(e) => { e.stopPropagation(); onOpenRca(trigger.rca_id!); }}
                                                     title={t('triggersPage.tooltips.openRca')}
                                                 >
@@ -158,7 +158,7 @@ export const TriggersList: React.FC<TriggersListProps> = ({
                                                 </div>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onLinkRca(trigger); }}
-                                                    className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
+                                                    className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all"
                                                     title={t('triggersPage.tooltips.linkRca')}
                                                 >
                                                     <Edit2 size={14} />

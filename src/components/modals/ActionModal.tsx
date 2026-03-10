@@ -102,7 +102,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({ isOpen, initialData, r
             >
                 <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl">
+                        <div className="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-xl">
                             <ShieldCheck size={24} />
                         </div>
                         <h3 className="font-black text-xl text-slate-900 dark:text-white font-display tracking-tight">
