@@ -1,0 +1,25 @@
+:root {
+    --surface-primary: var(--color-white);
+    --surface-secondary: var(--color-slate-50);
+    --surface-elevated: var(--color-white);
+    --surface-overlay: rgba(0, 0, 0, 0.5);
+    --surface-hover: var(--color-slate-100);
+
+    --text-primary: var(--color-slate-900);
+    --text-secondary: var(--color-slate-600);
+    --text-muted: var(--color-slate-400);
+    --text-inverted: var(--color-white);
+
+    --border-primary: var(--color-slate-200);
+    --border-subtle: var(--color-slate-100);
+    --border-focus: var(--color-primary-500);
+
+    --scrollbar-thumb: var(--color-slate-300);
+    --scrollbar-thumb-hover: var(--color-slate-400);
+
+    --page-gradient: linear-gradient(to bottom right, var(--color-slate-50), var(--color-slate-100), var(--color-primary-50));
+
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}

@@ -1,0 +1,24 @@
+@layer components {
+
+    /* Form Inputs */
+    .input-base {
+        background: var(--surface-primary);
+        border: 1px solid var(--border-primary);
+        color: var(--text-primary);
+        @apply w-full h-10 px-3 py-2 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all;
+    }
+
+    .input-base:disabled {
+        background: var(--surface-secondary);
+        color: var(--text-muted);
+    }
+
+    .dark .input-base::placeholder {
+        color: var(--text-muted);
+    }
+
+    .label-base {
+        color: var(--text-secondary);
+        @apply block text-sm font-medium mb-1;
+    }
+}

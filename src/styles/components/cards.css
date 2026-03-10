@@ -1,0 +1,9 @@
+@layer components {
+
+    /* Cards */
+    .card {
+        background: var(--surface-primary);
+        border: 1px solid var(--border-primary);
+        @apply rounded-xl shadow-sm p-6;
+    }
+}

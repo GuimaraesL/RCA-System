@@ -1,0 +1,29 @@
+@theme {
+    /* Brand Colors - Blue base (Primary) */
+    --color-primary-50: var(--color-blue-50);
+    --color-primary-100: var(--color-blue-100);
+    --color-primary-200: var(--color-blue-200);
+    --color-primary-300: var(--color-blue-300);
+    --color-primary-400: var(--color-blue-400);
+    --color-primary-500: var(--color-blue-500);
+    --color-primary-600: var(--color-blue-600);
+    --color-primary-700: var(--color-blue-700);
+    --color-primary-800: var(--color-blue-800);
+    --color-primary-900: var(--color-blue-900);
+
+    /* Status Colors */
+    --color-status-success: var(--color-emerald-500);
+    --color-status-warning: var(--color-amber-500);
+    --color-status-error: var(--color-rose-500);
+    --color-status-info: var(--color-blue-500);
+
+    /* Legacy status mapping for existing code */
+    --color-status-concluded: var(--color-status-success);
+    --color-status-in-progress: var(--color-status-info);
+    --color-status-wait: var(--color-status-warning);
+    --color-status-delayed: var(--color-status-error);
+
+    /* Typography */
+    --font-sans: 'Inter', sans-serif;
+    --font-display: 'Outfit', sans-serif;
+}
