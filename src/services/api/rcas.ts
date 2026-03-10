@@ -7,33 +7,34 @@
 import { RcaRecord } from "../../types";
 import { API_BASE, checkResponse } from "./base";
 import { fetchActions } from "./actions";
+import { logger } from "../../utils/logger";
 
 // --- ANÁLISES (RCAs) ---
 
 export const fetchRecords = async (): Promise<RcaRecord[]> => {
-    console.log('API: Buscando lista resumida de análises...');
+    logger.info('API: Buscando lista resumida de análises...');
     const response = await fetch(`${API_BASE}/rcas`);
-    return checkResponse(response, 'GET /rcas');
+    return checkResponse<RcaRecord[]>(response, 'GET /rcas');
 };
 
 export const fetchAllRecordsFull = async (): Promise<RcaRecord[]> => {
-    console.log('API: Buscando carga completa de análises (Backup)...');
+    logger.info('API: Buscando carga completa de análises (Backup)...');
     const response = await fetch(`${API_BASE}/rcas?full=true`);
-    return checkResponse(response, 'GET /rcas?full=true');
+    return checkResponse<RcaRecord[]>(response, 'GET /rcas?full=true');
 };
 
 export const fetchRecordById = async (id: string): Promise<RcaRecord | null> => {
     try {
         const response = await fetch(`${API_BASE}/rcas/${id}`);
         if (response.status === 404) return null;
-        return await checkResponse(response, `GET /rcas/${id}`);
+        return await checkResponse<RcaRecord>(response, `GET /rcas/${id}`);
     } catch {
         return null;
     }
 };
 
 export const saveRecordToApi = async (record: RcaRecord, isUpdate?: boolean): Promise<void> => {
-    console.log('API: Persistindo análise:', record.id);
+    logger.info('API: Persistindo análise:', record.id);
 
     // Se o chamador explicitamente disse que é um update ou criação, respeitamos para evitar 404 no console
     if (isUpdate === true) {
@@ -42,7 +43,7 @@ export const saveRecordToApi = async (record: RcaRecord, isUpdate?: boolean): Pr
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(record)
         });
-        await checkResponse(response, `PUT /rcas/${record.id}`);
+        await checkResponse<void>(response, `PUT /rcas/${record.id}`);
         return;
     }
 
@@ -52,7 +53,7 @@ export const saveRecordToApi = async (record: RcaRecord, isUpdate?: boolean): Pr
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(record)
         });
-        await checkResponse(response, 'POST /rcas');
+        await checkResponse<void>(response, 'POST /rcas');
         return;
     }
 
@@ -65,36 +66,36 @@ export const saveRecordToApi = async (record: RcaRecord, isUpdate?: boolean): Pr
         });
 
         if (response.ok) {
-            await checkResponse(response, `PUT /rcas/${record.id}`);
+            await checkResponse<void>(response, `PUT /rcas/${record.id}`);
             return;
         }
-        
+
         if (response.status === 404) {
             const createResponse = await fetch(`${API_BASE}/rcas`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(record)
             });
-            await checkResponse(createResponse, 'POST /rcas');
+            await checkResponse<void>(createResponse, 'POST /rcas');
             return;
         }
 
-        await checkResponse(response, `PUT /rcas/${record.id}`);
+        await checkResponse<void>(response, `PUT /rcas/${record.id}`);
     } catch (error) {
         throw error;
     }
 };
 
 export const deleteRecordFromApi = async (id: string): Promise<void> => {
-    console.log('API: Excluindo análise:', id);
+    logger.info('API: Excluindo análise:', id);
     const response = await fetch(`${API_BASE}/rcas/${id}`, { method: 'DELETE' });
-    await checkResponse(response, `DELETE /rcas/${id}`);
-    console.log('API: Análise excluída com sucesso:', id);
+    await checkResponse<void>(response, `DELETE /rcas/${id}`);
+    logger.info('API: Análise excluída com sucesso:', id);
 };
 
 export const importRecordsToApi = async (records: RcaRecord[]): Promise<void> => {
-    console.log('API: Importando análises com contexto de planos de ação...', records.length);
-    
+    logger.info('API: Importando análises com contexto de planos de ação...', records.length);
+
     // Busca ações atuais para fornecer contexto ao motor de status automático do backend
     const currentActions = await fetchActions();
 
@@ -106,6 +107,6 @@ export const importRecordsToApi = async (records: RcaRecord[]): Promise<void> =>
             actions: currentActions
         })
     });
-    await checkResponse(response, 'POST /rcas/bulk (Importação CSV)');
+    await checkResponse<void>(response, 'POST /rcas/bulk (Importação CSV)');
 };
 

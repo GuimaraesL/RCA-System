@@ -4,22 +4,40 @@
  * Fluxo: Define o endpoint raiz e funções de tratamento de resposta compartilhadas.
  */
 
+import { logger } from "../../utils/logger";
+
 export const API_BASE = '/api';
 
 /**
  * Helper para verificar a integridade da resposta HTTP e lançar erros descritivos.
  */
-export const checkResponse = async (response: Response, operation: string): Promise<any> => {
+export const checkResponse = async <T>(response: Response, operation: string): Promise<T> => {
     if (!response.ok) {
-        const errorBody = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
-        console.error(`API Error [${operation}]:`, response.status, errorBody);
+        let errorBody;
+        try {
+            errorBody = await response.json();
+        } catch (e) {
+            errorBody = { error: 'Falha ao processar resposta do servidor' };
+        }
+
+        logger.error(`API Error [${operation}]:`, response.status, errorBody);
+
         const details = errorBody.details
             ? ` (${JSON.stringify(errorBody.details)})`
             : '';
+
         throw new Error((errorBody.error || `HTTP ${response.status}`) + details);
     }
+
     const text = await response.text();
-    return text ? JSON.parse(text) : null;
+    if (!text) return null as unknown as T;
+
+    try {
+        return JSON.parse(text) as T;
+    } catch (e) {
+        logger.error(`JSON Parse Error [${operation}]:`, text);
+        throw new Error('Resposta do servidor em formato inválido');
+    }
 };
 
 /**

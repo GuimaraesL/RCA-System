@@ -64,7 +64,7 @@ describe('Service: API Modular (apiService)', () => {
             expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('/assets/bulk'), expect.objectContaining({
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify([{ id: '1', name: 'Asset 1', parent_id: null }])
+                body: JSON.stringify([{ id: '1', name: 'Asset 1', parentId: null }])
             }));
         });
     });
@@ -326,8 +326,8 @@ describe('Service: API Modular (apiService)', () => {
             });
 
             // Act & Assert
-            // when json() payload fails catching generates { error: 'Erro desconhecido' }
-            await expect(api.fetchRecords()).rejects.toThrow('Erro desconhecido');
+            // when json() payload fails catching generates { error: 'Falha ao processar resposta do servidor' }
+            await expect(api.fetchRecords()).rejects.toThrow('Falha ao processar resposta do servidor');
         });
     });
 });

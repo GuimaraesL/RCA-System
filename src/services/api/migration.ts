@@ -12,12 +12,14 @@ import { fetchTaxonomy, saveTaxonomyToApi } from "./taxonomy";
 import { fetchRecords } from "./rcas";
 import { fetchActions } from "./actions";
 import { fetchTriggers } from "./triggers";
+import { logger } from "../../utils/logger";
+import { RcaRecord, ActionRecord, TriggerRecord, AssetNode } from "../../types";
 
 /**
  * Recupera ativos a partir de registros de análise (fallback para dados orfãos).
  */
-const extractAssetsFromRecords = (records: any[]): any[] => {
-    const assetsMap = new Map<string, any>();
+const extractAssetsFromRecords = (records: RcaRecord[]): Omit<AssetNode, 'children'>[] => {
+    const assetsMap = new Map<string, Omit<AssetNode, 'children'>>();
 
     const addAsset = (id: string, name: string, type: 'AREA' | 'EQUIPMENT' | 'SUBGROUP', parentId: string | null) => {
         if (!id || assetsMap.has(id)) return;
@@ -25,7 +27,7 @@ const extractAssetsFromRecords = (records: any[]): any[] => {
             id,
             name: name || id,
             type,
-            parent_id: parentId
+            parentId: parentId || undefined
         });
     };
 
@@ -35,7 +37,7 @@ const extractAssetsFromRecords = (records: any[]): any[] => {
         if (r.subgroup_id && r.equipment_id) addAsset(r.subgroup_id, r.subgroup_id, 'SUBGROUP', r.equipment_id);
     });
 
-    console.log(`API: Ativos extraídos automaticamente: ${assetsMap.size}`);
+    logger.info(`API: Ativos extraídos automaticamente: ${assetsMap.size}`);
     return Array.from(assetsMap.values());
 };
 
@@ -44,13 +46,13 @@ const deleteAllRecords = async () => {
     const ids = rcas.map(r => r.id);
     if (ids.length === 0) return;
 
-    console.log(`API: Limpando ${ids.length} análises via exclusão em massa...`);
+    logger.info(`API: Limpando ${ids.length} análises via exclusão em massa...`);
     const response = await fetch(`${API_BASE}/rcas/bulk-delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids })
     });
-    await checkResponse(response, 'POST /rcas/bulk-delete');
+    await checkResponse<void>(response, 'POST /rcas/bulk-delete');
 };
 
 const deleteAllActions = async () => {
@@ -58,13 +60,13 @@ const deleteAllActions = async () => {
     const ids = acts.map(a => a.id);
     if (ids.length === 0) return;
 
-    console.log(`API: Limpando ${ids.length} ações via exclusão em massa...`);
+    logger.info(`API: Limpando ${ids.length} ações via exclusão em massa...`);
     const response = await fetch(`${API_BASE}/actions/bulk-delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids })
     });
-    await checkResponse(response, 'POST /actions/bulk-delete');
+    await checkResponse<void>(response, 'POST /actions/bulk-delete');
 };
 
 const deleteAllTriggers = async () => {
@@ -72,28 +74,28 @@ const deleteAllTriggers = async () => {
     const ids = trigs.map(t => t.id);
     if (ids.length === 0) return;
 
-    console.log(`API: Limpando ${ids.length} gatilhos via exclusão em massa...`);
+    logger.info(`API: Limpando ${ids.length} gatilhos via exclusão em massa...`);
     const response = await fetch(`${API_BASE}/triggers/bulk-delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids })
     });
-    await checkResponse(response, 'POST /triggers/bulk-delete');
+    await checkResponse<void>(response, 'POST /triggers/bulk-delete');
 };
 
 /**
  * Executa a orquestração de importação total de dados para o servidor.
  */
-export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'REPLACE' = 'REPLACE', taxonomyFilters?: string[]): Promise<{ success: boolean, message: string }> => {
-    console.log(`API: Iniciando importação em massa [Modo: ${mode}]...`, {
-        análises: data.records?.length || 0,
+export const importDataToApi = async (data: Partial<{ records: RcaRecord[], results: RcaRecord[], assets: AssetNode[], taxonomy: TaxonomyConfig, actions: ActionRecord[], triggers: TriggerRecord[] }>, mode: 'APPEND' | 'UPDATE' | 'REPLACE' = 'REPLACE', taxonomyFilters?: string[]): Promise<{ success: boolean, message: string }> => {
+    logger.info(`API: Iniciando importação em massa [Modo: ${mode}]...`, {
+        análises: data.records?.length || data.results?.length || 0,
         filtros: taxonomyFilters
     });
 
     try {
         // 0. FASE DE LIMPEZA (Modo Substituição)
         if (mode === 'REPLACE') {
-            console.log('API: MODO SUBSTITUIÇÃO - Eliminando dados existentes...');
+            logger.info('API: MODO SUBSTITUIÇÃO - Eliminando dados existentes...');
             await Promise.all([deleteAllActions(), deleteAllTriggers()]);
             await deleteAllRecords();
         }
@@ -104,14 +106,14 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
         if (!assetsToImport || assetsToImport.length === 0) {
             const rcas = data.records || data.results || [];
             if (rcas.length > 0) {
-                console.log('API: JSON sem ativos explícitos. Tentando extração a partir das análises...');
+                logger.info('API: JSON sem ativos explícitos. Tentando extração a partir das análises...');
                 assetsToImport = extractAssetsFromRecords(rcas);
             }
         }
 
         if (assetsToImport && assetsToImport.length > 0) {
             await importAssetsToApi(assetsToImport);
-            console.log('API: Ativos processados:', assetsToImport.length);
+            logger.info('API: Ativos processados:', assetsToImport.length);
         }
 
         // 2. GESTÃO DE TAXONOMIA
@@ -149,15 +151,15 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
         const idMap = new Map<string, string>();
 
         if (mode === 'APPEND') {
-            console.log('API: MODO ANEXAR - Gerando novos IDs (ignorando originais para evitar update)...');
+            logger.info('API: MODO ANEXAR - Gerando novos IDs (ignorando originais para evitar update)...');
             // No modo APPEND, forçamos a geração de novos IDs para tudo, garantindo inserção como novos registros
-            rcasToImportRaw.forEach((r: any) => {
+            rcasToImportRaw.forEach((r: RcaRecord) => {
                 if (r.id) idMap.set(r.id, generateId('RCA'));
             });
-            actionsToImportRaw.forEach((a: any) => {
+            actionsToImportRaw.forEach((a: ActionRecord) => {
                 if (a.id) idMap.set(a.id, generateId('ACT'));
             });
-            triggersToImportRaw.forEach((t: any) => {
+            triggersToImportRaw.forEach((t: TriggerRecord) => {
                 if (t.id) idMap.set(t.id, generateId('TRG'));
             });
         }
@@ -173,17 +175,17 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
             return idMap.get(refId) || refId;
         };
 
-        const rcaActionsMap = new Map<string, any[]>();
-        actionsToImportRaw.forEach((a: any) => {
+        const rcaActionsMap = new Map<string, ActionRecord[]>();
+        actionsToImportRaw.forEach((a: ActionRecord) => {
             if (a.rca_id) {
                 const targetRcaId = resolveRef(a.rca_id);
                 const list = rcaActionsMap.get(targetRcaId) || [];
-                list.push({ ...a, status: String(a.status) });
+                list.push({ ...a, status: String(a.status) as any });
                 rcaActionsMap.set(targetRcaId, list);
             }
         });
 
-        const normalizedRcas = rcasToImportRaw.map((rec: any) => {
+        const normalizedRcas = rcasToImportRaw.map((rec: RcaRecord) => {
             const newRec = { ...rec };
             newRec.id = resolveId(rec.id, 'RCA');
 
@@ -195,7 +197,7 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
             ];
             const stringsOk = mandatoryStrings.every(s => s && String(s).trim().length > 0);
 
-            const checkArrayImport = (val: any) => {
+            const checkArrayImport = (val: unknown) => {
                 if (Array.isArray(val)) return val.length > 0;
                 if (typeof val === 'string' && val.trim().length > 0) {
                     try { const parsed = JSON.parse(val); return Array.isArray(parsed) && parsed.length > 0; } catch { return false; }
@@ -231,7 +233,7 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
             if (newRec.analysis_type) newRec.analysis_type = ensureTaxonomy('analysisTypes', newRec.analysis_type) || newRec.analysis_type;
 
             if (newRec.root_causes && Array.isArray(newRec.root_causes)) {
-                newRec.root_causes.forEach((rc: any) => {
+                newRec.root_causes.forEach((rc) => {
                     if (rc.root_cause_m_id) {
                         rc.root_cause_m_id = ensureTaxonomy('rootCauseMs', rc.root_cause_m_id) || rc.root_cause_m_id;
                     }
@@ -242,33 +244,33 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
         });
 
         await saveTaxonomyToApi(taxonomyToSave);
-        console.log('API: Taxonomia atualizada.');
+        logger.info('API: Taxonomia atualizada.');
 
         // 3. EXECUÇÃO DA PERSISTÊNCIA (Lote Consolidado)
-        const preparedActions = actionsToImportRaw.map((a: any) => ({
+        const preparedActions = actionsToImportRaw.map((a: ActionRecord) => ({
             ...a,
             id: resolveId(a.id, 'ACT'),
             rca_id: resolveRef(a.rca_id)
         }));
 
         if (normalizedRcas.length > 0) {
-            console.log('API: Importando lote de análises com contexto...');
+            logger.info('API: Importando lote de análises com contexto...');
             const response = await fetch(`${API_BASE}/rcas/bulk`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ records: normalizedRcas, actions: preparedActions })
             });
-            await checkResponse(response, 'POST /rcas/bulk');
+            await checkResponse<void>(response, 'POST /rcas/bulk');
         }
 
         if (preparedActions.length > 0) {
-            console.log('API: Persistindo lote de planos de ação...');
+            logger.info('API: Persistindo lote de planos de ação...');
             const response = await fetch(`${API_BASE}/actions/bulk`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(preparedActions)
             });
-            await checkResponse(response, 'POST /actions/bulk');
+            await checkResponse<void>(response, 'POST /actions/bulk');
         }
 
         return {
@@ -276,7 +278,7 @@ export const importDataToApi = async (data: any, mode: 'APPEND' | 'UPDATE' | 'RE
             message: `Importação (${mode}) concluída com sucesso.`
         };
     } catch (error) {
-        console.error('API Error: Falha crítica na importação:', error);
+        logger.error('API Error: Falha crítica na importação:', error);
         return { success: false, message: `Falha na importação: ${error}` };
     }
 };

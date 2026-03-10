@@ -6,23 +6,24 @@
 
 import { TaxonomyConfig } from "../../types";
 import { API_BASE, checkResponse } from "./base";
+import { logger } from "../../utils/logger";
 
 // --- TAXONOMIA E CONFIGURAÇÕES ---
 
 export const fetchTaxonomy = async (): Promise<TaxonomyConfig> => {
-    console.log('API: Buscando taxonomia e configurações...');
+    logger.info('API: Buscando taxonomia e configurações...');
     const response = await fetch(`${API_BASE}/taxonomy`);
-    return checkResponse(response, 'GET /taxonomy');
+    return checkResponse<TaxonomyConfig>(response, 'GET /taxonomy');
 };
 
 export const saveTaxonomyToApi = async (taxonomy: TaxonomyConfig): Promise<void> => {
-    console.log('API: Salvando novas configurações de taxonomia...');
+    logger.info('API: Salvando novas configurações de taxonomia...');
     const response = await fetch(`${API_BASE}/taxonomy`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(taxonomy)
     });
-    await checkResponse(response, 'PUT /taxonomy');
+    await checkResponse<void>(response, 'PUT /taxonomy');
 };
 
 export const importTaxonomyToApi = async (taxonomy: TaxonomyConfig): Promise<void> => {

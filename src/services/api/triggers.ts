@@ -6,17 +6,18 @@
 
 import { TriggerRecord } from "../../types";
 import { API_BASE, checkResponse } from "./base";
+import { logger } from "../../utils/logger";
 
 // --- GATILHOS (TRIGGERS) ---
 
 export const fetchTriggers = async (): Promise<TriggerRecord[]> => {
-    console.log('API: Buscando lista de gatilhos...');
+    logger.info('API: Buscando lista de gatilhos...');
     const response = await fetch(`${API_BASE}/triggers`);
-    return checkResponse(response, 'GET /triggers');
+    return checkResponse<TriggerRecord[]>(response, 'GET /triggers');
 };
 
 export const saveTriggerToApi = async (trigger: TriggerRecord, isUpdate?: boolean): Promise<void> => {
-    console.log('API: Persistindo gatilho:', trigger.id);
+    logger.info('API: Persistindo gatilho:', trigger.id);
 
     if (isUpdate === true) {
         const response = await fetch(`${API_BASE}/triggers/${trigger.id}`, {
@@ -24,7 +25,7 @@ export const saveTriggerToApi = async (trigger: TriggerRecord, isUpdate?: boolea
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(trigger)
         });
-        await checkResponse(response, `PUT /triggers/${trigger.id}`);
+        await checkResponse<void>(response, `PUT /triggers/${trigger.id}`);
         return;
     }
 
@@ -34,7 +35,7 @@ export const saveTriggerToApi = async (trigger: TriggerRecord, isUpdate?: boolea
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(trigger)
         });
-        await checkResponse(response, 'POST /triggers');
+        await checkResponse<void>(response, 'POST /triggers');
         return;
     }
 
@@ -43,17 +44,17 @@ export const saveTriggerToApi = async (trigger: TriggerRecord, isUpdate?: boolea
         try {
             const checkRes = await fetch(`${API_BASE}/triggers/${trigger.id}`);
             if (checkRes.ok) {
-                console.log('API: Registro existente encontrado. Atualizando (PUT)...');
+                logger.info('API: Registro existente encontrado. Atualizando (PUT)...');
                 const updateResponse = await fetch(`${API_BASE}/triggers/${trigger.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(trigger)
                 });
-                await checkResponse(updateResponse, `PUT /triggers/${trigger.id}`);
+                await checkResponse<void>(updateResponse, `PUT /triggers/${trigger.id}`);
                 return;
             }
         } catch (e) {
-            console.warn('API: Falha ao verificar existência do gatilho, tentando POST...');
+            logger.warn('API: Falha ao verificar existência do gatilho, tentando POST...');
         }
     }
 
@@ -63,22 +64,22 @@ export const saveTriggerToApi = async (trigger: TriggerRecord, isUpdate?: boolea
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(trigger)
     });
-    await checkResponse(response, 'POST /triggers');
+    await checkResponse<void>(response, 'POST /triggers');
 };
 
 export const deleteTriggerFromApi = async (id: string): Promise<void> => {
-    console.log('API: Excluindo gatilho:', id);
+    logger.info('API: Excluindo gatilho:', id);
     const response = await fetch(`${API_BASE}/triggers/${id}`, { method: 'DELETE' });
-    await checkResponse(response, `DELETE /triggers/${id}`);
+    await checkResponse<void>(response, `DELETE /triggers/${id}`);
 };
 
 export const importTriggersToApi = async (triggers: TriggerRecord[]): Promise<void> => {
-    console.log('API: Importando lote de gatilhos...', triggers.length);
+    logger.info('API: Importando lote de gatilhos...', triggers.length);
     const response = await fetch(`${API_BASE}/triggers/bulk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(triggers)
     });
-    await checkResponse(response, 'POST /triggers/bulk');
+    await checkResponse<void>(response, 'POST /triggers/bulk');
 };
 
