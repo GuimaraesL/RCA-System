@@ -65,6 +65,7 @@ export interface TranslationSchema {
         uploadLimits: string;
         uploadLimitsDesc: string;
         suggestedFormats: string;
+        skipToContent: string;
     };
     filters: {
         title: string;
@@ -117,6 +118,9 @@ export interface TranslationSchema {
         shortcutsTooltip: string;
         menu: string;
         system: string;
+        expand: string;
+        collapse: string;
+        mainNavigation: string;
     };
     dashboard: {
         title: string;
@@ -129,6 +133,7 @@ export interface TranslationSchema {
         allAnalyses: string;
         exportCsv: string;
         import: string;
+        kpis: string;
         kpi: {
             durationMin: string;
             durationHours: string;
@@ -137,6 +142,7 @@ export interface TranslationSchema {
             filteredRecords: string;
         };
         charts: {
+            title: string;
             totalByStatus: string;
             totalByType: string;
             topEquipments: string;
@@ -663,6 +669,7 @@ export interface TranslationSchema {
             typeReason: string;
             rcaLink: string;
             actions: string;
+            selectAll: string;
         };
         tooltips: {
             openRca: string;

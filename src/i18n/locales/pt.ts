@@ -61,7 +61,8 @@ export const pt: TranslationSchema = {
         sending: "Enviando...",
         uploadLimits: "Limites de Upload:",
         uploadLimitsDesc: "Imagens (5MB), Vídeos (50MB), Documentos (10MB).",
-        suggestedFormats: "Formatos sugeridos: JPG, PNG, MP4, PDF."
+        suggestedFormats: "Formatos sugeridos: JPG, PNG, MP4, PDF.",
+        skipToContent: "Pular para o conteúdo"
     },
     filters: {
         title: "Filtros",
@@ -113,7 +114,10 @@ export const pt: TranslationSchema = {
         shortcuts: "Atalhos",
         shortcutsTooltip: "Atalhos de Teclado",
         menu: "Navegação",
-        system: "Sistema"
+        system: "Sistema",
+        expand: "Expandir",
+        collapse: "Recolher",
+        mainNavigation: "Navegação Principal"
     },
     dashboard: {
         title: "Painel de Controle",
@@ -126,6 +130,7 @@ export const pt: TranslationSchema = {
         allAnalyses: "Todas as Análises",
         exportCsv: "Exportar CSV",
         import: "Importar / Migrar",
+        kpis: "Indicadores Chave (KPIs)",
         kpi: {
             durationMin: "Duração (Min)",
             durationHours: "Duração (Horas)",
@@ -134,6 +139,7 @@ export const pt: TranslationSchema = {
             filteredRecords: "Registros filtrados"
         },
         charts: {
+            title: "Análise Gráfica",
             totalByStatus: "Total por Status",
             totalByType: "Total por Tipo de Análise",
             topEquipments: "Top Equipamentos (Pareto)",
@@ -673,7 +679,8 @@ export const pt: TranslationSchema = {
             status: "Farol",
             typeReason: "Tipo / Razão",
             rcaLink: "RCA Link",
-            actions: "Ações"
+            actions: "Ações",
+            selectAll: "Selecionar Todos"
         },
         tooltips: {
             openRca: "Clique para abrir a RCA",

@@ -61,7 +61,8 @@ export const en: TranslationSchema = {
         sending: "Sending...",
         uploadLimits: "Upload Limits:",
         uploadLimitsDesc: "Images (5MB), Videos (50MB), Documents (10MB).",
-        suggestedFormats: "Suggested formats: JPG, PNG, MP4, PDF."
+        suggestedFormats: "Suggested formats: JPG, PNG, MP4, PDF.",
+        skipToContent: "Skip to content"
     },
     filters: {
         title: "Filters",
@@ -113,7 +114,10 @@ export const en: TranslationSchema = {
         shortcuts: "Shortcuts",
         shortcutsTooltip: "Keyboard Shortcuts",
         menu: "Navigation",
-        system: "System"
+        system: "System",
+        expand: "Expand",
+        collapse: "Collapse",
+        mainNavigation: "Main Navigation"
     },
     dashboard: {
         title: "Dashboard",
@@ -126,6 +130,7 @@ export const en: TranslationSchema = {
         allAnalyses: "All Analyses",
         exportCsv: "Export CSV",
         import: "Import / Migrate",
+        kpis: "Key Performance Indicators (KPIs)",
         kpi: {
             durationMin: "Duration (Min)",
             durationHours: "Duration (Hours)",
@@ -134,6 +139,7 @@ export const en: TranslationSchema = {
             filteredRecords: "Filtered records"
         },
         charts: {
+            title: "Graphical Analysis",
             totalByStatus: "Total by Status",
             totalByType: "Total by Analysis Type",
             topEquipments: "Top Equipment (Pareto)",
@@ -678,7 +684,8 @@ export const en: TranslationSchema = {
             status: "Status",
             typeReason: "Type / Reason",
             rcaLink: "RCA Link",
-            actions: "Actions"
+            actions: "Actions",
+            selectAll: "Select All"
         },
         tooltips: {
             openRca: "Click to open RCA",
