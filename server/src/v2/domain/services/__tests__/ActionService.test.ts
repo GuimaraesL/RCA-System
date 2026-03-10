@@ -4,7 +4,7 @@ import { SqlActionRepository } from '../../../infrastructure/repositories/SqlAct
 import { SqlRcaRepository } from '../../../infrastructure/repositories/SqlRcaRepository';
 import { SqlTaxonomyRepository } from '../../../infrastructure/repositories/SqlTaxonomyRepository';
 import { SqlTriggerRepository } from '../../../infrastructure/repositories/SqlTriggerRepository';
-import { Action } from '../../types/RcaTypes';
+import { Action, Trigger, TaxonomyConfig } from '../../types/RcaTypes';
 
 // Mocks
 vi.mock('../../../infrastructure/repositories/SqlActionRepository');
@@ -23,16 +23,17 @@ describe('Domain Service: ActionService', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         
-        // Criar instâncias mockadas usando o utilitário do Vitest
-        actionRepo = vi.mocked(new SqlActionRepository(null as any));
-        rcaRepo = vi.mocked(new SqlRcaRepository(null as any));
-        taxonomyRepo = vi.mocked(new SqlTaxonomyRepository(null as any));
-        triggerRepo = vi.mocked(new SqlTriggerRepository(null as any));
+        // Criar instâncias mockadas corrigindo o erro de argumentos no construtor mockado
+        // Repositórios SQL no backend não recebem argumentos no construtor
+        actionRepo = new SqlActionRepository() as Mocked<SqlActionRepository>;
+        rcaRepo = new SqlRcaRepository() as Mocked<SqlRcaRepository>;
+        taxonomyRepo = new SqlTaxonomyRepository() as Mocked<SqlTaxonomyRepository>;
+        triggerRepo = new SqlTriggerRepository() as Mocked<SqlTriggerRepository>;
 
         // Configurar retornos padrão para evitar TypeError nas chamadas internas do RcaService
         actionRepo.findByRcaId.mockReturnValue([]);
         rcaRepo.findById.mockReturnValue(null);
-        triggerRepo.findByRcaId.mockReturnValue([]);
+        triggerRepo.findByRcaId.mockReturnValue(null);
 
         actionService = new ActionService(actionRepo, rcaRepo, taxonomyRepo);
         
@@ -41,7 +42,7 @@ describe('Domain Service: ActionService', () => {
         (actionService as any).rcaService.actionRepo = actionRepo;
         (actionService as any).rcaService.triggerRepo = triggerRepo;
         
-        taxonomyRepo.getTaxonomy.mockReturnValue({
+        const mockTaxonomy: TaxonomyConfig = {
             analysisStatuses: [],
             analysisTypes: [],
             specialties: [],
@@ -49,8 +50,14 @@ describe('Domain Service: ActionService', () => {
             failureCategories: [],
             componentTypes: [],
             rootCauseMs: [],
-            triggerStatuses: []
-        });
+            triggerStatuses: [],
+            mandatoryFields: {
+                trigger: { save: [] },
+                rca: { create: [], conclude: [] }
+            }
+        };
+
+        taxonomyRepo.getTaxonomy.mockReturnValue(mockTaxonomy);
     });
 
     describe('CRUD Operations', () => {
