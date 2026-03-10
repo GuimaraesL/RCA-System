@@ -27,10 +27,8 @@ jobs:
     - name: Instalar Dependências (Backend)
       run: cd server && npm install
 
-    - name: Verificação de Tipos (TypeScript)
-      run: |
-        npx tsc --noEmit
-        cd server && npx tsc --noEmit
+    - name: Verificação de Tipos e Linting (TypeScript)
+      run: npm run lint
 
     - name: Executar Auditoria de Internacionalização (i18n)
       run: npx vitest run src/services/__tests__/i18n-audit.test.ts
@@ -53,24 +51,36 @@ jobs:
         pip install -r requirements.txt
         pip install pytest pytest-asyncio httpx
 
-    - name: Executar Testes de Lógica (Pytest - AI Service)
-      if: env.GOOGLE_API_KEY != ''
+    - name: Executar Testes de Lógica (AI Service)
       run: |
-        cd ai_service
-        pytest tests/
+        if [ -z "$GOOGLE_API_KEY" ]; then
+          echo "GOOGLE_API_KEY não detectada. Pulando testes do AI Service para evitar falhas de conexão."
+        else
+          cd ai_service
+          pytest tests/
+        fi
       env:
-        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-        INTERNAL_AUTH_KEY: ${{ secrets.INTERNAL_AUTH_KEY }}
+        GOOGLE_API_KEY: "${{ secrets.GOOGLE_API_KEY }}"
+        INTERNAL_AUTH_KEY: "${{ secrets.INTERNAL_AUTH_KEY }}"
         BACKEND_URL: http://localhost:3001/api
-
-    - name: Pular Testes de IA (Chave não configurada)
-      if: env.GOOGLE_API_KEY == ''
-      run: echo "GOOGLE_API_KEY não detectada. Pulando testes do AI Service para evitar falhas de conexão."
-      env:
-        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
 
     - name: Build da Aplicação
       run: npm run build
+
+    - name: Auditoria Lighthouse (Performance & SEO)
+      run: |
+        npm install -g lighthouse
+        npm run preview -- --port 4173 &
+        sleep 5
+        npm run audit
+
+    - name: Salvar Relatório Lighthouse
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: lighthouse-report
+        path: ./lighthouse-report.*
+        retention-days: 14
 
     - name: Instalar Navegadores Playwright
       run: npx playwright install --with-deps
