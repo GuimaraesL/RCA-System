@@ -136,18 +136,18 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
     const hasActiveFilters = selectedAsset || selectedYear || selectedMonth || selectedStatus !== 'ALL' || selectedType !== 'ALL' || searchTerm !== '';
 
     return (
-        <div className="flex flex-col md:flex-row h-[850px] w-full max-w-7xl bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-200/60 animate-in zoom-in-95 duration-500">
+        <div className="flex flex-col md:flex-row h-[850px] w-full max-w-7xl bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-200/60 dark:border-slate-800 animate-in zoom-in-95 duration-500">
 
             {/* Sidebar de Filtros Lateral (Estilo AnalysesView) */}
-            <div className="w-full md:w-80 border-r border-slate-100 bg-slate-50/50 flex flex-col p-8 gap-8 overflow-y-auto custom-scrollbar">
+            <div className="w-full md:w-80 border-r border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col p-8 gap-8 overflow-y-auto custom-scrollbar">
                 <div className="flex items-center gap-3 mb-2">
                     <div className="p-2 bg-primary-600 text-white rounded-xl shadow-lg shadow-primary-600/20"><Filter size={18} strokeWidth={3} /></div>
-                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">{t('filters.title') || 'Filtros'}</h3>
+                    <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">{t('filters.title') || 'Filtros'}</h3>
                 </div>
 
                 {/* Localização Técnica */}
                 <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('filters.sections.location')}</h4>
+                    <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{t('filters.sections.location')}</h4>
                     <AssetSelector
                         assets={filteredAssets}
                         onSelect={setSelectedAsset}
@@ -155,17 +155,17 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                         selectableTypes={['SUBGROUP']}
                     />
                     {selectedAsset && (
-                        <div className="p-3 bg-white rounded-2xl border border-primary-100 shadow-sm flex items-center justify-between animate-in slide-in-from-left-2">
+                        <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl border border-primary-100 dark:border-primary-900/30 shadow-sm flex items-center justify-between animate-in slide-in-from-left-2">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-primary-600 shadow-sm shadow-primary-600/40"></div>
                                 <span
-                                    className="text-[11px] font-black text-primary-700 truncate max-w-[180px] uppercase tracking-tight"
+                                    className="text-[11px] font-black text-primary-700 dark:text-primary-400 truncate max-w-[180px] uppercase tracking-tight"
                                     title={selectedAsset.name}
                                 >
                                     {selectedAsset.name}
                                 </span>
                             </div>
-                            <button onClick={() => setSelectedAsset(null)} className="p-1 hover:bg-rose-50 text-slate-300 hover:text-rose-500 rounded-lg transition-all">
+                            <button onClick={() => setSelectedAsset(null)} className="p-1 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-slate-300 dark:text-slate-600 hover:text-rose-500 rounded-lg transition-all">
                                 <X size={14} strokeWidth={3} />
                             </button>
                         </div>
@@ -174,12 +174,12 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
 
                 {/* Classificação */}
                 <div className="space-y-6">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('filters.sections.classification')}</h4>
+                    <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{t('filters.sections.classification')}</h4>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">{t('filters.status')}</label>
+                        <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1">{t('filters.status')}</label>
                         <select
-                            className="w-full text-xs font-bold border border-slate-200 rounded-xl px-4 py-3 bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all cursor-pointer"
+                            className="w-full text-xs font-bold border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all cursor-pointer"
                             value={selectedStatus}
                             onChange={(e) => setSelectedStatus(e.target.value)}
                         >
@@ -193,9 +193,9 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">{t('filters.analysisType')}</label>
+                        <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest px-1">{t('filters.analysisType')}</label>
                         <select
-                            className="w-full text-xs font-bold border border-slate-200 rounded-xl px-4 py-3 bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all cursor-pointer"
+                            className="w-full text-xs font-bold border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all cursor-pointer"
                             value={selectedType}
                             onChange={(e) => setSelectedType(e.target.value)}
                         >
@@ -211,10 +211,10 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
 
                 {/* Filtros Temporais */}
                 <div className="space-y-6">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('filters.year')}</h4>
+                    <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{t('filters.year')}</h4>
                     <div className="grid grid-cols-2 gap-3">
                         <select
-                            className="w-full text-xs font-bold border border-slate-200 rounded-xl px-4 py-3 bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all cursor-pointer"
+                            className="w-full text-xs font-bold border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all cursor-pointer"
                             value={selectedYear}
                             onChange={(e) => setSelectedYear(e.target.value)}
                         >
@@ -226,7 +226,7 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                             })}
                         </select>
                         <select
-                            className="w-full text-xs font-bold border border-slate-200 rounded-xl px-4 py-3 bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all cursor-pointer"
+                            className="w-full text-xs font-bold border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all cursor-pointer"
                             value={selectedMonth}
                             onChange={(e) => setSelectedMonth(e.target.value)}
                         >
@@ -243,7 +243,7 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                 {hasActiveFilters && (
                     <button
                         onClick={clearFilters}
-                        className="mt-4 w-full flex items-center justify-center gap-2 py-4 bg-rose-50 text-rose-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-rose-100 transition-all active:scale-95 border border-rose-100 shadow-sm"
+                        className="mt-4 w-full flex items-center justify-center gap-2 py-4 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-all active:scale-95 border border-rose-100 dark:border-rose-900/30 shadow-sm"
                     >
                         <X size={14} strokeWidth={3} />
                         {t('filters.clear')}
@@ -252,20 +252,20 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
             </div>
 
             {/* Conteúdo Principal (Busca e Lista de Cards) */}
-            <div className="flex-1 flex flex-col bg-white overflow-hidden">
+            <div className="flex-1 flex flex-col bg-white dark:bg-slate-900 overflow-hidden">
                 {/* Header de Busca */}
-                <div className="p-10 border-b border-slate-100 space-y-8 bg-white sticky top-0 z-10 shadow-sm shadow-slate-100/50">
+                <div className="p-10 border-b border-slate-100 dark:border-slate-800 space-y-8 bg-white dark:bg-slate-900 sticky top-0 z-10 shadow-sm shadow-slate-100/50 dark:shadow-none">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-5">
-                            <div className="p-3 bg-primary-50 text-primary-600 rounded-[1.25rem] shadow-inner border border-primary-100/50"><FileText size={28} /></div>
+                            <div className="p-3 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-[1.25rem] shadow-inner border border-primary-100/50 dark:border-primary-900/30"><FileText size={28} /></div>
                             <div>
-                                <h3 className="text-2xl font-black text-slate-900 font-display tracking-tight uppercase italic leading-none">{t('rcaSelector.title') || 'Vincular Análise'}</h3>
-                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-2">{t('rcaSelector.description') || 'Selecione uma análise para vincular a este evento'}</p>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white font-display tracking-tight uppercase italic leading-none">{t('rcaSelector.title') || 'Vincular Análise'}</h3>
+                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em] mt-2">{t('rcaSelector.description') || 'Selecione uma análise para vincular a este evento'}</p>
                             </div>
                         </div>
-                        <div className="text-right bg-slate-50 px-6 py-3 rounded-2xl border border-slate-100 shadow-inner">
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">{t('pagination.results') || 'Encontradas'}</span>
-                            <strong className="text-3xl font-black text-primary-600 tracking-tighter tabular-nums leading-none">{filteredRecords.length}</strong>
+                        <div className="text-right bg-slate-50 dark:bg-slate-800 px-6 py-3 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-inner">
+                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">{t('pagination.results') || 'Encontradas'}</span>
+                            <strong className="text-3xl font-black text-primary-600 dark:text-primary-400 tracking-tighter tabular-nums leading-none">{filteredRecords.length}</strong>
                         </div>
                     </div>
 
@@ -275,7 +275,7 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                             id={`${idPrefix}-search`}
                             type="text"
                             placeholder={t('rcaSelector.searchPlaceholder')}
-                            className="w-full pl-14 pr-6 py-4.5 bg-slate-50 border-2 border-slate-100 rounded-[1.5rem] focus:ring-8 focus:ring-primary-500/5 focus:border-primary-500 focus:bg-white outline-none text-base font-bold shadow-inner transition-all placeholder-slate-400"
+                            className="w-full pl-14 pr-6 py-4.5 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-[1.5rem] focus:ring-8 focus:ring-primary-500/5 focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 outline-none text-base font-bold shadow-inner transition-all placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             autoFocus
@@ -283,7 +283,7 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                         {searchTerm && (
                             <button
                                 onClick={() => setSearchTerm('')}
-                                className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 bg-slate-200 text-slate-500 rounded-full hover:bg-slate-300 transition-colors"
+                                className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-full hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
                             >
                                 <X size={14} strokeWidth={3} />
                             </button>
@@ -292,10 +292,10 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                 </div>
 
                 {/* Lista de Cards com Scroll */}
-                <div className="flex-1 overflow-y-auto p-10 space-y-5 bg-slate-50/30 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-10 space-y-5 bg-slate-50/30 dark:bg-slate-900/30 custom-scrollbar">
                     {paginatedRecords.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-slate-300">
-                            <div className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center mb-8 shadow-sm border border-slate-100">
+                        <div className="flex flex-col items-center justify-center h-full text-slate-300 dark:text-slate-700">
+                            <div className="w-24 h-24 bg-white dark:bg-slate-800 rounded-[2rem] flex items-center justify-center mb-8 shadow-sm border border-slate-100 dark:border-slate-700">
                                 <Database size={48} className="opacity-10" />
                             </div>
                             <p className="font-black text-[11px] uppercase tracking-[0.3em]">{t('rcaSelector.noResults')}</p>
@@ -309,32 +309,32 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                                 <div
                                     key={rca.id}
                                     onClick={() => onSelect(rca.id)}
-                                    className="bg-white p-8 rounded-[2.25rem] border border-slate-200/60 shadow-sm hover:border-primary-400 hover:shadow-2xl hover:shadow-primary-500/10 cursor-pointer transition-all group animate-in fade-in slide-in-from-bottom-2 duration-500"
+                                    className="bg-white dark:bg-slate-800 p-8 rounded-[2.25rem] border border-slate-200/60 dark:border-slate-700 shadow-sm hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-2xl hover:shadow-primary-500/10 cursor-pointer transition-all group animate-in fade-in slide-in-from-bottom-2 duration-500"
                                 >
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-4">
                                             <StatusBadge statusId={rca.status} label={translateStatus(rca.status, statusName, t)} size="sm" />
                                             <div className="flex items-center gap-2">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
-                                                <span className="font-mono text-[11px] font-black text-slate-400 group-hover:text-primary-500 transition-colors uppercase tracking-widest">#RCA-{rca.id.substring(0, 8)}</span>
+                                                <div className="w-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                                                <span className="font-mono text-[11px] font-black text-slate-400 dark:text-slate-500 group-hover:text-primary-500 transition-colors uppercase tracking-widest">#RCA-{rca.id.substring(0, 8)}</span>
                                             </div>
                                         </div>
-                                        <div className="flex items-center text-[10px] text-slate-400 font-black uppercase tracking-widest gap-2.5 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 shadow-inner">
-                                            <Calendar size={14} className="text-slate-300" strokeWidth={3} />
+                                        <div className="flex items-center text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest gap-2.5 bg-slate-50 dark:bg-slate-900/50 px-4 py-2 rounded-xl border border-slate-100 dark:border-slate-800 shadow-inner">
+                                            <Calendar size={14} className="text-slate-300 dark:text-slate-600" strokeWidth={3} />
                                             {formatDate(rca.failure_date || rca.analysis_date)}
                                         </div>
                                     </div>
 
-                                    <div className="text-lg font-black text-slate-800 line-clamp-2 group-hover:text-primary-700 transition-colors tracking-tight leading-tight">
-                                        {rca.what || <span className="italic text-slate-300 font-bold opacity-50">{t('common.noDescription')}</span>}
+                                    <div className="text-lg font-black text-slate-800 dark:text-slate-100 line-clamp-2 group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors tracking-tight leading-tight">
+                                        {rca.what || <span className="italic text-slate-300 dark:text-slate-700 font-bold opacity-50">{t('common.noDescription')}</span>}
                                     </div>
 
-                                    <div className="flex flex-wrap items-center justify-between mt-6 pt-6 border-t border-slate-50 gap-4">
+                                    <div className="flex flex-wrap items-center justify-between mt-6 pt-6 border-t border-slate-50 dark:border-slate-700/50 gap-4">
                                         <div className="flex flex-wrap items-center gap-6">
                                             <div className="flex items-center gap-2">
-                                                <div className="p-1.5 bg-slate-100 rounded-lg text-slate-400 group-hover:bg-primary-50 group-hover:text-primary-500 transition-colors"><Database size={14} /></div>
+                                                <div className="p-1.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-400 dark:text-slate-500 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/30 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors"><Database size={14} /></div>
                                                 <div
-                                                    className="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate max-w-[200px]"
+                                                    className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest truncate max-w-[200px]"
                                                     title={rca.asset_name_display || ''}
                                                 >
                                                     {rca.asset_name_display || '-'}
@@ -342,20 +342,20 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                                             </div>
                                             {rca.os_number && (
                                                 <div className="flex items-center gap-2">
-                                                    <div className="p-1.5 bg-slate-100 rounded-lg text-slate-400 group-hover:bg-cyan-50 group-hover:text-cyan-600 transition-colors"><Layers size={14} /></div>
-                                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                                        OS: <span className="text-slate-600">{rca.os_number}</span>
+                                                    <div className="p-1.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-400 dark:text-slate-500 group-hover:bg-cyan-50 dark:group-hover:bg-cyan-900/30 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors"><Layers size={14} /></div>
+                                                    <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                                                        OS: <span className="text-slate-600 dark:text-slate-300">{rca.os_number}</span>
                                                     </div>
                                                 </div>
                                             )}
                                             <div className="flex items-center gap-2">
-                                                <div className="p-1.5 bg-slate-100 rounded-lg text-slate-400 group-hover:bg-amber-50 group-hover:text-amber-600 transition-colors"><Activity size={14} /></div>
-                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                <div className="p-1.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-400 dark:text-slate-500 group-hover:bg-amber-50 dark:group-hover:bg-amber-900/30 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors"><Activity size={14} /></div>
+                                                <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                                                     {rca.analysis_type ? (taxonomy.analysisTypes.find(at => at.id === rca.analysis_type)?.name || rca.analysis_type) : '-'}
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2 text-primary-600 font-black text-[10px] uppercase tracking-[0.2em] bg-primary-50/50 px-4 py-2 rounded-xl group-hover:bg-primary-600 group-hover:text-white transition-all shadow-sm group-hover:shadow-primary-600/20 group-hover:scale-105 active:scale-95">
+                                        <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400 font-black text-[10px] uppercase tracking-[0.2em] bg-primary-50/50 dark:bg-primary-900/20 px-4 py-2 rounded-xl group-hover:bg-primary-600 dark:group-hover:bg-primary-500 group-hover:text-white dark:group-hover:text-white transition-all shadow-sm group-hover:shadow-primary-600/20 group-hover:scale-105 active:scale-95">
                                             {t('rcaSelector.vincular')} <ChevronRight size={14} strokeWidth={4} />
                                         </div>
                                     </div>
@@ -366,11 +366,11 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
                 </div>
 
                 {/* Rodapé de Paginação e Cancelamento */}
-                <div className="px-10 py-8 border-t border-slate-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="px-10 py-8 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={onCancel}
-                            className="px-8 py-3.5 text-slate-400 font-black uppercase tracking-widest text-[11px] hover:bg-slate-50 hover:text-slate-600 rounded-[1.25rem] transition-all border border-transparent hover:border-slate-200"
+                            className="px-8 py-3.5 text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest text-[11px] hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-300 rounded-[1.25rem] transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
                         >
                             {t('rcaSelector.cancel')}
                         </button>
@@ -378,21 +378,21 @@ export const RcaSelector: React.FC<RcaSelectorProps> = ({ records, assets, taxon
 
                     {filteredRecords.length > itemsPerPage && (
                         <div className="flex items-center gap-6">
-                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest tabular-nums">
-                                {t('pagination.showing')} <span className="text-slate-900">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="text-slate-900">{Math.min(currentPage * itemsPerPage, filteredRecords.length)}</span> {t('pagination.of')} <span className="text-slate-900">{filteredRecords.length}</span>
+                            <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest tabular-nums">
+                                {t('pagination.showing')} <span className="text-slate-900 dark:text-slate-100">{(currentPage - 1) * itemsPerPage + 1}</span> {t('pagination.to')} <span className="text-slate-900 dark:text-slate-100">{Math.min(currentPage * itemsPerPage, filteredRecords.length)}</span> {t('pagination.of')} <span className="text-slate-900 dark:text-slate-100">{filteredRecords.length}</span>
                             </div>
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                     disabled={currentPage === 1}
-                                    className="p-3 bg-white border-2 border-slate-100 rounded-xl text-slate-400 disabled:opacity-20 disabled:cursor-not-allowed hover:border-primary-400 hover:text-primary-600 transition-all shadow-sm active:scale-90"
+                                    className="p-3 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl text-slate-400 dark:text-slate-500 disabled:opacity-20 disabled:cursor-not-allowed hover:border-primary-400 dark:hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition-all shadow-sm active:scale-90"
                                 >
                                     <ChevronRight size={18} strokeWidth={3} className="rotate-180" />
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(prev => (filteredRecords.length > prev * itemsPerPage ? prev + 1 : prev))}
                                     disabled={currentPage * itemsPerPage >= filteredRecords.length}
-                                    className="p-3 bg-white border-2 border-slate-100 rounded-xl text-slate-400 disabled:opacity-20 disabled:cursor-not-allowed hover:border-primary-400 hover:text-primary-600 transition-all shadow-sm active:scale-90"
+                                    className="p-3 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl text-slate-400 dark:text-slate-500 disabled:opacity-20 disabled:cursor-not-allowed hover:border-primary-400 dark:hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition-all shadow-sm active:scale-90"
                                 >
                                     <ChevronRight size={18} strokeWidth={3} />
                                 </button>

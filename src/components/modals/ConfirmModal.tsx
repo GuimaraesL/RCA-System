@@ -54,17 +54,17 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
     const variantColors = {
         danger: {
-            bg: 'bg-red-50',
+            bg: 'bg-red-50 dark:bg-red-950/30',
             icon: 'text-red-500',
             button: 'bg-red-600 hover:bg-red-700'
         },
         warning: {
-            bg: 'bg-yellow-50',
+            bg: 'bg-yellow-50 dark:bg-yellow-950/30',
             icon: 'text-yellow-500',
             button: 'bg-yellow-600 hover:bg-yellow-700'
         },
         info: {
-            bg: 'bg-primary-50',
+            bg: 'bg-primary-50 dark:bg-primary-900/20',
             icon: 'text-primary-500',
             button: 'bg-primary-600 hover:bg-primary-700'
         }
@@ -76,17 +76,17 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         <div className="fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
             <div
                 data-testid="modal-confirm"
-                className={`bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 animate-scale-in`}
+                className={`bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700 animate-scale-in`}
             >
                 {/* Cabeçalho */}
-                <div className={`px-8 py-6 ${colors.bg} flex items-center gap-4 border-b border-slate-100`}>
-                    <div className={`p-2.5 rounded-xl bg-white shadow-sm ${colors.icon}`}>
+                <div className={`px-8 py-6 ${colors.bg} flex items-center gap-4 border-b border-slate-100 dark:border-slate-700`}>
+                    <div className={`p-2.5 rounded-xl bg-white dark:bg-slate-800 shadow-sm ${colors.icon}`}>
                         <AlertTriangle size={24} strokeWidth={2.5} />
                     </div>
-                    <h3 className="font-black text-xl text-slate-900 font-display tracking-tight">{finalTitle}</h3>
+                    <h3 className="font-black text-xl text-slate-900 dark:text-white font-display tracking-tight">{finalTitle}</h3>
                     <button
                         onClick={onCancel}
-                        className="ml-auto p-2 text-slate-400 hover:text-slate-600 hover:bg-white/50 rounded-full transition-all"
+                        className="ml-auto p-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50 rounded-full transition-all"
                     >
                         <X size={20} />
                     </button>
@@ -94,15 +94,15 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
                 {/* Corpo da Mensagem */}
                 <div className="p-8">
-                    <p className="text-slate-600 font-medium leading-relaxed">{message}</p>
+                    <p className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed">{message}</p>
                 </div>
 
                 {/* Ações de Rodapé */}
-                <div className="px-8 py-6 bg-slate-50 flex justify-end gap-4 border-t border-slate-100">
+                <div className="px-8 py-6 bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-4 border-t border-slate-100 dark:border-slate-700">
                     <button
                         onClick={onCancel}
                         data-testid="btn-confirm-no"
-                        className="px-6 py-2.5 text-slate-500 font-bold rounded-xl hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-slate-200"
+                        className="px-6 py-2.5 text-slate-500 dark:text-slate-400 font-bold rounded-xl hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
                         title={t('common.shortcuts.esc')}
                     >
                         {finalCancelText}
