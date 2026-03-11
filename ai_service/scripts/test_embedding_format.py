@@ -2,7 +2,9 @@ import httpx
 import json
 import random
 import asyncio
+import pytest
 
+@pytest.mark.anyio
 async def test_mass_parsing(sample_size=50):
     print(f"Iniciando Teste Exaustivo de Parsing - Amostra: {sample_size} RCAs (Custo ZERO)")
     

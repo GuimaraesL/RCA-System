@@ -7,7 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from agno.os import AgentOS
 
 from core.config import KNOWLEDGE_PATH
-from core.knowledge import get_rca_history_knowledge, index_historical_rcas, get_fmea_knowledge, index_fmea_documents
+from core.knowledge import (
+    get_rca_history_knowledge, 
+    index_historical_rcas, 
+    get_fmea_knowledge, 
+    index_fmea_documents,
+    index_technical_documents
+)
 from api.routes import router as api_router
 
 @asynccontextmanager
@@ -20,7 +26,8 @@ async def lifespan(app: FastAPI):
         index_historical_rcas()
         print("[OK] Sincronização de RCAs concluída.")
         index_fmea_documents()
-        print("[OK] Sincronização de FMEAs concluída.")
+        index_technical_documents()
+        print("[OK] Sincronização de FMEAs e Documentos Técnicos concluída.")
     except Exception as e:
         print(f"[ERROR] Falha na sincronização inicial: {e}")
     # Reload trigger comment
@@ -42,10 +49,12 @@ from agents.main_agent import get_rca_agent
 # Preview dos componentes de IA para o AgentOS monitorar
 rca_agent_preview = get_rca_agent("preview_agent", rca_context="Contexto de preview para o Dashboard")
 
-# 3. Inicializar o AgentOS
+# 3. Inicializar o AgentOS (Monitoramento do Dashboard)
+# O AgentOS 2.x ainda não suporta objetos 'Team' no parâmetro 'agents'
+# Deixamos a lista vazia para o dashboard não quebrar, mas os agentes continuam funcionando nas rotas.
 agent_os = AgentOS(
     name="RCA System OS",
-    agents=[rca_agent_preview],
+    agents=[],
     knowledge=[history_kb, fmea_kb], 
     db=storage,             
     tracing=True

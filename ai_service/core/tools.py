@@ -2,7 +2,7 @@ import os
 import glob
 import json
 import httpx
-from .config import BACKEND_URL
+from .config import BACKEND_URL, INTERNAL_AUTH_KEY
 from .knowledge import get_fmea_knowledge
 
 def get_asset_fmea_tool(query: str):
@@ -48,7 +48,8 @@ def get_full_rca_detail_tool(rca_id: str):
     print(f"DEBUG TOOL: get_full_rca_detail_tool chamado para RCA {rca_id}")
     try:
         # Busca RCA
-        with httpx.Client(base_url=BACKEND_URL, timeout=10.0) as client:
+        headers = {"x-internal-key": INTERNAL_AUTH_KEY}
+        with httpx.Client(base_url=BACKEND_URL, timeout=10.0, headers=headers) as client:
             rca_res = client.get(f"/api/rcas/{rca_id}")
             if rca_res.status_code != 200:
                 return f"Erro ao buscar RCA {rca_id}: {rca_res.text}"
@@ -177,7 +178,8 @@ def get_historical_rca_summary(rca_id: str) -> str:
     Use para entender o contexto básico de uma falha passada antes de se aprofundar.
     """
     try:
-        with httpx.Client(base_url=BACKEND_URL, timeout=5.0) as client:
+        headers = {"x-internal-key": INTERNAL_AUTH_KEY}
+        with httpx.Client(base_url=BACKEND_URL, timeout=5.0, headers=headers) as client:
             res = client.get(f"/api/rcas/{rca_id}")
             if res.status_code != 200: return f"RCA {rca_id} não encontrada."
             data = res.json()
@@ -207,7 +209,8 @@ def get_historical_rca_causes(rca_id: str) -> str:
     Use quando você já sabe qual é a RCA e quer saber o que causou o problema na época.
     """
     try:
-        with httpx.Client(base_url=BACKEND_URL, timeout=5.0) as client:
+        headers = {"x-internal-key": INTERNAL_AUTH_KEY}
+        with httpx.Client(base_url=BACKEND_URL, timeout=5.0, headers=headers) as client:
             res = client.get(f"/api/rcas/{rca_id}")
             if res.status_code != 200: return f"RCA {rca_id} não encontrada."
             data = res.json()
@@ -224,7 +227,8 @@ def get_historical_rca_action_plan(rca_id: str) -> str:
     Use para saber o que foi feito na época para resolver o problema e verificar status.
     """
     try:
-        with httpx.Client(base_url=BACKEND_URL, timeout=5.0) as client:
+        headers = {"x-internal-key": INTERNAL_AUTH_KEY}
+        with httpx.Client(base_url=BACKEND_URL, timeout=5.0, headers=headers) as client:
             # Tenta buscar do endpoint de ações primeiro (V2)
             actions_res = client.get(f"/api/actions?rca_id={rca_id}")
             actions_data = []
@@ -256,10 +260,114 @@ def get_historical_rca_triggers(rca_id: str) -> str:
     Use para entender o impacto financeiro e operacional que gerou a necessidade desta RCA.
     """
     try:
-        with httpx.Client(base_url=BACKEND_URL, timeout=5.0) as client:
+        headers = {"x-internal-key": INTERNAL_AUTH_KEY}
+        with httpx.Client(base_url=BACKEND_URL, timeout=5.0, headers=headers) as client:
             res = client.get(f"/api/triggers/rca/{rca_id}")
             if res.status_code != 200: return f"Não foram encontrados gatilhos atrelados à RCA {rca_id}."
             data = res.json()
             import json
             return f"GATILHOS DA RCA {rca_id}:\n{json.dumps(data, indent=2, ensure_ascii=False)}"
     except Exception as e: return str(e)
+
+def get_deterministic_fmea_tool(asset_id: str):
+    """
+    Busca modos de falha DETERMINÍSTICOS e ESTRUTURADOS cadastrados para o ID do ativo no banco de dados.
+    Use esta ferramenta quando tiver o ID do equipamento para obter dados precisos de RPN, Severidade e Ocorrência.
+    
+    Args:
+        asset_id (str): ID do ativo (equipamento) no sistema.
+    """
+    print(f"DEBUG TOOL: get_deterministic_fmea_tool chamado para Ativo: {asset_id}")
+    
+    try:
+        headers = {"x-internal-key": INTERNAL_AUTH_KEY}
+        with httpx.Client(base_url=BACKEND_URL, timeout=10.0, headers=headers) as client:
+            res = client.get(f"/api/fmea/asset/{asset_id}")
+            if res.status_code != 200:
+                return f"Não foi possível encontrar dados estruturados de FMEA para o ativo {asset_id}."
+            
+            fmea_data = res.json()
+            if not fmea_data:
+                return f"O ativo {asset_id} não possui modos de falha cadastrados no banco de dados estruturado."
+            
+            return "MODOS DE FALHA ESTRUTURADOS (FMEA DB):\n\n" + json.dumps(fmea_data, indent=2, ensure_ascii=False)
+            
+    except Exception as e:
+        return f"Erro ao consultar banco de dados FMEA: {str(e)}"
+
+def calculate_reliability_metrics_tool(rca_ids: list[str]):
+    """
+    Calcula indicadores de Confiabilidade (MTBF e MTTR) baseado em uma lista de IDs de RCAs passadas.
+    Use esta ferramenta para quantificar a severidade da recorrência e a eficiência do reparo.
+    
+    Args:
+        rca_ids (list[str]): Lista de IDs das RCAs que foram consideradas recorrências válidas.
+    """
+    from datetime import datetime
+    import httpx
+    import json
+    from .config import BACKEND_URL, INTERNAL_AUTH_KEY
+    
+    print(f"DEBUG TOOL: calculate_reliability_metrics_tool chamado para {len(rca_ids)} RCAs.")
+    
+    if not rca_ids or len(rca_ids) < 2:
+        return "Dados insuficientes para cálculo de métricas. São necessárias pelo menos 2 RCAs históricas validadas."
+    
+    dates = []
+    downtimes = []
+    headers = {"x-internal-key": INTERNAL_AUTH_KEY}
+    
+    try:
+        with httpx.Client(base_url=BACKEND_URL, timeout=10.0, headers=headers) as client:
+            for rid in rca_ids:
+                res = client.get(f"/api/rcas/{rid}")
+                if res.status_code == 200:
+                    data = res.json()
+                    
+                    # Datas para MTBF
+                    date_str = data.get('failure_date') or data.get('date') or data.get('created_at')
+                    if date_str:
+                        clean_date = date_str.split('T')[0]
+                        try:
+                            dt = datetime.strptime(clean_date, "%Y-%m-%d")
+                            dates.append(dt)
+                        except:
+                            pass
+                    
+                    # Downtime para MTTR
+                    dt_min = data.get('downtime_minutes')
+                    if dt_min is not None:
+                        try:
+                            downtimes.append(float(dt_min))
+                        except:
+                            pass
+        
+        if len(dates) < 2:
+            return "Não foi possível extrair datas suficientes para o cálculo de MTBF."
+        
+        dates.sort()
+        intervals = []
+        for i in range(1, len(dates)):
+            diff = (dates[i] - dates[i-1]).days
+            intervals.append(diff)
+            
+        mtbf = sum(intervals) / len(intervals)
+        
+        # Cálculo de MTTR (Mean Time To Repair)
+        mttr_msg = "Dados de downtime insuficientes para cálculo de MTTR."
+        if downtimes:
+            mttr = sum(downtimes) / len(downtimes)
+            mttr_msg = f"{mttr:.1f} minutos"
+        
+        result = (
+            f"### INDICADORES DE CONFIABILIDADE\n"
+            f"- **Amostra:** {len(dates)} falhas analisadas.\n"
+            f"- **MTBF (Tempo Médio Entre Falhas):** {mtbf:.1f} dias.\n"
+            f"- **MTTR (Tempo Médio para Reparo):** {mttr_msg}.\n"
+            f"- **Disponibilidade Estimada:** {(mtbf * 1440 / (mtbf * 1440 + (sum(downtimes)/len(downtimes) if downtimes else 0))) * 100:.2f}% (Baseado em MTBF/MTTR)\n\n"
+            f"*Nota: Cálculos baseados em dados históricos validados.*"
+        )
+        return result
+        
+    except Exception as e:
+        return f"Erro ao calcular métricas de confiabilidade: {str(e)}"

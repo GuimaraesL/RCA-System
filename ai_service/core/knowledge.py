@@ -12,6 +12,7 @@ from .config import VECTOR_DB_PATH, KNOWLEDGE_DB_PATH, GOOGLE_API_KEY, BACKEND_U
 embedder = GeminiEmbedder(api_key=GOOGLE_API_KEY)
 
 from agno.knowledge.reader.text_reader import TextReader
+from agno.knowledge.reader.pdf_reader import PDFReader
 from agno.knowledge.chunking.fixed import FixedSizeChunking
 
 # Base de Conhecimento para Histórico de RCAs (Dinamica - RAG)
@@ -29,27 +30,35 @@ rca_history_knowledge = Knowledge(
     name="RCA History"
 )
 
-# Base de Conhecimento para FMEA (Documentos Técnicos)
-fmea_knowledge = Knowledge(
+# Base de Conhecimento Técnica Unificada (FMEA, Manuais, PDFs)
+technical_knowledge = Knowledge(
     vector_db=ChromaDb(
-        collection="fmea_library_v2",
+        collection="technical_knowledge_v1",
         path=VECTOR_DB_PATH,
         persistent_client=True,
         embedder=embedder
     ),
     readers=[
-        TextReader(chunking_strategy=FixedSizeChunking(chunk_size=2000))
+        TextReader(chunking_strategy=FixedSizeChunking(chunk_size=3000)),
+        PDFReader(chunking_strategy=FixedSizeChunking(chunk_size=5000))
     ],
-    name="FMEA Library"
+    name="Technical Engineering Library"
 )
 
 def get_rca_history_knowledge():
     """Retorna a base de conhecimento do histórico de RCAs."""
     return rca_history_knowledge
 
+def get_technical_knowledge():
+    """Retorna a base de conhecimento técnica unificada (FMEA + Manuais)."""
+    return technical_knowledge
+
+# Alias para compatibilidade legada
 def get_fmea_knowledge():
-    """Retorna a base de conhecimento de manuais FMEA."""
-    return fmea_knowledge
+    return technical_knowledge
+
+def get_technical_docs_knowledge():
+    return technical_knowledge
 
 def init_hash_db():
     """Inicializa um banco SQLite simples para controlar os hashes das RCAs e FMEAs indexados."""
@@ -188,62 +197,95 @@ def index_historical_rcas(api_url=None):
     except Exception as e:
         print(f"[CRITICAL] Critical error during RCA indexing: {str(e)}")
 
-def index_fmea_documents():
+def sync_technical_knowledge():
     """
-    Varre a pasta data/fmea por arquivos .md e os indexa para busca vetorial.
+    Varre as pastas de FMEA e Knowledge para indexar manuais (.md, .pdf) na base unificada.
     """
     import os
     import glob
     
     base_dir = os.path.dirname(os.path.dirname(__file__))
     fmea_path = os.path.join(base_dir, "data", "fmea")
+    knowledge_path = os.path.join(base_dir, "data", "knowledge")
     
-    if not os.path.exists(fmea_path):
-        print(f"[FMEA] Pasta não encontrada: {fmea_path}")
+    # Coleta arquivos de ambas as pastas
+    all_files = []
+    for path in [fmea_path, knowledge_path]:
+        if os.path.exists(path):
+            all_files.extend(glob.glob(os.path.join(path, "*.md")))
+            all_files.extend(glob.glob(os.path.join(path, "*.pdf")))
+
+    if not all_files:
+        print("[TECH-SYNC] Nenhum manual (.md ou .pdf) encontrado para indexação.")
         return
 
-    md_files = glob.glob(os.path.join(fmea_path, "*.md"))
-    if not md_files:
-        print("[FMEA] Nenhum manual .md encontrado para indexação.")
-        return
-
-    print(f"[FMEA] Analisando {len(md_files)} manuais técnicos...")
+    print(f"[TECH-SYNC] Analisando {len(all_files)} documentos técnicos...")
     
     try:
         conn = init_hash_db()
         cursor = conn.cursor()
         
+        # Cria tabela de hash unificada se não existir
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS indexed_tech_knowledge (
+                filename TEXT PRIMARY KEY,
+                content_hash TEXT
+            )
+        ''')
+        conn.commit()
+
         indexed = 0
         skipped = 0
         
-        for file_path in md_files:
+        for file_path in all_files:
             filename = os.path.basename(file_path)
+            is_pdf = filename.lower().endswith(".pdf")
+            
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    content = f.read()
+                with open(file_path, "rb") as f:
+                    file_content_bytes = f.read()
+                current_hash = hashlib.sha256(file_content_bytes).hexdigest()
                 
-                current_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()
-                
-                cursor.execute("SELECT content_hash FROM indexed_fmea WHERE filename = ?", (filename,))
+                cursor.execute("SELECT content_hash FROM indexed_tech_knowledge WHERE filename = ?", (filename,))
                 row = cursor.fetchone()
                 if row and row[0] == current_hash:
                     skipped += 1
                     continue
 
-                fmea_knowledge.add_content(
-                    name=filename,
-                    text_content=content,
-                    metadata={"filename": filename, "type": "fmea_manual"},
-                    upsert=True
-                )
+                if is_pdf:
+                    # Indexação de PDF usando PDFReader nativo da Agno
+                    technical_knowledge.add_content(
+                        path=file_path,
+                        reader=PDFReader(),
+                        metadata={"filename": filename, "type": "technical_manual", "format": "pdf"},
+                        upsert=True
+                    )
+                else:
+                    # Indexação de Markdown
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        content = f.read()
+                    
+                    technical_knowledge.add_content(
+                        name=filename,
+                        text_content=content,
+                        metadata={"filename": filename, "type": "fmea_manual", "format": "md"},
+                        upsert=True
+                    )
                 
-                cursor.execute("INSERT OR REPLACE INTO indexed_fmea (filename, content_hash) VALUES (?, ?)", (filename, current_hash))
+                cursor.execute("INSERT OR REPLACE INTO indexed_tech_knowledge (filename, content_hash) VALUES (?, ?)", (filename, current_hash))
                 conn.commit()
                 indexed += 1
             except Exception as e:
                 print(f"[WARNING] Erro ao indexar {filename}: {e}")
 
-        print(f"[FMEA] Sync: {indexed} novos/atualizados, {skipped} mantidos.")
+        print(f"[TECH-SYNC] Sucesso: {indexed} novos/atualizados, {skipped} mantidos.")
         conn.close()
     except Exception as e:
-        print(f"[CRITICAL] Erro na indexação FMEA: {e}")
+        print(f"[CRITICAL] Erro na sincronização técnica: {e}")
+
+# Aliases para compatibilidade legada no startup
+def index_fmea_documents():
+    sync_technical_knowledge()
+
+def index_technical_documents():
+    sync_technical_knowledge()

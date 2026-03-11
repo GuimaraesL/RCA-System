@@ -963,7 +963,7 @@ export const pt: TranslationSchema = {
     fmea: {
         title: "FMEA",
         subtitle: "Gestão de Manuais e Documentos Técnicos para IA",
-        filesTitle: "Documentos Disponíveis (.md)",
+        filesTitle: "Documentos Disponíveis (.md, .pdf)",
         uploadMd: "Carregar Documento",
         noFiles: "Nenhum documento técnico encontrado no servidor.",
         table: {
@@ -973,15 +973,17 @@ export const pt: TranslationSchema = {
             actions: "Ações"
         },
         modal: {
-            dropHint: "Solte o arquivo .md para carregar na base de conhecimento!",
-            importHint: "Arraste manuais (.md) aqui para que o Agente possa consultá-los durante as análises.",
+            dropHint: "Solte o arquivo (.md ou .pdf) para carregar na base de conhecimento!",
+            importHint: "Arraste manuais (.md ou .pdf) aqui para que o Agente possa consultá-los durante as análises.",
         },
         notifications: {
             uploadSuccess: "Documento carregado com sucesso!",
             deleteSuccess: "Documento removido da base.",
             error: "Erro ao processar arquivo FMEA.",
-            invalidType: "Apenas arquivos Markdown (.md) são aceitos."
-        }
+            invalidType: "Apenas arquivos Markdown (.md) ou PDF (.pdf) são aceitos."
+        },
+        howItWorks: "Como funciona?",
+        description: "Os arquivos .md e .pdf carregados aqui são usados pelo **Copiloto RCA** para buscar modos de falha reais durante suas análises. O robô procura por termos técnicos, famílias de equipamentos ou identificadores no conteúdo do arquivo para fornecer sugestões precisas."
     },
     media: {
         uploadError: "Erro ao enviar arquivos",

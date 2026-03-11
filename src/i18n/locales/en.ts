@@ -977,7 +977,7 @@ export const en: TranslationSchema = {
     fmea: {
         title: "FMEA",
         subtitle: "Technical Manuals and Documents for AI",
-        filesTitle: "Available Documents (.md)",
+        filesTitle: "Available Documents (.md, .pdf)",
         uploadMd: "Upload Document",
         noFiles: "No technical documents found on server.",
         table: {
@@ -987,15 +987,17 @@ export const en: TranslationSchema = {
             actions: "Actions"
         },
         modal: {
-            dropHint: "Drop the .md file to upload to the knowledge base!",
-            importHint: "Drag manuals (.md) here so the Agent can consult them during analysis.",
+            dropHint: "Drop the file (.md or .pdf) to upload to the knowledge base!",
+            importHint: "Drag manuals (.md or .pdf) here so the Agent can consult them during analysis.",
         },
         notifications: {
             uploadSuccess: "Document uploaded successfully!",
             deleteSuccess: "Document removed from base.",
             error: "Error processing FMEA file.",
-            invalidType: "Only Markdown (.md) files are accepted."
-        }
+            invalidType: "Only Markdown (.md) or PDF (.pdf) files are accepted."
+        },
+        howItWorks: "How it works?",
+        description: "The .md and .pdf files uploaded here are used by the **RCA Copilot** to search for real failure modes during analysis. The robot searches for technical terms, equipment families, or identifiers within the file content to provide accurate suggestions."
     },
     media: {
         uploadError: "Error uploading files",

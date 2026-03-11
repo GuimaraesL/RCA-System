@@ -33,7 +33,13 @@ async def list_fmea_files(x_internal_key: str = Header(None)):
         return {"files": []}
     
     files = []
-    for f in glob.glob(os.path.join(fmea_path, "*.md")):
+    # Busca tanto .md quanto .pdf
+    pattern_md = os.path.join(fmea_path, "*.md")
+    pattern_pdf = os.path.join(fmea_path, "*.pdf")
+    
+    all_files = glob.glob(pattern_md) + glob.glob(pattern_pdf)
+    
+    for f in all_files:
         stats = os.stat(f)
         files.append({
             "name": os.path.basename(f),
@@ -47,8 +53,11 @@ async def upload_fmea_file(file: UploadFile = File(...), x_internal_key: str = H
     if x_internal_key != INTERNAL_AUTH_KEY:
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
     
-    if not file.filename.endswith(".md"):
-        raise HTTPException(status_code=400, detail="Apenas arquivos .md são permitidos.")
+    allowed_extensions = {".md", ".pdf"}
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Apenas arquivos .md e .pdf são permitidos.")
     
     base_dir = os.path.dirname(os.path.dirname(__file__))
     fmea_path = os.path.join(base_dir, "data", "fmea")
@@ -65,6 +74,54 @@ async def upload_fmea_file(file: UploadFile = File(...), x_internal_key: str = H
         return {"status": "success", "filename": file.filename}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao salvar arquivo: {str(e)}")
+
+@router.post("/extract-fmea")
+async def extract_fmea_endpoint(payload: dict, x_internal_key: str = Header(None)):
+    """
+    Extrai modos de falha (FMEA) estruturados a partir de um texto descritivo.
+    """
+    if x_internal_key != INTERNAL_AUTH_KEY:
+        raise HTTPException(status_code=403, detail="Invalid Internal Key")
+    
+    text = payload.get("text")
+    if not text:
+        raise HTTPException(status_code=400, detail="O campo 'text' é obrigatório.")
+
+    from agents.fmea_agent import get_fmea_agent
+    agent = get_fmea_agent()
+    
+    prompt = (
+        f"Analise o seguinte texto e extraia os modos de falha em formato JSON:\n\n"
+        f"TEXTO: {text}\n\n"
+        "Retorne APENAS um array JSON de objetos com os campos: "
+        "failure_mode, potential_effects, severity, potential_causes, occurrence, current_controls, detection, recommended_actions."
+    )
+    
+    try:
+        response = agent.run(prompt)
+        content = response.content
+        
+        # Extração de JSON do bloco Markdown
+        import re
+        json_match = re.search(r'```json\s*(.*?)\s*```', content, re.DOTALL)
+        if json_match:
+            content = json_match.group(1)
+        
+        # Limpeza de possíveis comentários ou ruídos
+        content = content.strip()
+        
+        try:
+            parsed_json = json.loads(content)
+            # O teste espera que a lista venha envelopada em uma chave "modes"
+            if isinstance(parsed_json, list):
+                return {"modes": parsed_json}
+            return parsed_json
+        except:
+            # Fallback se a IA falhar na formatação mas retornar texto
+            raise HTTPException(status_code=500, detail="A IA gerou um formato de dados inválido.")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/fmea/files/{filename}")
 async def delete_fmea_file(filename: str, x_internal_key: str = Header(None)):
@@ -496,6 +553,21 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                             continue
                         elif content_str.startswith("get_asset_fmea_tool"):
                             yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Analisando banco de FMEA do ativo...'})}\n\n"
+                            continue
+                        elif "FMEA_Technical_Specialist" in content_str:
+                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Consultando Especialista em FMEA...'})}\n\n"
+                            continue
+                        elif "Media_Failure_Analyst" in content_str:
+                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Analisando evidências visuais (fotos/vídeos)...'})}\n\n"
+                            continue
+                        elif "Human_Factors_Investigator" in content_str:
+                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Investigando fatores humanos e organizacionais...'})}\n\n"
+                            continue
+                        elif "get_deterministic_fmea_tool" in content_str:
+                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Acessando modos de falha determinísticos no banco FMEA...'})}\n\n"
+                            continue
+                        elif "calculate_reliability_metrics_tool" in content_str:
+                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Calculando indicadores de confiabilidade (MTBF/MTTR)...'})}\n\n"
                             continue
                         elif content_str.startswith("get_full_rca_detail_tool"):
                             yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Acessando conteúdo integral e triggers da RCA selecionada...'})}\n\n"

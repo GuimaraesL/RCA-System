@@ -4,39 +4,56 @@ O ai_service faz uso de dois pilares de extensão de capacidades (Knowledge e To
 
 ---
 
-## 1. Conhecimento (Knowledge Base - Documental)
-Localização: ai_service/core/knowledge.py
+## 1. Conhecimento (Knowledge Base - RAG)
+Localização: `ai_service/core/knowledge.py`
 
-O Agente Unificado (RCA_Unified_Copilot) não confia apenas no conhecimento nativo da IA, mas sim em bases de dados locais injetadas.
+Diferente da IA genérica, o Copiloto RCA utiliza três bases de dados locais vetorizadas para fundamentar suas respostas.
 
-### Methodology Knowledge (get_methodology_knowledge)
-*   Propósito: Fornecer as "regras do jogo". Como a empresa quer que um "5 Porquês" ou um "Plano de Ação" seja preenchido, diretrizes de manutenção e padrões de taxonomia.
-*   Vetorização: Lê os arquivos Markdown (.md) da pasta de metodologias (geralmente documentações e guias operacionais locais em ai_service/data/knowledge/).
-*   Uso: Quando o agente tem dúvidas sobre os formatos metodológicos aceitos (e não sobre a falha em si).
+### RCA History (`rca_history_knowledge`)
+*   **Propósito:** Memória coletiva das falhas da empresa.
+*   **Conteúdo:** Mais de 2.800 RCAs concluídas, indexadas por área, equipamento e subgrupo.
+*   **Uso:** Identificação de recorrências e lições aprendidas de casos reais.
+
+### FMEA Library (`fmea_knowledge`)
+*   **Propósito:** Biblioteca de Modos de Falha e Efeitos.
+*   **Conteúdo:** Manuais técnicos internos e diretrizes de manutenção em formato **Markdown (.md)**.
+*   **Uso:** Consultar a "teoria" esperada para cada tipo de falha mecânica ou elétrica.
+
+### Technical Documentation (`technical_docs_knowledge`) - **NOVO**
+*   **Propósito:** Indexação de manuais complexos e laudos externos.
+*   **Conteúdo:** Manuais de fabricantes, laudos periciais e normas técnicas em formato **PDF**.
+*   **Uso:** Fornecer suporte documental pericial em diagnósticos de alta complexidade.
 
 ---
 
 ## 2. Ferramentas (Tools)
-Localização: ai_service/core/tools.py
+Localização: `ai_service/core/tools.py`
 
-Ferramentas são funções Python (Functions as a Tool) acionadas ativamente e autonomamente pelo LLM durante o raciocínio. O modelo pausa a geração de texto, pede para o Backend executar uma Tool, e recebe o resultado antes de continuar.
+As ferramentas permitem que o Agente realize ações ativas, como cálculos matemáticos ou consultas a bancos de dados SQL.
 
-### Ferramentas de Busca Histórica (Acessam o VectorDB / RAG)
-*   search_historical_rcas_tool(query: str, area_id, equipment_id, subgroup_id):
-    Faz a busca semântica em falhas anteriores. Possui filtros inteligentes para priorizar o Subgrupo, depois o Equipamento, depois a Área. (Ver arquivo rag_pipeline.md para detalhes).
-*   get_historical_rca_summary(rca_id: str):
-    Traz o resumo consolidado de uma falha específica já registrada, focado no contexto do problema.
-*   get_historical_rca_causes(rca_id: str):
-    Traz estritamente as "Causas Raízes" e "Porquês" da falha solicitada.
-*   get_historical_rca_action_plan(rca_id: str):
-    Lista o plano de ação (O quê, Quem, Quando) aplicado na época, acessando tanto os dados legados quanto a nova tabela de ações da V2.
-*   get_historical_rca_triggers(rca_id: str):
-    Traz os modos de falha/engatilhadores (FMEA associado ou sintomas iniciais) do histórico.
+### Ferramentas de Confiabilidade (Determinísticas)
+*   `calculate_reliability_metrics_tool(rca_ids)`:
+    Calcula indicadores estatísticos baseados no histórico:
+    - **MTBF:** Tempo Médio Entre Falhas.
+    - **MTTR:** Tempo Médio para Reparo.
+    - **Disponibilidade:** % estimada baseada em MTBF/MTTR.
 
-### Ferramentas de Domínio Específico
-*   get_asset_fmea_tool(asset_id: str, symptom: str):
-    Simula (ou consulta de um banco real) o FMEA (Failure Mode and Effects Analysis) de um ativo. Permite ao Agente confrontar o relato do usuário com os modos de falha matematicamente esperados em manuais de fabricantes.
+### Ferramentas de FMEA
+*   `get_deterministic_fmea_tool(asset_id)`: **NOVO**
+    Consulta o banco de dados SQL real do sistema (`fmea_modes`). Retorna o **RPN (Risk Priority Number)**, Severidade, Ocorrência e ações recomendadas oficiais.
+*   `get_asset_fmea_tool(query)`:
+    Realiza busca semântica (RAG) na biblioteca de manuais para encontrar modos de falha por descrição.
 
-### Ferramentas Externas
-*   DuckDuckGoTools():
-    Ferramenta nativa do framework Agno. Quando o problema técnico for uma peça obscura ou conceito fora do escopo do RAG/FMEA local, o Agente pode pesquisar na web em tempo real (ex: "Qual a folga padrão para rolamentos SKF-6204?").
+### Ferramentas de Detalhamento de RCA
+*   `get_full_rca_detail_tool(rca_id)`:
+    Busca o conteúdo integral de uma RCA específica (Ishikawa, 5 Porquês, Planos de Ação) com 100% de precisão para confronto de dados.
+*   `get_historical_rca_causes(rca_id)` / `get_historical_rca_action_plan(rca_id)`:
+    Extrações específicas de partes de um relatório histórico.
+
+### Ferramentas Externas e Habilidades
+*   `DuckDuckGoTools()`: Pesquisa na internet para conceitos técnicos não indexados localmente.
+*   `get_skill_reference(skill_name, file_path)`: **NOVO**
+    Lê diretrizes metodológicas (ex: "como formatar um Ishikawa") das Skills do sistema.
+
+---
+*Atualizado em: 11/03/2026 - Pós-Issue 127*

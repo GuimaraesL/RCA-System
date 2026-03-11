@@ -960,6 +960,8 @@ export interface TranslationSchema {
             error: string;
             invalidType: string;
         };
+        howItWorks: string;
+        description: string;
     };
     media: {
         uploadError: string;

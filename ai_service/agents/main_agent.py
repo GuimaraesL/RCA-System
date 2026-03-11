@@ -1,18 +1,21 @@
 import os
 from agno.agent import Agent
+from agno.team import Team
 from agno.models.google import Gemini
 from agno.skills import Skills, LocalSkills
 from agno.tools.duckduckgo import DuckDuckGoTools
 
 from core.tools import (
-    search_historical_rcas_tool, 
-    get_asset_fmea_tool,
-    get_historical_rca_summary, 
+    search_historical_rcas_tool,
+    get_historical_rca_summary,
     get_historical_rca_causes, 
     get_historical_rca_action_plan,
-    get_historical_rca_triggers
+    get_historical_rca_triggers,
+    calculate_reliability_metrics_tool
 )
-from core.knowledge import get_fmea_knowledge
+from agents.fmea_agent import get_fmea_agent
+from agents.media_analyst import get_media_analyst_agent
+from agents.hfacs_agent import get_hfacs_agent
 from core.prompts import GLOBAL_RULES, MAIN_AGENT_PROMPT, MEDIA_ANALYSIS_RULES
 from core.memory import get_agent_memory
 
@@ -22,12 +25,14 @@ def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context:
     Recebe contexto do incidente e recorrências já validadas pelo RAG Validator.
     Tem acesso à metodologia (.md) via search_knowledge e ferramentas de detalhe sob demanda.
     """
+    # Carrega Skills Locais (Agno Skills)
     skills_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "skills")
-
-    # Verifica se o caminho existe para evitar erro no carregamento das LocalSkills
     loaders = []
     if os.path.exists(skills_path):
         loaders.append(LocalSkills(skills_path))
+    
+    rca_skills = Skills(loaders=loaders) if loaders else None
+    skill_tools = rca_skills.get_tools() if rca_skills else []
 
     # Prepara as instruções base (SEM injetar contexto pesado dinamico aqui)
     agent_instructions = [
@@ -36,31 +41,32 @@ def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context:
         MEDIA_ANALYSIS_RULES
     ]
 
-    return Agent(
+    # Cria o Time de Especialistas Unificado
+    # O Team no Agno 2.x suporta orquestração direta de agentes
+    return Team(
         name="RCA_Unified_Copilot",
         session_id=session_id,
-        role="Engenheiro Sênior de Confiabilidade e Copiloto RCA",
-        # OTIMIZAÇÃO DE CUSTO: gemini-2.0-flash suportam "Context Caching"
-        # O modelo gemini-2.0-flash é a versão final mais estável
+        role="Engenheiro Sênior de Confiabilidade e Orquestrador RCA",
         model=Gemini(id="gemini-2.0-flash"), 
         instructions=agent_instructions,
         tools=[
             search_historical_rcas_tool, 
             get_historical_rca_summary, 
             get_historical_rca_causes, 
-            get_historical_rca_action_plan,
+            get_historical_rca_action_plan, 
             get_historical_rca_triggers,
-            get_asset_fmea_tool,
+            calculate_reliability_metrics_tool,
             DuckDuckGoTools()
+        ] + skill_tools,
+        members=[
+            get_fmea_agent(),
+            get_media_analyst_agent(),
+            get_hfacs_agent()
         ],
-        skills=Skills(loaders=loaders) if loaders else None, 
-        # PIPELINE: Conhecimento de metodologia e biblioteca técnica (FMEA)
-        knowledge=[get_fmea_knowledge()],
-        search_knowledge=True,
         db=get_agent_memory(session_id),
         read_chat_history=True,
         add_history_to_context=True,
-        num_history_runs=3, 
-        debug_mode=True,
+        num_history_runs=3,
         markdown=True,
+        debug_mode=True,
     )

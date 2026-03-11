@@ -67,7 +67,8 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
   };
 
   const uploadFile = async (file: File) => {
-    if (!file.name.endsWith('.md')) {
+    const isAllowed = file.name.endsWith('.md') || file.name.endsWith('.pdf');
+    if (!isAllowed) {
       alert(t('fmea.notifications.invalidType'));
       return;
     }
@@ -151,7 +152,7 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
             type="file"
             id="fmea-upload"
             className="hidden"
-            accept=".md"
+            accept=".md,.pdf"
             onChange={(e) => e.target.files?.[0] && uploadFile(e.target.files[0])}
           />
           <Button
@@ -274,10 +275,9 @@ export const FmeaPanel: React.FC<FmeaPanelProps> = ({ asset }) => {
       <div className="flex items-start gap-4 p-6 bg-blue-50/50 dark:bg-blue-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/30">
         <AlertCircle className="text-blue-500 flex-shrink-0 mt-1" size={20} />
         <div>
-          <h4 className="text-sm font-bold text-blue-900 dark:text-blue-300">Como funciona?</h4>
+          <h4 className="text-sm font-bold text-blue-900 dark:text-blue-300">{t('fmea.howItWorks')}</h4>
           <p className="text-xs text-blue-700 dark:text-blue-400 mt-1 leading-relaxed">
-            Os arquivos .md carregados aqui são usados pelo **Copiloto RCA** para buscar modos de falha reais durante suas análises. 
-            O robô procura por termos técnicos, famílias de equipamentos ou identificadores no conteúdo do arquivo para fornecer sugestões precisas{asset ? ` (ex: busca por ${asset.name})` : ''}.
+            {t('fmea.description')}{asset ? ` (ex: busca por ${asset.name})` : ''}
           </p>
         </div>
       </div>
