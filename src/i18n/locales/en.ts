@@ -725,7 +725,14 @@ export const en: TranslationSchema = {
                 subgroup: "Same Subgroup",
                 equipment: "Same Equipment",
                 area: "Different Equipment"
-            }
+            },
+            searchButton: "Search Recurrences",
+            searchHint: "Contextual exploration of systemic failures to avoid recurrences",
+            emptyHistory: "Click on \"Search Recurrences\" to explore the technical history.",
+            noDate: "N/A",
+            noEquipment: "Equipment not informed",
+            occurrenceFound: "occurrence detected",
+            occurrencesFound: "occurrences detected"
         },
         stepNames: {
             step1: { title: "General Data", subtitle: "Basic information" },
@@ -968,36 +975,26 @@ export const en: TranslationSchema = {
         }
     },
     fmea: {
-        title: "FMEA Management",
-        subtitle: "Asset Failure Modes and Effects",
-        addMode: "Add Mode",
-        importAi: "Import with AI",
+        title: "FMEA",
+        subtitle: "Technical Manuals and Documents for AI",
+        filesTitle: "Available Documents (.md)",
+        uploadMd: "Upload Document",
+        noFiles: "No technical documents found on server.",
         table: {
-            mode: "Failure Mode",
-            effects: "Potential Effects",
-            severity: "S",
-            causes: "Potential Causes",
-            occurrence: "O",
-            controls: "Current Controls",
-            detection: "D",
-            rpn: "RPN",
-            actions: "Recommended Actions"
+            filename: "File Name",
+            size: "Size",
+            modified: "Last Modified",
+            actions: "Actions"
         },
         modal: {
-            addTitle: "New Failure Mode",
-            editTitle: "Edit Failure Mode",
-            importTitle: "Import FMEA Data",
-            importPlaceholder: "Paste manual text here or drag PDF...",
-            importHint: "AI will process the text and automatically identify failure modes, effects, and causes.",
-            dropHint: "Drop the file to read the content!",
-            processing: "Processing with AI..."
+            dropHint: "Drop the .md file to upload to the knowledge base!",
+            importHint: "Drag manuals (.md) here so the Agent can consult them during analysis.",
         },
         notifications: {
-            saveSuccess: "FMEA updated successfully.",
-            deleteSuccess: "Failure mode removed.",
-            importSuccess: "Data imported successfully.",
-            error: "Error processing FMEA.",
-            extractionError: "Extraction failed"
+            uploadSuccess: "Document uploaded successfully!",
+            deleteSuccess: "Document removed from base.",
+            error: "Error processing FMEA file.",
+            invalidType: "Only Markdown (.md) files are accepted."
         }
     },
     media: {

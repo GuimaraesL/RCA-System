@@ -720,7 +720,14 @@ export const pt: TranslationSchema = {
                 subgroup: "Mesmo Subgrupo",
                 equipment: "Mesmo Equipamento",
                 area: "Equipamentos Diferentes"
-            }
+            },
+            searchButton: "Buscar Recorrências",
+            searchHint: "Exploração contextual de falhas sistêmicas para evitar reincidências",
+            emptyHistory: "Clique em \"Buscar Recorrências\" para explorar o histórico técnico.",
+            noDate: "S/ DATA",
+            noEquipment: "Equipamento não informado",
+            occurrenceFound: "ocorrência detectada",
+            occurrencesFound: "ocorrências detectadas"
         },
         stepNames: {
             step1: { title: "Dados Gerais", subtitle: "Informações básicas" },
@@ -929,7 +936,7 @@ export const pt: TranslationSchema = {
         similarHistory: "Histórico Semelhante",
         chatConversations: "Conversas com Detetives",
         greetingWithSubgroup: "Olá! Sou seu assistente técnico. Identifiquei que esta falha pertence ao subgrupo **{0}**. Deseja que eu realize uma análise completa buscando padrões históricos?",
-        greetingMissingData: "Olá! Para que eu possa te ajudar melhor com análises históricas e sugestões inteligentes, por favor, preencha o dado de **Subgrupo** no Passo 1.",
+        greetingMissingData: "Olá! Para que eu possa te ajudar melhor com análises históricas e sugestões inteligentes, por favor, preencha os dados de **Subgrupo** no Passo 1.",
         match: "Match",
         suggestions: {
             initial: {
@@ -954,36 +961,26 @@ export const pt: TranslationSchema = {
         }
     },
     fmea: {
-        title: "Gestão de FMEA",
-        subtitle: "Modos de Falha e Efeitos do Ativo",
-        addMode: "Adicionar Modo",
-        importAi: "Importar com IA",
+        title: "FMEA",
+        subtitle: "Gestão de Manuais e Documentos Técnicos para IA",
+        filesTitle: "Documentos Disponíveis (.md)",
+        uploadMd: "Carregar Documento",
+        noFiles: "Nenhum documento técnico encontrado no servidor.",
         table: {
-            mode: "Modo de Falha",
-            effects: "Efeitos Potenciais",
-            severity: "S",
-            causes: "Causas Potenciais",
-            occurrence: "O",
-            controls: "Controles Atuais",
-            detection: "D",
-            rpn: "RPN",
-            actions: "Ações Recomendadas"
+            filename: "Nome do Arquivo",
+            size: "Tamanho",
+            modified: "Última Modificação",
+            actions: "Ações"
         },
         modal: {
-            addTitle: "Novo Modo de Falha",
-            editTitle: "Editar Modo de Falha",
-            importTitle: "Importar Dados de FMEA",
-            importPlaceholder: "Cole aqui o texto do manual ou arraste o PDF...",
-            importHint: "A IA irá processar o texto e identificar automaticamente os modos de falha, efeitos e causas.",
-            dropHint: "Solte o arquivo para ler o conteúdo!",
-            processing: "Processando com IA..."
+            dropHint: "Solte o arquivo .md para carregar na base de conhecimento!",
+            importHint: "Arraste manuais (.md) aqui para que o Agente possa consultá-los durante as análises.",
         },
         notifications: {
-            saveSuccess: "FMEA atualizado com sucesso.",
-            deleteSuccess: "Modo de falha removido.",
-            importSuccess: "Dados importados com sucesso.",
-            error: "Erro ao processar FMEA.",
-            extractionError: "Falha na extração"
+            uploadSuccess: "Documento carregado com sucesso!",
+            deleteSuccess: "Documento removido da base.",
+            error: "Erro ao processar arquivo FMEA.",
+            invalidType: "Apenas arquivos Markdown (.md) são aceitos."
         }
     },
     media: {

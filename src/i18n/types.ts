@@ -720,6 +720,13 @@ export interface TranslationSchema {
                 equipment: string;
                 area: string;
             };
+            searchButton: string;
+            searchHint: string;
+            emptyHistory: string;
+            noDate: string;
+            noEquipment: string;
+            occurrenceFound: string;
+            occurrencesFound: string;
         };
         step1: {
             title: string;
@@ -934,34 +941,24 @@ export interface TranslationSchema {
     fmea: {
         title: string;
         subtitle: string;
-        addMode: string;
-        importAi: string;
+        filesTitle: string;
+        uploadMd: string;
+        noFiles: string;
         table: {
-            mode: string;
-            effects: string;
-            severity: string;
-            causes: string;
-            occurrence: string;
-            controls: string;
-            detection: string;
-            rpn: string;
+            filename: string;
+            size: string;
+            modified: string;
             actions: string;
         };
         modal: {
-            addTitle: string;
-            editTitle: string;
-            importTitle: string;
-            importPlaceholder: string;
-            importHint: string;
             dropHint: string;
-            processing: string;
+            importHint: string;
         };
         notifications: {
-            saveSuccess: string;
+            uploadSuccess: string;
             deleteSuccess: string;
-            importSuccess: string;
             error: string;
-            extractionError: string;
+            invalidType: string;
         };
     };
     media: {

@@ -10,6 +10,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit && npm run lint --prefix server",
+    "test": "vitest run",
     "audit": "lighthouse http://127.0.0.1:4173 --output=html --output=json --output-path=./lighthouse-report --chrome-flags=\"--headless --disable-gpu --no-sandbox --disable-dev-shm-usage\""
   },
   "dependencies": {

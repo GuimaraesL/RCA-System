@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Siren, ChevronLeft, ChevronRight, Menu, CircleHelp, Sun, Moon, Monitor } from 'lucide-react';
+import { LayoutDashboard, Database, Settings, Upload, AlertTriangle, List, CheckSquare, Siren, ChevronLeft, ChevronRight, Menu, CircleHelp, Sun, Moon, Monitor, ShieldAlert } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { useTheme } from '../../context/ThemeContext';
 import { LanguageSelector } from './LanguageSelector';
@@ -12,7 +12,7 @@ import { ShortcutLabel } from '../ui/ShortcutLabel';
 import { safeGetItem, safeSetItem } from '../../services/storageService';
 
 interface SidebarProps {
-    view: 'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'TRIGGERS' | 'ASSETS' | 'SETTINGS' | 'MIGRATION';
+    view: 'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'TRIGGERS' | 'ASSETS' | 'FMEA' | 'SETTINGS' | 'MIGRATION';
     setView: (view: any) => void;
     toggleRef?: React.RefObject<(() => void) | null>;
     onShowHelp?: () => void;
@@ -136,6 +136,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView, toggleRef, onSh
                         <NavItem id="ANALYSES" icon={List} label={t('sidebar.analyses')} shortcutLetter="A" />
                         <NavItem id="ACTIONS" icon={CheckSquare} label={t('sidebar.actions')} shortcutLetter="P" />
                         <NavItem id="ASSETS" icon={Database} label={t('sidebar.assets')} shortcutLetter="H" />
+                        <NavItem id="FMEA" icon={ShieldAlert} label={t('fmea.title')} shortcutLetter="F" />
                     </div>
 
                     <div className="pt-6 mt-6 border-t border-slate-800/50 space-y-1">

@@ -1,14 +1,43 @@
+import os
+import glob
+import json
 import httpx
 from .config import BACKEND_URL
+from .knowledge import get_fmea_knowledge
 
-def get_asset_fmea_tool(equipment_id: str):
+def get_asset_fmea_tool(query: str):
     """
-    Busca modos de falha mapeados para este equipamento no FMEA do sistema.
-    Use esta ferramenta quando precisar de base técnica sobre falhas conhecidas de um ativo.
+    Busca modos de falha mapeados para este ativo na biblioteca técnica FMEA do sistema.
+    Realiza uma busca semântica em todos os manuais (.md) carregados.
+    Use esta ferramenta quando precisar de informações sobre falhas conhecidas, causas e ações recomendadas para uma FAMÍLIA de equipamentos ou um ativo específico.
+    
+    Args:
+        query (str): Termos de busca (ex: 'Motores DC', 'Redutores de engrenagem', 'vazamento retentor').
     """
-    print(f"DEBUG TOOL: get_asset_fmea_tool chamado para equipamento {equipment_id}")
-    # Retornamos mensagem informativa para evitar alucinação enquanto o FMEA não é populado.
-    return f"Nota: Não foram encontrados registros de FMEA para o Ativo ID {equipment_id} no Banco de Dados. Sugira causas baseadas na sua experiência geral."
+    print(f"DEBUG TOOL: get_asset_fmea_tool chamado com consulta: '{query}'")
+    
+    knowledge_base = get_fmea_knowledge()
+    
+    try:
+        # Busca por similaridade no banco vetorial (RAG)
+        results = knowledge_base.vector_db.search(query=query, limit=5)
+        
+        if not results:
+            return (
+                f"Nenhuma informação técnica específica encontrada para '{query}' na biblioteca de FMEA. "
+                "Sugira causas baseadas na sua experiência técnica geral de engenharia para este tipo de ativo."
+            )
+            
+        formatted_results = []
+        for doc in results:
+            filename = doc.meta_data.get("filename", "Manual Desconhecido")
+            formatted_results.append(f"--- FONT: {filename} ---\n{doc.content}")
+            
+        return "CONHECIMENTO FMEA ENCONTRADO:\n\n" + "\n\n".join(formatted_results)
+        
+    except Exception as e:
+        print(f"Erro ao realizar busca vetorial FMEA: {e}")
+        return f"Erro técnico ao consultar a biblioteca FMEA: {str(e)}"
 
 def get_full_rca_detail_tool(rca_id: str):
     """

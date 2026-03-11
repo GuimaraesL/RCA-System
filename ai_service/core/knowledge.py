@@ -29,17 +29,41 @@ rca_history_knowledge = Knowledge(
     name="RCA History"
 )
 
+# Base de Conhecimento para FMEA (Documentos Técnicos)
+fmea_knowledge = Knowledge(
+    vector_db=ChromaDb(
+        collection="fmea_library_v2",
+        path=VECTOR_DB_PATH,
+        persistent_client=True,
+        embedder=embedder
+    ),
+    readers=[
+        TextReader(chunking_strategy=FixedSizeChunking(chunk_size=2000))
+    ],
+    name="FMEA Library"
+)
+
 def get_rca_history_knowledge():
     """Retorna a base de conhecimento do histórico de RCAs."""
     return rca_history_knowledge
 
+def get_fmea_knowledge():
+    """Retorna a base de conhecimento de manuais FMEA."""
+    return fmea_knowledge
+
 def init_hash_db():
-    """Inicializa um banco SQLite simples para controlar os hashes das RCAs indexadas."""
+    """Inicializa um banco SQLite simples para controlar os hashes das RCAs e FMEAs indexados."""
     conn = sqlite3.connect(KNOWLEDGE_DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS indexed_rcas (
             rca_id TEXT PRIMARY KEY,
+            content_hash TEXT
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS indexed_fmea (
+            filename TEXT PRIMARY KEY,
             content_hash TEXT
         )
     ''')
@@ -163,3 +187,63 @@ def index_historical_rcas(api_url=None):
         
     except Exception as e:
         print(f"[CRITICAL] Critical error during RCA indexing: {str(e)}")
+
+def index_fmea_documents():
+    """
+    Varre a pasta data/fmea por arquivos .md e os indexa para busca vetorial.
+    """
+    import os
+    import glob
+    
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    fmea_path = os.path.join(base_dir, "data", "fmea")
+    
+    if not os.path.exists(fmea_path):
+        print(f"[FMEA] Pasta não encontrada: {fmea_path}")
+        return
+
+    md_files = glob.glob(os.path.join(fmea_path, "*.md"))
+    if not md_files:
+        print("[FMEA] Nenhum manual .md encontrado para indexação.")
+        return
+
+    print(f"[FMEA] Analisando {len(md_files)} manuais técnicos...")
+    
+    try:
+        conn = init_hash_db()
+        cursor = conn.cursor()
+        
+        indexed = 0
+        skipped = 0
+        
+        for file_path in md_files:
+            filename = os.path.basename(file_path)
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                
+                current_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()
+                
+                cursor.execute("SELECT content_hash FROM indexed_fmea WHERE filename = ?", (filename,))
+                row = cursor.fetchone()
+                if row and row[0] == current_hash:
+                    skipped += 1
+                    continue
+
+                fmea_knowledge.add_content(
+                    name=filename,
+                    text_content=content,
+                    metadata={"filename": filename, "type": "fmea_manual"},
+                    upsert=True
+                )
+                
+                cursor.execute("INSERT OR REPLACE INTO indexed_fmea (filename, content_hash) VALUES (?, ?)", (filename, current_hash))
+                conn.commit()
+                indexed += 1
+            except Exception as e:
+                print(f"[WARNING] Erro ao indexar {filename}: {e}")
+
+        print(f"[FMEA] Sync: {indexed} novos/atualizados, {skipped} mantidos.")
+        conn.close()
+    except Exception as e:
+        print(f"[CRITICAL] Erro na indexação FMEA: {e}")

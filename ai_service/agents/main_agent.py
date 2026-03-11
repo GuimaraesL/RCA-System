@@ -12,6 +12,7 @@ from core.tools import (
     get_historical_rca_action_plan,
     get_historical_rca_triggers
 )
+from core.knowledge import get_fmea_knowledge
 from core.prompts import GLOBAL_RULES, MAIN_AGENT_PROMPT, MEDIA_ANALYSIS_RULES
 from core.memory import get_agent_memory
 
@@ -53,13 +54,13 @@ def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context:
             DuckDuckGoTools()
         ],
         skills=Skills(loaders=loaders) if loaders else None, 
-        # PIPELINE: Conhecimento de metodologia ja vem nas instructions/skills.
-        # Removemos knowledge completamente para eliminar buscas automaticas do Agno.
-        search_knowledge=False,
+        # PIPELINE: Conhecimento de metodologia e biblioteca técnica (FMEA)
+        knowledge=[get_fmea_knowledge()],
+        search_knowledge=True,
         db=get_agent_memory(session_id),
         read_chat_history=True,
         add_history_to_context=True,
-        num_history_runs=3, # RESTAURADO: Permite o Agente lembrar do historico sem quebrar fio da meada
+        num_history_runs=3, 
         debug_mode=True,
         markdown=True,
     )

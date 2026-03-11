@@ -77,7 +77,7 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                         {title}
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 font-medium">
-                        {items.length} {items.length === 1 ? 'ocorrência detectada' : 'ocorrências detectadas'}
+                        {items.length} {items.length === 1 ? t('wizard.step8.occurrenceFound') : t('wizard.step8.occurrencesFound')}
                     </p>
                 </div>
 
@@ -115,7 +115,7 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                                                 {/* THE DATE - Absolute Left Outside Table Buffer */}
                                                 <div className="absolute -left-[160px] top-1/2 -translate-y-1/2 w-28 text-right pr-4 pointer-events-none z-30">
                                                     <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight whitespace-nowrap">
-                                                        {item.failure_date ? new Date(item.failure_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'S/ DATA'}
+                                                        {item.failure_date ? new Date(item.failure_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : t('wizard.step8.noDate')}
                                                     </span>
                                                 </div>
 
@@ -145,7 +145,7 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                                                 </div>
                                                 <div className="flex flex-wrap items-center gap-2 mt-1">
                                                     <div className="flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500 bg-slate-100/50 dark:bg-white/5 w-fit px-2 py-0.5 rounded-md italic font-medium">
-                                                        <History className="w-3 h-3" /> {item.equipment_name || 'Equipamento não informado'}
+                                                        <History className="w-3 h-3" /> {item.equipment_name || t('wizard.step8.noEquipment')}
                                                     </div>
                                                 </div>
                                             </td>
@@ -172,7 +172,7 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                             {t('wizard.step8.title')}
                         </h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                            Exploração contextual de falhas sistêmicas para evitar reincidências
+                            {t('wizard.step8.searchHint')}
                         </p>
                     </div>
                 </div>
@@ -183,9 +183,8 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                     leftIcon={<RefreshCw className="w-4 h-4" />}
                     variant="primary"
                     size="md"
-                    className="shadow-md"
                 >
-                    Buscar Recorrências
+                    {t('wizard.step8.searchButton')}
                 </Button>
             </div>
 
@@ -196,7 +195,7 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                         <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
                             <Search className="w-8 h-8 text-slate-300" />
                         </div>
-                        <h4 className="text-slate-400 font-medium italic">Clique em "Buscar Recorrências" para explorar o histórico técnico.</h4>
+                        <h4 className="text-slate-400 font-medium italic">{t('wizard.step8.emptyHistory')}</h4>
                     </div>
                 ) : (
                     <>

@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from agno.os import AgentOS
 
 from core.config import KNOWLEDGE_PATH
-from core.knowledge import get_rca_history_knowledge, index_historical_rcas
+from core.knowledge import get_rca_history_knowledge, index_historical_rcas, get_fmea_knowledge, index_fmea_documents
 from api.routes import router as api_router
 
 @asynccontextmanager
@@ -19,6 +19,8 @@ async def lifespan(app: FastAPI):
     try:
         index_historical_rcas()
         print("[OK] Sincronização de RCAs concluída.")
+        index_fmea_documents()
+        print("[OK] Sincronização de FMEAs concluída.")
     except Exception as e:
         print(f"[ERROR] Falha na sincronização inicial: {e}")
     # Reload trigger comment
@@ -30,6 +32,7 @@ print(f"[KNOWLEDGE] Verificando Knowledge Path: {KNOWLEDGE_PATH}")
 if os.path.exists(KNOWLEDGE_PATH):
     print(f"[OK] Diretório de conhecimento encontrado.")
 history_kb = get_rca_history_knowledge()
+fmea_kb = get_fmea_knowledge()
 from core.memory import get_agent_memory
 storage = get_agent_memory("rca_system_storage")
 
@@ -43,7 +46,7 @@ rca_agent_preview = get_rca_agent("preview_agent", rca_context="Contexto de prev
 agent_os = AgentOS(
     name="RCA System OS",
     agents=[rca_agent_preview],
-    knowledge=[history_kb], 
+    knowledge=[history_kb, fmea_kb], 
     db=storage,             
     tracing=True
 )

@@ -17,6 +17,7 @@ const ActionsView = lazy(() => import('./components/views/ActionsView').then(m =
 const TriggersView = lazy(() => import('./components/triggers').then(m => ({ default: m.TriggersPage })));
 const SettingsView = lazy(() => import('./components/views/SettingsView').then(m => ({ default: m.SettingsView })));
 const MigrationView = lazy(() => import('./components/views/MigrationView').then(m => ({ default: m.MigrationView })));
+const FmeaView = lazy(() => import('./components/views/FmeaView').then(m => ({ default: m.FmeaView })));
 
 import { RcaProvider, useRcaContext } from './context/RcaContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -32,7 +33,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 const AppContent: React.FC = () => {
     const { t } = useLanguage();
-    const [view, setView] = useState<'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'TRIGGERS' | 'ASSETS' | 'SETTINGS' | 'MIGRATION'>('DASHBOARD');
+    const [view, setView] = useState<'DASHBOARD' | 'ANALYSES' | 'ACTIONS' | 'TRIGGERS' | 'ASSETS' | 'FMEA' | 'SETTINGS' | 'MIGRATION'>('DASHBOARD');
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState<RcaRecord | null>(null);
     const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
@@ -323,6 +324,7 @@ const AppContent: React.FC = () => {
                             {view === 'ANALYSES' && <AnalysesView onNew={openNew} onEdit={openEdit} />}
                             {view === 'ACTIONS' && <ActionsView onOpenRca={handleOpenRca} />}
                             {view === 'ASSETS' && <AssetsManager />}
+                            {view === 'FMEA' && <FmeaView />}
                             {view === 'SETTINGS' && <SettingsView />}
                             {view === 'MIGRATION' && <MigrationView />}
                         </div>

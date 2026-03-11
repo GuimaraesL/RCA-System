@@ -1,12 +1,14 @@
 # AI Service - Rotas da API
 # Endpoints de saúde e análise de causa raiz assistida por IA.
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, File, UploadFile
 from fastapi.responses import StreamingResponse
-from .models import AnalysisRequest, AnalysisResponse, RecurrenceInfo, FmeaExtractionRequest, FmeaExtractionResponse, MediaItem
-from core.knowledge import get_rca_history_knowledge
+import os
+import glob
+import shutil
+from .models import AnalysisRequest, AnalysisResponse, RecurrenceInfo, MediaItem
+from core.knowledge import get_rca_history_knowledge, index_fmea_documents
 from core.config import INTERNAL_AUTH_KEY, AGENT_MEMORY_PATH, BACKEND_URL
-from core.prompts import GLOBAL_RULES, FMEA_EXTRACTION_PROMPT
 from agno.utils.log import logger
 from agno.media import Image, Video
 import json
@@ -19,51 +21,68 @@ router = APIRouter()
 async def health_check():
     return {"status": "ok"}
 
-@router.post("/extract-fmea")
-async def extract_fmea(request: FmeaExtractionRequest, x_internal_key: str = Header(None)):
-    """
-    Extrai modos de falha estruturados de um texto bruto (manual ou OCR).
-    Retorna uma lista de objetos FmeaItem.
-    """
+@router.get("/fmea/files")
+async def list_fmea_files(x_internal_key: str = Header(None)):
     if x_internal_key != INTERNAL_AUTH_KEY:
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
+    
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    fmea_path = os.path.join(base_dir, "data", "fmea")
+    
+    if not os.path.exists(fmea_path):
+        return {"files": []}
+    
+    files = []
+    for f in glob.glob(os.path.join(fmea_path, "*.md")):
+        stats = os.stat(f)
+        files.append({
+            "name": os.path.basename(f),
+            "size": stats.st_size,
+            "modified": stats.st_mtime
+        })
+    return {"files": files}
 
+@router.post("/fmea/upload")
+async def upload_fmea_file(file: UploadFile = File(...), x_internal_key: str = Header(None)):
+    if x_internal_key != INTERNAL_AUTH_KEY:
+        raise HTTPException(status_code=403, detail="Invalid Internal Key")
+    
+    if not file.filename.endswith(".md"):
+        raise HTTPException(status_code=400, detail="Apenas arquivos .md são permitidos.")
+    
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    fmea_path = os.path.join(base_dir, "data", "fmea")
+    os.makedirs(fmea_path, exist_ok=True)
+    
+    file_path = os.path.join(fmea_path, file.filename)
     try:
-        from agno.agent import Agent
-        from agno.models.google import Gemini
-
-        # Criamos um agente temporário especialista em extração
-        extractor = Agent(
-            name="FMEA_Extractor",
-            model=Gemini(id="gemini-2.0-flash"), # Usamos o 2.0 flash para extração rápida e barata
-            instructions=[
-                GLOBAL_RULES.replace("{idioma}", request.ui_language),
-                FMEA_EXTRACTION_PROMPT.replace("{idioma}", request.ui_language)
-            ],
-            markdown=True
-        )
-
-        response = extractor.run(request.text)
-        content = response.content
-
-        # Tenta limpar o conteúdo se vier com blocos de código markdown
-        if "```json" in content:
-            content = content.split("```json")[-1].split("```")[0].strip()
-        elif "```" in content:
-            content = content.split("```")[-1].split("```")[0].strip()
-
-        # Parseia o JSON
-        try:
-            data = json.loads(content)
-            # Retorna no modelo esperado
-            return FmeaExtractionResponse(modes=data)
-        except json.JSONDecodeError:
-            logger.error(f"Erro ao parsear JSON da IA: {content}")
-            raise HTTPException(status_code=500, detail="A IA gerou um formato de dados inválido.")
-
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Re-indexa a biblioteca FMEA para incluir o novo arquivo no RAG
+        index_fmea_documents()
+        
+        return {"status": "success", "filename": file.filename}
     except Exception as e:
-        logger.error(f"Erro na extração FMEA: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Erro ao salvar arquivo: {str(e)}")
+
+@router.delete("/fmea/files/{filename}")
+async def delete_fmea_file(filename: str, x_internal_key: str = Header(None)):
+    if x_internal_key != INTERNAL_AUTH_KEY:
+        raise HTTPException(status_code=403, detail="Invalid Internal Key")
+    
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    fmea_path = os.path.join(base_dir, "data", "fmea")
+    file_path = os.path.join(fmea_path, filename)
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Arquivo não encontrado.")
+    
+    try:
+        os.remove(file_path)
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao deletar arquivo: {str(e)}")
 
 @router.delete("/analyze/history/{rca_id}")
 async def clear_chat_history(rca_id: str, x_internal_key: str = Header(None)):
