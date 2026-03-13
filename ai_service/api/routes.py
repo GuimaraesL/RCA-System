@@ -514,6 +514,22 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         from agents.main_agent import get_rca_agent
         ai_engine = get_rca_agent(str(request.rca_id), language=ui_lang)
 
+        # Persiste o contexto atual no banco para a ferramenta get_current_screen_context
+        try:
+            import sqlite3
+            conn = sqlite3.connect(AGENT_MEMORY_PATH)
+            cursor = conn.cursor()
+            # Garante que a entrada existe ou atualiza
+            cursor.execute("""
+                INSERT INTO rca_sessions (session_id, session_type, session_data, created_at)
+                VALUES (?, 'rca_analysis', ?, strftime('%s', 'now'))
+                ON CONFLICT(session_id) DO UPDATE SET session_data = excluded.session_data, updated_at = strftime('%s', 'now')
+            """, (str(request.rca_id), context_block))
+            conn.commit()
+            conn.close()
+        except Exception as db_err:
+            logger.error(f"Erro ao persistir contexto da tela: {db_err}")
+
         # 2. Monta o prompt final (Contexto Risco-Zero)
         # Verifica se o histórico está vazio para saber se é a primeira mensagem de chat real
         try:
@@ -532,17 +548,15 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
             
             if is_new_session:
                 if is_brief_affirmative:
-                    prompt = f"O usuário confirmou a análise sugerida. Realize a análise completa de causa raiz para a RCA ID: {request.rca_id} baseando-se no contexto abaixo:\n"
+                    prompt = f"O usuário confirmou a análise sugerida. Inicie a análise usando a ferramenta get_current_screen_context para ler os dados da tela e as RECORRÊNCIAS VALIDADAS abaixo para compor sua Causa Raiz."
                 else:
-                    prompt = f"Contexto inicial da RCA:\n{context_block}\n\nPergunta do Usuário: {prompt}"
+                    prompt = f"Pergunta do Usuário: {prompt}\n(Nota: Use get_current_screen_context se precisar de dados do equipamento/incidente atual)."
                 
-                # Injeta context_block e recurrences se for a primeira vez que o Agente atua
-                if context_block and "Contexto inicial" not in prompt: prompt = f"{context_block}\n" + prompt
+                # Injeta apenas as recorrências, o contexto da tela ele busca via ferramenta
                 if validated_recurrences_text: prompt += f"\n### RECORRÊNCIAS VALIDADAS:\n{validated_recurrences_text}\n"
         else:
             logger.info(f"📡 ROTA: Análise inicial automática -> Unified Agent Mode.")
-            prompt = f"Realize a análise completa de causa raiz para a RCA ID: {request.rca_id} baseando-se nos dados abaixo:\n"
-            if context_block: prompt += f"{context_block}\n"
+            prompt = f"Realize a análise completa de causa raiz para a RCA ID: {request.rca_id}. Comece lendo os dados atuais da tela com get_current_screen_context e considere as recorrências abaixo:\n"
             if validated_recurrences_text: prompt += f"\n### RECORRÊNCIAS VALIDADAS:\n{validated_recurrences_text}\n"
         logger.info(f"🔍 ROTA: Motor={type(ai_engine).__name__}, Prompt ({len(prompt)} chars)")
 
@@ -619,32 +633,20 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                             yield f"data: {json.dumps({'type': 'reasoning', 'text': f'Acionando habilidade: {tool_name}...'})}\n\n"
                             continue
 
-                        # --- LÓGICA DE SUPRESSÃO DE SUGESTÕES (SSE) ---
-                        if not is_inside_suggestions:
-                            if "<suggestions>" in content_str:
+                        # --- LÓGICA DE SUPRESSÃO ROBUSTA (SSE) ---
+                        # Assim que detectamos o início da tag no conteúdo acumulado, paramos de enviar deltas
+                        if "<suggestions" in full_response_content:
+                            if not is_inside_suggestions:
                                 is_inside_suggestions = True
-                                # Envia apenas o que veio ANTES da tag no mesmo chunk
-                                parts = content_str.split("<suggestions>")
-                                if parts[0]:
-                                    yield f"data: {json.dumps({'type': 'content', 'delta': parts[0]})}\n\n"
-                            else:
-                                # Proteção contra tags quebradas entre chunks (ex: <sugg... estions>)
-                                # Se o final do full_content indicar que uma tag está começando, paramos de enviar
-                                if "<suggestions" in full_response_content and "<suggestions>" not in full_response_content:
-                                    # Aguardamos a tag completar para decidir
-                                    pass 
-                                elif "<suggestions>" in full_response_content:
-                                    is_inside_suggestions = True
-                                else:
-                                    yield f"data: {json.dumps({'type': 'content', 'delta': content_str})}\n\n"
-                        else:
-                            # Se já estamos dentro, verificamos se a tag fechou (raro vir texto após)
-                            if "</suggestions>" in content_str:
-                                is_inside_suggestions = False
-                                # Se houver texto após a tag de fechamento, podemos enviar (opcional)
-                                parts = content_str.split("</suggestions>")
-                                if len(parts) > 1 and parts[1]:
-                                    yield f"data: {json.dumps({'type': 'content', 'delta': parts[1]})}\n\n"
+                                # Se a tag começou neste chunk, enviamos apenas o que veio antes dela
+                                if "<suggestions" in content_str:
+                                    clean_delta = content_str.split("<suggestions")[0]
+                                    if clean_delta:
+                                        yield f"data: {json.dumps({'type': 'content', 'delta': clean_delta})}\n\n"
+                            continue
+                        
+                        if not is_inside_suggestions:
+                            yield f"data: {json.dumps({'type': 'content', 'delta': content_str})}\n\n"
 
                 # Extração Final de Sugestões (do conteúdo acumulado completo)
                 import re

@@ -138,7 +138,9 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
                 }
             } else if (update.type === 'done') {
                 setStatus('done');
-                setMessages(prev => [...prev, { role: 'assistant', content: update.text || '', timestamp: new Date() }]);
+                // Limpeza de segurança para remover tags de sugestão residuais do texto final
+                const cleanContent = (update.text || '').replace(/<suggestions>[\s\S]*?<\/suggestions>/g, '').trim();
+                setMessages(prev => [...prev, { role: 'assistant', content: cleanContent, timestamp: new Date() }]);
                 setInsight('');
                 setReasoning('');
             } else if (update.type === 'error') {
@@ -170,7 +172,9 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
                 setDynamicSuggestions(update.suggestions);
             } else if (update.type === 'done') {
                 setStatus('done');
-                setMessages(prev => [...prev, { role: 'assistant', content: update.text || '', timestamp: new Date() }]);
+                // Limpeza de segurança para remover tags de sugestão residuais do texto final
+                const cleanContent = (update.text || '').replace(/<suggestions>[\s\S]*?<\/suggestions>/g, '').trim();
+                setMessages(prev => [...prev, { role: 'assistant', content: cleanContent, timestamp: new Date() }]);
                 setInsight('');
                 setReasoning('');
             } else if (update.type === 'error') {
