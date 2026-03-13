@@ -25,6 +25,7 @@ interface AiContextType {
     messages: Message[];
     insight: string;
     reasoning: string;
+    dynamicSuggestions: string[];
     recurrenceData: RecurrenceData;
     loadingRecurrences: boolean;
     error: string | null;
@@ -45,6 +46,7 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     const [messages, setMessages] = useState<Message[]>([]);
     const [insight, setInsight] = useState('');
     const [reasoning, setReasoning] = useState('');
+    const [dynamicSuggestions, setDynamicSuggestions] = useState<string[]>([]);
     const [recurrenceData, setRecurrenceData] = useState<RecurrenceData>(EMPTY_RECURRENCE);
     const [loadingRecurrences, setLoadingRecurrences] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -62,6 +64,7 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         setMessages([]);
         setInsight('');
         setReasoning('');
+        setDynamicSuggestions([]);
         setRecurrenceData(EMPTY_RECURRENCE);
         setError(null);
         setStatus('idle');
@@ -107,6 +110,7 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         setError(null);
         setInsight('');
         setReasoning('');
+        setDynamicSuggestions([]);
         setRecurrenceData(EMPTY_RECURRENCE);
 
         await streamAiAnalysis(rca, (update: StreamUpdate) => {
@@ -115,6 +119,8 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
                 setInsight(update.text);
             } else if (update.type === 'reasoning' && update.text) {
                 setReasoning(update.text);
+            } else if (update.type === 'suggestions' && update.suggestions) {
+                setDynamicSuggestions(update.suggestions);
             } else if (update.type === 'recurrence' && update.data) {
                 // Novo formato estruturado
                 if (update.data.subgroup || update.data.equipment || update.data.area) {
@@ -152,6 +158,7 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         setError(null);
         setInsight('');
         setReasoning('');
+        setDynamicSuggestions([]);
 
         await streamAiAnalysis(rca, (update: StreamUpdate) => {
             if (update.type === 'content' && update.text) {
@@ -159,6 +166,8 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
                 setInsight(update.text);
             } else if (update.type === 'reasoning' && update.text) {
                 setReasoning(update.text);
+            } else if (update.type === 'suggestions' && update.suggestions) {
+                setDynamicSuggestions(update.suggestions);
             } else if (update.type === 'done') {
                 setStatus('done');
                 setMessages(prev => [...prev, { role: 'assistant', content: update.text || '', timestamp: new Date() }]);
@@ -173,7 +182,7 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
     return (
         <AiContext.Provider value={{
-            isAiOpen, setAiOpen, status, messages, insight, reasoning, recurrenceData, loadingRecurrences, error, analyzeRca, chatWithAi, loadHistory, loadRecurrences, clearAi, setMessages
+            isAiOpen, setAiOpen, status, messages, insight, reasoning, dynamicSuggestions, recurrenceData, loadingRecurrences, error, analyzeRca, chatWithAi, loadHistory, loadRecurrences, clearAi, setMessages
         }}>
             {children}
         </AiContext.Provider>

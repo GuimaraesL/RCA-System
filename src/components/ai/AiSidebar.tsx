@@ -38,7 +38,7 @@ const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
 
 export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, rcaData, onApplySuggestion }) => {
     const { t } = useLanguage();
-    const { status, messages, insight, reasoning, recurrenceData, error, analyzeRca, chatWithAi, clearAi, loadHistory, setMessages } = useAi();
+    const { status, messages, insight, reasoning, dynamicSuggestions, recurrenceData, error, analyzeRca, chatWithAi, clearAi, loadHistory, setMessages } = useAi();
     const [chatInput, setChatInput] = useState('');
     const [hasLoadedHistory, setHasLoadedHistory] = useState(false);
     const [subExpanded, setSubExpanded] = useState(true);
@@ -147,6 +147,11 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
     };
 
     const getContextualSuggestions = (): string[] => {
+        // Se a IA enviou sugestões dinâmicas para a última resposta, usamos elas.
+        if (dynamicSuggestions && dynamicSuggestions.length > 0) {
+            return dynamicSuggestions;
+        }
+
         const lastMsg = messages.length > 0 ? messages[messages.length - 1] : undefined;
         const totalRecurrences = recurrenceData.subgroup.length + recurrenceData.equipment.length + recurrenceData.area.length;
         return getSuggestionsForContext({

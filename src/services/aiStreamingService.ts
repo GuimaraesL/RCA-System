@@ -4,8 +4,9 @@ const AI_API_URL = '/ai/analyze';
 const INTERNAL_KEY = 'dev-key-change-it';
 
 export interface StreamUpdate {
-    type: 'content' | 'recurrence' | 'reasoning' | 'done' | 'error';
+    type: 'content' | 'recurrence' | 'reasoning' | 'suggestions' | 'done' | 'error';
     text?: string;
+    suggestions?: string[];
     data?: any;
 }
 
@@ -195,6 +196,10 @@ export const streamAiAnalysis = async (
                     // Novo formato de Thought Streaming: { type: 'reasoning', text: '...' }
                     else if (parsed.type === 'reasoning' && parsed.text) {
                         onUpdate({ type: 'reasoning', text: parsed.text });
+                    }
+                    // Novo formato de Sugestões: { type: 'suggestions', suggestions: ['...', '...'] }
+                    else if (parsed.type === 'suggestions' && parsed.suggestions) {
+                        onUpdate({ type: 'suggestions', suggestions: parsed.suggestions });
                     }
                     // Legado/Backup: Se for string pura
                     else if (typeof parsed === 'string') {

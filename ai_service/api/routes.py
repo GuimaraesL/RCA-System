@@ -553,6 +553,8 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
             if recurrences and not request.user_prompt:
                 yield f"data: {json.dumps({'type': 'metadata', 'subgroup_matches': [r.dict() for r in subgroup_matches], 'equipment_matches': [r.dict() for r in equipment_matches], 'area_matches': [r.dict() for r in area_matches]})}\n\n"
 
+            full_response_content = ""
+            is_inside_suggestions = False
             try:
                 logger.info(f"📡 DEBUG: Chamando motor de IA para prompt de {len(prompt)} chars")
 
@@ -572,6 +574,7 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
 
                     if content:
                         content_str = str(content)
+                        full_response_content += content_str
 
                         # --- SANITIZAÇÃO DE MERMAID (ANTI-ALUCINAÇÃO) ---
                         # Remove escapes de quebra de linha literais (\n) que o modelo insiste em colocar
@@ -616,13 +619,49 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                             yield f"data: {json.dumps({'type': 'reasoning', 'text': f'Acionando habilidade: {tool_name}...'})}\n\n"
                             continue
 
-                        yield f"data: {json.dumps({'type': 'content', 'delta': content_str})}\n\n"
+                        # --- LÓGICA DE SUPRESSÃO DE SUGESTÕES (SSE) ---
+                        if not is_inside_suggestions:
+                            if "<suggestions>" in content_str:
+                                is_inside_suggestions = True
+                                # Envia apenas o que veio ANTES da tag no mesmo chunk
+                                parts = content_str.split("<suggestions>")
+                                if parts[0]:
+                                    yield f"data: {json.dumps({'type': 'content', 'delta': parts[0]})}\n\n"
+                            else:
+                                # Proteção contra tags quebradas entre chunks (ex: <sugg... estions>)
+                                # Se o final do full_content indicar que uma tag está começando, paramos de enviar
+                                if "<suggestions" in full_response_content and "<suggestions>" not in full_response_content:
+                                    # Aguardamos a tag completar para decidir
+                                    pass 
+                                elif "<suggestions>" in full_response_content:
+                                    is_inside_suggestions = True
+                                else:
+                                    yield f"data: {json.dumps({'type': 'content', 'delta': content_str})}\n\n"
+                        else:
+                            # Se já estamos dentro, verificamos se a tag fechou (raro vir texto após)
+                            if "</suggestions>" in content_str:
+                                is_inside_suggestions = False
+                                # Se houver texto após a tag de fechamento, podemos enviar (opcional)
+                                parts = content_str.split("</suggestions>")
+                                if len(parts) > 1 and parts[1]:
+                                    yield f"data: {json.dumps({'type': 'content', 'delta': parts[1]})}\n\n"
+
+                # Extração Final de Sugestões (do conteúdo acumulado completo)
+                import re
+                suggestions_match = re.search(r'<suggestions>(.*?)</suggestions>', full_response_content, re.DOTALL)
+                if suggestions_match:
+                    suggestions_text = suggestions_match.group(1).strip()
+                    suggestions_list = [s.strip() for s in suggestions_text.split('|') if s.strip()]
+                    if suggestions_list:
+                        yield f"data: {json.dumps({'type': 'suggestions', 'suggestions': suggestions_list})}\n\n"
+
             except Exception as stream_e:
                 print(f"ERROR no streaming: {stream_e}")
                 yield f"data: {json.dumps({'type': 'error', 'text': str(stream_e)})}\n\n"
 
             print("DEBUG: Stream finalizado.")
             yield "data: [DONE]\n\n"
+
 
         return StreamingResponse(stream_output(), media_type="text/event-stream")
 

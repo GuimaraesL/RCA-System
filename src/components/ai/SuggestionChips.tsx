@@ -21,12 +21,13 @@ export const SuggestionChips: React.FC<SuggestionChipsProps> = ({
     if (!visible || suggestions.length === 0) return null;
 
     return (
-        <div className="flex flex-wrap gap-2 px-4 py-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="flex flex-wrap gap-2 px-4 py-3 min-h-[44px]">
             {suggestions.map((suggestion, index) => (
                 <button
-                    key={index}
+                    key={`${suggestion}-${index}`}
                     onClick={() => onSuggestionClick(suggestion)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-primary-50 dark:bg-slate-800 dark:hover:bg-primary-900/30 text-slate-600 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400 text-xs font-bold border border-slate-200 dark:border-slate-700 hover:border-primary-200 dark:hover:border-primary-800 transition-all shadow-sm active:scale-95 group"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-primary-50 dark:bg-slate-800 dark:hover:bg-primary-900/30 text-slate-600 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400 text-xs font-bold border border-slate-200 dark:border-slate-700 hover:border-primary-200 dark:hover:border-primary-800 transition-all shadow-sm active:scale-95 group animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-forwards"
+                    style={{ animationDelay: `${index * 100}ms` }}
                 >
                     <Sparkles size={12} className="text-primary-500 group-hover:animate-pulse" />
                     {suggestion}
