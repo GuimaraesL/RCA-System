@@ -143,21 +143,51 @@ async def delete_fmea_file(filename: str, x_internal_key: str = Header(None)):
 
 @router.delete("/analyze/history/{rca_id}")
 async def clear_chat_history(rca_id: str, x_internal_key: str = Header(None)):
-    """Limpa o histórico de chat de uma sessão do banco SQLite do agente."""
+    """Limpa o histórico de chat de uma sessão do banco SQLite do agente (Limpeza Profunda)."""
     if x_internal_key != INTERNAL_AUTH_KEY:
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
 
     from agents.main_agent import get_rca_agent
+    import sqlite3
+    
+    # Obtém o agente para ter acesso ao session_id correto (geralmente rca_id)
     agent = get_rca_agent(rca_id)
+    sid = agent.session_id
     
     try:
-        agent.delete_session(agent.session_id)
-        return {"status": "success", "message": "Histórico limpo"}
-    except Exception as e:
-        logger.error(f"Erro ao limpar histórico {rca_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Erro ao limpar banco: {e}")
+        # 1. Limpeza nativa do Agno (agno_sessions e agno_memories)
+        agent.delete_session(sid)
+        
+        # 2. Limpeza Manual Profunda (Telemetria e Tabelas Customizadas)
+        # Como o Agno não limpa traces/spans por padrão, fazemos manualmente para economizar espaço
+        conn = sqlite3.connect(AGENT_MEMORY_PATH)
+        cursor = conn.cursor()
+        
+        # Lista de tabelas para limpeza baseada no session_id
+        tables_to_clean = ["rca_sessions", "agno_traces"]
+        
+        for table in tables_to_clean:
+            cursor.execute(f"DELETE FROM {table} WHERE session_id = ?", (sid,))
             
-    return {"status": "ok", "message": "Nenhum histórico ativo encontrado."}
+        # Limpeza de spans (vinculados ao trace_id que por sua vez vincula ao session_id)
+        # Deletamos spans cujos traces foram (ou seriam) deletados
+        cursor.execute("""
+            DELETE FROM agno_spans 
+            WHERE trace_id IN (SELECT trace_id FROM agno_traces WHERE session_id = ?)
+        """, (sid,))
+        
+        # Deletamos os traces novamente após limpar os spans (garantia de integridade)
+        cursor.execute("DELETE FROM agno_traces WHERE session_id = ?", (sid,))
+        
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"🧹 Limpeza profunda concluída para a sessão: {sid}")
+        return {"status": "success", "message": "Histórico e telemetria limpos com sucesso"}
+        
+    except Exception as e:
+        logger.error(f"❌ Erro ao realizar limpeza profunda na RCA {rca_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Erro ao limpar banco: {e}")
 
 @router.get("/analyze/history/{rca_id}")
 async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
