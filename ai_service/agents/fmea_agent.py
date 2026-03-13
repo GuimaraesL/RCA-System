@@ -16,7 +16,7 @@ def get_fmea_agent():
     return Agent(
         name="FMEA_Technical_Specialist",
         role="Especialista em Engenharia de Manutenção",
-        model=Gemini(id="gemini-2.0-flash"),
+        model=Gemini(id="gemini-2.5-flash"),
         instructions=[FMEA_AGENT_PROMPT],
         tools=[
             get_asset_fmea_tool,

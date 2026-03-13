@@ -11,6 +11,15 @@ O Diagrama de Ishikawa (também conhecido como Diagrama de Espinha de Peixe ou F
 5. **Medição (Measurement):** Monitoramento e controle. Qualidade dos registros de manutenção, frequência de falhas históricas, calibração de instrumentos e dados de inspeções técnicas periódicas.
 6. **Meio ambiente (Environment):** Condições do pavilhão industrial. Temperatura ambiente afetando viscosidade de óleos, vibrações externas, iluminação da área e umidade.
 
+## Diretrizes de Sintaxe Mermaid (Obrigatório)
+
+Para evitar quebras na renderização do diagrama, siga estas regras:
+1. **PROIBIDO o uso de parênteses `()`** dentro de nomes de nós ou labels.
+2. Para incluir descrições com caracteres especiais, use colchetes `[]` e aspas duplas. 
+   - *Incorreto:* `M1[Falha (Vazamento)]`
+   - *Correto:* `M1["Falha - Vazamento"]` ou `M1["Falha [Vazamento]"]`
+3. Use IDs curtos (ex: M1, Met1, Mat1) e coloque o texto descritivo entre aspas.
+
 ## Exemplo Real (Marca Mecânica em Cilindro de Laminação)
 
 **Problema Central:** Aparecimento de marcas mecânicas repetitivas no cilindro Work Roll.

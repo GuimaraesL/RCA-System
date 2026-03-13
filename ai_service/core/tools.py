@@ -5,6 +5,17 @@ import httpx
 from .config import BACKEND_URL, INTERNAL_AUTH_KEY
 from .knowledge import get_fmea_knowledge
 
+from agno.run import RunContext
+
+def get_current_screen_context(run_context: RunContext):
+    """
+    Retorna os dados que o usuário está vendo na tela no exato momento da requisição.
+    Use esta ferramenta SEMPRE que precisar identificar o Ativo, o Título ou a Descrição do incidente ATUAL.
+    """
+    if run_context.session_state and "screen_context" in run_context.session_state:
+        return f"DADOS ATUAIS DA TELA:\n{run_context.session_state['screen_context']}"
+    return "Nenhum contexto dinâmico foi passado para esta sessão no session_state."
+
 def get_asset_fmea_tool(query: str):
     """
     Busca modos de falha mapeados para este ativo na biblioteca técnica FMEA do sistema.
@@ -92,85 +103,132 @@ def get_full_rca_detail_tool(rca_id: str):
     except Exception as e:
         return f"Erro na comunicação com o backend para detalhamento da RCA: {str(e)}"
 
-def search_historical_rcas_tool(query: str, subgroup_id: str = None, equipment_id: str = None, area_id: str = None, search_scope: str = "auto"):
+def search_historical_rcas_tool(query: str, run_context: RunContext, subgroup_id: str = None, equipment_id: str = None, area_id: str = None, search_scope: str = "auto"):
     """
-    Busca RCAs históricas no banco vetorial (conhecimento coletivo) por similaridade semântica.
-    ESTA FERRAMENTA RETORNA APENAS O 'MAPA'. Use get_full_rca_detail_tool para ver o conteúdo completo do ID encontrado.
+    Busca RCAs históricas usando a estratégia hierárquica (Subgrupo > Equipamento > Área).
+    Utiliza o contexto integral bruto da tela para garantir a mesma assertividade da API original.
 
     Args:
-        query (str): Termo de busca (ex: 'vazamento de óleo', 'falha rolamento').
-        subgroup_id (str, optional): ID do subgrupo para busca restrita.
-        equipment_id (str, optional): ID do equipamento para busca restrita.
-        area_id (str, optional): ID da área para busca restrita.
-        search_scope (str): 'auto' (segue hierarquia Subgrupo > Equipamento > Área), 
-                          'subgroup', 'equipment' ou 'area' para busca fixa em um nível.
+        query (str): Sugestão de busca da IA.
+        run_context (RunContext): Contexto para extração automática de IDs e dados da tela.
+        subgroup_id (str, optional): ID do subgrupo.
+        equipment_id (str, optional): ID do equipamento.
+        area_id (str, optional): ID da área.
+        search_scope (str): 'auto' realiza a busca hierárquica completa.
     """
-    print(f"DEBUG TOOL: search_historical_rcas_tool chamado com query='{query}', scope='{search_scope}'")
+    print(f"DEBUG TOOL: search_historical_rcas_tool chamado")
+    
+    # --- EXTRAÇÃO DE CONTEXTO INTEGRAL (EXATAMENTE COMO VEM DA TELA) ---
+    raw_screen_context = ""
+    
+    if run_context.session_state and "screen_context" in run_context.session_state:
+        raw_screen_context = run_context.session_state["screen_context"]
+        try:
+            # Tenta parsear para extrair os IDs de segurança
+            ctx_str = raw_screen_context
+            if isinstance(ctx_str, str) and "{" in ctx_str:
+                import json
+                clean_ctx = ctx_str.replace("DADOS ATUAIS DA TELA:\n", "").strip()
+                ctx_data = json.loads(clean_ctx)
+                
+                # Extrai da raiz ou do nó 'hierarchy' (Padrão do Frontend)
+                hierarchy = ctx_data.get("hierarchy", {})
+                area_id = area_id or ctx_data.get("area_id") or hierarchy.get("area")
+                equipment_id = equipment_id or ctx_data.get("equipment_id") or hierarchy.get("equipment")
+                subgroup_id = subgroup_id or ctx_data.get("subgroup_id") or hierarchy.get("subgroup")
+                
+            elif isinstance(raw_screen_context, dict):
+                ctx_data = raw_screen_context
+                hierarchy = ctx_data.get("hierarchy", {})
+                area_id = area_id or ctx_data.get("area_id") or hierarchy.get("area")
+                equipment_id = equipment_id or ctx_data.get("equipment_id") or hierarchy.get("equipment")
+                subgroup_id = subgroup_id or ctx_data.get("subgroup_id") or hierarchy.get("subgroup")
+                raw_screen_context = json.dumps(raw_screen_context, ensure_ascii=False)
+        except Exception as e:
+            print(f"DEBUG TOOL: Erro ao processar JSON do contexto: {e}")
+
+    # A query de busca vetorial DEVE ser o contexto bruto completo, 
+    # exatamente como era feito antes para capturar toda a semântica.
+    search_query = raw_screen_context if raw_screen_context else query
+
+    if not area_id:
+        return "Erro de Segurança: Não foi possível identificar a Manufatura (Área). Informe o Ativo primeiro."
+
     from .knowledge import get_rca_history_knowledge
     knowledge_base = get_rca_history_knowledge()
     
-    # Define a ordem de fallback se o escopo for 'auto'
-    hierarchy_configs = [
-        ("subgroup", subgroup_id),
-        ("equipment", equipment_id),
-        ("area", area_id)
-    ]
-    
-    results = []
-    level_found = "Geral"
-    
+    seen_ids = set()
+    subgroup_candidates = []
+    equipment_candidates = []
+    area_candidates = []
+
     try:
-        if search_scope == "auto":
-            # Tenta do mais específico para o mais abrangente
-            for level_name, level_id in hierarchy_configs:
-                if level_id:
-                    filters = {f"{level_name}_id": str(level_id)}
-                    res = knowledge_base.vector_db.search(query=query, limit=5, filters=filters)
-                    if res:
-                        results = res
-                        level_found = level_name
-                        break
-            
-            # Se ainda não houver resultados e nenhum ID foi passado, faz busca global
-            if not results:
-                results = knowledge_base.vector_db.search(query=query, limit=5)
-        else:
-            # Busca em escopo específico solicitado pelo agente
-            target_id = None
-            if search_scope == "subgroup": target_id = subgroup_id
-            elif search_scope == "equipment": target_id = equipment_id
-            elif search_scope == "area": target_id = area_id
-            
-            filters = {f"{search_scope}_id": str(target_id)} if target_id else None
-            results = knowledge_base.vector_db.search(query=query, limit=5, filters=filters)
-            level_found = search_scope
+        # NÍVEL 1: Mesmo Subgrupo + Mesmo Equipamento (Precisão Máxima)
+        if subgroup_id and equipment_id:
+            f1 = {"$and": [{"subgroup_id": str(subgroup_id)}, {"equipment_id": str(equipment_id)}, {"area_id": str(area_id)}]}
+            res1 = knowledge_base.vector_db.search(query=search_query, limit=15, filters=f1)
+            for r in res1:
+                rid = r.meta_data.get("rca_id")
+                if rid and rid not in seen_ids:
+                    subgroup_candidates.append(r)
+                    seen_ids.add(rid)
 
-        if not results:
-            return f"Nenhuma RCA histórica foi encontrada no RAG para a busca: '{query}' dentro do escopo '{search_scope}'."
-            
-        formatted_results = []
-        for doc in results:
-            rid = doc.meta_data.get("rca_id", "Desconhecido")
-            asset = doc.meta_data.get("asset", "N/A")
-            
-            # Extrai apenas titulo e causa para o resumo (economiza tokens)
-            title = "Sem titulo"
-            cause = "Causa nao identificada"
-            for line in doc.content.split('\n'):
-                if "TITULO/O QUE" in line or "TÍTULO/O QUE" in line: 
-                    title = line.split(":", 1)[-1].strip() if ":" in line else line.strip()
-                if "CAUSAS RAIZ" in line: 
-                    cause = line.split(":", 1)[-1].strip()[:150] if ":" in line else line.strip()[:150]
+        # NÍVEL 2: Mesmo Equipamento (Outros Subgrupos)
+        if equipment_id:
+            f2 = {"$and": [{"equipment_id": str(equipment_id)}, {"area_id": str(area_id)}]}
+            res2 = knowledge_base.vector_db.search(query=search_query, limit=15, filters=f2)
+            for r in res2:
+                rid = r.meta_data.get("rca_id")
+                if rid and rid not in seen_ids:
+                    equipment_candidates.append(r)
+                    seen_ids.add(rid)
 
-            formatted_results.append(
-                f"- ID: {rid} | Ativo: {asset} | Nivel: {level_found.upper()}\n"
-                f"  Titulo: {title}\n"
-                f"  Causa: {cause}"
-            )
-            
-        return "RCAS HISTORICAS (RESUMO - use get_full_rca_detail_tool para detalhes):\n\n" + "\n".join(formatted_results)
+        # NÍVEL 3: Mesma Área (Transversal na Manufatura)
+        f3 = {"area_id": str(area_id)}
+        res3 = knowledge_base.vector_db.search(query=search_query, limit=20, filters=f3)
+        for r in res3:
+            rid = r.meta_data.get("rca_id")
+            if rid and rid not in seen_ids:
+                area_candidates.append(r)
+                seen_ids.add(rid)
+
+        all_candidates = subgroup_candidates + equipment_candidates + area_candidates
+
+        if not all_candidates:
+            return f"Nenhuma recorrência técnica encontrada para o problema na Área: {area_id}."
+
+        # ESTÁGIO 2: VALIDAÇÃO TÉCNICA (Usando o JSON bruto como problema)
+        from agents.rag_validator import get_rag_validator
+        validator = get_rag_validator()
+        
+        candidate_texts = []
+        # Função auxiliar para formatar texto de candidatos com nível
+        def format_candidates(candidates, label):
+            for r in candidates:
+                rid = r.meta_data.get("rca_id", "unknown")
+                meta = f"ID_RCA: {rid} | CATEGORIA: {label} | Equipamento: {r.meta_data.get('equipment_id', 'N/A')}"
+                candidate_texts.append(f"{meta}\nCONTEÚDO:\n{r.content}\n---")
+
+        format_candidates(subgroup_candidates, "MESMO SUBGRUPO/EQUIPAMENTO")
+        format_candidates(equipment_candidates, "MESMO EQUIPAMENTO (OUTROS SETORES)")
+        format_candidates(area_candidates, "OUTROS EQUIPAMENTOS (MESMA ÁREA)")
+
+        validation_prompt = (
+            f"PROBLEMA ATUAL (DADOS INTEGRAIS DA TELA):\n{search_query}\n\n"
+            f"CANDIDATOS DO RAG:\n" + "\n".join(candidate_texts)
+        )
+        
+        validation_response = validator.run(validation_prompt)
+        
+        return (
+            f"### RECORRÊNCIAS HISTÓRICAS VALIDADAS (NA ÁREA {area_id}):\n"
+            f"{validation_response.content}\n\n"
+            f"**NOTA PARA MÉTRICAS:** Use apenas as RCAs da categoria 'MESMO SUBGRUPO/EQUIPAMENTO' para o cálculo de MTBF real do Ativo. "
+            f"As demais servem para inteligência de modo de falha transversal."
+        )
+        
     except Exception as e:
-        return f"Erro ao realizar a busca RAG: {str(e)}"
+        return f"Erro no processo de RAG: {str(e)}"
 
 def get_historical_rca_summary(rca_id: str) -> str:
     """

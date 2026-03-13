@@ -13,7 +13,7 @@ def get_hfacs_agent():
     return Agent(
         name="Human_Factors_Investigator",
         role="Especialista em Psicologia Organizacional e Segurança do Trabalho",
-        model=Gemini(id="gemini-2.0-flash"),
+        model=Gemini(id="gemini-2.5-flash"),
         instructions=[HFACS_AGENT_PROMPT],
         markdown=True,
         debug_mode=True,

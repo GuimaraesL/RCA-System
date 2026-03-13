@@ -14,7 +14,7 @@ def get_media_analyst_agent():
     return Agent(
         name="Media_Failure_Analyst",
         role="Perito em Engenharia e Análise Visual de Materiais",
-        model=Gemini(id="gemini-2.0-flash"),
+        model=Gemini(id="gemini-2.5-flash"),
         instructions=[MEDIA_ANALYST_PROMPT],
         markdown=True,
         debug_mode=True,

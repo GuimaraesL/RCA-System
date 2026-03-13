@@ -469,39 +469,7 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                         logger.error(f"[Media] Falha ao baixar midia {media_url}: {media_err}")
 
         # ============================================================
-        # ESTÁGIO 2: VALIDAÇÃO LLM DAS RECORRÊNCIAS (Pipeline 2-Stage RAG)
-        # ============================================================
-        validated_recurrences_text = None
-        if recurrences and is_initial_analysis:
-            try:
-                from agents.rag_validator import get_rag_validator
-                validator = get_rag_validator()
-                
-                # Monta o prompt de validação com os candidatos BRUTOS (Toda a história)
-                candidate_texts = []
-                for r in recurrences:
-                    # Aqui formatamos a exibição real para o LLM injetando raw_content
-                    item = f"ID_RCA: {r.rca_id} | Hierarquia do Incidente: {r.equipment_name} | Algoritmo do RAG (Nível): {r.level}\n"
-                    item += f"--- CONTEÚDO INTEGRAL DA ANÁLISE ---\n{r.raw_content}\n------------------------------------"
-                    candidate_texts.append(item)
-                
-                validation_prompt = (
-                    f"PROBLEMA ATUAL:\n{query_text}\n"
-                    f"Ativo Atual: {asset_info}\n\n"
-                    f"CANDIDATOS DO RAG (ChromaDB):\n" + "\n\n".join(candidate_texts)
-                )
-                
-                logger.info(f"[RAG-VALIDATOR] Validando {len(recurrences)} candidatos (Texto Bruto Injetado)...")
-                validation_response = validator.run(validation_prompt)
-                validated_recurrences_text = validation_response.content
-                logger.info(f"[RAG-VALIDATOR] Resultado: {validated_recurrences_text[:200]}...")
-            except Exception as val_err:
-                logger.error(f"[RAG-VALIDATOR] Erro na validação: {val_err}")
-                # Fallback: se o validador falhar, injeta tudo como antes
-                validated_recurrences_text = "\n".join([f"- RCA {r.rca_id}: {r.raw_content[:200]}..." for r in recurrences])
-
-        # ============================================================
-        # ESTÁGIO 3: COPILOTO RCA (Agente Principal)
+        # COPILOTO RCA (Agente Principal)
         # ============================================================
         # Contexto do incidente (dados da tela + evidencias visuais)
         context_block = ""
@@ -513,22 +481,6 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
 
         from agents.main_agent import get_rca_agent
         ai_engine = get_rca_agent(str(request.rca_id), language=ui_lang)
-
-        # Persiste o contexto atual no banco para a ferramenta get_current_screen_context
-        try:
-            import sqlite3
-            conn = sqlite3.connect(AGENT_MEMORY_PATH)
-            cursor = conn.cursor()
-            # Garante que a entrada existe ou atualiza
-            cursor.execute("""
-                INSERT INTO rca_sessions (session_id, session_type, session_data, created_at)
-                VALUES (?, 'rca_analysis', ?, strftime('%s', 'now'))
-                ON CONFLICT(session_id) DO UPDATE SET session_data = excluded.session_data, updated_at = strftime('%s', 'now')
-            """, (str(request.rca_id), context_block))
-            conn.commit()
-            conn.close()
-        except Exception as db_err:
-            logger.error(f"Erro ao persistir contexto da tela: {db_err}")
 
         # 2. Monta o prompt final (Contexto Risco-Zero)
         # Verifica se o histórico está vazio para saber se é a primeira mensagem de chat real
@@ -548,16 +500,17 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
             
             if is_new_session:
                 if is_brief_affirmative:
-                    prompt = f"O usuário confirmou a análise sugerida. Inicie a análise usando a ferramenta get_current_screen_context para ler os dados da tela e as RECORRÊNCIAS VALIDADAS abaixo para compor sua Causa Raiz."
+                    prompt = f"O usuário confirmou a análise sugerida. Inicie a análise usando a ferramenta get_current_screen_context para ler os dados da tela e busque o histórico técnico para compor sua Causa Raiz."
                 else:
-                    prompt = f"Pergunta do Usuário: {prompt}\n(Nota: Use get_current_screen_context se precisar de dados do equipamento/incidente atual)."
-                
-                # Injeta apenas as recorrências, o contexto da tela ele busca via ferramenta
-                if validated_recurrences_text: prompt += f"\n### RECORRÊNCIAS VALIDADAS:\n{validated_recurrences_text}\n"
+                    prompt = f"Pergunta do Usuário: {prompt}\n(Nota: Use get_current_screen_context se precisar de dados do equipamento atual e search_historical_rcas_tool para recorrências)."
         else:
             logger.info(f"📡 ROTA: Análise inicial automática -> Unified Agent Mode.")
-            prompt = f"Realize a análise completa de causa raiz para a RCA ID: {request.rca_id}. Comece lendo os dados atuais da tela com get_current_screen_context e considere as recorrências abaixo:\n"
-            if validated_recurrences_text: prompt += f"\n### RECORRÊNCIAS VALIDADAS:\n{validated_recurrences_text}\n"
+            prompt = f"### MISSÃO: Realizar análise completa de causa raiz para a RCA ID: {request.rca_id}.\n"
+            prompt += "PASSO 1: Use obrigatoriamente `get_current_screen_context` para identificar o ATIVO e o PROBLEMA.\n"
+            prompt += "PASSO 2: Use `search_historical_rcas_tool` para buscar e validar recorrências no histórico.\n"
+            prompt += "PASSO 3: Gere a Causa Raiz, Ishikawa (OBRIGATORIAMENTE em sintaxe Mermaid) e 5 Porquês.\n"
+            prompt += "NOTA VITAL: Formate IDs de RCA como links Markdown [ID](#/rca/ID). NUNCA mencione nomes de ferramentas (metalinguagem).\n"
+        
         logger.info(f"🔍 ROTA: Motor={type(ai_engine).__name__}, Prompt ({len(prompt)} chars)")
 
         # 4. Gerador de Streaming para SSE compatível com Agno 2.x e o Frontend
@@ -573,7 +526,14 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                 logger.info(f"📡 DEBUG: Chamando motor de IA para prompt de {len(prompt)} chars")
 
                 # ai_engine.arun(stream=True) retorna AsyncIterator nativo
-                async for event in ai_engine.arun(prompt, stream=True, stream_intermediate_steps=True, images=images or None, videos=videos or None):
+                async for event in ai_engine.arun(
+                    prompt, 
+                    stream=True, 
+                    stream_intermediate_steps=True, 
+                    images=images or None, 
+                    videos=videos or None,
+                    session_state={"screen_context": context_block}
+                ):
                     logger.debug(f"📡 DEBUG: Evento Agent: {type(event)}")
 
                     event_type = type(event).__name__
@@ -595,58 +555,65 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                         if "graph LR" in content_str or "subgraph" in content_str:
                             content_str = content_str.replace("\\n", "\n").replace("\\\"", "\"")
 
-                        if content_str.startswith("search_historical_rcas_tool"):
-                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Consultando o histórico de falhas e arquivos mortos...'})}\n\n"
-                            continue
-                        elif content_str.startswith("get_asset_fmea_tool"):
-                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Analisando banco de FMEA do ativo...'})}\n\n"
-                            continue
-                        elif "FMEA_Technical_Specialist" in content_str:
-                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Consultando Especialista em FMEA...'})}\n\n"
-                            continue
-                        elif "Media_Failure_Analyst" in content_str:
-                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Analisando evidências visuais (fotos/vídeos)...'})}\n\n"
-                            continue
-                        elif "Human_Factors_Investigator" in content_str:
-                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Investigando fatores humanos e organizacionais...'})}\n\n"
-                            continue
-                        elif "get_deterministic_fmea_tool" in content_str:
-                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Acessando modos de falha determinísticos no banco FMEA...'})}\n\n"
-                            continue
-                        elif "calculate_reliability_metrics_tool" in content_str:
-                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Calculando indicadores de confiabilidade (MTBF/MTTR)...'})}\n\n"
-                            continue
-                        elif content_str.startswith("get_full_rca_detail_tool"):
-                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Acessando conteúdo integral e triggers da RCA selecionada...'})}\n\n"
-                            continue
-                        elif "completed in" in content_str and ("tool" in content_str or "Tool" in content_str):
-                            continue
-                        elif content_str.startswith("get_rca_context_tool"):
-                            continue
-                        elif content_str.startswith("Transferring"):
-                            yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Coordenando fluxo de trabalho...'})}\n\n"
-                            continue
-                        elif content_str.startswith("Running"):
-                            # Extrai o nome real da ferramenta que o Agno loga (ex: "Running tool get_skill_reference")
-                            tool_name = content_str.replace("Running tool", "").strip() or "especializada"
-                            if "DuckDuckGo" in tool_name or tool_name == "duckduckgo": tool_name = "Busca Web Livre"
-                            yield f"data: {json.dumps({'type': 'reasoning', 'text': f'Acionando habilidade: {tool_name}...'})}\n\n"
+                        # --- LISTA DE SUPRESSÃO TÉCNICA (ANTI-LEAK) ---
+                        # Ignora chunks que são claramente nomes de ferramentas ou logs de execução
+                        technical_keywords = [
+                            "search_historical_rcas_tool", "get_asset_fmea_tool", 
+                            "get_deterministic_fmea_tool", "calculate_reliability_metrics_tool",
+                            "get_full_rca_detail_tool", "get_historical_rca_summary",
+                            "get_historical_rca_causes", "get_historical_rca_action_plan",
+                            "get_historical_rca_triggers", "get_skill_reference",
+                            "get_current_screen_context", "duckduckgo", "DuckDuckGo",
+                            "FMEA_Technical_Specialist", "Media_Failure_Analyst", "Human_Factors_Investigator"
+                        ]
+                        
+                        if any(kw in content_str for kw in technical_keywords) and len(content_str) < 100:
+                            # Se o chunk contém o nome da ferramenta e é curto, provavelmente é um log de execução
+                            if "search_historical_rcas_tool" in content_str:
+                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Consultando o histórico de falhas...'})}\n\n"
+                            elif "get_asset_fmea_tool" in content_str or "get_deterministic_fmea_tool" in content_str:
+                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Analisando biblioteca técnica FMEA...'})}\n\n"
+                            elif "FMEA_Technical_Specialist" in content_str:
+                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Consultando Especialista em FMEA...'})}\n\n"
+                            elif "Media_Failure_Analyst" in content_str:
+                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Analisando evidências visuais...'})}\n\n"
+                            elif "calculate_reliability_metrics_tool" in content_str:
+                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Calculando indicadores de confiabilidade...'})}\n\n"
                             continue
 
-                        # --- LÓGICA DE SUPRESSÃO ROBUSTA (SSE) ---
-                        # Assim que detectamos o início da tag no conteúdo acumulado, paramos de enviar deltas
-                        if "<suggestions" in full_response_content:
-                            if not is_inside_suggestions:
-                                is_inside_suggestions = True
-                                # Se a tag começou neste chunk, enviamos apenas o que veio antes dela
-                                if "<suggestions" in content_str:
-                                    clean_delta = content_str.split("<suggestions")[0]
-                                    if clean_delta:
-                                        yield f"data: {json.dumps({'type': 'content', 'delta': clean_delta})}\n\n"
+                        if "completed in" in content_str and ("tool" in content_str or "Tool" in content_str):
                             continue
-                        
+                        if content_str.startswith("Transferring") or content_str.startswith("Running"):
+                            continue
+                        if content_str.strip() in ["IO", "Analisando...", "Consultando...", "Analizando..."]:
+                            continue
+
+                        # --- LÓGICA DE SUPRESSÃO DE SUGESTÕES (SSE) ---
                         if not is_inside_suggestions:
-                            yield f"data: {json.dumps({'type': 'content', 'delta': content_str})}\n\n"
+                            if "<suggestions>" in content_str:
+                                is_inside_suggestions = True
+                                # Envia apenas o que veio ANTES da tag no mesmo chunk
+                                parts = content_str.split("<suggestions>")
+                                if parts[0]:
+                                    yield f"data: {json.dumps({'type': 'content', 'delta': parts[0]})}\n\n"
+                            else:
+                                # Proteção contra tags quebradas entre chunks (ex: <sugg... estions>)
+                                # Se o final do full_content indicar que uma tag está começando, paramos de enviar
+                                if "<suggestions" in full_response_content and "<suggestions>" not in full_response_content:
+                                    # Aguardamos a tag completar para decidir
+                                    pass 
+                                elif "<suggestions>" in full_response_content:
+                                    is_inside_suggestions = True
+                                else:
+                                    yield f"data: {json.dumps({'type': 'content', 'delta': content_str})}\n\n"
+                        else:
+                            # Se já estamos dentro, verificamos se a tag fechou (raro vir texto após)
+                            if "</suggestions>" in content_str:
+                                is_inside_suggestions = False
+                                # Se houver texto após a tag de fechamento, podemos enviar (opcional)
+                                parts = content_str.split("</suggestions>")
+                                if len(parts) > 1 and parts[1]:
+                                    yield f"data: {json.dumps({'type': 'content', 'delta': parts[1]})}\n\n"
 
                 # Extração Final de Sugestões (do conteúdo acumulado completo)
                 import re

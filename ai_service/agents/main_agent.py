@@ -11,7 +11,8 @@ from core.tools import (
     get_historical_rca_causes, 
     get_historical_rca_action_plan,
     get_historical_rca_triggers,
-    calculate_reliability_metrics_tool
+    calculate_reliability_metrics_tool,
+    get_current_screen_context
 )
 from agents.fmea_agent import get_fmea_agent
 from agents.media_analyst import get_media_analyst_agent
@@ -47,7 +48,7 @@ def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context:
         name="RCA_Unified_Copilot",
         session_id=session_id,
         role="Engenheiro Sênior de Confiabilidade e Orquestrador RCA",
-        model=Gemini(id="gemini-2.0-flash"), 
+        model=Gemini(id="gemini-2.5-flash"), 
         instructions=agent_instructions,
         tools=[
             search_historical_rcas_tool, 
@@ -56,6 +57,7 @@ def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context:
             get_historical_rca_action_plan, 
             get_historical_rca_triggers,
             calculate_reliability_metrics_tool,
+            get_current_screen_context,
             DuckDuckGoTools()
         ] + skill_tools,
         members=[
@@ -66,7 +68,8 @@ def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context:
         db=get_agent_memory(session_id),
         read_chat_history=True,
         add_history_to_context=True,
-        num_history_runs=3,
+        add_session_summary_to_context=True,
+        num_history_runs=20,
         markdown=True,
         debug_mode=True,
     )
