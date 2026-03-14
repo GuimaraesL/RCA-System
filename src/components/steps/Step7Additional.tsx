@@ -54,7 +54,7 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange, isFieldR
             </div>
 
             {/* Gestão de Mídias e Evidências */}
-            <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-primary-200 dark:hover:border-primary-800 transition-all">
+            <div className="bg-white dark:bg-slate-900 p-6 lg:p-8 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-primary-200 dark:hover:border-primary-800 transition-all">
                 <MediaManager 
                     rcaId={data.id} 
                     attachments={data.attachments || []} 
@@ -62,117 +62,124 @@ export const Step7Additional: React.FC<Step7Props> = ({ data, onChange, isFieldR
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-primary-200 dark:hover:border-primary-800 transition-all">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg"><MessageSquare size={20} /></div>
-                        <h3 className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest text-[10px]">{t('wizard.step7.meetingNotes')}</h3>
-                    </div>
-                    <Textarea
-                        id={`${idPrefix}-meeting-notes`}
-                        placeholder={t('wizard.step7.meetingNotesPlaceholder')}
-                        rows={10}
-                        value={info.meetingNotes}
-                        onChange={(e) => updateInfo('meetingNotes', e.target.value)}
-                    />
-                </div>
-
-                <div className="space-y-10">
-                    {/* Seção de Links Relacionados (Evidências Externas) */}
-                    <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-primary-200 dark:hover:border-primary-800 transition-all">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg"><LinkIcon size={20} /></div>
-                            <h3 className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest text-[10px]">{t('wizard.step7.links')}</h3>
+            {/* Áreas de Texto Coerentes */}
+            <div className="bg-white dark:bg-slate-900 p-6 lg:p-8 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 transition-all">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                    {/* Meeting Notes */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg"><MessageSquare size={18} /></div>
+                            <h3 className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest text-[10px]">{t('wizard.step7.meetingNotes')}</h3>
                         </div>
-                        <div className="grid grid-cols-1 gap-6">
-                            <Input
-                                id={`${idPrefix}-link-title`}
-                                name="link_title"
-                                label={t('wizard.step7.linkTitle')}
-                                placeholder={t('wizard.step7.linkTitlePlaceholder')}
-                                value={newLink.title}
-                                onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
-                            />
-                            <Input
-                                id={`${idPrefix}-link-url`}
-                                name="link_url"
-                                label={t('wizard.step7.linkUrl')}
-                                placeholder={t('common.urlPlaceholder')}
-                                value={newLink.url}
-                                onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
-                            />
-                        </div>
+                        <Textarea
+                            id={`${idPrefix}-meeting-notes`}
+                            placeholder={t('wizard.step7.meetingNotesPlaceholder')}
+                            rows={5}
+                            value={info.meetingNotes}
+                            onChange={(e) => updateInfo('meetingNotes', e.target.value)}
+                        />
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-primary-200 dark:hover:border-primary-800 transition-all">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg"><Info size={20} /></div>
+                    {/* General Comments */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg"><Info size={18} /></div>
                             <h3 className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest text-[10px]">{t('wizard.step7.generalComments')}</h3>
                         </div>
                         <Textarea
                             id={`${idPrefix}-general-comments`}
                             placeholder={t('wizard.step7.generalCommentsPlaceholder')}
-                            rows={6}
+                            rows={5}
                             value={info.comments}
                             onChange={(e) => updateInfo('comments', e.target.value)}
                         />
                     </div>
-                </div>
 
-                <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200/60 dark:border-slate-800 group hover:border-primary-200 dark:hover:border-primary-800 transition-all">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg"><History size={20} /></div>
-                        <h3 className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest text-[10px]">{t('wizard.step7.historicalInfo')}</h3>
+                    {/* Historical Info */}
+                    <div className="lg:col-span-2 space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg"><History size={18} /></div>
+                            <h3 className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest text-[10px]">{t('wizard.step7.historicalInfo')}</h3>
+                        </div>
+                        <Textarea
+                            id={`${idPrefix}-historical-info`}
+                            placeholder={t('wizard.step7.historicalInfoPlaceholder')}
+                            rows={4}
+                            value={info.historicalInfo}
+                            onChange={(e) => updateInfo('historicalInfo', e.target.value)}
+                        />
                     </div>
-                    <Textarea
-                        id={`${idPrefix}-historical-info`}
-                        placeholder={t('wizard.step7.historicalInfoPlaceholder')}
-                        rows={6}
-                        value={info.historicalInfo}
-                        onChange={(e) => updateInfo('historicalInfo', e.target.value)}
-                    />
                 </div>
             </div>
 
-            {/* Gestão de Lições Aprendidas */}
-            <div className={`bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border transition-all ${errors?.lessons_learned ? 'border-rose-300 dark:border-rose-700 ring-4 ring-rose-50 dark:ring-rose-900/20' : 'border-slate-200/60 dark:border-slate-800'}`}>
-                <div className="flex justify-between items-center mb-8 border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                        <span className="w-1.5 h-6 bg-primary-600 rounded-full"></span>
-                        {t('wizard.step7.lessonsLearned')} {isFieldRequired && isFieldRequired('lessons_learned') && <span className="text-rose-500">*</span>}
-                    </h3>
-                    <button onClick={addLesson} className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition-all">
-                        <Plus size={16} /> {t('wizard.add')}
-                    </button>
+            {/* Links & Lições Aprendidas */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+                {/* Seção de Links */}
+                <div className="bg-white dark:bg-slate-900 p-6 lg:p-8 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-800 transition-all space-y-6">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded-lg"><LinkIcon size={18} /></div>
+                        <h3 className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-widest text-[10px]">{t('wizard.step7.links')}</h3>
+                    </div>
+                    <div className="space-y-5">
+                        <Input
+                            id={`${idPrefix}-link-title`}
+                            name="link_title"
+                            label={t('wizard.step7.linkTitle')}
+                            placeholder={t('wizard.step7.linkTitlePlaceholder')}
+                            value={newLink.title}
+                            onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
+                        />
+                        <Input
+                            id={`${idPrefix}-link-url`}
+                            name="link_url"
+                            label={t('wizard.step7.linkUrl')}
+                            placeholder={t('common.urlPlaceholder')}
+                            value={newLink.url}
+                            onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+                        />
+                    </div>
                 </div>
-                <div className="space-y-4">
-                    {data.lessons_learned.map((lesson, idx) => (
-                        <div key={idx} className="flex gap-4 items-center group animate-in slide-in-from-left-2 duration-300">
-                            <div className="flex-shrink-0 w-8 h-8 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg flex items-center justify-center font-bold text-xs">
-                                {idx + 1}
+
+                {/* Gestão de Lições Aprendidas */}
+                <div className={`lg:col-span-2 bg-white dark:bg-slate-900 p-6 lg:p-8 rounded-2xl shadow-sm border transition-all ${errors?.lessons_learned ? 'border-rose-300 dark:border-rose-700 ring-4 ring-rose-50 dark:ring-rose-900/20' : 'border-slate-200/60 dark:border-slate-800 group hover:border-primary-200 dark:hover:border-primary-800'}`}>
+                    <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                            <span className="w-1.5 h-6 bg-primary-600 rounded-full"></span>
+                            {t('wizard.step7.lessonsLearned')} {isFieldRequired && isFieldRequired('lessons_learned') && <span className="text-rose-500">*</span>}
+                        </h3>
+                        <button onClick={addLesson} className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition-all">
+                            <Plus size={16} /> {t('wizard.add')}
+                        </button>
+                    </div>
+                    <div className="space-y-4">
+                        {data.lessons_learned.map((lesson, idx) => (
+                            <div key={idx} className="flex gap-3 items-center group animate-in slide-in-from-left-2 duration-300">
+                                <div className="flex-shrink-0 w-8 h-8 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg flex items-center justify-center font-bold text-xs">
+                                    {idx + 1}
+                                </div>
+                                <input
+                                    id={`${idPrefix}-lesson-${idx}`}
+                                    name={`lesson_${idx}`}
+                                    type="text"
+                                    className="flex-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-100 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all shadow-sm"
+                                    value={lesson}
+                                    onChange={e => updateLesson(idx, e.target.value)}
+                                />
+                                <button onClick={() => removeLesson(idx)} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100">
+                                    <Trash2 size={18} />
+                                </button>
                             </div>
-                            <input
-                                id={`${idPrefix}-lesson-${idx}`}
-                                name={`lesson_${idx}`}
-                                type="text"
-                                className="flex-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-100 focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all shadow-sm"
-                                value={lesson}
-                                onChange={e => updateLesson(idx, e.target.value)}
-                            />
-                            <button onClick={() => removeLesson(idx)} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100">
-                                <Trash2 size={18} />
-                            </button>
-                        </div>
-                    ))}
-                    {data.lessons_learned.length === 0 && (
-                        <div className="py-12 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/30 dark:bg-slate-900/30">
-                            <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">{t('wizard.step7.lessonsEmpty')}</p>
-                        </div>
-                    )}
+                        ))}
+                        {data.lessons_learned.length === 0 && (
+                            <div className="py-10 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/30 dark:bg-slate-900/30">
+                                <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">{t('wizard.step7.lessonsEmpty')}</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            <div className="mt-10 p-6 bg-primary-50/50 dark:bg-primary-900/10 border border-primary-100 dark:border-primary-800 rounded-xl flex items-start gap-4">
+            <div className="mt-8 p-6 bg-primary-50/50 dark:bg-primary-900/10 border border-primary-100 dark:border-primary-800 rounded-2xl flex items-start gap-4">
                 <div className="w-10 h-10 bg-primary-100 dark:bg-primary-800/50 rounded-full flex items-center justify-center text-primary-600 dark:text-primary-400 flex-shrink-0">
                     <Info size={24} />
                 </div>
