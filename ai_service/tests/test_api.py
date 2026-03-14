@@ -32,6 +32,31 @@ def test_analyze_rca_invalid_key():
     assert response.status_code == 403
     assert response.json()["detail"] == "Invalid Internal Key"
 
+def test_security_rejection_all_endpoints():
+    """Valida se múltiplos endpoints rejeitam chaves inválidas (Timing Attack fix)."""
+    endpoints = [
+        ("/fmea/files", "GET"),
+        ("/extract-fmea", "POST"),
+        ("/analyze/history/rca-123", "DELETE"),
+        ("/recurrence/rca-123", "GET"),
+    ]
+    
+    for path, method in endpoints:
+        if method == "GET":
+            response = client.get(path, headers={"x-internal-key": "invalid"})
+        elif method == "POST":
+            response = client.post(path, json={}, headers={"x-internal-key": "invalid"})
+        elif method == "DELETE":
+            response = client.delete(path, headers={"x-internal-key": "invalid"})
+            
+        assert response.status_code == 403, f"Endpoint {path} ({method}) não barrou chave inválida"
+        assert response.json()["detail"] == "Invalid Internal Key"
+
+    # Testa também sem o header (deve cair no compare_digest(None or '', ...))
+    response = client.get("/fmea/files")
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Invalid Internal Key"
+
 @patch("api.routes.get_rca_history_knowledge")
 @patch("agents.main_agent.get_rca_agent")
 def test_analyze_rca_success(mock_get_agent, mock_get_kb):

@@ -4,6 +4,7 @@
 from fastapi import APIRouter, Header, HTTPException, File, UploadFile
 from fastapi.responses import StreamingResponse
 import os
+import secrets
 import glob
 import shutil
 from .models import AnalysisRequest, AnalysisResponse, RecurrenceInfo, MediaItem
@@ -28,7 +29,7 @@ async def health_check():
 
 @router.get("/fmea/files")
 async def list_fmea_files(x_internal_key: str = Header(None)):
-    if x_internal_key != INTERNAL_AUTH_KEY:
+    if not secrets.compare_digest(x_internal_key or '', INTERNAL_AUTH_KEY):
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
     
     base_dir = os.path.dirname(os.path.dirname(__file__))
@@ -55,7 +56,7 @@ async def list_fmea_files(x_internal_key: str = Header(None)):
 
 @router.post("/fmea/upload")
 async def upload_fmea_file(file: UploadFile = File(...), x_internal_key: str = Header(None)):
-    if x_internal_key != INTERNAL_AUTH_KEY:
+    if not secrets.compare_digest(x_internal_key or '', INTERNAL_AUTH_KEY):
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
     
     allowed_extensions = {".md", ".pdf"}
@@ -85,7 +86,7 @@ async def extract_fmea_endpoint(payload: dict, x_internal_key: str = Header(None
     """
     Extrai modos de falha (FMEA) estruturados a partir de um texto descritivo.
     """
-    if x_internal_key != INTERNAL_AUTH_KEY:
+    if not secrets.compare_digest(x_internal_key or '', INTERNAL_AUTH_KEY):
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
     
     text = payload.get("text")
@@ -130,7 +131,7 @@ async def extract_fmea_endpoint(payload: dict, x_internal_key: str = Header(None
 
 @router.delete("/fmea/files/{filename}")
 async def delete_fmea_file(filename: str, x_internal_key: str = Header(None)):
-    if x_internal_key != INTERNAL_AUTH_KEY:
+    if not secrets.compare_digest(x_internal_key or '', INTERNAL_AUTH_KEY):
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
     
     base_dir = os.path.dirname(os.path.dirname(__file__))
@@ -149,7 +150,7 @@ async def delete_fmea_file(filename: str, x_internal_key: str = Header(None)):
 @router.delete("/analyze/history/{rca_id}")
 async def clear_chat_history(rca_id: str, x_internal_key: str = Header(None)):
     """Limpa o histórico de chat de uma sessão do banco SQLite do agente (Limpeza Profunda)."""
-    if x_internal_key != INTERNAL_AUTH_KEY:
+    if not secrets.compare_digest(x_internal_key or '', INTERNAL_AUTH_KEY):
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
 
     from agents.main_agent import get_rca_agent
@@ -200,7 +201,7 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
     Recupera o histórico de chat da sessão do RCA diretamente do banco SQLite do agente.
     Isso permite repovoar o frontend se a sidebar for fechada e aberta.
     """
-    if x_internal_key != INTERNAL_AUTH_KEY:
+    if not secrets.compare_digest(x_internal_key or '', INTERNAL_AUTH_KEY):
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
 
     from agents.main_agent import get_rca_agent
@@ -249,7 +250,7 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
 @router.get("/recurrence/{rca_id}")
 async def get_recurrence_endpoint(rca_id: str, x_internal_key: str = Header(None)):
     """Busca a última análise de recorrência salva para uma RCA."""
-    if x_internal_key != INTERNAL_AUTH_KEY:
+    if not secrets.compare_digest(x_internal_key or '', INTERNAL_AUTH_KEY):
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
     
     result = get_recurrence_analysis(rca_id)
@@ -264,7 +265,7 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
     Retorna um StreamingResponse (SSE) para uma UX fluida.
     Suporta entrada multimodal (imagens e vídeos).
     """
-    if x_internal_key != INTERNAL_AUTH_KEY:
+    if not secrets.compare_digest(x_internal_key or '', INTERNAL_AUTH_KEY):
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
 
     try:
