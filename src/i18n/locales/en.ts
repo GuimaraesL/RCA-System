@@ -729,6 +729,7 @@ export const en: TranslationSchema = {
             },
             aiValidation: "AI Validation",
             discardReason: "Discard Reason",
+            lastAnalysis: "Last Analysis Performed",
             searchButton: "Search Recurrences",
             searchHint: "Contextual exploration of systemic failures to avoid recurrences",
             emptyHistory: "Click on \"Search Recurrences\" to explore the technical history.",

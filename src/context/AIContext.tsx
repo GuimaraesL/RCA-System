@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { RcaRecord } from '../types';
-import { streamAiAnalysis, StreamUpdate, fetchChatHistory, deleteChatHistory, fetchRecurrencesOnly } from '../services/aiStreamingService';
+import { streamAiAnalysis, StreamUpdate, fetchChatHistory, deleteChatHistory, fetchRecurrencesOnly, fetchSavedRecurrence } from '../services/aiStreamingService';
 import { useLanguage } from './LanguageDefinition';
 import { RecurrenceInfo } from '../services/aiService';
 
@@ -15,6 +15,7 @@ export interface RecurrenceData {
     equipment: RecurrenceInfo[];
     area: RecurrenceInfo[];
     discarded: RecurrenceInfo[];
+    lastAnalyzedAt?: string;
 }
 
 const EMPTY_RECURRENCE: RecurrenceData = { subgroup: [], equipment: [], area: [], discarded: [] };
@@ -33,7 +34,7 @@ interface AiContextType {
     analyzeRca: (rca: RcaRecord) => Promise<void>;
     chatWithAi: (rca: RcaRecord, message: string) => Promise<void>;
     loadHistory: (rcaId: string) => Promise<void>;
-    loadRecurrences: (rca: RcaRecord) => Promise<void>;
+    loadRecurrences: (rca: RcaRecord, force?: boolean) => Promise<void>;
     clearAi: (rcaId?: string) => Promise<void>;
     setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
@@ -71,17 +72,37 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         setStatus('idle');
     }, []);
 
-    const loadRecurrences = useCallback(async (rca: RcaRecord) => {
+    const loadRecurrences = useCallback(async (rca: RcaRecord, force: boolean = false) => {
         setLoadingRecurrences(true);
         try {
-            const data = await fetchRecurrencesOnly(rca, getFullLanguageName(language));
-            if (data && (data.subgroup_matches?.length || data.equipment_matches?.length || data.area_matches?.length || data.discarded_matches?.length)) {
+            // Tenta recuperar análise salva
+            const saved = await fetchSavedRecurrence(rca.id);
+            
+            if (saved && saved.analysis && !force) {
+                const data = saved.analysis;
                 setRecurrenceData({
                     subgroup: data.subgroup_matches || [],
                     equipment: data.equipment_matches || [],
                     area: data.area_matches || [],
-                    discarded: data.discarded_matches || []
+                    discarded: data.discarded_matches || [],
+                    lastAnalyzedAt: saved.last_analyzed_at
                 });
+                setLoadingRecurrences(false);
+                return;
+            }
+
+            // Só realiza nova análise se forçado (Botão Buscar)
+            if (force) {
+                const data = await fetchRecurrencesOnly(rca, getFullLanguageName(language));
+                if (data && (data.subgroup_matches?.length || data.equipment_matches?.length || data.area_matches?.length || data.discarded_matches?.length)) {
+                    setRecurrenceData({
+                        subgroup: data.subgroup_matches || [],
+                        equipment: data.equipment_matches || [],
+                        area: data.area_matches || [],
+                        discarded: data.discarded_matches || [],
+                        lastAnalyzedAt: data.last_analyzed_at || new Date().toISOString()
+                    });
+                }
             }
         } catch (e) {
             console.error('Failed to load recurrences', e);

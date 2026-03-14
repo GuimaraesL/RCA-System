@@ -7,7 +7,12 @@ import os
 import glob
 import shutil
 from .models import AnalysisRequest, AnalysisResponse, RecurrenceInfo, MediaItem
-from core.knowledge import get_rca_history_knowledge, index_fmea_documents
+from core.knowledge import (
+    get_rca_history_knowledge, 
+    index_fmea_documents, 
+    get_recurrence_analysis, 
+    save_recurrence_analysis
+)
 from core.config import INTERNAL_AUTH_KEY, AGENT_MEMORY_PATH, BACKEND_URL
 from agno.utils.log import logger
 from agno.media import Image, Video
@@ -240,6 +245,17 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
                 })
 
     return {"messages": messages}
+
+@router.get("/recurrence/{rca_id}")
+async def get_recurrence_endpoint(rca_id: str, x_internal_key: str = Header(None)):
+    """Busca a última análise de recorrência salva para uma RCA."""
+    if x_internal_key != INTERNAL_AUTH_KEY:
+        raise HTTPException(status_code=403, detail="Invalid Internal Key")
+    
+    result = get_recurrence_analysis(rca_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    return result
 
 @router.post("/analyze")
 async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(None)):
@@ -485,12 +501,22 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                     d["discard_reason"] = discarded_ids[m.rca_id]
                     discarded_list.append(d)
 
-            return {
+            analysis_result = {
                 "subgroup_matches": enrich_and_filter(subgroup_matches),
                 "equipment_matches": enrich_and_filter(equipment_matches),
                 "area_matches": enrich_and_filter(area_matches),
                 "discarded_matches": discarded_list
             }
+            
+            # Persistência automática no SQLite (Issue #135)
+            try:
+                save_recurrence_analysis(str(request.rca_id), analysis_result)
+                from datetime import datetime
+                analysis_result["last_analyzed_at"] = datetime.now().isoformat()
+            except Exception as e:
+                logger.error(f"❌ Erro ao salvar análise de recorrência: {e}")
+
+            return analysis_result
 
         # Lista unificada para injeção no contexto do LLM (concat das 3)
         recurrences = subgroup_matches + equipment_matches + area_matches

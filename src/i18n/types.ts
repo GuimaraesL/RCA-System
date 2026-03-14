@@ -723,6 +723,7 @@ export interface TranslationSchema {
             };
             aiValidation: string;
             discardReason: string;
+            lastAnalysis: string;
             searchButton: string;
             searchHint: string;
             emptyHistory: string;

@@ -24,12 +24,12 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
     const { t } = useLanguage();
     const { recurrenceData, loadRecurrences, loadingRecurrences } = useAi();
 
-    // Carregamento automático removido para ser sob demanda (Issue 125)
-    // useEffect(() => {
-    //     if (!recurrenceData.subgroup.length && !recurrenceData.equipment.length && !recurrenceData.area.length) {
-    //         loadRecurrences(data);
-    //     }
-    // }, [data, loadRecurrences, recurrenceData]);
+    // Carregamento automático da última análise (do cache se disponível)
+    useEffect(() => {
+        if (!recurrenceData.subgroup.length && !recurrenceData.equipment.length && !recurrenceData.area.length) {
+            loadRecurrences(data);
+        }
+    }, [data, loadRecurrences]);
 
     // Optional: Sort items globally by failure_date to find earliest/latest if needed
     const getSectionGroupDate = (items: any[]) => {
@@ -191,14 +191,21 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                             {t('wizard.step8.title')}
                         </h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                            {t('wizard.step8.searchHint')}
-                        </p>
+                        <div className="flex flex-col">
+                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                                {t('wizard.step8.searchHint')}
+                            </p>
+                            {recurrenceData.lastAnalyzedAt && (
+                                <p className="text-[10px] text-primary-500 dark:text-primary-400 font-bold uppercase tracking-tight mt-0.5">
+                                    {t('wizard.step8.lastAnalysis')}: {new Date(recurrenceData.lastAnalyzedAt).toLocaleString()}
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
 
                 <Button
-                    onClick={() => loadRecurrences(data)}
+                    onClick={() => loadRecurrences(data, true)}
                     isLoading={loadingRecurrences}
                     leftIcon={<RefreshCw className="w-4 h-4" />}
                     variant="primary"

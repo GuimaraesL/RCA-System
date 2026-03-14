@@ -27,6 +27,22 @@ export const fetchChatHistory = async (rcaId: string) => {
     }
 };
 
+export const fetchSavedRecurrence = async (rcaId: string) => {
+    try {
+        const url = AI_API_URL.replace('/analyze', `/recurrence/${rcaId}`);
+        const response = await fetch(url, {
+            headers: {
+                'x-internal-key': INTERNAL_KEY
+            }
+        });
+        if (!response.ok) return null;
+        return await response.json();
+    } catch (e) {
+        console.error('Failed to fetch saved recurrence analysis', e);
+        return null;
+    }
+};
+
 export const deleteChatHistory = async (rcaId: string) => {
     try {
         const url = AI_API_URL.replace('/analyze', `/analyze/history/${rcaId}`);

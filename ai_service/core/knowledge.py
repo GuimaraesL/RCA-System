@@ -76,8 +76,44 @@ def init_hash_db():
             content_hash TEXT
         )
     ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS recurrence_analysis (
+            rca_id TEXT PRIMARY KEY,
+            analysis_data TEXT,
+            last_analyzed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
     conn.commit()
     return conn
+
+def save_recurrence_analysis(rca_id: str, analysis_data: dict):
+    """Salva o resultado da análise de recorrência no SQLite."""
+    import json
+    from datetime import datetime
+    conn = init_hash_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT OR REPLACE INTO recurrence_analysis (rca_id, analysis_data, last_analyzed_at)
+        VALUES (?, ?, ?)
+    ''', (rca_id, json.dumps(analysis_data), datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
+
+def get_recurrence_analysis(rca_id: str):
+    """Recupera a última análise de recorrência salva para uma RCA."""
+    import json
+    conn = init_hash_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT analysis_data, last_analyzed_at FROM recurrence_analysis WHERE rca_id = ?', (rca_id,))
+    row = cursor.fetchone()
+    conn.close()
+    
+    if row:
+        return {
+            "analysis": json.loads(row[0]),
+            "last_analyzed_at": row[1]
+        }
+    return None
 
 def index_historical_rcas(api_url=None):
     """

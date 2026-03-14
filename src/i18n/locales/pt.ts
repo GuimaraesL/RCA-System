@@ -724,6 +724,7 @@ export const pt: TranslationSchema = {
             },
             aiValidation: "Validação da IA",
             discardReason: "Motivo do Descarte",
+            lastAnalysis: "Última Análise Realizada",
             searchButton: "Buscar Recorrências",
             searchHint: "Exploração contextual de falhas sistêmicas para evitar reincidências",
             emptyHistory: "Clique em \"Buscar Recorrências\" para explorar o histórico técnico.",
