@@ -16,7 +16,7 @@ def get_fmea_agent():
     return Agent(
         name="FMEA_Technical_Specialist",
         role="Especialista em Engenharia de Manutenção",
-        model=Gemini(id="gemini-2.5-flash"),
+        model=Gemini(id="gemini-2.0-flash"),
         instructions=[FMEA_AGENT_PROMPT],
         tools=[
             get_asset_fmea_tool,
@@ -24,10 +24,11 @@ def get_fmea_agent():
             search_historical_rcas_tool,
             get_full_rca_detail_tool
         ],
+        # Mantemos apenas a biblioteca técnica no conhecimento direto.
+        # As RCAs históricas devem ser consultadas EXCLUSIVAMENTE via search_historical_rcas_tool
+        # para garantir o cumprimento dos filtros de segurança por Área/Equipamento.
         knowledge=[
-            get_fmea_knowledge(), 
-            get_rca_history_knowledge(),
-            get_technical_docs_knowledge()
+            get_fmea_knowledge()
         ],
         search_knowledge=True,
         markdown=True,

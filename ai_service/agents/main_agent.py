@@ -38,8 +38,7 @@ def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context:
     # Prepara as instruções base (SEM injetar contexto pesado dinamico aqui)
     agent_instructions = [
         GLOBAL_RULES.format(idioma=language), 
-        MAIN_AGENT_PROMPT,
-        MEDIA_ANALYSIS_RULES
+        MAIN_AGENT_PROMPT
     ]
 
     # Cria o Time de Especialistas Unificado
@@ -48,7 +47,7 @@ def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context:
         name="RCA_Unified_Copilot",
         session_id=session_id,
         role="Engenheiro Sênior de Confiabilidade e Orquestrador RCA",
-        model=Gemini(id="gemini-2.5-flash"), 
+        model=Gemini(id="gemini-2.0-flash"), 
         instructions=agent_instructions,
         tools=[
             search_historical_rcas_tool, 
