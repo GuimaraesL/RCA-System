@@ -41,9 +41,6 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
     const { status, messages, insight, reasoning, dynamicSuggestions, recurrenceData, error, analyzeRca, chatWithAi, clearAi, loadHistory, setMessages } = useAi();
     const [chatInput, setChatInput] = useState('');
     const [hasLoadedHistory, setHasLoadedHistory] = useState(false);
-    const [subExpanded, setSubExpanded] = useState(true);
-    const [equipExpanded, setEquipExpanded] = useState(false);
-    const [areaExpanded, setAreaExpanded] = useState(false);
     const [width, setWidth] = useState(750);
     const [isResizing, setIsResizing] = useState(false);
     const contentEndRef = useRef<HTMLDivElement>(null);
@@ -204,95 +201,6 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
             </header>
 
             <main className="ai-sidebar-content">
-                {/* Alertas de Recorrência - Mesmo Subgrupo */}
-                {recurrenceData.subgroup.length > 0 && (
-                    <div className="ai-recurrence-section">
-                        <div
-                            className="ai-section-label flex justify-between items-center cursor-pointer hover:text-slate-200 transition-colors"
-                            onClick={() => setSubExpanded(!subExpanded)}
-                        >
-                            <span className="flex items-center gap-1.5 font-semibold">
-                                <AlertTriangle size={14} className="text-amber-500" /> Mesmo Subgrupo ({recurrenceData.subgroup.length})
-                            </span>
-                            {subExpanded ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
-                        </div>
-                        {subExpanded && (
-                            <div className="ai-recurrence-list mt-2">
-                                {recurrenceData.subgroup.map((r, i) => (
-                                    <div
-                                        key={i}
-                                        className="py-2 border-b border-white/5 last:border-0 hover:text-amber-400 transition-colors cursor-pointer flex items-baseline gap-2 group"
-                                        onClick={() => window.open(`#/rca/${r.rca_id}`, '_blank')}
-                                    >
-                                        <span className="text-[10px] font-mono text-slate-500 group-hover:text-amber-500">#{r.rca_id.substring(0, 8)}</span>
-                                        <p className="text-xs font-medium line-clamp-1">{r.title}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Alertas de Recorrência - Equipamentos Similares */}
-                {recurrenceData.equipment.length > 0 && (
-                    <div className="ai-recurrence-section">
-                        <div
-                            className="ai-section-label flex justify-between items-center cursor-pointer hover:text-slate-200 transition-colors"
-                            onClick={() => setEquipExpanded(!equipExpanded)}
-                            title={t('ai.tooltips.similarEquipment')}
-                        >
-                            <span className="flex items-center gap-1.5 font-semibold">
-                                <History size={14} className="text-slate-400" /> Mesmo Equipamento ({recurrenceData.equipment.length})
-                            </span>
-                            {equipExpanded ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
-                        </div>
-                        {equipExpanded && (
-                            <div className="ai-recurrence-list mt-2">
-                                {recurrenceData.equipment.map((r, i) => (
-                                    <div
-                                        key={i}
-                                        className="py-2 border-b border-white/5 last:border-0 hover:text-primary-400 transition-colors cursor-pointer flex items-baseline gap-2 group"
-                                        onClick={() => window.open(`#/rca/${r.rca_id}`, '_blank')}
-                                    >
-                                        <span className="text-[10px] font-mono text-slate-500 group-hover:text-primary-500">#{r.rca_id.substring(0, 8)}</span>
-                                        <p className="text-xs font-medium line-clamp-1">{r.title}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Alertas de Recorrência - Mesma Área */}
-                {recurrenceData.area.length > 0 && (
-                    <div className="ai-recurrence-section">
-                        <div
-                            className="ai-section-label flex justify-between items-center cursor-pointer hover:text-slate-200 transition-colors"
-                            onClick={() => setAreaExpanded(!areaExpanded)}
-                            title={t('ai.tooltips.similarArea')}
-                        >
-                            <span className="flex items-center gap-1.5 font-semibold">
-                                <MapPin size={14} className="text-slate-400" /> Mesma Área ({recurrenceData.area.length})
-                            </span>
-                            {areaExpanded ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
-                        </div>
-                        {areaExpanded && (
-                            <div className="ai-recurrence-list mt-2">
-                                {recurrenceData.area.map((r, i) => (
-                                    <div
-                                        key={i}
-                                        className="py-2 border-b border-white/5 last:border-0 hover:text-slate-200 transition-colors cursor-pointer flex items-baseline gap-2 group"
-                                        onClick={() => window.open(`#/rca/${r.rca_id}`, '_blank')}
-                                    >
-                                        <span className="text-[10px] font-mono text-slate-500 group-hover:text-slate-300">#{r.rca_id.substring(0, 8)}</span>
-                                        <p className="text-xs font-medium line-clamp-1">{r.title}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
-
                 {/* Chat Section */}
                 <div className="ai-chat-section">
                     <h4 className="ai-section-label">

@@ -147,14 +147,6 @@
     color: #cbd5e1; /* Melhorado para contraste no modo escuro */
 }
 
-/* Recurrences */
-.ai-recurrence-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-
 /* Chat Section */
 .ai-chat-section {
     display: flex;
