@@ -1,59 +1,54 @@
 # Documentação: Knowledge e Ferramentas (Tools) do AI Service
 
-O ai_service faz uso de dois pilares de extensão de capacidades (Knowledge e Tools) dentro do ecossistema do Agno para transformar o LLM bruto (Gemini) num Copiloto Especialista em RCA.
+O `ai_service` faz uso de dois pilares de extensão de capacidades (Knowledge e Tools) dentro do ecossistema do Agno para transformar o LLM bruto (Gemini 2.0) num Copiloto Especialista em RCA.
 
 ---
 
 ## 1. Conhecimento (Knowledge Base - RAG)
 Localização: `ai_service/core/knowledge.py`
 
-Diferente da IA genérica, o Copiloto RCA utiliza três bases de dados locais vetorizadas para fundamentar suas respostas.
+O Copiloto RCA utiliza bases de dados locais vetorizadas (ChromaDB) para fundamentar suas respostas, divididas em duas coleções principais.
 
 ### RCA History (`rca_history_knowledge`)
+*   **VectorDB:** ChromaDB (`rca_history_v1`)
 *   **Propósito:** Memória coletiva das falhas da empresa.
-*   **Conteúdo:** Mais de 2.800 RCAs concluídas, indexadas por área, equipamento e subgrupo.
-*   **Uso:** Identificação de recorrências e lições aprendidas de casos reais.
+*   **Conteúdo:** RCAs concluídas vindas da API backend, indexadas em chunks grandes (50k) para manter o contexto.
+*   **Uso:** Identificação de recorrências e lições aprendidas de casos reais filtrados hierarquicamente.
 
-### FMEA Library (`fmea_knowledge`)
-*   **Propósito:** Biblioteca de Modos de Falha e Efeitos.
-*   **Conteúdo:** Manuais técnicos internos e diretrizes de manutenção em formato **Markdown (.md)**.
-*   **Uso:** Consultar a "teoria" esperada para cada tipo de falha mecânica ou elétrica.
-
-### Technical Documentation (`technical_docs_knowledge`) - **NOVO**
-*   **Propósito:** Indexação de manuais complexos e laudos externos.
-*   **Conteúdo:** Manuais de fabricantes, laudos periciais e normas técnicas em formato **PDF**.
-*   **Uso:** Fornecer suporte documental pericial em diagnósticos de alta complexidade.
+### Technical Knowledge (`technical_knowledge`)
+*   **VectorDB:** ChromaDB (`technical_knowledge_v1`)
+*   **Propósito:** Biblioteca técnica unificada.
+*   **Conteúdo:** Manuais FMEA (`.md`) e Documentação Técnica de Fabricantes (`.pdf`).
+*   **Uso:** Consultar a "teoria" esperada para cada tipo de falha mecânica, modos de falha tabelados e laudos externos.
 
 ---
 
 ## 2. Ferramentas (Tools)
 Localização: `ai_service/core/tools.py`
 
-As ferramentas permitem que o Agente realize ações ativas, como cálculos matemáticos ou consultas a bancos de dados SQL.
+As ferramentas permitem que os agentes realizem ações ativas na plataforma, recuperem contextos e processem métricas.
 
-### Ferramentas de Confiabilidade (Determinísticas)
-*   `calculate_reliability_metrics_tool(rca_ids)`:
-    Calcula indicadores estatísticos baseados no histórico:
-    - **MTBF:** Tempo Médio Entre Falhas.
-    - **MTTR:** Tempo Médio para Reparo.
-    - **Disponibilidade:** % estimada baseada em MTBF/MTTR.
+### Ferramentas de Contexto
+*   `get_current_screen_context(run_context)`:
+    Retorna os dados que o usuário está vendo na tela no momento da requisição (do `session_state`). Essencial para a IA extrair IDs de ativos, títulos e descrições do incidente atual de forma dinâmica.
+
+### Ferramentas de RCA Histórica
+*   `search_historical_rcas_tool(query, ...)`:
+    Busca semântica no VectorDB de RCAs passadas, aplicando filtros hierárquicos (Subgrupo > Equipamento > Área) e incluindo uma etapa interna de validação técnica com o `RAG_Validator`.
+*   `get_full_rca_detail_tool(rca_id)`:
+    Busca o conteúdo INTEGRAL de uma RCA específica na API backend, incluindo Ishikawa, 5 Porquês, Planos de Ação e Gatilhos.
+*   *Detail Tools Auxiliares:* `get_historical_rca_summary`, `get_historical_rca_causes`, `get_historical_rca_action_plan`, `get_historical_rca_triggers`.
 
 ### Ferramentas de FMEA
-*   `get_deterministic_fmea_tool(asset_id)`: **NOVO**
-    Consulta o banco de dados SQL real do sistema (`fmea_modes`). Retorna o **RPN (Risk Priority Number)**, Severidade, Ocorrência e ações recomendadas oficiais.
+*   `get_deterministic_fmea_tool(asset_id)`:
+    Consulta o banco de dados SQL real do backend para buscar modos de falha estruturados e RPN do ativo.
 *   `get_asset_fmea_tool(query)`:
-    Realiza busca semântica (RAG) na biblioteca de manuais para encontrar modos de falha por descrição.
+    Realiza busca semântica na biblioteca técnica (`technical_knowledge`) para encontrar modos de falha e ações recomendadas nos manuais.
 
-### Ferramentas de Detalhamento de RCA
-*   `get_full_rca_detail_tool(rca_id)`:
-    Busca o conteúdo integral de uma RCA específica (Ishikawa, 5 Porquês, Planos de Ação) com 100% de precisão para confronto de dados.
-*   `get_historical_rca_causes(rca_id)` / `get_historical_rca_action_plan(rca_id)`:
-    Extrações específicas de partes de um relatório histórico.
-
-### Ferramentas Externas e Habilidades
-*   `DuckDuckGoTools()`: Pesquisa na internet para conceitos técnicos não indexados localmente.
-*   `get_skill_reference(skill_name, file_path)`: **NOVO**
-    Lê diretrizes metodológicas (ex: "como formatar um Ishikawa") das Skills do sistema.
-
----
-*Atualizado em: 11/03/2026 - Pós-Issue 127*
+### Ferramentas de Confiabilidade e Skills
+*   `calculate_reliability_metrics_tool(rca_ids)`:
+    Calcula **MTBF**, **MTTR** e Disponibilidade Estimada de um equipamento com base nas RCAs enviadas.
+*   `get_skill_reference(skill_name, file_path)`:
+    Permite aos agentes acessarem as metodologias oficiais (ex: como montar Ishikawa ou 5 Porquês) presentes nos arquivos `.md` dentro das Skills.
+*   `DuckDuckGoTools()`:
+    Utilizado pelo Time para pesquisa de informações técnicas na internet.

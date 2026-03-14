@@ -1,53 +1,62 @@
-# Agentes Especialistas (Team Members)
+# Agentes Especialistas e Skills (Team Members)
 
-O RCA System utiliza uma abordagem de **Time de Especialistas** (Multi-Agent Orchestration via Agno Team) para decompor problemas complexos de engenharia em diagnósticos específicos.
+O RCA System utiliza uma arquitetura baseada no `Team` do framework Agno para decompor problemas complexos de engenharia e delegar tarefas para sub-agentes altamente especializados. 
+
+```mermaid
+mindmap
+  root((RCA Unified Copilot))
+    FMEA Technical Specialist
+      (Busca RAG Manuais)
+      (Consulta FMEA DB)
+    Media Failure Analyst
+      (Visão Computacional)
+      (Laudo Multimodal)
+    Human Factors Investigator
+      (Metodologia HFACS)
+      (Atos Inseguros e Precursores)
+    RAG Recurrence Validator
+      (Triagem de Recorrência)
+      (Filtro de Falso Positivo)
+```
 
 ---
 
-## 1. Media Failure Analyst (`Media_Failure_Analyst`)
-Este agente atua como um **Perito Digital** em Engenharia de Materiais.
+## 1. RCA Unified Copilot (`RCA_Unified_Copilot`)
+**O Orquestrador Principal.**
+- **Papel:** Engenheiro Sênior de Confiabilidade.
+- **Função:** Interage com o usuário, extrai o contexto atual da tela, gerencia o histórico de chat e decide quando repassar requisições aos especialistas. Possui acesso direto a todas as habilidades (Skills) metodológicas, pesquisas de internet e métricas.
 
-- **Tecnologia:** Gemini 2.0 Flash (Multimodal).
-- **Missão:** Transformar evidências visuais (fotos e vídeos) em laudos técnicos baseados em evidências físicas.
+## 2. Media Failure Analyst (`Media_Failure_Analyst`)
+**O Perito em Visão Computacional.**
+- **Motor:** Gemini 2.0 Flash (Habilitado para Visão).
+- **Missão:** Transformar evidências visuais (fotos e vídeos) em laudos técnicos baseados em evidências físicas, sem subjetividades.
 - **Especialidades:**
-    - **Padrões de Fratura:** Identificação de falhas dúcteis, frágeis ou por fadiga (marcas de praia).
-    - **Degradação Química:** Detecção de corrosão uniforme, pite ou galvânica.
-    - **Sinais de Manutenção:** Identificação de superaquecimento (mudança de cor metálica), falta de lubrificação ou desalinhamento de polias/correias.
-- **Output:** Fornece um "Laudo Visual" objetivo que serve de evidência para a conclusão da causa raiz.
+    - **Padrões de Fratura:** Identificação de falhas dúcteis, frágeis ou fadiga.
+    - **Degradação Química:** Detecção de tipos de corrosão.
+    - **Sinais Físicos:** Identificação de superaquecimento, falta de lubrificação, vibração (em vídeos) ou desalinhamento visível.
 
----
-
-## 2. FMEA Technical Specialist (`FMEA_Technical_Specialist`)
-Responsável pela ponte entre a **Teoria de Engenharia** e a realidade do ativo.
-
-- **Missão:** Cruzar o modo de falha relatado com os dados históricos e os manuais técnicos.
+## 3. FMEA Technical Specialist (`FMEA_Technical_Specialist`)
+**O Bibliotecário de Engenharia.**
+- **Missão:** Cruzar o modo de falha atual com dados históricos e predições teóricas dos manuais FMEA.
 - **Capacidades:**
-    - Consulta o **VectorDB** de manuais técnicos (Markdown/PDF).
-    - Acessa o **Banco de Dados SQL** (`fmea_modes`) para obter o RPN real.
-    - Confronta sintomas atuais com modos de falha previstos em projeto.
-- **Output:** Gera um parecer técnico comparativo (Teoria vs. Realidade).
+    - Acesso exclusivo ao `technical_knowledge_v1` (ChromaDB com Manuais `.md` e `.pdf`).
+    - Ferramenta de busca de dados estruturados e RPN no banco de dados da aplicação (`get_deterministic_fmea_tool`).
+- **Output:** Pareceres técnicos indicando se o problema era um risco previsto.
+
+## 4. Human Factors Investigator (`Human_Factors_Investigator`)
+**O Especialista em Comportamento.**
+- **Missão:** Analisar as quebras da barreira humana e organizacional utilizando o **HFACS** (Human Factors Analysis and Classification System). Foca em corrigir o sistema, não em culpar o indivíduo.
+- **Categorias de Análise:** Atos Inseguros, Condições Precursoras, Supervisão Insegura e Influências Organizacionais.
+
+## 5. RAG Recurrence Validator (`RAG_Recurrence_Validator`)
+**O Filtro Técnico de Estágio 2.**
+- **Missão:** Receber os resultados brutos de similaridade vetorial e descartar os "falsos positivos".
+- **Comportamento:** É um agente efêmero (sem memória). Ele julga rigorosamente se dois eventos de falha são funcionalmente e fisicamente similares, assegurando que o cálculo de MTBF e a Causa Raiz sejam baseados apenas em dados verdadeiramente idênticos.
 
 ---
 
-## 3. Human Factors Investigator (`Human_Factors_Investigator`)
-Especializado na metodologia **HFACS** (Human Factors Analysis and Classification System).
-
-- **Missão:** Analisar as falhas de barreira humana e organizacional, evitando a culpabilização individual.
-- **Categorias de Análise:**
-    - **Atos Inseguros:** Erros de julgamento ou violações.
-    - **Condições Precursoras:** Fadiga, comunicação falha ou treinamento inadequado.
-    - **Supervisão Insegura:** Falhas de planejamento ou omissão em correções conhecidas.
-    - **Influências Organizacionais:** Clima, processos operacionais e gestão de recursos.
-- **Output:** Identifica as raízes sistêmicas que permitiram o erro humano.
-
----
-
-## 4. RAG Validator (`RAG_Validator`)
-Agente de triagem que atua no **Estágio 2** do pipeline (antes da orquestração principal).
-
-- **Missão:** Filtrar os resultados brutos da busca vetorial (ChromaDB).
-- **Função:** Analisa o conteúdo integral das RCAs candidatas e decide quais são "Recorrências Reais" e quais são "Falsos Positivos".
-- **Benefício:** Evita que o Time de especialistas perca tempo analisando falhas que só compartilham palavras-chave irrelevantes.
-
----
-*Atualizado em: 11/03/2026 - Pós-Issue 127*
+## Skills Habilitadas (Agno Skills)
+As "Skills" empacotam ferramentas e conhecimento para o Time de Agentes.
+1. **`fmea-analysis`**: Traz o ferramental necessário para o FMEA Specialist atuar.
+2. **`rca-methodology`**: Fornece referências em Markdown (via `get_skill_reference`) contendo as regras oficiais sobre como montar 5 Porquês, Diagrama de Ishikawa, e Planos de Ação (5W2H).
+3. **`reliability-metrics`**: Habilita o cálculo matemático rigoroso de MTBF e MTTR.

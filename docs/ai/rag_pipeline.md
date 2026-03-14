@@ -1,87 +1,65 @@
 # Pipeline de RAG (Retrieval-Augmented Generation)
 
-O Pipeline de RAG do AI Service permite que o Copiloto identifique incidentes passados e cruze seus padrões de falha com o incidente atual. Ele não gera texto inventado; em vez disso, recupera dados históricos de RCAs (Análise de Causa Raiz) e os injeta no prompt do LLM.
+O Pipeline de RAG do AI Service permite que o Copiloto identifique incidentes passados e cruze seus padrões de falha com o incidente atual. Ele atua principalmente através do **ChromaDB** integrado à plataforma Agno.
 
 ## Arquitetura de Dados
 
-O módulo de busca vetorial utiliza a integração entre o framework Agno e o banco LanceDB (lancedb), operando em conjunto com embeddings de texto da Google (text-embedding-004).
+O módulo de busca vetorial utiliza o `ChromaDb` persistente localmente, equipado com `GeminiEmbedder` (gerando embeddings vetoriais via Google GenAI).
 
-### O Fluxo (Mermaid)
+### O Fluxo de Ingestão e Consulta
 
 ```mermaid
 graph TD
-    subgraph Sincronizacao (Startup)
-        B[Backend /api/rcas] -- Extrai JSON --> E[Extrator e Formatador]
-        E -- Cria Documentos --> EM[Embeddings text-embedding-004]
-        EM -- Salva Vetores --> DB[(LanceDB / SQLite)]
+    subgraph Sincronizacao ["Startup / Background"]
+        B[Backend /api/rcas] -- Fetch JSON --> E[core/knowledge.py]
+        E -- Cria Documentos 50k Chunks --> EM[GeminiEmbedder]
+        EM -- Salva Vetores --> DB[(ChromaDB: rca_history_v1)]
+        
+        MD_PDF[Arquivos .md e .pdf] -- Text/PDF Reader --> EM2[GeminiEmbedder]
+        EM2 -- Salva Vetores --> DB2[(ChromaDB: technical_knowledge_v1)]
     end
 
-    subgraph Chat / Analise
-        U[Usuario reporta falha] --> API[FastAPI Route]
-        API -- Extrai Equip/Area --> SQ[Shadow Query Automatica]
-        SQ --> DB
-        DB -- Top 3 Resultados --> API
-        API -- Injeta Contexto Oculto --> LLM[Agente Unificado]
-        
-        LLM -- Decisao Autonoma --> TL(search_historical_rcas_tool)
+    subgraph Chat_Analise ["Chat / Analise (api/routes.py)"]
+        U[Usuario reporta falha] --> API[FastAPI /analyze]
+        API -- Busca de Metadados --> TL["search_historical_rcas_tool (Interna)"]
         TL --> DB
-        DB -- Outros Casos Similares --> LLM
+        
+        DB -- Candidatos Brutos --> RV[RAG Validator Agent]
+        RV -- Filtro de Falsos Positivos --> V[Recorrências Validadas]
+        
+        V -- Contexto Injetado --> LLM[Unified Copilot Team]
+        LLM -- Gera Resposta SSE --> API
     end
 ```
 
-## Como o Agente Localiza Falhas Passadas
+## Sistema de Validação em 2 Estágios (2-Stage RAG)
 
-O pipeline age em dois momentos distintos para reduzir a latência e aumentar a precisão:
+Para garantir máxima fidelidade na área de engenharia e confiabilidade, as buscas não retornam simplesmente os "Top K" documentos baseados na proximidade de cosseno. Há um segundo estágio de triagem lógica.
 
-### 1. Injeção Oculta (Shadow Prompting)
-Antes mesmo do agente "pensar" sobre a resposta, a rota da API (api/routes.py) verifica quais são o equipment_id e a area_id que estão no relatório da tela. 
-Ela realiza uma busca semântica silenciosa no LanceDB baseada na descrição do problema e injeta os 3 incidentes mais similares no contexto do agente sob a tag oculta [HISTÓRICO ENCONTRADO].
-
-### 2. Busca Ativa (Ferramenta search_historical_rcas_tool)
-Se o usuário fizer perguntas abertas como "Isso costuma acontecer neste subgrupo?", o agente tem autonomia para utilizar a função search_historical_rcas_tool.
-
-Esta função foi construída com um sistema de Fallback Hierárquico de Metadados:
+### 1. Fallback Hierárquico de Metadados
+O sistema busca no banco vetorial respeitando a hierarquia do ativo (Área > Equipamento > Subgrupo), para não misturar falhas de máquinas não relacionadas.
 
 ```mermaid
 flowchart TD
-    Start((Inicio da Busca)) --> Subgrupo{Tem Subgrupo ID?}
-    Subgrupo -- Sim --> B1[Busca Vetorial filtrada pelo Subgrupo]
+    Start((Inicio da Busca)) --> Subgrupo{Subgrupo Identificado?}
+    Subgrupo -- Sim --> B1[Busca Vector: Mesmo Subgrupo]
     Subgrupo -- Nao --> Equipamento
     
-    B1 --> Res1{Achou algo?}
-    Res1 -- Sim --> Fim((Retorna Resultados))
-    Res1 -- Nao --> Equipamento{Tem Equipamento ID?}
+    B1 --> Equipamento{Equipamento Identificado?}
     
-    Equipamento -- Sim --> B2[Busca Vetorial filtrada pelo Equipamento]
+    Equipamento -- Sim --> B2[Busca Vector: Mesmo Equipamento]
     Equipamento -- Nao --> Area
     
-    B2 --> Res2{Achou algo?}
-    Res2 -- Sim --> Fim
-    Res2 -- Nao --> Area{Tem Area ID?}
+    B2 --> Area{Área Identificada?}
     
-    Area -- Sim --> B3[Busca Vetorial filtrada pela Area]
-    Area -- Nao --> Global
+    Area -- Sim --> B3[Busca Vector: Mesma Área]
+    Area -- Nao --> Join
     
-    B3 --> Res3{Achou algo?}
-    Res3 -- Sim --> Fim
-    Res3 -- Nao --> Global[Busca Global Aberta]
-    Global --> Fim
+    B3 --> Join[Une todos os Candidatos Brutos]
 ```
 
-Esta hierarquia impede que um vazamento de óleo no motor de um Camião seja considerado similar a um vazamento de óleo numa Bomba Hidráulica, restringindo a similaridade vetorial primeiramente aos mesmos ativos, mas escalando geograficamente caso os dados sejam escassos.
+### 2. Validador Semântico (RAG Validator)
+Uma vez que os candidatos são retornados pelo VectorDB (ChromaDB), eles são passados para um Agente Efêmero especializado: o **RAG Validator** (`get_rag_validator`). 
+Sua única função é aplicar rigor técnico, comparando o incidente da tela com os candidatos brutos, determinando quais são falsos positivos (ex: "vazamento" em bombas diferentes) e quais são **recorrências validadas**.
 
-## O Formatador de Documentos
-
-No arquivo ai_service/core/knowledge.py, os dados estruturados do backend não são passados como JSON direto para a vetorização. O processo transforma chaves (keys) em texto denso e coeso (chunks) antes do embedding.
-
-Exemplo de formatação embutida:
-```text
-TÍTULO DA FALHA: Quebra de corrente no módulo 25
-ATIVO: 10 - CONVEYOR DE BOBINAS
-STATUS: Concluída
-DESCRIÇÃO: ...
-CAUSAS RAIZ: ...
-AÇÕES TOMADAS: ...
-```
-
-Isso garante que, quando o modelo de Embeddings procura similaridade espacial, ele encontra a relação de proximidade lógica em linguagem natural.
+Apenas as recorrências validadas são disponibilizadas para o cálculo de métricas (MTBF/MTTR) e para a análise do Copiloto.

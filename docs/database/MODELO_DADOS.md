@@ -1,14 +1,14 @@
 # Modelo de Dados - RCA System
 
-Este documento detalha a estrutura do banco de dados SQLite, cobrindo as entidades operacionais e o módulo de confiabilidade (FMEA).
+Este documento detalha a estrutura do banco de dados SQLite principal (Backend Node.js), cobrindo as entidades operacionais, e também cita as estruturas auxiliares utilizadas pelo Serviço de Inteligência Artificial.
 
 ---
 
-## 1. Arquitetura Relacional
+## 1. Arquitetura Relacional Principal (Backend - rca.db)
 
-O sistema utiliza um banco de dados SQLite local-first. Abaixo está a estrutura das entidades principais conforme o schema.sql.
+O sistema utiliza um banco de dados SQLite local-first. Abaixo está a estrutura das entidades principais.
 
-### Diagrama ER (Estado Atual)
+### Diagrama ER
 
 ```mermaid
 erDiagram
@@ -66,22 +66,22 @@ erDiagram
     }
 ```
 
-### Dicionário de Tabelas
+### Dicionário de Tabelas Principais
 
 | Tabela | Descrição | Chaves Principais |
 | :--- | :--- | :--- |
-| assets | Hierarquia física (Área > Equipamento > Subgrupo). Utiliza auto-relacionamento (parent_id referenciando id). | id, parent_id (Self-FK) |
-| rcas | Registros completos de investigação e análise. | id |
-| triggers | Eventos de parada brutos importados/gerados. | id, rca_id (FK) |
-| actions | Planos de ação derivados de uma RCA. | id, rca_id (FK) |
-| fmea_modes | Modos de falha e efeitos (FMEA) vinculados a equipamentos. | id, asset_id (FK) |
-| taxonomy | Configurações globais de status e campos (JSON). | id (PK fixed 1) |
+| `assets` | Hierarquia física (Área > Equipamento > Subgrupo). Utiliza auto-relacionamento (`parent_id`). | id, parent_id |
+| `rcas` | Registros completos de investigação e análise. | id |
+| `triggers` | Eventos de parada brutos importados/gerados. | id, rca_id (FK) |
+| `actions` | Planos de ação derivados de uma RCA. | id, rca_id (FK) |
+| `fmea_modes` | Modos de falha e efeitos estruturados vinculados a equipamentos específicos. | id, asset_id (FK) |
+| `taxonomy` | Configurações globais de status e campos (JSON). | id (PK fixed 1) |
 
 ---
 
 ## 2. Detalhamento: Tabela fmea_modes
 
-O FMEA é armazenado em uma tabela dedicada para permitir múltiplos modos de falha por equipamento.
+O FMEA é armazenado em uma tabela dedicada para permitir múltiplos modos de falha por equipamento, sendo consultado diretamente pela ferramenta `get_deterministic_fmea_tool` da IA.
 
 | Campo | Tipo | Descrição |
 | :--- | :--- | :--- |
@@ -90,38 +90,27 @@ O FMEA é armazenado em uma tabela dedicada para permitir múltiplos modos de fa
 | **failure_mode** | TEXT | Descrição do modo de falha (ex: "Travamento de rolamento"). |
 | **potential_effects**| TEXT | Efeitos potenciais do modo de falha. |
 | **severity** | INTEGER | Nota de Gravidade (1 a 10). |
-| **potential_causes** | TEXT | Causas potenciais identificadas para o modo de falha. |
+| **potential_causes** | TEXT | Causas potenciais identificadas. |
 | **occurrence** | INTEGER | Nota de Ocorrência (1 a 10). |
-| **current_controls** | TEXT | Controles atuais existentes para prevenir/detectar. |
+| **current_controls** | TEXT | Controles atuais existentes. |
 | **detection** | INTEGER | Nota de Detecção (1 a 10). |
 | **rpn** | INTEGER | Risk Priority Number (Calculado automaticamente: S * O * D). |
 | **recommended_actions**| TEXT | Ações recomendadas para mitigação do risco. |
 
 ### Cálculo de RPN Automático
-A coluna rpn é uma Generated Column persistida no banco (STORED). Isso garante que a integridade matemática seja mantida pela engine do SQLite sem necessidade de recálculo manual no backend ou frontend.
+A coluna `rpn` é uma **Generated Column** persistida no banco (`STORED`). Isso garante que a integridade matemática seja mantida pela engine do SQLite.
 
 ---
 
-## 3. Estratégia de Mídias (Issue #2)
+## 3. Bancos de Dados Auxiliares de Inteligência Artificial
 
-Para suportar anexo de imagens e vídeos nas análises, seguiremos a seguinte arquitetura:
+Para evitar bloqueios (`locks`) e separar a carga de processamento vetorial das transações do backend, a IA gerencia seus próprios bancos de dados isolados, armazenados na pasta local do usuário (`%LOCALAPPDATA%\RCA-System`):
 
-### Armazenamento Local-First
-- Pasta de Mídia: Armazenamento em /data/media/[rca_id]/.
-- Referência: O banco de dados armazenará apenas o caminho relativo ou uma lista de metadados JSON na tabela rcas.
-- Limites:
-  - Imagens: Max 5MB (JPG/PNG).
-  - Vídeos: Max 50MB (MP4).
-
-### Schema (Extensão)
-A tabela rcas receberá uma coluna attachments (TEXT) contendo um JSON array de objetos:
-```json
-[
-  { "id": "uuid", "type": "image", "path": "filename.jpg", "label": "Evidência 01" }
-]
-```
+1. **ChromaDB (`vector_db`)**: Armazena as embeddings (vetores) para o Triplo RAG. Possui as coleções `rca_history_v1` e `technical_knowledge_v1`.
+2. **`agent_memory.db`**: SQLite gerenciado nativamente pelo framework Agno OS para persistir o histórico de conversas dos agentes, sessões (`agno_sessions`) e memórias ativas (`agno_memories`).
+3. **`rca_knowledge.db`**: SQLite gerencial da IA contendo as tabelas `indexed_rcas`, `indexed_tech_knowledge` (para controle de hash e evitar indexações desnecessárias) e `recurrence_analysis` (para salvar resultados validados do RAG).
 
 ---
 
-## Manutenção
-Para qualquer alteração no schema físico, consulte o arquivo [schema.sql](../../server/src/v2/infrastructure/database/schema.sql).
+## Documentação Relacionada
+- [Arquitetura de Dados de IA (Vector DB / Memória)](../ai/data_architecture.md)
