@@ -12,6 +12,7 @@ class RecurrenceInfo(BaseModel):
     root_causes: Optional[str] = None
     actions: Optional[str] = None
     equipment_name: Optional[str] = None
+    subgroup_name: Optional[str] = None
     area_name: Optional[str] = None
     raw_content: Optional[str] = None
     failure_date: Optional[str] = None

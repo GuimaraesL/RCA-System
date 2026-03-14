@@ -57,6 +57,25 @@ def test_security_rejection_all_endpoints():
     assert response.status_code == 403
     assert response.json()["detail"] == "Invalid Internal Key"
 
+def test_recurrence_info_model_subgroup_name():
+    """Valida se o modelo RecurrenceInfo aceita o campo subgroup_name (Issue #141)."""
+    from api.models import RecurrenceInfo
+    
+    info = RecurrenceInfo(
+        rca_id="RCA-123",
+        similarity=0.85,
+        title="Teste Recorrência",
+        level="subgroup",
+        subgroup_name="Subgrupo A",
+        equipment_name="Equipamento B",
+        area_name="Área C"
+    )
+    
+    assert info.subgroup_name == "Subgrupo A"
+    assert info.equipment_name == "Equipamento B"
+    assert info.area_name == "Área C"
+    assert info.rca_id == "RCA-123"
+
 @patch("api.routes.get_rca_history_knowledge")
 @patch("agents.main_agent.get_rca_agent")
 def test_analyze_rca_success(mock_get_agent, mock_get_kb):
