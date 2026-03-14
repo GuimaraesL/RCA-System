@@ -57,8 +57,8 @@ def test_security_rejection_all_endpoints():
     assert response.status_code == 403
     assert response.json()["detail"] == "Invalid Internal Key"
 
-def test_recurrence_info_model_subgroup_name():
-    """Valida se o modelo RecurrenceInfo aceita o campo subgroup_name (Issue #141)."""
+def test_recurrence_info_model_fields():
+    """Valida se o modelo RecurrenceInfo aceita todos os campos esperados (Issue #141, #146)."""
     from api.models import RecurrenceInfo
     
     info = RecurrenceInfo(
@@ -66,14 +66,22 @@ def test_recurrence_info_model_subgroup_name():
         similarity=0.85,
         title="Teste Recorrência",
         level="subgroup",
+        symptoms="Vazamento persistente",
         subgroup_name="Subgrupo A",
         equipment_name="Equipamento B",
-        area_name="Área C"
+        area_name="Área C",
+        actions="Troca de selo",
+        raw_content="Conteúdo bruto aqui",
+        failure_date="2026-01-01"
     )
     
+    assert info.symptoms == "Vazamento persistente"
     assert info.subgroup_name == "Subgrupo A"
     assert info.equipment_name == "Equipamento B"
     assert info.area_name == "Área C"
+    assert info.actions == "Troca de selo"
+    assert info.raw_content == "Conteúdo bruto aqui"
+    assert info.failure_date == "2026-01-01"
     assert info.rca_id == "RCA-123"
 
 @patch("api.routes.get_rca_history_knowledge")

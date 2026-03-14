@@ -9,6 +9,7 @@ class RecurrenceInfo(BaseModel):
     similarity: float
     title: str
     level: str # 'subgroup', 'equipment', 'area'
+    symptoms: Optional[str] = None
     root_causes: Optional[str] = None
     actions: Optional[str] = None
     equipment_name: Optional[str] = None
