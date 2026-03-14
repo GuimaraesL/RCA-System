@@ -719,8 +719,11 @@ export const pt: TranslationSchema = {
             recurrenceLevels: {
                 subgroup: "Mesmo Subgrupo",
                 equipment: "Mesmo Equipamento",
-                area: "Equipamentos Diferentes"
+                area: "Equipamentos Diferentes",
+                discarded: "Descartes da IA (Falsos Positivos)"
             },
+            aiValidation: "Validação da IA",
+            discardReason: "Motivo do Descarte",
             searchButton: "Buscar Recorrências",
             searchHint: "Exploração contextual de falhas sistêmicas para evitar reincidências",
             emptyHistory: "Clique em \"Buscar Recorrências\" para explorar o histórico técnico.",

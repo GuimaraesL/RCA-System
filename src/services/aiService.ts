@@ -13,6 +13,9 @@ export interface RecurrenceInfo {
     actions?: string;
     equipment_name?: string;
     area_name?: string;
+    validation_reason?: string;
+    discard_reason?: string;
+    failure_date?: string;
 }
 
 export interface AIAnalysisResponse {

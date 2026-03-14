@@ -724,8 +724,11 @@ export const en: TranslationSchema = {
             recurrenceLevels: {
                 subgroup: "Same Subgroup",
                 equipment: "Same Equipment",
-                area: "Different Equipment"
+                area: "Different Equipment",
+                discarded: "AI Discards (False Positives)"
             },
+            aiValidation: "AI Validation",
+            discardReason: "Discard Reason",
             searchButton: "Search Recurrences",
             searchHint: "Contextual exploration of systemic failures to avoid recurrences",
             emptyHistory: "Click on \"Search Recurrences\" to explore the technical history.",

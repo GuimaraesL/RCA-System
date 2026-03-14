@@ -14,9 +14,10 @@ export interface RecurrenceData {
     subgroup: RecurrenceInfo[];
     equipment: RecurrenceInfo[];
     area: RecurrenceInfo[];
+    discarded: RecurrenceInfo[];
 }
 
-const EMPTY_RECURRENCE: RecurrenceData = { subgroup: [], equipment: [], area: [] };
+const EMPTY_RECURRENCE: RecurrenceData = { subgroup: [], equipment: [], area: [], discarded: [] };
 
 interface AiContextType {
     isAiOpen: boolean;
@@ -74,11 +75,12 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         setLoadingRecurrences(true);
         try {
             const data = await fetchRecurrencesOnly(rca, getFullLanguageName(language));
-            if (data && (data.subgroup_matches?.length || data.equipment_matches?.length || data.area_matches?.length)) {
+            if (data && (data.subgroup_matches?.length || data.equipment_matches?.length || data.area_matches?.length || data.discarded_matches?.length)) {
                 setRecurrenceData({
                     subgroup: data.subgroup_matches || [],
                     equipment: data.equipment_matches || [],
-                    area: data.area_matches || []
+                    area: data.area_matches || [],
+                    discarded: data.discarded_matches || []
                 });
             }
         } catch (e) {
@@ -123,11 +125,12 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
                 setDynamicSuggestions(update.suggestions);
             } else if (update.type === 'recurrence' && update.data) {
                 // Novo formato estruturado
-                if (update.data.subgroup || update.data.equipment || update.data.area) {
+                if (update.data.subgroup || update.data.equipment || update.data.area || update.data.discarded) {
                     setRecurrenceData({
                         subgroup: update.data.subgroup || [],
                         equipment: update.data.equipment || [],
-                        area: update.data.area || []
+                        area: update.data.area || [],
+                        discarded: update.data.discarded || []
                     });
                 } else {
                     // Fallback legado: item individual

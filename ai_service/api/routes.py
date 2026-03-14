@@ -422,10 +422,74 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
 
         # Se for apenas para buscar os metadados (persistência de estado do banner) e pular o Agent
         if request.metadata_only:
+            all_candidates = subgroup_matches + equipment_matches + area_matches
+            
+            if not all_candidates:
+                return {
+                    "subgroup_matches": [],
+                    "equipment_matches": [],
+                    "area_matches": [],
+                    "discarded_matches": []
+                }
+
+            # ESTÁGIO 2: VALIDAÇÃO TÉCNICA (RAG de 2 Estágios)
+            from agents.rag_validator import get_rag_validator
+            validator = get_rag_validator()
+            
+            candidate_texts = []
+            for r in all_candidates:
+                meta = f"ID_RCA: {r.rca_id} | CATEGORIA: {r.level} | Equipamento: {r.equipment_name}"
+                candidate_texts.append(f"{meta}\nCONTEÚDO:\n{r.raw_content}\n---")
+
+            validation_prompt = (
+                f"PROBLEMA ATUAL (DADOS DA TELA):\n{query_text}\n\n"
+                f"CANDIDATOS DO RAG:\n" + "\n".join(candidate_texts)
+            )
+            
+            validation_response = validator.run(validation_prompt)
+            val_text = validation_response.content
+
+            # Parsing manual dos resultados da validação
+            valid_ids = {} # rca_id -> reason
+            discarded_ids = {} # rca_id -> reason
+            
+            import re
+            valid_section = re.search(r"RECORRÊNCIAS VALIDADAS:(.*?)(?=FALSOS POSITIVOS DESCARTADOS:|$)", val_text, re.S)
+            if valid_section:
+                for line in valid_section.group(1).strip().split('\n'):
+                    match = re.search(r"ID:\s*([a-f0-9-]+)\s*\|\s*Motivo Técnico:\s*(.*)", line)
+                    if match:
+                        valid_ids[match.group(1).strip()] = match.group(2).strip()
+
+            discarded_section = re.search(r"FALSOS POSITIVOS DESCARTADOS:(.*)", val_text, re.S)
+            if discarded_section:
+                for line in discarded_section.group(1).strip().split('\n'):
+                    match = re.search(r"ID:\s*([a-f0-9-]+)\s*\|\s*Motivo do Descarte:\s*(.*)", line)
+                    if match:
+                        discarded_ids[match.group(1).strip()] = match.group(2).strip()
+
+            # Filtra e enriquece os resultados originais
+            def enrich_and_filter(matches):
+                enriched = []
+                for m in matches:
+                    if m.rca_id in valid_ids:
+                        d = m.dict()
+                        d["validation_reason"] = valid_ids[m.rca_id]
+                        enriched.append(d)
+                return enriched
+
+            discarded_list = []
+            for m in all_candidates:
+                if m.rca_id in discarded_ids:
+                    d = m.dict()
+                    d["discard_reason"] = discarded_ids[m.rca_id]
+                    discarded_list.append(d)
+
             return {
-                "subgroup_matches": [m.dict() for m in subgroup_matches],
-                "equipment_matches": [m.dict() for m in equipment_matches],
-                "area_matches": [m.dict() for m in area_matches]
+                "subgroup_matches": enrich_and_filter(subgroup_matches),
+                "equipment_matches": enrich_and_filter(equipment_matches),
+                "area_matches": enrich_and_filter(area_matches),
+                "discarded_matches": discarded_list
             }
 
         # Lista unificada para injeção no contexto do LLM (concat das 3)

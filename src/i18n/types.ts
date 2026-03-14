@@ -719,7 +719,10 @@ export interface TranslationSchema {
                 subgroup: string;
                 equipment: string;
                 area: string;
+                discarded: string;
             };
+            aiValidation: string;
+            discardReason: string;
             searchButton: string;
             searchHint: string;
             emptyHistory: string;

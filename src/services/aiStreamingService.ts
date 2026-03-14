@@ -177,14 +177,17 @@ export const streamAiAnalysis = async (
                     // Novo formato: { type: 'metadata', subgroup_matches: [...], equipment_matches: [...], area_matches: [...] }
                     else if (parsed.type === 'metadata' && (parsed.subgroup_matches || parsed.equipment_matches || parsed.area_matches || parsed.recurrences)) {
                         // Formato novo: listas separadas
-                        if (parsed.subgroup_matches || parsed.equipment_matches || parsed.area_matches) {
-                            const allMatches = [
-                                ...(parsed.subgroup_matches || []),
-                                ...(parsed.equipment_matches || []),
-                                ...(parsed.area_matches || [])
-                            ];
+                        if (parsed.subgroup_matches || parsed.equipment_matches || parsed.area_matches || parsed.discarded_matches) {
                             // Envia as listas separadas como metadata estruturado
-                            onUpdate({ type: 'recurrence', data: { subgroup: parsed.subgroup_matches || [], equipment: parsed.equipment_matches || [], area: parsed.area_matches || [] } });
+                            onUpdate({ 
+                                type: 'recurrence', 
+                                data: { 
+                                    subgroup: parsed.subgroup_matches || [], 
+                                    equipment: parsed.equipment_matches || [], 
+                                    area: parsed.area_matches || [],
+                                    discarded: parsed.discarded_matches || []
+                                } 
+                            });
                         }
                         // Fallback: formato legado
                         else if (parsed.recurrences) {

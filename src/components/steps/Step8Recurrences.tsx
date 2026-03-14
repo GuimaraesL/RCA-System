@@ -133,6 +133,26 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                                                         ))
                                                     }
                                                 </div>
+                                                {item.validation_reason && (
+                                                    <div className="mt-3 p-2.5 rounded-xl bg-primary-50/50 dark:bg-primary-500/5 border border-primary-100/50 dark:border-primary-500/10">
+                                                        <p className="text-[10px] font-bold text-primary-600 dark:text-primary-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                                                            <Activity className="w-3 h-3" /> {t('wizard.step8.aiValidation')}
+                                                        </p>
+                                                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
+                                                            "{item.validation_reason}"
+                                                        </p>
+                                                    </div>
+                                                )}
+                                                {item.discard_reason && (
+                                                    <div className="mt-3 p-2.5 rounded-xl bg-red-50/50 dark:bg-red-500/5 border border-red-100/50 dark:border-red-500/10">
+                                                        <p className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                                                            <Activity className="w-3 h-3" /> {t('wizard.step8.discardReason')}
+                                                        </p>
+                                                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed italic">
+                                                            "{item.discard_reason}"
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 align-top">
                                                 <Badge variant="neutral" className="bg-slate-100 dark:bg-white/10 border-slate-200 dark:border-white/10 font-mono text-[10px] text-primary-600 dark:text-primary-300">
@@ -228,6 +248,18 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                             accentClass="bg-emerald-500"
                             groupDate={getSectionGroupDate(recurrenceData.area)}
                         />
+
+                        {/* Discarded Section */}
+                        {recurrenceData.discarded && recurrenceData.discarded.length > 0 && (
+                            <RecurrenceTable
+                                title={t('wizard.step8.recurrenceLevels.discarded')}
+                                icon={Inbox}
+                                items={recurrenceData.discarded}
+                                colorClass="from-slate-50 dark:from-slate-500/10 to-transparent opacity-60"
+                                accentClass="bg-slate-400"
+                                groupDate={getSectionGroupDate(recurrenceData.discarded)}
+                            />
+                        )}
                     </>
                 )}
             </div>
