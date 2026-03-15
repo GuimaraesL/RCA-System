@@ -5,6 +5,7 @@ Fluxo: Recebe os dados de contexto, executa busca vetorial em três níveis (sub
 import re
 import httpx
 from typing import List, Tuple, Dict, Any
+from agno.utils.log import logger
 
 from core.knowledge import get_rca_history_knowledge
 from agents.rag_validator import get_rag_validator
@@ -64,8 +65,8 @@ def extract_recurrence(doc: Any, level_name: str, rank: int) -> RecurrenceInfo:
                     j_resp = resp.json()
                     if 'failure_date' in j_resp and j_resp['failure_date']:
                         fail_date = j_resp['failure_date']
-            except Exception:
-                pass # Silently fail fetch and keep doing things
+            except Exception as e:
+                logger.warning(f'[fetch_failure_date] rca_id={rca_i}: {e}')
 
     return RecurrenceInfo(
         rca_id=doc.meta_data.get("rca_id", "unknown"),
@@ -102,7 +103,7 @@ def search_hierarchical(
     if not query_text:
         return subgroup_matches, equipment_matches, area_matches
 
-    print(f"\n[RAG] DADOS ATUAIS DA TELA:\n{query_text}\n")
+    logger.debug(f"RAG: Buscando recorrências para consulta de {len(query_text)} caracteres.")
 
     # Nível 1: Mesmo Subgrupo
     if subgroup_id and equipment_id and area_id:

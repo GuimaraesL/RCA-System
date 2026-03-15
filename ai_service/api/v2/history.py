@@ -59,7 +59,8 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
     messages = []
     try:
         session_msgs = agent.get_session_messages(rca_id)
-    except Exception:
+    except Exception as e:
+        logger.warning(f"[get_chat_history] Falha ao recuperar histórico para {rca_id}: {e}")
         session_msgs = []
 
     if session_msgs:

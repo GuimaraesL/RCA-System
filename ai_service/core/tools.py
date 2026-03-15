@@ -2,6 +2,7 @@ import os
 import glob
 import json
 import httpx
+from agno.utils.log import logger
 from .config import BACKEND_URL, INTERNAL_AUTH_KEY
 from .knowledge import get_fmea_knowledge
 
@@ -25,11 +26,10 @@ def get_asset_fmea_tool(query: str):
     Args:
         query (str): Termos de busca (ex: 'Motores DC', 'Redutores de engrenagem', 'vazamento retentor').
     """
-    print(f"DEBUG TOOL: get_asset_fmea_tool chamado com consulta: '{query}'")
-    
-    knowledge_base = get_fmea_knowledge()
+    logger.debug(f"get_asset_fmea_tool chamado com consulta: '{query}'")
     
     try:
+        knowledge_base = get_fmea_knowledge()
         # Busca por similaridade no banco vetorial (RAG)
         results = knowledge_base.vector_db.search(query=query, limit=5)
         
@@ -47,8 +47,8 @@ def get_asset_fmea_tool(query: str):
         return "CONHECIMENTO FMEA ENCONTRADO:\n\n" + "\n\n".join(formatted_results)
         
     except Exception as e:
-        print(f"Erro ao realizar busca vetorial FMEA: {e}")
-        return f"Erro técnico ao consultar a biblioteca FMEA: {str(e)}"
+        logger.error(f"[get_asset_fmea_tool] query={query}: {e}")
+        return f"ERRO_FERRAMENTA: {type(e).__name__} ao consultar a biblioteca FMEA."
 
 def get_full_rca_detail_tool(rca_id: str):
     """
@@ -56,14 +56,14 @@ def get_full_rca_detail_tool(rca_id: str):
     Use esta ferramenta quando encontrar um ID relevante no RAG e precisar de 100% de precisão para confronto de dados,
     incluindo Ishikawa, 5 Porquês, Planos de Ação (Status/Prazos) e Gatilhos (Triggers).
     """
-    print(f"DEBUG TOOL: get_full_rca_detail_tool chamado para RCA {rca_id}")
+    logger.debug(f"get_full_rca_detail_tool chamado para RCA {rca_id}")
     try:
         # Busca RCA
         headers = {"x-internal-key": INTERNAL_AUTH_KEY}
         with httpx.Client(base_url=BACKEND_URL, timeout=10.0, headers=headers) as client:
             rca_res = client.get(f"/api/rcas/{rca_id}")
             if rca_res.status_code != 200:
-                return f"Erro ao buscar RCA {rca_id}: {rca_res.text}"
+                return f"ERRO_FERRAMENTA: Falha ao buscar RCA {rca_id} no backend principal."
             
             rca_data = rca_res.json()
             
@@ -72,9 +72,6 @@ def get_full_rca_detail_tool(rca_id: str):
                 if isinstance(obj, list):
                     return [prune_json(i, depth + 1) for i in obj]
                 if isinstance(obj, dict):
-                    # Mantemos chaves úteis mesmo que pareçam técnicas, para não quebrar correlações
-                    # 'actions' e 'plan' são cruciais, não devem ser removidos.
-                    # Removemos apenas o que é comprovadamente ruído sistêmico.
                     skip_keys = {"created_at", "updated_at", "deleted_at", "_id"} 
                     return {k: prune_json(v, depth + 1) for k, v in obj.items() if k not in skip_keys}
                 return obj
@@ -97,11 +94,11 @@ def get_full_rca_detail_tool(rca_id: str):
                 }
             }
             
-            import json
             return f"CONTEÚDO DA RCA {rca_id} (OTIMIZADO):\n\n" + json.dumps(full_context, indent=2, ensure_ascii=False)
             
     except Exception as e:
-        return f"Erro na comunicação com o backend para detalhamento da RCA: {str(e)}"
+        logger.error(f"[get_full_rca_detail_tool] rca_id={rca_id}: {e}")
+        return f"ERRO_FERRAMENTA: {type(e).__name__} ao detalhar a RCA {rca_id}."
 
 def search_historical_rcas_tool(query: str, run_context: RunContext, subgroup_id: str = None, equipment_id: str = None, area_id: str = None, search_scope: str = "auto"):
     """
@@ -116,7 +113,7 @@ def search_historical_rcas_tool(query: str, run_context: RunContext, subgroup_id
         area_id (str, optional): ID da área.
         search_scope (str): 'auto' realiza a busca hierárquica completa.
     """
-    print(f"DEBUG TOOL: search_historical_rcas_tool chamado")
+    logger.debug(f"search_historical_rcas_tool chamado")
     
     # --- EXTRAÇÃO DE CONTEXTO INTEGRAL (EXATAMENTE COMO VEM DA TELA) ---
     raw_screen_context = ""
@@ -127,8 +124,6 @@ def search_historical_rcas_tool(query: str, run_context: RunContext, subgroup_id
             # Tenta parsear para extrair os IDs de segurança
             ctx_str = raw_screen_context
             if isinstance(ctx_str, str) and "{" in ctx_str:
-                import json
-                import json
                 clean_ctx = ctx_str.replace("[DADOS ATUAIS DA TELA]:\n", "").strip()
                 ctx_data = json.loads(clean_ctx)
                 
@@ -146,17 +141,16 @@ def search_historical_rcas_tool(query: str, run_context: RunContext, subgroup_id
                 subgroup_id = subgroup_id or ctx_data.get("subgroup_id") or hierarchy.get("subgroup")
                 raw_screen_context = json.dumps(raw_screen_context, ensure_ascii=False)
         except Exception as e:
-            print(f"DEBUG TOOL: Erro ao processar JSON do contexto: {e}")
+            logger.warning(f"[search_historical_rcas_tool] Falha ao processar contexto JSON: {e}")
 
     # A query de busca vetorial DEVE ser o contexto bruto completo, 
     # exatamente como era feito antes para capturar toda a semântica.
-    # Alinhado com o padrão [DADOS ATUAIS DA TELA]:
     search_query = raw_screen_context.strip() if raw_screen_context else query
     if search_query and not search_query.startswith("[DADOS ATUAIS DA TELA]:"):
         search_query = f"[DADOS ATUAIS DA TELA]:\n{search_query}"
 
     if not area_id:
-        return "Erro de Segurança: Não foi possível identificar a Manufatura (Área). Informe o Ativo primeiro."
+        return "ERRO_FERRAMENTA: Não foi possível identificar a Manufatura (Área). Informe o Ativo primeiro."
 
     from services.rag_service import search_hierarchical, validate_recurrences
     
@@ -191,7 +185,8 @@ def search_historical_rcas_tool(query: str, run_context: RunContext, subgroup_id
         )
         
     except Exception as e:
-        return f"Erro no processo de RAG: {str(e)}"
+        logger.error(f"[search_historical_rcas_tool] query={query}: {e}")
+        return f"ERRO_FERRAMENTA: Falha no motor de busca hierárquica (RAG)."
 
 def get_historical_rca_summary(rca_id: str) -> str:
     """
@@ -202,10 +197,9 @@ def get_historical_rca_summary(rca_id: str) -> str:
         headers = {"x-internal-key": INTERNAL_AUTH_KEY}
         with httpx.Client(base_url=BACKEND_URL, timeout=5.0, headers=headers) as client:
             res = client.get(f"/api/rcas/{rca_id}")
-            if res.status_code != 200: return f"RCA {rca_id} não encontrada."
+            if res.status_code != 200: return f"ERRO_FERRAMENTA: RCA {rca_id} não encontrada."
             data = res.json()
             
-            # Extrair todas as datas possíveis para garantir precisão
             data_criacao = data.get('created_at', 'N/A')
             data_ocorrencia = data.get('date', data_criacao)
             data_atualizacao = data.get('updated_at', 'N/A')
@@ -222,7 +216,9 @@ def get_historical_rca_summary(rca_id: str) -> str:
                 f"Tipo de Análise: {data.get('analysis_type', 'N/A')}\n"
                 f"Descrição: {data.get('problem_description', data.get('description', 'N/A'))}"
             )
-    except Exception as e: return str(e)
+    except Exception as e:
+        logger.error(f"[get_historical_rca_summary] rca_id={rca_id}: {e}")
+        return f"ERRO_FERRAMENTA: Falha ao obter resumo da RCA {rca_id}."
 
 def get_historical_rca_causes(rca_id: str) -> str:
     """
@@ -233,14 +229,14 @@ def get_historical_rca_causes(rca_id: str) -> str:
         headers = {"x-internal-key": INTERNAL_AUTH_KEY}
         with httpx.Client(base_url=BACKEND_URL, timeout=5.0, headers=headers) as client:
             res = client.get(f"/api/rcas/{rca_id}")
-            if res.status_code != 200: return f"RCA {rca_id} não encontrada."
+            if res.status_code != 200: return f"ERRO_FERRAMENTA: RCA {rca_id} não encontrada."
             data = res.json()
             
-            # Filtra apenas a parte de causas
             causes = data.get("root_causes", [])
-            import json
             return f"CAUSAS DA RCA {rca_id}:\n{json.dumps(causes, indent=2, ensure_ascii=False)}"
-    except Exception as e: return str(e)
+    except Exception as e:
+        logger.error(f"[get_historical_rca_causes] rca_id={rca_id}: {e}")
+        return f"ERRO_FERRAMENTA: Falha ao obter causas da RCA {rca_id}."
 
 def get_historical_rca_action_plan(rca_id: str) -> str:
     """
@@ -258,12 +254,11 @@ def get_historical_rca_action_plan(rca_id: str) -> str:
 
             # Se a API de ações retornou dados, usa eles
             if actions_data and isinstance(actions_data, list) and len(actions_data) > 0:
-                import json
                 return f"PLANO DE AÇÃO DA RCA {rca_id}:\n{json.dumps(actions_data, indent=2, ensure_ascii=False)}"
 
             # Fallback para o legado
             res = client.get(f"/api/rcas/{rca_id}")
-            if res.status_code != 200: return f"RCA {rca_id} não encontrada."
+            if res.status_code != 200: return f"ERRO_FERRAMENTA: RCA {rca_id} não encontrada."
             data = res.json()
 
             plan = {
@@ -271,9 +266,10 @@ def get_historical_rca_action_plan(rca_id: str) -> str:
                 "root_cause_actions": [action for rc in data.get("root_causes", []) for action in rc.get("actions", [])],
                 "human_reliability": data.get("human_reliability", [])
             }
-            import json
             return f"PLANO DE AÇÃO DA RCA {rca_id}:\n{json.dumps(plan, indent=2, ensure_ascii=False)}"  
-    except Exception as e: return str(e)
+    except Exception as e:
+        logger.error(f"[get_historical_rca_action_plan] rca_id={rca_id}: {e}")
+        return f"ERRO_FERRAMENTA: Falha ao obter plano de ação da RCA {rca_id}."
 
 def get_historical_rca_triggers(rca_id: str) -> str:
     """
@@ -284,11 +280,12 @@ def get_historical_rca_triggers(rca_id: str) -> str:
         headers = {"x-internal-key": INTERNAL_AUTH_KEY}
         with httpx.Client(base_url=BACKEND_URL, timeout=5.0, headers=headers) as client:
             res = client.get(f"/api/triggers/rca/{rca_id}")
-            if res.status_code != 200: return f"Não foram encontrados gatilhos atrelados à RCA {rca_id}."
+            if res.status_code != 200: return f"ERRO_FERRAMENTA: Gatilhos da RCA {rca_id} não encontrados."
             data = res.json()
-            import json
             return f"GATILHOS DA RCA {rca_id}:\n{json.dumps(data, indent=2, ensure_ascii=False)}"
-    except Exception as e: return str(e)
+    except Exception as e:
+        logger.error(f"[get_historical_rca_triggers] rca_id={rca_id}: {e}")
+        return f"ERRO_FERRAMENTA: Falha ao obter gatilhos da RCA {rca_id}."
 
 def get_deterministic_fmea_tool(asset_id: str):
     """
@@ -298,14 +295,14 @@ def get_deterministic_fmea_tool(asset_id: str):
     Args:
         asset_id (str): ID do ativo (equipamento) no sistema.
     """
-    print(f"DEBUG TOOL: get_deterministic_fmea_tool chamado para Ativo: {asset_id}")
+    logger.debug(f"get_deterministic_fmea_tool chamado para Ativo: {asset_id}")
     
     try:
         headers = {"x-internal-key": INTERNAL_AUTH_KEY}
         with httpx.Client(base_url=BACKEND_URL, timeout=10.0, headers=headers) as client:
             res = client.get(f"/api/fmea/asset/{asset_id}")
             if res.status_code != 200:
-                return f"Não foi possível encontrar dados estruturados de FMEA para o ativo {asset_id}."
+                return f"ERRO_FERRAMENTA: Falha ao consultar banco de dados FMEA para o ativo {asset_id}."
             
             fmea_data = res.json()
             if not fmea_data:
@@ -314,7 +311,8 @@ def get_deterministic_fmea_tool(asset_id: str):
             return "MODOS DE FALHA ESTRUTURADOS (FMEA DB):\n\n" + json.dumps(fmea_data, indent=2, ensure_ascii=False)
             
     except Exception as e:
-        return f"Erro ao consultar banco de dados FMEA: {str(e)}"
+        logger.error(f"[get_deterministic_fmea_tool] asset_id={asset_id}: {e}")
+        return f"ERRO_FERRAMENTA: Erro técnico ao consultar banco de dados FMEA."
 
 def calculate_reliability_metrics_tool(rca_ids: list[str]):
     """
@@ -325,14 +323,11 @@ def calculate_reliability_metrics_tool(rca_ids: list[str]):
         rca_ids (list[str]): Lista de IDs das RCAs que foram consideradas recorrências válidas.
     """
     from datetime import datetime
-    import httpx
-    import json
-    from .config import BACKEND_URL, INTERNAL_AUTH_KEY
     
-    print(f"DEBUG TOOL: calculate_reliability_metrics_tool chamado para {len(rca_ids)} RCAs.")
+    logger.debug(f"calculate_reliability_metrics_tool chamado para {len(rca_ids)} RCAs.")
     
     if not rca_ids or len(rca_ids) < 2:
-        return "Dados insuficientes para cálculo de métricas. São necessárias pelo menos 2 RCAs históricas validadas."
+        return "ERRO_FERRAMENTA: Dados insuficientes para cálculo de métricas. São necessárias pelo menos 2 RCAs históricas validadas."
     
     dates = []
     downtimes = []
@@ -364,7 +359,7 @@ def calculate_reliability_metrics_tool(rca_ids: list[str]):
                             pass
         
         if len(dates) < 2:
-            return "Não foi possível extrair datas suficientes para o cálculo de MTBF."
+            return "ERRO_FERRAMENTA: Não foi possível extrair datas suficientes para o cálculo de MTBF."
         
         dates.sort()
         intervals = []
@@ -391,4 +386,5 @@ def calculate_reliability_metrics_tool(rca_ids: list[str]):
         return result
         
     except Exception as e:
-        return f"Erro ao calcular métricas de confiabilidade: {str(e)}"
+        logger.error(f"[calculate_reliability_metrics_tool] rca_ids={rca_ids}: {e}")
+        return f"ERRO_FERRAMENTA: Falha técnica ao calcular métricas de confiabilidade."

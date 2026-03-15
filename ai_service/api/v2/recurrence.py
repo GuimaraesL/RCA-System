@@ -51,8 +51,8 @@ async def analyze_recurrence_on_demand(request: AnalysisRequest, x_internal_key:
             equipment_id = equipment_id or ctx.get('equipment_id')
             subgroup_id = subgroup_id or ctx.get('subgroup_id')
             asset_info = ctx.get('asset_display', asset_info)
-        except:
-            pass
+        except Exception as e:
+            logger.warning(f"[analyze_recurrence_on_demand] Falha ao parsear contexto JSON: {e}")
 
     # 2. Geração da Query via Tool Oficial (Alinhamento em 100% com o Agente)
     screen_context_content = f"Ativo: {asset_info}\n{request.context}"

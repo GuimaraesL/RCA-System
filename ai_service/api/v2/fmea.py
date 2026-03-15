@@ -8,6 +8,7 @@ import secrets
 import glob
 import shutil
 import json
+from agno.utils.log import logger
 
 from core.config import INTERNAL_AUTH_KEY
 from core.knowledge import index_fmea_documents
@@ -78,8 +79,8 @@ async def extract_fmea_endpoint(payload: dict, x_internal_key: str = Header(None
     agent = get_fmea_agent()
     
     prompt = (
-        f"Analise o seguinte texto e extraia os modos de falha em formato JSON:\\n\\n"
-        f"TEXTO: {text}\\n\\n"
+        f"Analise o seguinte texto e extraia os modos de falha em formato JSON:\n\n"
+        f"TEXTO: {text}\n\n"
         "Retorne APENAS um array JSON de objetos com os campos: "
         "failure_mode, potential_effects, severity, potential_causes, occurrence, current_controls, detection, recommended_actions."
     )
@@ -100,10 +101,12 @@ async def extract_fmea_endpoint(payload: dict, x_internal_key: str = Header(None
             if isinstance(parsed_json, list):
                 return {"modes": parsed_json}
             return parsed_json
-        except:
+        except Exception as e:
+            logger.error(f"[extract_fmea_endpoint] IA gerou JSON inválido: {e} | Content: {content[:200]}...")
             raise HTTPException(status_code=500, detail="A IA gerou um formato de dados inválido.")
             
     except Exception as e:
+        logger.error(f"[extract_fmea_endpoint] Erro crítico no agente FMEA: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/files/{filename}")

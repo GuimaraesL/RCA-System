@@ -46,8 +46,8 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                 area_id = area_id or ctx.get('area_id')
                 equipment_id = equipment_id or ctx.get('equipment_id')
                 subgroup_id = subgroup_id or ctx.get('subgroup_id')
-            except:
-                pass
+            except Exception as e:
+                logger.warning(f"[analyze_rca] Falha ao parsear contexto JSON: {e}")
             
             # Alinhamento de Query: Usar o formato estruturado oficial
             query_text = f"[DADOS ATUAIS DA TELA]:\nAtivo: {asset_info}\n{request.context}"
