@@ -4,8 +4,10 @@ import sqlite3
 import sys
 sys.path.append(os.getcwd())
 
-AGENT_MEMORY = os.environ.get("AGENT_MEMORY_PATH", os.path.join(os.getcwd(), "agent_memory", "rca_knowledge.db"))
-CHROMA_DB = os.path.join(os.getcwd(), "agent_memory", "chroma_db")
+from core.config import VECTOR_DB_PATH, KNOWLEDGE_DB_PATH
+
+AGENT_MEMORY = KNOWLEDGE_DB_PATH
+CHROMA_DB = VECTOR_DB_PATH
 
 def force_reindex():
     print("🧹 Cleaning VectorDB and Hashes...")
