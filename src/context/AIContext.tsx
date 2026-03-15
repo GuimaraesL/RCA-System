@@ -60,14 +60,20 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     };
 
     const clearAi = useCallback(async (rcaId?: string) => {
+        let preserveRecurrence = false;
         if (rcaId) {
-            await deleteChatHistory(rcaId);
+            const result = await deleteChatHistory(rcaId);
+            if (result && result.recurrence_preserved) {
+                preserveRecurrence = true;
+            }
         }
         setMessages([]);
         setInsight('');
         setReasoning('');
         setDynamicSuggestions([]);
-        setRecurrenceData(EMPTY_RECURRENCE);
+        if (!preserveRecurrence) {
+            setRecurrenceData(EMPTY_RECURRENCE);
+        }
         setError(null);
         setStatus('idle');
     }, []);

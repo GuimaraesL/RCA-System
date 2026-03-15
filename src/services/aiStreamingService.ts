@@ -52,10 +52,11 @@ export const deleteChatHistory = async (rcaId: string) => {
                 'x-internal-key': INTERNAL_KEY
             }
         });
-        return response.ok;
+        if (!response.ok) return { success: false };
+        return await response.json();
     } catch (e) {
         console.error('Failed to clear AI chat history', e);
-        return false;
+        return { success: false };
     }
 };
 
