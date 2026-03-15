@@ -16,7 +16,7 @@ client = TestClient(app)
 
 def test_health_check():
     """Valida se o endpoint de health check está respondendo corretamente."""
-    response = client.get("/health")
+    response = client.get("/v2/health")
     assert response.status_code == 200
     data = response.json()
     # Aceita tanto o formato original quanto o formato do Agno OS
@@ -25,7 +25,7 @@ def test_health_check():
 def test_analyze_rca_invalid_key():
     """Valida se a API rejeita requisições sem a chave interna correta."""
     response = client.post(
-        "/analyze",
+        "/v2/analyze",
         json={"rca_id": "test-123"},
         headers={"x-internal-key": "wrong-key"}
     )
@@ -35,10 +35,10 @@ def test_analyze_rca_invalid_key():
 def test_security_rejection_all_endpoints():
     """Valida se múltiplos endpoints rejeitam chaves inválidas (Timing Attack fix)."""
     endpoints = [
-        ("/fmea/files", "GET"),
-        ("/extract-fmea", "POST"),
-        ("/analyze/history/rca-123", "DELETE"),
-        ("/recurrence/rca-123", "GET"),
+        ("/v2/fmea/files", "GET"),
+        ("/v2/fmea/extract-fmea", "POST"),
+        ("/v2/analyze/history/rca-123", "DELETE"),
+        ("/v2/recurrence/rca-123", "GET"),
     ]
     
     for path, method in endpoints:
@@ -53,7 +53,7 @@ def test_security_rejection_all_endpoints():
         assert response.json()["detail"] == "Invalid Internal Key"
 
     # Testa também sem o header (deve cair no compare_digest(None or '', ...))
-    response = client.get("/fmea/files")
+    response = client.get("/v2/fmea/files")
     assert response.status_code == 403
     assert response.json()["detail"] == "Invalid Internal Key"
 
@@ -84,17 +84,16 @@ def test_recurrence_info_model_fields():
     assert info.failure_date == "2026-01-01"
     assert info.rca_id == "RCA-123"
 
-@patch("api.routes.get_rca_history_knowledge")
+@patch("api.v2.analysis.search_hierarchical")
 @patch("agents.main_agent.get_rca_agent")
-def test_analyze_rca_success(mock_get_agent, mock_get_kb):
-    """Valida o fluxo de análise com sucesso (mockando o time de IA)."""
+def test_analyze_rca_success(mock_get_agent, mock_search):
+    """Valida o fluxo de análise com sucesso na V2."""
     
     # Configura mocks
     mock_team = MagicMock()
     
     # Mock do stream SSE (Agno 2.x usa arun como generator)
     async def mock_arun_gen(*args, **kwargs):
-        # Simula o objeto RunEvent/RunContentEvent ou similar que o routes.py espera
         class MockEvent:
             def __init__(self, content):
                 self.content = content
@@ -104,13 +103,12 @@ def test_analyze_rca_success(mock_get_agent, mock_get_kb):
     mock_team.arun = mock_arun_gen
     mock_get_agent.return_value = mock_team
     
-    mock_kb = MagicMock()
-    mock_kb.vector_db.search.return_value = []
-    mock_get_kb.return_value = mock_kb
+    # Mock do search_hierarchical da V2
+    mock_search.return_value = ([], [], [])
 
     # Executa requisição
     response = client.post(
-        "/analyze",
+        "/v2/analyze",
         json={
             "rca_id": "RCA-2026-001",
             "context": '{"title": "Falha na bomba", "description": "Vazamento no selo mecânico"}',

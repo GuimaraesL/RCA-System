@@ -38,6 +38,10 @@ async def analyze_recurrence_on_demand(request: AnalysisRequest, x_internal_key:
     if not secrets.compare_digest(x_internal_key or '', INTERNAL_AUTH_KEY):
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
 
+    return await _run_recurrence_analysis(request)
+
+async def _run_recurrence_analysis(request: AnalysisRequest):
+    """Lógica de negócio interna para análise de recorrência (sem validação de chave)."""
     # 1. Extração de Dados Básicos
     area_id = request.area_id
     equipment_id = request.equipment_id
@@ -52,7 +56,7 @@ async def analyze_recurrence_on_demand(request: AnalysisRequest, x_internal_key:
             subgroup_id = subgroup_id or ctx.get('subgroup_id')
             asset_info = ctx.get('asset_display', asset_info)
         except Exception as e:
-            logger.warning(f"[analyze_recurrence_on_demand] Falha ao parsear contexto JSON: {e}")
+            logger.warning(f"[_run_recurrence_analysis] Falha ao parsear contexto JSON: {e}")
 
     # 2. Geração da Query via Tool Oficial (Alinhamento em 100% com o Agente)
     screen_context_content = f"Ativo: {asset_info}\n{request.context}"

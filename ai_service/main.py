@@ -14,7 +14,6 @@ from core.knowledge import (
     index_fmea_documents,
     index_technical_documents
 )
-from api.routes import router as api_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -67,9 +66,6 @@ app.router.lifespan_context = lifespan
 # 4. Customização Adicional do App
 app.title = "RCA AI Service (Agno OS Powered)"
 app.version = "1.4.0"
-
-# Adicionar as rotas customizadas existentes para manter compatibilidade com o frontend atual
-app.include_router(api_router)
 
 # Rotas V2 modularizadas
 from api.v2 import v2_router

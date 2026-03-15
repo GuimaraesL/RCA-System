@@ -54,8 +54,8 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
 
         # Se for apenas para buscar os metadados (persistência de estado do banner) e pular o Agent
         if request.metadata_only:
-            from .recurrence import analyze_recurrence_on_demand
-            return await analyze_recurrence_on_demand(request, x_internal_key)
+            from .recurrence import _run_recurrence_analysis
+            return await _run_recurrence_analysis(request)
 
         # 3. Busca Hierárquica de Recorrências usando o RAG Service centralizado (Apenas para o Agente)
         subgroup_matches, equipment_matches, area_matches = [], [], []
@@ -112,11 +112,16 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
             prompt += "PASSO 3: Gere a Causa Raiz, Ishikawa (OBRIGATORIAMENTE em sintaxe Mermaid) e 5 Porquês.\n"
         
         async def stream_output():
+            logger.debug(f"📡 DEBUG: Iniciando stream ASYNC para RCA {request.rca_id}")
+            # Alertas de recorrência imediatos via metadata (apenas na análise inicial)
             if recurrences and not request.user_prompt:
-                yield f"data: {json.dumps({'type': 'metadata', 'subgroup_matches': [r.dict() for r in subgroup_matches], 'equipment_matches': [r.dict() for r in equipment_matches], 'area_matches': [r.dict() for r in area_matches]})}\n\n"
+                yield f"data: {json.dumps({'type': 'metadata', 'subgroup_matches': [r.model_dump() for r in subgroup_matches], 'equipment_matches': [r.model_dump() for r in equipment_matches], 'area_matches': [r.model_dump() for r in area_matches]})}\n\n"
 
             full_response_content = ""
+            is_inside_suggestions = False
             try:
+                logger.info(f"📡 DEBUG: Chamando motor de IA para prompt de {len(prompt)} chars")
+
                 async for event in ai_engine.arun(
                     prompt, 
                     stream=True, 
@@ -138,9 +143,87 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                     if content:
                         content_str = str(content)
                         full_response_content += content_str
-                        yield f"data: {json.dumps({'type': 'content', 'delta': content_str})}\n\n"
+
+                        # --- SANITIZAÇÃO DE MERMAID ---
+                        if "graph LR" in content_str or "subgraph" in content_str:
+                            content_str = content_str.replace("\\n", "\n").replace("\\\"", "\"")
+
+                        # --- SUPRESSÃO TÉCNICA (ANTI-LEAK) ---
+                        technical_keywords = [
+                            "search_historical_rcas_tool", "get_asset_fmea_tool", 
+                            "get_deterministic_fmea_tool", "calculate_reliability_metrics_tool",
+                            "get_full_rca_detail_tool", "get_historical_rca_summary",
+                            "get_historical_rca_causes", "get_historical_rca_action_plan",
+                            "get_historical_rca_triggers", "get_skill_reference",
+                            "get_current_screen_context", "duckduckgo", "DuckDuckGo",
+                            "FMEA_Technical_Specialist", "Media_Failure_Analyst", "Human_Factors_Investigator"
+                        ]
+                        
+                        # Padrões de narração de pensamento da IA que devem ser suprimidos
+                        thought_patterns = [
+                            "Agora, vou buscar", "Agora que temos", "Vou tentar obter", 
+                            "As skills disponíveis são", "não foi encontrada", "Vou usar os arquivos",
+                            "Com base nos dados da tela", "foram encontradas as seguintes",
+                            "identificada é que o roteiro", "posso gerar os artefatos"
+                        ]
+
+                        # Se contiver keyword técnica, suprime e envia reasoning amigável
+                        if any(kw in content_str for kw in technical_keywords):
+                            if "search_historical_rcas_tool" in content_str:
+                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Consultando o histórico de falhas...'})}\n\n"
+                            elif "get_asset_fmea_tool" in content_str or "get_deterministic_fmea_tool" in content_str:
+                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Analisando biblioteca técnica FMEA...'})}\n\n"
+                            elif "FMEA_Technical_Specialist" in content_str:
+                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Consultando Especialista em FMEA...'})}\n\n"
+                            elif "Media_Failure_Analyst" in content_str:
+                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Analisando evidências visuais...'})}\n\n"
+                            elif "calculate_reliability_metrics_tool" in content_str:
+                                yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Calculando indicadores de confiabilidade...'})}\n\n"
+                            continue
+
+                        # Se contiver padrões de pensamento/narração, suprime o chunk
+                        if any(pattern.lower() in content_str.lower() for pattern in thought_patterns):
+                            logger.debug(f"🧠 PENSAMENTO SUPRIMIDO: {content_str[:50]}...")
+                            continue
+
+                        if "completed in" in content_str and ("tool" in content_str or "Tool" in content_str):
+                            continue
+                        if content_str.startswith("Transferring") or content_str.startswith("Running"):
+                            continue
+                        if content_str.strip() in ["IO", "Analisando...", "Consultando...", "Analizando..."]:
+                            continue
+
+                        # --- LÓGICA DE SUPRESSÃO DE SUGESTÕES ---
+                        if not is_inside_suggestions:
+                            if "<suggestions>" in content_str:
+                                is_inside_suggestions = True
+                                parts = content_str.split("<suggestions>")
+                                if parts[0]:
+                                    yield f"data: {json.dumps({'type': 'content', 'delta': parts[0]})}\n\n"
+                            else:
+                                if "<suggestions" in full_response_content and "<suggestions>" not in full_response_content:
+                                    pass 
+                                elif "<suggestions>" in full_response_content:
+                                    is_inside_suggestions = True
+                                else:
+                                    yield f"data: {json.dumps({'type': 'content', 'delta': content_str})}\n\n"
+                        else:
+                            if "</suggestions>" in content_str:
+                                is_inside_suggestions = False
+                                parts = content_str.split("</suggestions>")
+                                if len(parts) > 1 and parts[1]:
+                                    yield f"data: {json.dumps({'type': 'content', 'delta': parts[1]})}\n\n"
+
+                # Extração Final de Sugestões
+                suggestions_match = re.search(r'<suggestions>(.*?)</suggestions>', full_response_content, re.DOTALL)
+                if suggestions_match:
+                    suggestions_text = suggestions_match.group(1).strip()
+                    suggestions_list = [s.strip() for s in suggestions_text.split('|') if s.strip()]
+                    if suggestions_list:
+                        yield f"data: {json.dumps({'type': 'suggestions', 'suggestions': suggestions_list})}\n\n"
 
             except Exception as stream_e:
+                logger.error(f"ERROR no streaming V2: {stream_e}")
                 yield f"data: {json.dumps({'type': 'error', 'text': str(stream_e)})}\n\n"
 
             yield "data: [DONE]\n\n"

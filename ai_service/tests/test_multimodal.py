@@ -13,12 +13,12 @@ from core.config import INTERNAL_AUTH_KEY
 
 client = TestClient(app)
 
-@patch("api.routes.get_rca_history_knowledge")
+@patch("api.v2.analysis.search_hierarchical")
 @patch("agents.main_agent.get_rca_agent")
 @patch("httpx.AsyncClient.get", new_callable=AsyncMock)
-def test_analyze_rca_multimodal(mock_http_get, mock_get_agent, mock_get_kb):
+def test_analyze_rca_multimodal(mock_http_get, mock_get_agent, mock_search):
     """
-    Testa se o endpoint /analyze processa corretamente anexos de imagem e vídeo
+    Testa se o endpoint /v2/analyze processa corretamente anexos de imagem e vídeo
     e os repassa para o agente de IA.
     """
     # 1. Mock do download de mídia
@@ -48,10 +48,8 @@ def test_analyze_rca_multimodal(mock_http_get, mock_get_agent, mock_get_kb):
     mock_agent.arun = mock_arun_gen
     mock_get_agent.return_value = mock_agent
     
-    # 3. Mock do Knowledge Base
-    mock_kb = MagicMock()
-    mock_kb.vector_db.search.return_value = []
-    mock_get_kb.return_value = mock_kb
+    # 3. Mock do search_hierarchical da V2
+    mock_search.return_value = ([], [], [])
 
     # 4. Executa a requisição com anexos
     payload = {
@@ -64,7 +62,7 @@ def test_analyze_rca_multimodal(mock_http_get, mock_get_agent, mock_get_kb):
     }
     
     response = client.post(
-        "/analyze",
+        "/v2/analyze",
         json=payload,
         headers={"x-internal-key": INTERNAL_AUTH_KEY}
     )

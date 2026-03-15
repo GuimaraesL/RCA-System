@@ -60,11 +60,13 @@ def extract_recurrence(doc: Any, level_name: str, rank: int) -> RecurrenceInfo:
             try:
                 base_url = BACKEND_URL.rstrip('/')
                 headers = {"x-internal-key": INTERNAL_AUTH_KEY}
-                resp = httpx.get(f"{base_url}/api/rcas/{rca_i}", timeout=3.0, headers=headers)
-                if resp.status_code == 200:
-                    j_resp = resp.json()
-                    if 'failure_date' in j_resp and j_resp['failure_date']:
-                        fail_date = j_resp['failure_date']
+                # Correção Issue #149: Usa context manager para garantir fechamento e timeout agressivo
+                with httpx.Client(timeout=2.0) as client:
+                    resp = client.get(f"{base_url}/api/rcas/{rca_i}", headers=headers)
+                    if resp.status_code == 200:
+                        j_resp = resp.json()
+                        if 'failure_date' in j_resp and j_resp['failure_date']:
+                            fail_date = j_resp['failure_date']
             except Exception as e:
                 logger.warning(f'[fetch_failure_date] rca_id={rca_i}: {e}')
 

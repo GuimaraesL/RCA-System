@@ -2,6 +2,7 @@ import asyncio
 import os
 import sys
 import json
+import pytest
 
 # Adiciona o diretório atual ao path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -9,6 +10,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from agents.main_agent import get_rca_agent
 from agno.utils.log import logger
 
+@pytest.mark.anyio
 async def test_ishikawa_generation():
     rca_id = "test-ishikawa-flow"
     

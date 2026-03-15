@@ -29,7 +29,12 @@ if __name__ == "__main__":
         "core.tools",
         "core.knowledge",
         "agents.main_agent",
-        "api.routes",
+        "services.rag_service",
+        "api.v2.analysis",
+        "api.v2.recurrence",
+        "api.v2.history",
+        "api.v2.fmea",
+        "api.v2.health",
         "api.models",
     ]
     

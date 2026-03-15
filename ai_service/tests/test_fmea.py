@@ -45,7 +45,7 @@ def test_extract_fmea_success(mock_agent_run):
     
     headers = {"X-Internal-Key": INTERNAL_AUTH_KEY}
     
-    response = client.post("/extract-fmea", json=payload, headers=headers)
+    response = client.post("/v2/fmea/extract-fmea", json=payload, headers=headers)
     
     assert response.status_code == 200
     data = response.json()
@@ -59,7 +59,7 @@ def test_extract_fmea_invalid_auth():
     Testa se o endpoint bloqueia acesso sem a chave interna correta.
     """
     payload = {"text": "teste"}
-    response = client.post("/extract-fmea", json=payload, headers={"X-Internal-Key": "errada"})
+    response = client.post("/v2/fmea/extract-fmea", json=payload, headers={"X-Internal-Key": "errada"})
     assert response.status_code == 403
 
 @patch("agno.agent.Agent.run")
@@ -74,7 +74,7 @@ def test_extract_fmea_ai_format_error(mock_agent_run):
     payload = {"text": "texto qualquer"}
     headers = {"X-Internal-Key": INTERNAL_AUTH_KEY}
     
-    response = client.post("/extract-fmea", json=payload, headers=headers)
+    response = client.post("/v2/fmea/extract-fmea", json=payload, headers=headers)
     
     assert response.status_code == 500
     assert "IA gerou um formato de dados inválido" in response.json()["detail"]
