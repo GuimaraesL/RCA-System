@@ -10,10 +10,15 @@ import {
     Search,
     Inbox,
     Target,
-    RefreshCw
+    RefreshCw,
+    Network,
+    FileSearch
 } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { RecurrenceGraph } from '../ui/RecurrenceGraph';
+import { DnaMatrix } from '../ui/DnaMatrix';
+import { RecurrenceInfo } from '../../services/aiService';
 
 interface Step8RecurrencesProps {
     data: RcaRecord;
@@ -23,6 +28,9 @@ interface Step8RecurrencesProps {
 export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
     const { t } = useLanguage();
     const { recurrenceData, loadRecurrences, loadingRecurrences } = useAi();
+    const [showGraph, setShowGraph] = React.useState(true);
+    const [showDiscarded, setShowDiscarded] = React.useState(false);
+    const [selectedRecurrence, setSelectedRecurrence] = React.useState<RecurrenceInfo | null>(null);
 
     // Carregamento automático da última análise (do cache se disponível)
     useEffect(() => {
@@ -182,37 +190,73 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
-            <div className="flex items-center justify-between px-2">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-2xl bg-primary-600 shadow-lg shadow-primary-600/20">
-                        <Search className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                            {t('wizard.step8.title')}
-                        </h2>
-                        <div className="flex flex-col">
-                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                                {t('wizard.step8.searchHint')}
-                            </p>
-                            {recurrenceData.lastAnalyzedAt && (
-                                <p className="text-[10px] text-primary-500 dark:text-primary-400 font-bold uppercase tracking-tight mt-0.5">
-                                    {t('wizard.step8.lastAnalysis')}: {new Date(recurrenceData.lastAnalyzedAt).toLocaleString()}
-                                </p>
-                            )}
+            <div className="max-w-[1600px] mx-auto">
+                <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-2xl bg-primary-600 shadow-lg shadow-primary-600/20">
+                            <Search className="w-6 h-6 text-white" />
                         </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                                {t('wizard.step8.title')}
+                            </h2>
+                            <div className="flex flex-col">
+                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                                    {t('wizard.step8.searchHint')}
+                                </p>
+                                {recurrenceData.lastAnalyzedAt && (
+                                    <p className="text-[10px] text-primary-500 dark:text-primary-400 font-bold uppercase tracking-tight mt-0.5">
+                                        {t('wizard.step8.lastAnalysis')}: {new Date(recurrenceData.lastAnalyzedAt).toLocaleString()}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <Button
+                            onClick={() => setShowGraph(!showGraph)}
+                            variant="outline"
+                            size="md"
+                            className="bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10"
+                            leftIcon={<Network className={`w-4 h-4 ${showGraph ? 'text-primary-500' : 'text-slate-400'}`} />}
+                        >
+                            {showGraph ? 'Esconder Mapa' : 'Ver Mapa'}
+                        </Button>
+
+                        <Button
+                            onClick={() => loadRecurrences(data, true)}
+                            isLoading={loadingRecurrences}
+                            leftIcon={<RefreshCw className="w-4 h-4" />}
+                            variant="primary"
+                            size="md"
+                        >
+                            {t('wizard.step8.searchButton')}
+                        </Button>
                     </div>
                 </div>
 
-                <Button
-                    onClick={() => loadRecurrences(data, true)}
-                    isLoading={loadingRecurrences}
-                    leftIcon={<RefreshCw className="w-4 h-4" />}
-                    variant="primary"
-                    size="md"
-                >
-                    {t('wizard.step8.searchButton')}
-                </Button>
+                {/* Neural Map Integration */}
+                {showGraph && (
+                    <div className="mt-10 animate-in zoom-in-95 duration-500">
+                        <RecurrenceGraph 
+                            centralRca={data}
+                            recurrences={recurrenceData}
+                            showDiscarded={showDiscarded}
+                            onNodeClick={(rec) => setSelectedRecurrence(rec)}
+                        />
+                        
+                        <div className="mt-4 flex justify-end">
+                            <button 
+                                onClick={() => setShowDiscarded(!showDiscarded)}
+                                className="flex items-center gap-2 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hover:text-primary-500 transition-colors"
+                            >
+                                <FileSearch className="w-4 h-4" />
+                                {showDiscarded ? 'Ocultar Itens Descartados' : 'Mostrar Itens Descartados (RAG Transparency)'}
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Timeline Container */}
@@ -270,6 +314,15 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                     </>
                 )}
             </div>
+
+            {/* DNA Matrix Modal */}
+            {selectedRecurrence && (
+                <DnaMatrix 
+                    currentRca={data}
+                    recurrence={selectedRecurrence}
+                    onClose={() => setSelectedRecurrence(null)}
+                />
+            )}
         </div>
     );
 };
