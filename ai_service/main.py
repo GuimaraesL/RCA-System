@@ -71,6 +71,10 @@ app.version = "1.4.0"
 # Adicionar as rotas customizadas existentes para manter compatibilidade com o frontend atual
 app.include_router(api_router)
 
+# Rotas V2 modularizadas
+from api.v2 import v2_router
+app.include_router(v2_router, prefix="/v2")
+
 # Garantir que o CORS permita o dashboard da Agno
 # Quando allow_credentials=True, allow_origins NÃO pode ser "*"
 app.add_middleware(

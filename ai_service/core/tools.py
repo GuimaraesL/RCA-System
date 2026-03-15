@@ -13,7 +13,7 @@ def get_current_screen_context(run_context: RunContext):
     Use esta ferramenta SEMPRE que precisar identificar o Ativo, o Título ou a Descrição do incidente ATUAL.
     """
     if run_context.session_state and "screen_context" in run_context.session_state:
-        return f"DADOS ATUAIS DA TELA:\n{run_context.session_state['screen_context']}"
+        return f"[DADOS ATUAIS DA TELA]:\n{run_context.session_state['screen_context']}"
     return "Nenhum contexto dinâmico foi passado para esta sessão no session_state."
 
 def get_asset_fmea_tool(query: str):
@@ -128,7 +128,8 @@ def search_historical_rcas_tool(query: str, run_context: RunContext, subgroup_id
             ctx_str = raw_screen_context
             if isinstance(ctx_str, str) and "{" in ctx_str:
                 import json
-                clean_ctx = ctx_str.replace("DADOS ATUAIS DA TELA:\n", "").strip()
+                import json
+                clean_ctx = ctx_str.replace("[DADOS ATUAIS DA TELA]:\n", "").strip()
                 ctx_data = json.loads(clean_ctx)
                 
                 # Extrai da raiz ou do nó 'hierarchy' (Padrão do Frontend)
@@ -149,81 +150,43 @@ def search_historical_rcas_tool(query: str, run_context: RunContext, subgroup_id
 
     # A query de busca vetorial DEVE ser o contexto bruto completo, 
     # exatamente como era feito antes para capturar toda a semântica.
-    search_query = raw_screen_context if raw_screen_context else query
+    # Alinhado com o padrão [DADOS ATUAIS DA TELA]:
+    search_query = raw_screen_context.strip() if raw_screen_context else query
+    if search_query and not search_query.startswith("[DADOS ATUAIS DA TELA]:"):
+        search_query = f"[DADOS ATUAIS DA TELA]:\n{search_query}"
 
     if not area_id:
         return "Erro de Segurança: Não foi possível identificar a Manufatura (Área). Informe o Ativo primeiro."
 
-    from .knowledge import get_rca_history_knowledge
-    knowledge_base = get_rca_history_knowledge()
+    from services.rag_service import search_hierarchical, validate_recurrences
     
-    seen_ids = set()
-    subgroup_candidates = []
-    equipment_candidates = []
-    area_candidates = []
+    # EXTRAÇÃO DO ID DA RCA ATUAL PARA FILTRAGEM
+    current_rca_id = run_context.session_id if run_context and run_context.session_id else None
 
     try:
-        # NÍVEL 1: Mesmo Subgrupo + Mesmo Equipamento (Precisão Máxima)
-        if subgroup_id and equipment_id:
-            f1 = {"$and": [{"subgroup_id": str(subgroup_id)}, {"equipment_id": str(equipment_id)}, {"area_id": str(area_id)}]}
-            res1 = knowledge_base.vector_db.search(query=search_query, limit=15, filters=f1)
-            for r in res1:
-                rid = r.meta_data.get("rca_id")
-                if rid and rid not in seen_ids:
-                    subgroup_candidates.append(r)
-                    seen_ids.add(rid)
+        subgroup_matches, equipment_matches, area_matches = search_hierarchical(
+            query_text=search_query,
+            subgroup_id=subgroup_id,
+            equipment_id=equipment_id,
+            area_id=area_id,
+            current_rca_id=current_rca_id,
+            limit_subgroup=15,
+            limit_equipment=15,
+            limit_area=20
+        )
 
-        # NÍVEL 2: Mesmo Equipamento (Outros Subgrupos)
-        if equipment_id:
-            f2 = {"$and": [{"equipment_id": str(equipment_id)}, {"area_id": str(area_id)}]}
-            res2 = knowledge_base.vector_db.search(query=search_query, limit=15, filters=f2)
-            for r in res2:
-                rid = r.meta_data.get("rca_id")
-                if rid and rid not in seen_ids:
-                    equipment_candidates.append(r)
-                    seen_ids.add(rid)
-
-        # NÍVEL 3: Mesma Área (Transversal na Manufatura)
-        f3 = {"area_id": str(area_id)}
-        res3 = knowledge_base.vector_db.search(query=search_query, limit=20, filters=f3)
-        for r in res3:
-            rid = r.meta_data.get("rca_id")
-            if rid and rid not in seen_ids:
-                area_candidates.append(r)
-                seen_ids.add(rid)
-
-        all_candidates = subgroup_candidates + equipment_candidates + area_candidates
+        all_candidates = subgroup_matches + equipment_matches + area_matches
 
         if not all_candidates:
             return f"Nenhuma recorrência técnica encontrada para o problema na Área: {area_id}."
 
-        # ESTÁGIO 2: VALIDAÇÃO TÉCNICA (Usando o JSON bruto como problema)
-        from agents.rag_validator import get_rag_validator
-        validator = get_rag_validator()
-        
-        candidate_texts = []
-        # Função auxiliar para formatar texto de candidatos com nível
-        def format_candidates(candidates, label):
-            for r in candidates:
-                rid = r.meta_data.get("rca_id", "unknown")
-                meta = f"ID_RCA: {rid} | CATEGORIA: {label} | Equipamento: {r.meta_data.get('equipment_id', 'N/A')}"
-                candidate_texts.append(f"{meta}\nCONTEÚDO:\n{r.content}\n---")
-
-        format_candidates(subgroup_candidates, "MESMO SUBGRUPO/EQUIPAMENTO")
-        format_candidates(equipment_candidates, "MESMO EQUIPAMENTO (OUTROS SETORES)")
-        format_candidates(area_candidates, "OUTROS EQUIPAMENTOS (MESMA ÁREA)")
-
-        validation_prompt = (
-            f"PROBLEMA ATUAL (DADOS INTEGRAIS DA TELA):\n{search_query}\n\n"
-            f"CANDIDATOS DO RAG:\n" + "\n".join(candidate_texts)
-        )
-        
-        validation_response = validator.run(validation_prompt)
+        # ESTÁGIO 2: VALIDAÇÃO TÉCNICA
+        _, _, val_text = validate_recurrences(search_query, all_candidates)
         
         return (
             f"### RECORRÊNCIAS HISTÓRICAS VALIDADAS (NA ÁREA {area_id}):\n"
-            f"{validation_response.content}\n\n"
-            f"**NOTA PARA MÉTRICAS:** Use apenas as RCAs da categoria 'MESMO SUBGRUPO/EQUIPAMENTO' para o cálculo de MTBF real do Ativo. "
+            f"{val_text}\n\n"
+            f"**NOTA PARA MÉTRICAS:** Use apenas as RCAs da categoria 'subgroup' para o cálculo de MTBF real do Ativo. "
             f"As demais servem para inteligência de modo de falha transversal."
         )
         
