@@ -43,14 +43,12 @@ from core.memory import get_agent_memory
 storage = get_agent_memory()
 
 # 2. Instanciar Agentes/Times/Workflows para Visibilidade no Dashboard (Studio)
-from agents.main_agent import get_rca_agent
-
-# Preview dos componentes de IA para o AgentOS monitorar
-rca_agent_preview = get_rca_agent("preview_agent", rca_context="Contexto de preview para o Dashboard")
+# [ADR-003] Agno 2.x Limitation: Team objects are not yet supported in AgentOS.agents.
+# Para evitar erros no startup e no dashboard, deixamos a lista vazia até que o suporte seja adicionado.
+# TODO (Issue #148): Monitorar changelog da Agno (https://github.com/agno-agi/agno/releases)
+# para registrar o rca_agent quando o suporte a 'Team' for implementado no AgentOS.
 
 # 3. Inicializar o AgentOS (Monitoramento do Dashboard)
-# O AgentOS 2.x ainda não suporta objetos 'Team' no parâmetro 'agents'
-# Deixamos a lista vazia para o dashboard não quebrar, mas os agentes continuam funcionando nas rotas.
 agent_os = AgentOS(
     name="RCA System OS",
     agents=[],
