@@ -5,9 +5,11 @@ Fluxo: Permite resgatar e apagar profundamente os rastros (traces/spans) e a mem
 from fastapi import APIRouter, Header, HTTPException
 import secrets
 import sqlite3
+import re
 from agno.utils.log import logger
 
 from core.config import INTERNAL_AUTH_KEY, AGENT_MEMORY_PATH
+from core.constants import TECHNICAL_KEYWORDS, THOUGHT_PATTERNS
 
 router = APIRouter()
 
@@ -100,6 +102,7 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
                 if not content or not isinstance(content, str):
                     continue
 
+                # 1. Filtros de Comentários de Sistema
                 if msg.role == 'assistant' and ("<!-- RCA_SYSTEM_CONTEXT -->" in content or "<!-- INITIAL_ANALYSIS_REQUEST -->" in content):
                     continue
 
@@ -110,8 +113,33 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
                 elif "<!-- RCA_SYSTEM_CONTEXT -->" in content:
                     content = "Dados contextuais enviados ao assistente."
 
+                # 2. Filtro do Prompt de MISSÃO (Initial Analysis)
+                if msg.role == 'user' and "### MISSÃO: Realizar análise completa" in content:
+                    content = "Solicitei uma análise automática de causa raiz."
+
+                # 3. Limpeza de Tags de Sugestões (Evita vazamento de <suggestions> no histórico)
+                if msg.role == 'assistant' and "<suggestions>" in content:
+                    content = re.sub(r'<suggestions>.*?</suggestions>', '', content, flags=re.DOTALL).strip()
+
+                # 4. Filtro de strings estáticas de status
                 if content.strip() in ["IO", "Analisando...", "Consultando...", "Analizando..."]:
                     if msg.role == 'assistant': continue
+
+                # 5. [ANTI-LEAK REFINADO] 
+                if msg.role == 'assistant' and len(content) < 150:
+                    is_leak = False
+                    if any(kw in content for kw in TECHNICAL_KEYWORDS):
+                        is_leak = True
+                    if any(pattern.lower() in content.lower() for pattern in THOUGHT_PATTERNS):
+                        is_leak = True
+                    
+                    if is_leak:
+                        logger.debug(f"[get_chat_history] Suprimindo log/pensamento curto: {content[:50]}...")
+                        continue
+
+                # Evita adicionar mensagens vazias após as limpezas
+                if not content.strip():
+                    continue
 
                 messages.append({
                     "role": msg.role,

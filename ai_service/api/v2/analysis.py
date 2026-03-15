@@ -15,6 +15,7 @@ from datetime import datetime
 
 from core.config import INTERNAL_AUTH_KEY, AGENT_MEMORY_PATH, BACKEND_URL
 from core.knowledge import save_recurrence_analysis
+from core.constants import TECHNICAL_KEYWORDS, THOUGHT_PATTERNS
 from api.models import AnalysisRequest, RecurrenceInfo
 from services.rag_service import search_hierarchical, validate_recurrences
 
@@ -148,27 +149,9 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                         if "graph LR" in content_str or "subgraph" in content_str:
                             content_str = content_str.replace("\\n", "\n").replace("\\\"", "\"")
 
-                        # --- SUPRESSÃO TÉCNICA (ANTI-LEAK) ---
-                        technical_keywords = [
-                            "search_historical_rcas_tool", "get_asset_fmea_tool", 
-                            "get_deterministic_fmea_tool", "calculate_reliability_metrics_tool",
-                            "get_full_rca_detail_tool", "get_historical_rca_summary",
-                            "get_historical_rca_causes", "get_historical_rca_action_plan",
-                            "get_historical_rca_triggers", "get_skill_reference",
-                            "get_current_screen_context", "duckduckgo", "DuckDuckGo",
-                            "FMEA_Technical_Specialist", "Media_Failure_Analyst", "Human_Factors_Investigator"
-                        ]
-                        
-                        # Padrões de narração de pensamento da IA que devem ser suprimidos
-                        thought_patterns = [
-                            "Agora, vou buscar", "Agora que temos", "Vou tentar obter", 
-                            "As skills disponíveis são", "não foi encontrada", "Vou usar os arquivos",
-                            "Com base nos dados da tela", "foram encontradas as seguintes",
-                            "identificada é que o roteiro", "posso gerar os artefatos"
-                        ]
-
-                        # Se contiver keyword técnica, suprime e envia reasoning amigável
-                        if any(kw in content_str for kw in technical_keywords):
+                        # --- SUPRESSÃO TÉCNICA (ANTI-LEAK) REFINADA ---
+                        # Se contiver keyword técnica em uma mensagem curta (< 150 chars), suprime e envia reasoning amigável
+                        if any(kw in content_str for kw in TECHNICAL_KEYWORDS):
                             if "search_historical_rcas_tool" in content_str:
                                 yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Consultando o histórico de falhas...'})}\n\n"
                             elif "get_asset_fmea_tool" in content_str or "get_deterministic_fmea_tool" in content_str:
@@ -179,11 +162,14 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                                 yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Analisando evidências visuais...'})}\n\n"
                             elif "calculate_reliability_metrics_tool" in content_str:
                                 yield f"data: {json.dumps({'type': 'reasoning', 'text': 'Calculando indicadores de confiabilidade...'})}\n\n"
-                            continue
+                            
+                            # Só suprime o chunk se ele for curto (provavelmente apenas narração do Agno)
+                            if len(content_str) < 150:
+                                continue
 
-                        # Se contiver padrões de pensamento/narração, suprime o chunk
-                        if any(pattern.lower() in content_str.lower() for pattern in thought_patterns):
-                            logger.debug(f"🧠 PENSAMENTO SUPRIMIDO: {content_str[:50]}...")
+                        # Se contiver padrões de pensamento/narração em chunk curto, suprime
+                        if len(content_str) < 150 and any(pattern.lower() in content_str.lower() for pattern in THOUGHT_PATTERNS):
+                            logger.debug(f"🧠 PENSAMENTO CURTO SUPRIMIDO: {content_str[:50]}...")
                             continue
 
                         if "completed in" in content_str and ("tool" in content_str or "Tool" in content_str):
