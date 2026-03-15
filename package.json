@@ -19,6 +19,7 @@
     "mermaid": "^11.12.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-force-graph-2d": "^1.29.1",
     "react-markdown": "^10.1.0",
     "react-virtualized-auto-sizer": "^2.0.2",
     "react-window": "^2.2.6",
