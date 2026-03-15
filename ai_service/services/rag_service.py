@@ -12,6 +12,12 @@ from agents.rag_validator import get_rag_validator
 from core.config import BACKEND_URL, INTERNAL_AUTH_KEY
 from api.models import RecurrenceInfo
 
+# Limites padrão de busca (Alinhados com o Agente - Issue #150)
+DEFAULT_LIMIT_SUBGROUP = 20
+DEFAULT_LIMIT_EQUIPMENT = 20
+DEFAULT_LIMIT_AREA = 15
+
+
 def clean_title(content: str) -> str:
     """Extrai o título limpo via Regex ignorando IDs e campos vizinhos."""
     # Novo Formato (RESUMO DO PROBLEMA)
@@ -91,9 +97,9 @@ def search_hierarchical(
     equipment_id: str, 
     area_id: str, 
     current_rca_id: str = None,
-    limit_subgroup: int = 10,
-    limit_equipment: int = 10,
-    limit_area: int = 15
+    limit_subgroup: int = DEFAULT_LIMIT_SUBGROUP,
+    limit_equipment: int = DEFAULT_LIMIT_EQUIPMENT,
+    limit_area: int = DEFAULT_LIMIT_AREA
 ) -> Tuple[List[RecurrenceInfo], List[RecurrenceInfo], List[RecurrenceInfo]]:
     """Busca hierárquica por nível."""
     knowledge_base = get_rca_history_knowledge()

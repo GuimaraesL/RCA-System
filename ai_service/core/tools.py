@@ -152,7 +152,13 @@ def search_historical_rcas_tool(query: str, run_context: RunContext, subgroup_id
     if not area_id:
         return "ERRO_FERRAMENTA: Não foi possível identificar a Manufatura (Área). Informe o Ativo primeiro."
 
-    from services.rag_service import search_hierarchical, validate_recurrences
+    from services.rag_service import (
+        search_hierarchical, 
+        validate_recurrences,
+        DEFAULT_LIMIT_SUBGROUP,
+        DEFAULT_LIMIT_EQUIPMENT,
+        DEFAULT_LIMIT_AREA
+    )
     
     # EXTRAÇÃO DO ID DA RCA ATUAL PARA FILTRAGEM
     current_rca_id = run_context.session_id if run_context and run_context.session_id else None
@@ -164,9 +170,9 @@ def search_historical_rcas_tool(query: str, run_context: RunContext, subgroup_id
             equipment_id=equipment_id,
             area_id=area_id,
             current_rca_id=current_rca_id,
-            limit_subgroup=15,
-            limit_equipment=15,
-            limit_area=20
+            limit_subgroup=DEFAULT_LIMIT_SUBGROUP,
+            limit_equipment=DEFAULT_LIMIT_EQUIPMENT,
+            limit_area=DEFAULT_LIMIT_AREA
         )
 
         all_candidates = subgroup_matches + equipment_matches + area_matches

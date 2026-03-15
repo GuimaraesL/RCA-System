@@ -58,8 +58,9 @@ async def _run_recurrence_analysis(request: AnalysisRequest):
         except Exception as e:
             logger.warning(f"[_run_recurrence_analysis] Falha ao parsear contexto JSON: {e}")
 
-    # 2. Geração da Query via Tool Oficial (Alinhamento em 100% com o Agente)
-    screen_context_content = f"Ativo: {asset_info}\n{request.context}"
+    # 2. Geração da Query via Tool Oficial (Alinhamento em 100% com o Agente - Issue #150)
+    # O agente usa o contexto bruto (JSON) diretamente.
+    screen_context_content = request.context
     run_ctx = RunContext(
         run_id="manual",
         session_id=str(request.rca_id),
@@ -71,6 +72,7 @@ async def _run_recurrence_analysis(request: AnalysisRequest):
         raise HTTPException(status_code=400, detail="Não foi possível gerar o contexto de busca.")
 
     # 3. Busca Hierárquica (RAG Estágio 1)
+    # Usa os limites padrão agora atualizados para (15, 15, 20) na assinatura
     subgroup_matches, equipment_matches, area_matches = search_hierarchical(
         query_text=query_text,
         subgroup_id=subgroup_id,
