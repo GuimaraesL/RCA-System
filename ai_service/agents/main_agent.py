@@ -64,7 +64,7 @@ def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context:
             get_media_analyst_agent(),
             get_hfacs_agent()
         ],
-        db=get_agent_memory(session_id),
+        db=get_agent_memory(),
         read_chat_history=True,
         add_history_to_context=True,
         add_session_summary_to_context=True,

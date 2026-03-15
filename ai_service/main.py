@@ -40,7 +40,7 @@ if os.path.exists(KNOWLEDGE_PATH):
 history_kb = get_rca_history_knowledge()
 fmea_kb = get_fmea_knowledge()
 from core.memory import get_agent_memory
-storage = get_agent_memory("rca_system_storage")
+storage = get_agent_memory()
 
 # 2. Instanciar Agentes/Times/Workflows para Visibilidade no Dashboard (Studio)
 from agents.main_agent import get_rca_agent

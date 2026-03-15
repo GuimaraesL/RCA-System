@@ -14,6 +14,6 @@ _storage_instance = SqliteDb(
     memory_table="agno_memories",
 )
 
-def get_agent_memory(session_id: str = None):
-    """Retorna a instância global de persistência SQLite."""
+def get_agent_memory():
+    """Retorna a instância global de persistência SQLite compartilhada."""
     return _storage_instance
