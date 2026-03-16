@@ -1,9 +1,10 @@
-import React, { useMemo, useRef, useState, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import ForceGraph2D, { ForceGraphMethods } from 'react-force-graph-2d';
 import { RecurrenceInfo } from '../../services/aiService';
 import { RcaRecord } from '../../types';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
+import { useTheme } from '../../context/ThemeContext';
 
 interface RecurrenceGraphProps {
     centralRca: RcaRecord;
@@ -24,6 +25,7 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
     onNodeClick 
 }) => {
     const { t } = useLanguage();
+    const { isDark } = useTheme();
     const fgRef = useRef<ForceGraphMethods>(null);
 
     const graphData = useMemo(() => {
@@ -97,10 +99,10 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
     }, [graphData]);
 
     return (
-        <div className="w-full h-[750px] bg-[#020617] rounded-3xl border border-slate-800 overflow-hidden relative group">
+        <div className="w-full h-[750px] bg-white dark:bg-[#020617] rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden relative group">
             <div className="absolute top-6 left-6 z-20 flex gap-2 pointer-events-auto">
-                <div className="bg-slate-900/50 backdrop-blur-xl px-4 py-2 rounded-2xl border border-white/5 shadow-2xl">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                <div className="bg-slate-50/80 dark:bg-slate-900/50 backdrop-blur-xl px-4 py-2 rounded-2xl border border-slate-200 dark:border-white/5 shadow-2xl">
+                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shadow-[0_0_8px_rgba(59,130,246,0.5)] animate-pulse" />
                         Neural Graph View
                     </p>
@@ -144,16 +146,24 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
                                     const textWidth = ctx.measureText(label).width;
                                     const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2);
 
-                                    ctx.fillStyle = 'rgba(2, 6, 23, 0.6)';
+                                    // Adaptativo ao tema
+                                    ctx.fillStyle = isDark ? 'rgba(2, 6, 23, 0.6)' : 'rgba(255, 255, 255, 0.8)';
                                     ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y + size + 2, bckgDimensions[0], bckgDimensions[1]);
 
                                     ctx.textAlign = 'center';
                                     ctx.textBaseline = 'middle';
-                                    ctx.fillStyle = node.opacity < 1 ? `rgba(148, 163, 184, ${node.opacity})` : '#f8fafc';
+                                    
+                                    // Cor do texto baseada no tema
+                                    if (node.opacity < 1) {
+                                        ctx.fillStyle = isDark ? `rgba(148, 163, 184, ${node.opacity})` : `rgba(71, 85, 105, ${node.opacity})`;
+                                    } else {
+                                        ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
+                                    }
+                                    
                                     ctx.fillText(label, node.x, node.y + size + 2 + fontSize / 2);
                                 }
                             }}
-                            linkColor={() => 'rgba(148, 163, 184, 0.15)'}
+                            linkColor={() => isDark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(71, 85, 105, 0.1)'}
                             linkWidth={1}
                             onNodeClick={(node: any) => {
                                 if (!node.isCentral) {
