@@ -114,9 +114,43 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         
         async def stream_output():
             logger.debug(f"📡 DEBUG: Iniciando stream ASYNC para RCA {request.rca_id}")
-            # Alertas de recorrência imediatos via metadata (apenas na análise inicial)
+            
+            # 1. Validação e Persistência de Recorrências (RAG Estágio 2) - Alertas Imediatos
             if recurrences and not request.user_prompt:
-                yield f"data: {json.dumps({'type': 'metadata', 'subgroup_matches': [r.model_dump() for r in subgroup_matches], 'equipment_matches': [r.model_dump() for r in equipment_matches], 'area_matches': [r.model_dump() for r in area_matches]})}\n\n"
+                # Realiza a validação técnica (Alinhado com a Tool e o Botão)
+                valid_ids, discarded_ids, _ = validate_recurrences(query_text, recurrences)
+                
+                def enrich_and_filter(matches):
+                    enriched = []
+                    for m in matches:
+                        if m.rca_id in valid_ids:
+                            d = m.model_dump()
+                            d["validation_reason"] = valid_ids[m.rca_id]
+                            enriched.append(d)
+                    return enriched
+
+                discarded_list = []
+                for m in recurrences:
+                    if m.rca_id in discarded_ids:
+                        d = m.model_dump()
+                        d["discard_reason"] = discarded_ids[m.rca_id]
+                        discarded_list.append(d)
+
+                analysis_result = {
+                    "subgroup_matches": enrich_and_filter(subgroup_matches),
+                    "equipment_matches": enrich_and_filter(equipment_matches),
+                    "area_matches": enrich_and_filter(area_matches),
+                    "discarded_matches": discarded_list
+                }
+
+                # Persiste para que o Step 8 carregue os dados validados
+                try:
+                    save_recurrence_analysis(str(request.rca_id), analysis_result)
+                except Exception as save_err:
+                    logger.error(f"Erro ao salvar analise no stream de analise: {save_err}")
+
+                # Envia metadados JÁ VALIDADOS para a UI (Evita o reset com lixo)
+                yield f"data: {json.dumps({'type': 'metadata', **analysis_result})}\n\n"
 
             full_response_content = ""
             is_inside_suggestions = False

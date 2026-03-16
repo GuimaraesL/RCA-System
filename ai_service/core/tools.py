@@ -181,8 +181,38 @@ def search_historical_rcas_tool(query: str, run_context: RunContext, subgroup_id
             return f"Nenhuma recorrência técnica encontrada para o problema na Área: {area_id}."
 
         # ESTÁGIO 2: VALIDAÇÃO TÉCNICA
-        _, _, val_text = validate_recurrences(search_query, all_candidates)
+        valid_ids, discarded_ids, val_text = validate_recurrences(search_query, all_candidates)
         
+        # --- PERSISTÊNCIA (Garantir paridade com o botão) ---
+        from .knowledge import save_recurrence_analysis
+        
+        def enrich_and_filter(matches):
+            enriched = []
+            for m in matches:
+                if m.rca_id in valid_ids:
+                    d = m.model_dump()
+                    d["validation_reason"] = valid_ids[m.rca_id]
+                    enriched.append(d)
+            return enriched
+
+        discarded_list = []
+        for m in all_candidates:
+            if m.rca_id in discarded_ids:
+                d = m.model_dump()
+                d["discard_reason"] = discarded_ids[m.rca_id]
+                discarded_list.append(d)
+
+        analysis_result = {
+            "subgroup_matches": enrich_and_filter(subgroup_matches),
+            "equipment_matches": enrich_and_filter(equipment_matches),
+            "area_matches": enrich_and_filter(area_matches),
+            "discarded_matches": discarded_list
+        }
+        
+        if current_rca_id:
+            save_recurrence_analysis(str(current_rca_id), analysis_result)
+            logger.info(f"✅ Análise de recorrência da Tool persistida para RCA {current_rca_id}")
+
         return (
             f"### RECORRÊNCIAS HISTÓRICAS VALIDADAS (NA ÁREA {area_id}):\n"
             f"{val_text}\n\n"
@@ -320,77 +350,82 @@ def get_deterministic_fmea_tool(asset_id: str):
         logger.error(f"[get_deterministic_fmea_tool] asset_id={asset_id}: {e}")
         return f"ERRO_FERRAMENTA: Erro técnico ao consultar banco de dados FMEA."
 
-def calculate_reliability_metrics_tool(rca_ids: list[str]):
+def calculate_reliability_metrics_tool(rca_ids: list[str], identica_ids: list[str] = None):
     """
     Calcula indicadores de Confiabilidade (MTBF e MTTR) baseado em uma lista de IDs de RCAs passadas.
     Use esta ferramenta para quantificar a severidade da recorrência e a eficiência do reparo.
     
     Args:
-        rca_ids (list[str]): Lista de IDs das RCAs que foram consideradas recorrências válidas.
+        rca_ids (list[str]): Lista de todos os IDs das RCAs que foram consideradas recorrências válidas ([IDÊNTICA] ou [SEMELHANTE]).
+        identica_ids (list[str], optional): Lista restrita apenas aos IDs marcados como [IDÊNTICA]. Se fornecida, gera um MTBF Estrito.
     """
     from datetime import datetime
     
-    logger.debug(f"calculate_reliability_metrics_tool chamado para {len(rca_ids)} RCAs.")
-    
-    if not rca_ids or len(rca_ids) < 2:
-        return "ERRO_FERRAMENTA: Dados insuficientes para cálculo de métricas. São necessárias pelo menos 2 RCAs históricas validadas."
-    
-    dates = []
-    downtimes = []
-    headers = {"x-internal-key": INTERNAL_AUTH_KEY}
-    
     try:
-        with httpx.Client(base_url=BACKEND_URL, timeout=10.0, headers=headers) as client:
-            for rid in rca_ids:
-                res = client.get(f"/api/rcas/{rid}")
-                if res.status_code == 200:
-                    data = res.json()
-                    
-                    # Datas para MTBF
-                    date_str = data.get('failure_date') or data.get('date') or data.get('created_at')
-                    if date_str:
-                        clean_date = date_str.split('T')[0]
-                        try:
-                            dt = datetime.strptime(clean_date, "%Y-%m-%d")
-                            dates.append(dt)
-                        except:
-                            pass
-                    
-                    # Downtime para MTTR
-                    dt_min = data.get('downtime_minutes')
-                    if dt_min is not None:
-                        try:
-                            downtimes.append(float(dt_min))
-                        except:
-                            pass
+        logger.debug(f"calculate_reliability_metrics_tool chamado com {len(rca_ids)} RCAs totais e {len(identica_ids or [])} idênticas.")
         
-        if len(dates) < 2:
-            return "ERRO_FERRAMENTA: Não foi possível extrair datas suficientes para o cálculo de MTBF."
+        if not rca_ids or len(rca_ids) < 2:
+            return "ERRO_FERRAMENTA: Dados insuficientes para cálculo de métricas. São necessárias pelo menos 2 RCAs históricas validadas."
         
-        dates.sort()
-        intervals = []
-        for i in range(1, len(dates)):
-            diff = (dates[i] - dates[i-1]).days
-            intervals.append(diff)
-            
-        mtbf = sum(intervals) / len(intervals)
+        def process_rcas(ids):
+            found_dates = []
+            found_downtimes = []
+            headers = {"x-internal-key": INTERNAL_AUTH_KEY}
+            with httpx.Client(base_url=BACKEND_URL, timeout=10.0, headers=headers) as client:
+                for rid in ids:
+                    res = client.get(f"/api/rcas/{rid}")
+                    if res.status_code == 200:
+                        data = res.json()
+                        date_str = data.get('failure_date') or data.get('date') or data.get('created_at')
+                        if date_str:
+                            clean_date = date_str.split('T')[0]
+                            try:
+                                dt = datetime.strptime(clean_date, "%Y-%m-%d")
+                                found_dates.append(dt)
+                            except: pass
+                        
+                        dt_min = data.get('downtime_minutes')
+                        if dt_min is not None:
+                            try: found_downtimes.append(float(dt_min))
+                            except: pass
+            return found_dates, found_downtimes
+
+        all_dates, all_downtimes = process_rcas(rca_ids)
         
-        # Cálculo de MTTR (Mean Time To Repair)
-        mttr_msg = "Dados de downtime insuficientes para cálculo de MTTR."
-        if downtimes:
-            mttr = sum(downtimes) / len(downtimes)
+        if len(all_dates) < 2:
+            return "ERRO_FERRAMENTA: Não foi possível extrair datas suficientes para o cálculo do MTBF Geral."
+        
+        all_dates.sort()
+        intervals = [(all_dates[i] - all_dates[i-1]).days for i in range(1, len(all_dates))]
+        mtbf_global = sum(intervals) / len(intervals)
+        
+        mttr_msg = "Dados insuficientes"
+        if all_downtimes:
+            mttr = sum(all_downtimes) / len(all_downtimes)
             mttr_msg = f"{mttr:.1f} minutos"
         
+        # Cálculo Estrito (Apenas IDÊNTICAS)
+        mtbf_strict_info = ""
+        if identica_ids and len(identica_ids) >= 2:
+            ident_dates, _ = process_rcas(identica_ids)
+            if len(ident_dates) >= 2:
+                ident_dates.sort()
+                ident_intervals = [(ident_dates[i] - ident_dates[i-1]).days for i in range(1, len(ident_dates))]
+                mtbf_strict = sum(ident_intervals) / len(ident_intervals)
+                mtbf_strict_info = f"- **MTBF Estrito ([IDÊNTICA]):** {mtbf_strict:.1f} dias.\n"
+
+        availability = (mtbf_global * 1440 / (mtbf_global * 1440 + (sum(all_downtimes)/len(all_downtimes) if all_downtimes else 0))) * 100
+
         result = (
             f"### INDICADORES DE CONFIABILIDADE\n"
-            f"- **Amostra:** {len(dates)} falhas analisadas.\n"
-            f"- **MTBF (Tempo Médio Entre Falhas):** {mtbf:.1f} dias.\n"
+            f"- **Amostra Total:** {len(all_dates)} falhas ([IDÊNTICA] + [SEMELHANTE]).\n"
+            f"{mtbf_strict_info}"
+            f"- **MTBF Geral (Ciclo de Recorrência):** {mtbf_global:.1f} dias.\n"
             f"- **MTTR (Tempo Médio para Reparo):** {mttr_msg}.\n"
-            f"- **Disponibilidade Estimada:** {(mtbf * 1440 / (mtbf * 1440 + (sum(downtimes)/len(downtimes) if downtimes else 0))) * 100:.2f}% (Baseado em MTBF/MTTR)\n\n"
-            f"*Nota: Cálculos baseados em dados históricos validados.*"
+            f"- **Disponibilidade Estimada:** {availability:.2f}%\n\n"
+            f"*Nota: O MTBF Estrito considera apenas falhas com o mesmo mecanismo de quebra.*"
         )
         return result
-        
     except Exception as e:
         logger.error(f"[calculate_reliability_metrics_tool] rca_ids={rca_ids}: {e}")
         return f"ERRO_FERRAMENTA: Falha técnica ao calcular métricas de confiabilidade."

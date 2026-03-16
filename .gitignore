@@ -59,3 +59,4 @@ data/vector_db/
 docs/agno/
 server/data/media/
 server/server_log.txt
+.venv/

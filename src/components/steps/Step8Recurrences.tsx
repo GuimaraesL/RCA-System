@@ -141,18 +141,44 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                                                         ))
                                                     }
                                                 </div>
-                                                {item.validation_reason && (
-                                                    <div className="mt-3 p-2.5 rounded-xl bg-primary-50/50 dark:bg-primary-500/5 border border-primary-100/50 dark:border-primary-500/10">
-                                                        <p className="text-[10px] font-bold text-primary-600 dark:text-primary-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                                                            <Activity className="w-3 h-3" /> {t('wizard.step8.aiValidation')}
-                                                        </p>
-                                                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
-                                                            "{item.validation_reason}"
-                                                        </p>
-                                                    </div>
-                                                )}
+                                                {item.validation_reason && (() => {
+                                                    // Regex robusto para detectar as tags (case-insensitive e com/sem acento)
+                                                    const isIdentica = /\[(IDÊNTICA|IDENTICA)\]/i.test(item.validation_reason);
+                                                    const isSimilar = /\[(SEMELHANTE|SIMILAR)\]/i.test(item.validation_reason);
+                                                    
+                                                    // Limpeza de todas as variações possíveis de tags no início do texto
+                                                    const cleanReason = item.validation_reason
+                                                        .replace(/\[+(IDÊNTICA|IDENTICA|SEMELHANTE|SIMILAR)\]+/gi, '')
+                                                        .trim()
+                                                        .replace(/^[:\-\s]+/, '');
+
+                                                    return (
+                                                        <div className={`mt-3 p-2.5 rounded-xl border transition-all duration-300 ${
+                                                            isIdentica 
+                                                                ? 'bg-rose-50/50 dark:bg-rose-500/5 border-rose-200/50 dark:border-rose-500/20' 
+                                                                : isSimilar
+                                                                    ? 'bg-amber-50/50 dark:bg-amber-500/5 border-amber-200/50 dark:border-amber-500/20'
+                                                                    : 'bg-primary-50/50 dark:bg-primary-500/5 border-primary-100/50 dark:border-primary-500/10'
+                                                        }`}>
+                                                            <div className="flex items-center justify-between mb-1.5">
+                                                                <p className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${
+                                                                    isIdentica ? 'text-rose-600 dark:text-rose-400' : 
+                                                                    isSimilar ? 'text-amber-600 dark:text-amber-400' : 
+                                                                    'text-primary-600 dark:text-primary-400'
+                                                                }`}>
+                                                                    <Activity className="w-3 h-3" /> {t('wizard.step8.aiValidation')}
+                                                                </p>
+                                                                {isIdentica && <Badge variant="danger" size="sm" className="h-4 text-[8px] animate-pulse">IDÊNTICA</Badge>}
+                                                                {isSimilar && <Badge variant="warning" size="sm" className="h-4 text-[8px]">SEMELHANTE</Badge>}
+                                                            </div>
+                                                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
+                                                                "{cleanReason}"
+                                                            </p>
+                                                        </div>
+                                                    );
+                                                })()}
                                                 {item.discard_reason && (
-                                                    <div className="mt-3 p-2.5 rounded-xl bg-red-50/50 dark:bg-red-500/5 border border-red-100/50 dark:border-red-500/10">
+                                                    <div className="mt-3 p-2.5 rounded-xl bg-red-50/50 dark:bg-red-500/5 border border-red-100/50 dark:border-red-500/10 opacity-70">
                                                         <p className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
                                                             <Activity className="w-3 h-3" /> {t('wizard.step8.discardReason')}
                                                         </p>

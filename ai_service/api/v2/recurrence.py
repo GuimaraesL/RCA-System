@@ -58,15 +58,8 @@ async def _run_recurrence_analysis(request: AnalysisRequest):
         except Exception as e:
             logger.warning(f"[_run_recurrence_analysis] Falha ao parsear contexto JSON: {e}")
 
-    # 2. Geração da Query via Tool Oficial (Alinhamento em 100% com o Agente - Issue #150)
-    # O agente usa o contexto bruto (JSON) diretamente.
-    screen_context_content = request.context
-    run_ctx = RunContext(
-        run_id="manual",
-        session_id=str(request.rca_id),
-        session_state={"screen_context": screen_context_content}
-    )
-    query_text = get_current_screen_context(run_ctx)
+    # 2. Geração da Query Alinhada com o Chat (Referência Oficial)
+    query_text = f"[DADOS ATUAIS DA TELA]:\nAtivo: {asset_info}\n{request.context}"
 
     if not query_text:
         raise HTTPException(status_code=400, detail="Não foi possível gerar o contexto de busca.")

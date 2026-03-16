@@ -16,7 +16,7 @@ def get_rag_validator():
     return Agent(
         name="RAG_Recurrence_Validator",
         role="Especialista em Triagem de Recorrências Técnicas",
-        model=Gemini(id="gemini-2.5-flash"),  # Modelo barato para triagem rápida
+        model=Gemini(id="gemini-2.5-flash", temperature=0.0),  # Modelo barato para triagem rápida
         instructions=[RAG_VALIDATOR_PROMPT],
         markdown=False,
         debug_mode=True,
