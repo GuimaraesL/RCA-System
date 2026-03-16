@@ -1,10 +1,12 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import ForceGraph2D, { ForceGraphMethods } from 'react-force-graph-2d';
 import { RecurrenceInfo } from '../../services/aiService';
 import { RcaRecord } from '../../types';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import { useTheme } from '../../context/ThemeContext';
+import { Play, Pause, RotateCcw, Share2, Calendar } from 'lucide-react';
+import { Button } from './Button';
 
 interface RecurrenceGraphProps {
     centralRca: RcaRecord;
@@ -28,18 +30,44 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
     const { isDark } = useTheme();
     const fgRef = useRef<ForceGraphMethods>(null);
 
+    // Timelapse State
+    const [isTimelapseActive, setIsTimelapseActive] = useState(false);
+    const [currentTime, setCurrentTime] = useState<number | null>(null);
+    const [playbackSpeed, setPlaybackSpeed] = useState(1);
+    const [showInterconnections, setShowInterconnections] = useState(true);
+
+    // Get all unique dates sorted
+    const allDates = useMemo(() => {
+        const dates = new Set<number>();
+        const extractDate = (rec: RecurrenceInfo) => {
+            if (rec.failure_date) dates.add(new Date(rec.failure_date).getTime());
+        };
+        recurrences.subgroup.forEach(extractDate);
+        recurrences.equipment.forEach(extractDate);
+        recurrences.area.forEach(extractDate);
+        if (showDiscarded) recurrences.discarded.forEach(extractDate);
+        
+        return Array.from(dates).sort((a, b) => a - b);
+    }, [recurrences, showDiscarded]);
+
+    // Graph Data with Interconnections and Time Filtering
     const graphData = useMemo(() => {
         const nodesMap = new Map();
         const centralId = String(centralRca.id);
         
-        // Nó Central
+        // Helper to normalize cause for comparison
+        const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+
+        // Nó Central - Sempre Visível
         nodesMap.set(centralId, {
             id: centralId,
             name: centralRca.what || 'RCA Atual',
-            val: 6,
-            color: '#3b82f6', // Bright Blue
+            val: 8,
+            color: '#3b82f6',
             isCentral: true,
-            type: 'center'
+            type: 'center',
+            causes: (centralRca.root_causes || []).map(c => normalize(c.cause)),
+            opacity: 1
         });
 
         const links: any[] = [];
@@ -48,23 +76,37 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
             items.forEach(item => {
                 if (type === 'discarded' && !showDiscarded) return;
                 
+                const nodeTime = item.failure_date ? new Date(item.failure_date).getTime() : 0;
+                // Time filtering for Timelapse
+                const isHiddenByTime = currentTime !== null && nodeTime > currentTime;
+                
+                // CRÍTICO: Se estiver oculto pelo tempo, não adicionamos ao grafo nesta iteração
+                if (isHiddenByTime) return;
+
                 const nodeId = String(item.rca_id);
                 if (!nodesMap.has(nodeId)) {
+                    const nodeCauses = (item.root_causes || '').split('\n')
+                        .map(c => normalize(c.replace(/^[-\*\s]+/, '')))
+                        .filter(Boolean);
+
                     nodesMap.set(nodeId, {
                         id: nodeId,
                         name: item.title,
-                        val: 3,
+                        val: 4,
                         color: color,
                         opacity: opacity,
                         type: type,
-                        data: item
+                        data: item,
+                        time: nodeTime,
+                        causes: nodeCauses
                     });
                 }
 
                 links.push({
                     source: centralId,
                     target: nodeId,
-                    type: type
+                    type: type,
+                    value: 1
                 });
             });
         };
@@ -74,11 +116,55 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
         addLevel(recurrences.area, '#10b981', 'area'); 
         addLevel(recurrences.discarded, '#94a3b8', 'discarded', 0.4); 
 
+        // Interconnections logic (Brain Mesh) - Apenas entre nós visíveis
+        if (showInterconnections) {
+            const visibleNodes = Array.from(nodesMap.values());
+            for (let i = 0; i < visibleNodes.length; i++) {
+                for (let j = i + 1; j < visibleNodes.length; j++) {
+                    const n1 = visibleNodes[i];
+                    const n2 = visibleNodes[j];
+                    
+                    if (n1.isCentral || n2.isCentral) continue;
+                    
+                    // Check for shared causes
+                    const sharedCauses = n1.causes.filter((c: string) => n2.causes.includes(c));
+                    if (sharedCauses.length > 0) {
+                        links.push({
+                            source: n1.id,
+                            target: n2.id,
+                            type: 'interconnection',
+                            value: 0.5,
+                            isSharedRecord: true
+                        });
+                    }
+                }
+            }
+        }
+
         return { 
             nodes: Array.from(nodesMap.values()), 
             links 
         };
-    }, [centralRca, recurrences, showDiscarded]);
+    }, [centralRca, recurrences, showDiscarded, currentTime, showInterconnections]);
+
+    // Timelapse Timer
+    useEffect(() => {
+        let interval: any;
+        if (isTimelapseActive && allDates.length > 0) {
+            interval = setInterval(() => {
+                setCurrentTime(prev => {
+                    if (prev === null) return allDates[0];
+                    const currentIndex = allDates.indexOf(prev);
+                    if (currentIndex === -1 || currentIndex >= allDates.length - 1) {
+                        setIsTimelapseActive(false);
+                        return prev;
+                    }
+                    return allDates[currentIndex + 1];
+                });
+            }, 1000 / playbackSpeed);
+        }
+        return () => clearInterval(interval);
+    }, [isTimelapseActive, allDates, playbackSpeed]);
 
     // Configuração de forças para parecer com Obsidian (mais espaçado)
     useEffect(() => {
@@ -171,10 +257,84 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
                                 }
                             }}
                             cooldownTicks={100}
+                            linkDirectionalParticles={2}
+                            linkDirectionalParticleSpeed={d => (d as any).isSharedRecord ? 0.002 : 0.005}
+                            linkDirectionalParticleWidth={1.5}
+                            linkCurvature={0.15}
                         />
                     );
                 }}
             />
+
+            {/* Timelapse & View Controls Overlay */}
+            <div className="absolute top-6 right-6 z-20 flex flex-col gap-3">
+                <div className="bg-slate-900/80 backdrop-blur-xl p-1.5 rounded-2xl border border-white/10 shadow-2xl flex items-center gap-1">
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-white hover:bg-white/10 h-8 w-8 p-0"
+                        onClick={() => setIsTimelapseActive(!isTimelapseActive)}
+                    >
+                        {isTimelapseActive ? <Pause size={16} /> : <Play size={16} />}
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-white hover:bg-white/10 h-8 w-8 p-0"
+                        onClick={() => {
+                            setIsTimelapseActive(false);
+                            setCurrentTime(null);
+                        }}
+                    >
+                        <RotateCcw size={16} />
+                    </Button>
+                    <div className="h-4 w-[1px] bg-white/20 mx-1" />
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        className={`h-8 w-8 p-0 ${showInterconnections ? 'text-primary-400 bg-primary-500/10' : 'text-slate-400'}`}
+                        onClick={() => setShowInterconnections(!showInterconnections)}
+                        title="Neural Mesh (Interconexões)"
+                    >
+                        <Share2 size={16} />
+                    </Button>
+                </div>
+            </div>
+
+            {/* Timeline Slider Overlay */}
+            {allDates.length > 0 && (
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 w-[90%] max-w-2xl">
+                    <div className="bg-slate-900/80 backdrop-blur-xl px-6 py-4 rounded-3xl border border-white/10 shadow-2xl">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2 text-primary-400">
+                                <Calendar size={14} />
+                                <span className="text-[10px] font-bold uppercase tracking-widest">
+                                    {currentTime ? new Date(currentTime).toLocaleDateString() : 'Ver Todas'}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <button 
+                                    onClick={() => setPlaybackSpeed(s => s === 1 ? 2 : s === 2 ? 4 : 1)}
+                                    className="text-[10px] font-bold text-slate-400 hover:text-white transition-colors"
+                                >
+                                    {playbackSpeed}x SPEED
+                                </button>
+                            </div>
+                        </div>
+                        <input 
+                            type="range" 
+                            min={0} 
+                            max={allDates.length - 1} 
+                            value={currentTime === null ? allDates.length - 1 : allDates.indexOf(currentTime)}
+                            onChange={(e) => {
+                                const val = parseInt(e.target.value);
+                                setCurrentTime(val === allDates.length - 1 && currentTime === null ? null : allDates[val]);
+                            }}
+                            className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary-500"
+                        />
+                    </div>
+                </div>
+            )}
             
             {graphData.nodes.length <= 1 && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
