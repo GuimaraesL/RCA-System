@@ -30,6 +30,16 @@ export const DnaMatrix: React.FC<DnaMatrixProps> = ({ currentRca, recurrence, on
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const enrichRecord = (record: RcaRecord, info: RecurrenceInfo): RcaRecord => {
+            return {
+                ...record,
+                // Fallback para Título se what estiver vazio
+                what: record.what || info.title,
+                // Fallback para Hierarquia se asset_name_display estiver vazio
+                asset_name_display: record.asset_name_display || info.equipment_name || info.area_name
+            };
+        };
+
         const fetchFullData = async () => {
             setLoading(true);
             try {
@@ -39,22 +49,21 @@ export const DnaMatrix: React.FC<DnaMatrixProps> = ({ currentRca, recurrence, on
                     const records: RcaRecord[] = JSON.parse(storedRecords);
                     const found = records.find(r => r.id === recurrence.rca_id);
                     if (found) {
-                        setRecurrenceRecord(found);
+                        setRecurrenceRecord(enrichRecord(found, recurrence));
                         setLoading(false);
                         return;
                     }
                 }
                 
                 // 2. Se não encontrou no localStorage, tenta buscar via API real do Backend
-                // Isso resolve o problema de registros históricos sugeridos pela IA
                 const apiRecord = await fetchRecordById(recurrence.rca_id);
                 if (apiRecord) {
-                    setRecurrenceRecord(apiRecord);
+                    setRecurrenceRecord(enrichRecord(apiRecord, recurrence));
                     setLoading(false);
                     return;
                 }
                 
-                // Fallback: usar dados do RecurrenceInfo mapeados para RcaRecord parcial
+                // Fallback final: usar dados do RecurrenceInfo mapeados para RcaRecord parcial
                 const partial: any = {
                     id: recurrence.rca_id,
                     what: recurrence.title,
@@ -64,7 +73,9 @@ export const DnaMatrix: React.FC<DnaMatrixProps> = ({ currentRca, recurrence, on
                         cause: c
                     })),
                     failure_date: recurrence.failure_date,
-                    asset_name_display: recurrence.equipment_name || recurrence.area_name
+                    asset_name_display: recurrence.equipment_name || recurrence.area_name,
+                    ishikawa: {},
+                    containment_actions: []
                 };
                 setRecurrenceRecord(partial);
             } catch (e) {
@@ -163,7 +174,7 @@ export const DnaMatrix: React.FC<DnaMatrixProps> = ({ currentRca, recurrence, on
                                     <p className="text-[10px] font-bold text-primary-200 uppercase tracking-widest mb-3">RCA ATUAL</p>
                                     <h4 className="text-lg font-black leading-tight mb-4">{currentRca.what}</h4>
                                     <div className="flex items-center gap-2 text-xs font-medium text-primary-100 italic">
-                                        <AlertCircle className="w-3.5 h-3.5" /> {(currentRca.asset_name_display || 'Não definido')}
+                                        <AlertCircle className="w-3.5 h-3.5" /> {(currentRca.asset_name_display || currentRca.subgroup_id || 'Localização não definida')}
                                     </div>
                                 </div>
                                 <div className="p-6 rounded-3xl bg-slate-900 border border-white/5 shadow-xl text-white relative overflow-hidden group">

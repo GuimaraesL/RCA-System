@@ -33,19 +33,20 @@ describe('DnaMatrix Component', () => {
     it('deve exibir carregamento e depois dados da API', async () => {
         const mockApiRca: any = {
             id: 'recurrence-456',
-            what: 'Dados da API',
+            what: '', // Campo vazio na API para testar fallback
             problem_description: 'Desc',
             root_causes: [{ id: 'arc1', cause: 'Causa API' }],
             ishikawa: {},
-            asset_name_display: 'Equipamento API'
+            asset_name_display: '' // Campo vazio na API para testar fallback
         };
         
         vi.mocked(fetchRecordById).mockResolvedValue(mockApiRca);
 
         const mockRecurrenceInfo: any = {
             rca_id: 'recurrence-456',
-            title: 'Título Inicial',
-            level: 'subgroup'
+            title: 'Título vindo do RAG',
+            level: 'subgroup',
+            equipment_name: 'Equipamento RAG'
         };
 
         render(
@@ -56,12 +57,14 @@ describe('DnaMatrix Component', () => {
             />
         );
 
-        // Aumenta timeout para 5 segundos se necessário
+        // Verifica se o título vindo do RAG (fallback) apareceu na tela
         await waitFor(() => {
-            const element = screen.queryByText('Dados da API');
-            expect(element).not.toBeNull();
+            const element = screen.queryByText('Título vindo do RAG');
+            expect(element).toBeTruthy();
         }, { timeout: 5000 });
 
+        // Verifica se o ativo vindo do RAG (fallback) apareceu na tela
+        expect(screen.queryByText('Equipamento RAG')).toBeTruthy();
         expect(fetchRecordById).toHaveBeenCalledWith('recurrence-456');
     });
 
