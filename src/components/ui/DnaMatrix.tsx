@@ -16,6 +16,8 @@ import { Badge } from './Badge';
 import { Button } from './Button';
 import { useLanguage } from '../../context/LanguageDefinition';
 
+import { fetchRecordById } from '../../services/apiService';
+
 interface DnaMatrixProps {
     currentRca: RcaRecord;
     recurrence: RecurrenceInfo;
@@ -28,13 +30,10 @@ export const DnaMatrix: React.FC<DnaMatrixProps> = ({ currentRca, recurrence, on
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Em um sistema real, buscaríamos o record completo via API
-        // Por agora, vamos simular ou usar os dados parciais que já temos no RecurrenceInfo
-        // e tentar buscar do localStorage se disponível para enriquecer
         const fetchFullData = async () => {
             setLoading(true);
             try {
-                // Tenta buscar no localStorage (que é onde o StorageService guarda)
+                // 1. Tenta buscar no localStorage (mais rápido se disponível)
                 const storedRecords = localStorage.getItem('rca_app_v1_records');
                 if (storedRecords) {
                     const records: RcaRecord[] = JSON.parse(storedRecords);
@@ -46,11 +45,20 @@ export const DnaMatrix: React.FC<DnaMatrixProps> = ({ currentRca, recurrence, on
                     }
                 }
                 
+                // 2. Se não encontrou no localStorage, tenta buscar via API real do Backend
+                // Isso resolve o problema de registros históricos sugeridos pela IA
+                const apiRecord = await fetchRecordById(recurrence.rca_id);
+                if (apiRecord) {
+                    setRecurrenceRecord(apiRecord);
+                    setLoading(false);
+                    return;
+                }
+                
                 // Fallback: usar dados do RecurrenceInfo mapeados para RcaRecord parcial
                 const partial: any = {
                     id: recurrence.rca_id,
                     what: recurrence.title,
-                    problem_description: recurrence.title, // Info limitada
+                    problem_description: recurrence.title,
                     root_causes: (recurrence.root_causes || '').split('\n').filter(Boolean).map((c, i) => ({
                         id: `rc-${i}`,
                         cause: c
