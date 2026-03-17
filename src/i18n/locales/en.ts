@@ -736,7 +736,18 @@ export const en: TranslationSchema = {
             noDate: "N/A",
             noEquipment: "Equipment not informed",
             occurrenceFound: "occurrence detected",
-            occurrencesFound: "occurrences detected"
+            occurrencesFound: "occurrences detected",
+            graphTitle: "Neural Graph View",
+            viewAll: "View All",
+            speed: "SPEED",
+            centralNodeOnly: "Central node only - Click \"Search Recurrences\" to expand map",
+            hideMap: "Hide Map",
+            showMap: "Show Map",
+            hideDiscarded: "Hide Discarded Items",
+            showDiscarded: "Show Discarded Items (RAG Transparency)",
+            identical: "IDENTICAL",
+            similar: "SIMILAR",
+            neuralMesh: "Neural Mesh (Interconnections)",
         },
         stepNames: {
             step1: { title: "General Data", subtitle: "Basic information" },
@@ -1012,5 +1023,22 @@ export const en: TranslationSchema = {
         uploading: "Uploading...",
         uploadLimits: "Upload Limits: Images (5MB), Videos (50MB), Documents (10MB).",
         suggestedFormats: "Suggested formats: JPG, PNG, MP4, PDF."
-    }
+    },
+    dnaMatrix: {
+        title: "DNA Matrix",
+        subtitle: "Detailed technical comparison between recurring failures",
+        gapAnalysis: "Gap Analysis",
+        rcaAtual: "Current RCA",
+        dnaMatch: "DNA Match",
+        loading: "Mapping Recurrence DNA...",
+        noLocation: "Location not defined",
+        locationOmitted: "Location Omitted",
+        rootCause: "Root Cause",
+        problemDefinition: "Problem Definition",
+        ishikawa: "Ishikawa (Diagram)",
+        previousActions: "Previous Actions",
+        close: "Close Comparison",
+        openFull: "Open Full RCA",
+        recurrenceSelected: "Selected Recurrence",
+    },
 };

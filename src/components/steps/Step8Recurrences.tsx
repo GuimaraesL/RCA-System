@@ -123,7 +123,7 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                                                     {/* THE DATE - Absolute Left Outside Table Buffer */}
                                                     <div className="absolute -left-[160px] top-1/2 -translate-y-1/2 w-28 text-right pr-4 pointer-events-none z-30">
                                                         <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight whitespace-nowrap">
-                                                            {item.failure_date ? new Date(item.failure_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : t('wizard.step8.noDate')}
+                                                            {item.failure_date ? new Date(item.failure_date).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' }) : t('wizard.step8.noDate')}
                                                         </span>
                                                     </div>
 
@@ -166,8 +166,8 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                                                                         }`}>
                                                                         <Activity className="w-3 h-3" /> {t('wizard.step8.aiValidation')}
                                                                     </p>
-                                                                    {isIdentica && <Badge variant="danger" size="sm" className="h-4 text-[8px] animate-pulse">IDÊNTICA</Badge>}
-                                                                    {isSimilar && <Badge variant="warning" size="sm" className="h-4 text-[8px]">SEMELHANTE</Badge>}
+                                                                    {isIdentica && <Badge variant="danger" size="sm" className="h-4 text-[8px] animate-pulse">{t('wizard.step8.identical')}</Badge>}
+                                                                    {isSimilar && <Badge variant="warning" size="sm" className="h-4 text-[8px]">{t('wizard.step8.similar')}</Badge>}
                                                                 </div>
                                                                 <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
                                                                     "{cleanReason}"
@@ -245,7 +245,7 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                             className="bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10"
                             leftIcon={<Network className={`w-4 h-4 ${showGraph ? 'text-primary-500' : 'text-slate-400'}`} />}
                         >
-                            {showGraph ? 'Esconder Mapa' : 'Ver Mapa'}
+                            {showGraph ? t('wizard.step8.hideMap') : t('wizard.step8.showMap')}
                         </Button>
 
                         <Button
@@ -276,7 +276,7 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                                 className="flex items-center gap-2 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hover:text-primary-500 transition-colors"
                             >
                                 <FileSearch className="w-4 h-4" />
-                                {showDiscarded ? 'Ocultar Itens Descartados' : 'Mostrar Itens Descartados (RAG Transparency)'}
+                                {showDiscarded ? t('wizard.step8.hideDiscarded') : t('wizard.step8.showDiscarded')}
                             </button>
                         </div>
                     </div>

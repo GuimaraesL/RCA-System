@@ -731,6 +731,17 @@ export interface TranslationSchema {
             noEquipment: string;
             occurrenceFound: string;
             occurrencesFound: string;
+            graphTitle: string;
+            viewAll: string;
+            speed: string;
+            centralNodeOnly: string;
+            hideMap: string;
+            showMap: string;
+            hideDiscarded: string;
+            showDiscarded: string;
+            identical: string;
+            similar: string;
+            neuralMesh: string;
         };
         step1: {
             title: string;
@@ -976,5 +987,22 @@ export interface TranslationSchema {
         uploading: string;
         uploadLimits: string;
         suggestedFormats: string;
+    };
+    dnaMatrix: {
+        title: string;
+        subtitle: string;
+        gapAnalysis: string;
+        rcaAtual: string;
+        dnaMatch: string;
+        loading: string;
+        noLocation: string;
+        locationOmitted: string;
+        rootCause: string;
+        problemDefinition: string;
+        ishikawa: string;
+        previousActions: string;
+        close: string;
+        openFull: string;
+        recurrenceSelected: string;
     };
 }

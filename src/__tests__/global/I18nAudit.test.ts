@@ -1,10 +1,11 @@
-﻿/**
- * Teste: i18n-audit.test.ts
+/**
+ * Teste: I18nAudit.test.ts (GLOBAL)
  * 
- * Proposta: Auditar o código-fonte em busca de strings hardcoded que deveriam ser internacionalizadas.
- * Ações: Varredura recursiva de arquivos .tsx utilizando Regex para identificar texto puro em JSX e atributos.
- * Execução: Backend Vitest.
- * Fluxo: 1. Lista arquivos src/components -> 2. Lê conteúdo -> 3. Aplica regras de exclusão (comentários, imports, t()) -> 4. Reporta violações.
+ * Proposta: Auditar o código-fonte em busca de strings hardcoded em UI e Canvas.
+ * Regras: 
+ * 1. Zero tolerância para texto novo em JSX (> Texto <).
+ * 2. Zero tolerância para atributos fixos (placeholder, title, label, alt, fillText).
+ * 3. Todas as chaves t() devem existir nos locais sincronizados.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -13,24 +14,22 @@ import * as path from 'path';
 import { pt } from '../../i18n/locales/pt';
 import { en } from '../../i18n/locales/en';
 
-describe('Auditoria de Internacionalização (Anti-Hardcoded)', () => {
+describe('Auditoria Global de Internacionalização (Zero-Tolerance)', () => {
 
-  // Função simples para varredura recursiva (sem depender de bibliotecas externas no runtime do teste)
   const getAllFiles = (dir: string, fileList: string[] = []): string[] => {
     const files = fs.readdirSync(dir);
     files.forEach(file => {
       const filePath = path.join(dir, file);
       if (fs.statSync(filePath).isDirectory()) {
-        // Ignora pastas de tradução, node_modules e diretórios de build/teste
-        if (!['node_modules', 'dist', 'locales', '__tests__', 'coverage', '.agent'].includes(file)) {
+        if (!['node_modules', 'dist', 'locales', '__tests__', 'coverage', '.agent', '.git'].includes(file)) {
           getAllFiles(filePath, fileList);
         }
       } else if ((filePath.endsWith('.tsx') || filePath.endsWith('.ts')) &&
         !filePath.includes('.test.') &&
         !filePath.includes('.spec.') &&
         !filePath.endsWith('types.ts') &&
-        !filePath.endsWith('en.ts') && // Exclusão explícita do dicionário EN
-        !filePath.endsWith('pt.ts')) { // Exclusão explícita do dicionário PT
+        !filePath.endsWith('en.ts') &&
+        !filePath.endsWith('pt.ts')) {
         fileList.push(filePath);
       }
     });
@@ -40,9 +39,11 @@ describe('Auditoria de Internacionalização (Anti-Hardcoded)', () => {
   const srcDir = path.resolve(process.cwd(), 'src');
   const files = getAllFiles(srcDir);
 
-  it('Nenhum componente deve conter strings fixas em atributos (placeholder, title, label)', () => {
+  it('Nenhum componente deve conter strings fixas em atributos ou Canvas (fillText)', () => {
     const violations: string[] = [];
-    const attrRegex = /(placeholder|title|label|alt)="([^"{][^"]+)"/g;
+    // Adicionado fillText para capturar textos em Canvas do ForceGraph
+    const attrRegex = /(placeholder|title|label|alt|fillText|strokeText)="([^"{][^"]+)"/g;
+    const canvasRegex = /ctx\.fillText\(\s*['"]([^'"]+)['"]/g;
 
     files.forEach(file => {
       const content = fs.readFileSync(file, 'utf-8');
@@ -50,20 +51,29 @@ describe('Auditoria de Internacionalização (Anti-Hardcoded)', () => {
 
       lines.forEach((line, index) => {
         let match;
+        // Check Attributes
         while ((match = attrRegex.exec(line)) !== null) {
-          const [fullMatch, attr, value] = match;
-          if (!value.includes('-') && value.trim().length > 1) {
+          const [_, attr, value] = match;
+          if (!value.includes('-') && !value.includes('/') && value.trim().length > 1 && !/^[0-9.]+$/.test(value)) {
             violations.push(`${path.relative(process.cwd(), file)}:${index + 1} -> Atributo '${attr}' com valor fixo: "${value}"`);
+          }
+        }
+        // Check Canvas fillText
+        while ((match = canvasRegex.exec(line)) !== null) {
+          const value = match[1];
+          if (value.trim().length > 1) {
+            violations.push(`${path.relative(process.cwd(), file)}:${index + 1} -> Canvas fillText com valor fixo: "${value}"`);
           }
         }
       });
     });
 
     if (violations.length > 0) {
-      console.log(' VIOLAÇÕES DE ATRIBUTOS HARDCODED FOUND:\n' + violations.join('\n'));
+      console.warn('⚠️ VIOLAÇÕES DE ATRIBUTOS/CANVAS HARDCODED:\n' + violations.join('\n'));
     }
 
-    expect(violations.length).toBeLessThanOrEqual(50);
+    // REDUÇÃO DRÁSTICA: Agora falha se houver qualquer violação
+    expect(violations.length).toBe(0);
   });
 
   it('Nenhum componente deve conter texto puro entre tags JSX', () => {
@@ -75,6 +85,8 @@ describe('Auditoria de Internacionalização (Anti-Hardcoded)', () => {
       const lines = content.split('\n');
 
       lines.forEach((line, index) => {
+        if (line.includes('// ignore-i18n')) return;
+        
         let match;
         while ((match = jsxTextRegex.exec(line)) !== null) {
           const text = match[1].trim();
@@ -83,42 +95,39 @@ describe('Auditoria de Internacionalização (Anti-Hardcoded)', () => {
             !text.startsWith('{') &&
             !text.endsWith('}') &&
             !text.includes('className') &&
-            !['Version', 'Promise', 'void', 'string', 'number', 'boolean', 'any', 'new Date', 'prev =>', '=>'].some(kw => text.includes(kw))
+            !['Version', 'Promise', 'void', 'string', 'number', 'boolean', 'any', 'new Date', 'prev =>', '=>', 'http'].some(kw => text.includes(kw))
           ) {
-            violations.push(`${path.relative(process.cwd(), file)}:${index + 1} -> Texto fixo detectado: "${text}"`);
+            violations.push(`${path.relative(process.cwd(), file)}:${index + 1} -> Texto JSX fixo: "${text}"`);
           }
         }
       });
     });
 
     if (violations.length > 0) {
-      console.log(' TEXTO JSX HARDCODED FOUND:\n' + violations.join('\n'));
+      console.warn('❌ TEXTO JSX HARDCODED FOUND:\n' + violations.join('\n'));
     }
 
-    expect(violations.length).toBeLessThanOrEqual(100);
+    // ZERO TOLERÂNCIA
+    expect(violations.length).toBe(0);
   });
 
-  it('Todas as chaves usadas via t() devem existir nos dicionários pt e en (Issue #105)', () => {
+  it('Todas as chaves usadas via t() devem existir nos dicionários sincronizados', () => {
     const ptDict = pt;
     const enDict = en;
 
-    // Função auxiliar para resolver caminhos aninhados (ex: 'common.attention')
     const resolveKey = (obj: Record<string, any>, keyPath: string): any => {
       return keyPath.split('.').reduce((acc, part) => acc?.[part], obj);
     };
 
     const violations: string[] = [];
-    // Regex: captura chamadas t('namespace.chave') — exigindo pelo menos um ponto
     const tCallRegex = /\bt\(\s*['"]([a-zA-Z][a-zA-Z0-9_]*\.[a-zA-Z0-9_.]+)['"]\s*\)/g;
 
     files.forEach(file => {
       const content = fs.readFileSync(file, 'utf-8');
       const lines = content.split('\n');
 
-      lines.forEach(line => {
-        // Ignora linhas com template literals dinâmicos (contém ${...})
+      lines.forEach((line, index) => {
         if (line.includes('${')) return;
-        // Ignora comentários
         if (line.trimStart().startsWith('//') || line.trimStart().startsWith('*')) return;
 
         let match;
@@ -128,17 +137,17 @@ describe('Auditoria de Internacionalização (Anti-Hardcoded)', () => {
           const enValue = resolveKey(enDict, key);
 
           if (ptValue === undefined) {
-            violations.push(`${path.relative(process.cwd(), file)} -> Chave '${key}' ausente no dicionário PT`);
+            violations.push(`${path.relative(process.cwd(), file)}:${index+1} -> '${key}' ausente no PT`);
           }
           if (enValue === undefined) {
-            violations.push(`${path.relative(process.cwd(), file)} -> Chave '${key}' ausente no dicionário EN`);
+            violations.push(`${path.relative(process.cwd(), file)}:${index+1} -> '${key}' ausente no EN`);
           }
         }
       });
     });
 
     if (violations.length > 0) {
-      console.log('\n🔑 CHAVES DE TRADUÇÃO SOLTAS:\n' + violations.join('\n'));
+      console.warn('\n🔑 CHAVES DE TRADUÇÃO AUSENTES:\n' + violations.join('\n'));
     }
 
     expect(violations).toEqual([]);

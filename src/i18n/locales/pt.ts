@@ -731,7 +731,18 @@ export const pt: TranslationSchema = {
             noDate: "S/ DATA",
             noEquipment: "Equipamento não informado",
             occurrenceFound: "ocorrência detectada",
-            occurrencesFound: "ocorrências detectadas"
+            occurrencesFound: "ocorrências detectadas",
+            graphTitle: "Neural Graph View",
+            viewAll: "Ver Todas",
+            speed: "VELOCIDADE",
+            centralNodeOnly: "Apenas nó central - Clique em \"Buscar Recorrências\" para expandir o mapa",
+            hideMap: "Esconder Mapa",
+            showMap: "Ver Mapa",
+            hideDiscarded: "Ocultar Itens Descartados",
+            showDiscarded: "Mostrar Itens Descartados (RAG Transparency)",
+            identical: "IDÊNTICA",
+            similar: "SEMELHANTE",
+            neuralMesh: "Neural Mesh (Interconexões)",
         },
         stepNames: {
             step1: { title: "Dados Gerais", subtitle: "Informações básicas" },
@@ -998,5 +1009,22 @@ export const pt: TranslationSchema = {
         uploading: "Enviando...",
         uploadLimits: "Limites de Upload: Imagens (5MB), Vídeos (50MB), Documentos (10MB).",
         suggestedFormats: "Formatos sugeridos: JPG, PNG, MP4, PDF."
-    }
+    },
+    dnaMatrix: {
+        title: "DNA Matrix",
+        subtitle: "Comparação técnica detalhada entre falhas recorrentes",
+        gapAnalysis: "Gap Analysis",
+        rcaAtual: "RCA Atual",
+        dnaMatch: "DNA Match",
+        loading: "Mapeando DNA da Recorrência...",
+        noLocation: "Localização não definida",
+        locationOmitted: "Localização Omitida",
+        rootCause: "Causa Raiz",
+        problemDefinition: "Definição do Problema",
+        ishikawa: "Ishikawa (Diagrama)",
+        previousActions: "Ações Anteriores",
+        close: "Fechar Comparação",
+        openFull: "Abrir RCA Completo",
+        recurrenceSelected: "Recorrência Selecionada",
+    },
 };

@@ -100,6 +100,21 @@ Containers principais de conteúdo.
   - Radius: `rounded-xl`
   - Padding: `p-6`
 
+### 3.5 Inteligência Artificial (IA)
+Padronização visual para recursos cognitivos e diagnósticos automáticos.
+
+- **Paleta IA (Solid Blue)**
+  - **IA Primary:** Blue-600 (`#2563eb`) - Ícones e estados ativos.
+  - **IA Surface (Light):** Blue-50 (`#eff6ff`) - Fundos de cartões e bolhas de chat.
+  - **IA Surface (Dark):** Slate-800 (`#1e293b`) - Fundos de cartões no modo escuro.
+  - **IA Border:** Blue-100 (`#dbeafe`) - Divisores sutis exclusivos de IA.
+
+- **Diretrizes de IA**
+  - **Proibido (Anti-Patterns):** Gradientes "Glow" (Indigo/Purple), Backdrop-blur excessivo, Transparências flutuantes.
+  - **Prioridade:** Cores sólidas, bordas limpas e sombras suaves (`shadow-sm` ou `shadow-md`).
+  - **Iconografia:** `BrainCircuit` (Identidade IA), `Zap` (Ações rápidas), `Sparkles` (Sugestões), `Layers` (DNA/Estrutura).
+  - **Raio de Borda:** Em elementos de IA (Matrix/Sidebar), priorizar `rounded-[32px]` ou `rounded-[40px]` para um visual mais orgânico e moderno, contrastando com os `rounded-lg` de formulários padrão.
+
 ## 4. Diretrizes de Uso
 
 ### O que EVITAR

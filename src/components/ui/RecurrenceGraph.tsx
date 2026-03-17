@@ -62,7 +62,7 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
         // Nó Central - Sempre Visível
         nodesMap.set(centralId, {
             id: centralId,
-            name: centralRca.what || 'RCA Atual',
+            name: centralRca.what || t('dnaMatrix.rcaAtual'),
             val: 8,
             color: '#3b82f6',
             isCentral: true,
@@ -153,9 +153,14 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
             }
         }
 
+        // CRÍTICO: Deep Clone para evitar que mutações do D3 (index, x, y, vy...) 
+        // persistam entre remounts do componente (o que causava o bug de tamanho dos nós).
+        const finalNodes = Array.from(nodesMap.values()).map(node => ({ ...node }));
+        const finalLinks = links.map(link => ({ ...link }));
+
         return { 
-            nodes: Array.from(nodesMap.values()), 
-            links 
+            nodes: finalNodes, 
+            links: finalLinks 
         };
     }, [centralRca, recurrences, showDiscarded, currentTime, showInterconnections]);
 
@@ -199,10 +204,10 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
     return (
         <div className="w-full h-[750px] bg-white dark:bg-[#020617] rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden relative group">
             <div className="absolute top-6 left-6 z-20 flex gap-2 pointer-events-auto">
-                <div className="bg-slate-50/80 dark:bg-slate-900/50 backdrop-blur-xl px-4 py-2 rounded-2xl border border-slate-200 dark:border-white/5 shadow-2xl">
+                <div className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl px-4 py-2 rounded-2xl border border-slate-200 dark:border-white/5 shadow-soft">
                     <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shadow-[0_0_8px_rgba(59,130,246,0.5)] animate-pulse" />
-                        Neural Graph View
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)] animate-pulse" />
+                        {t('wizard.step8.graphTitle')}
                     </p>
                 </div>
             </div>
@@ -225,7 +230,8 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
                                 ctx.font = `${node.isCentral ? 'bold' : 'normal'} ${fontSize}px Inter, system-ui, sans-serif`;
                                 
                                 // Desenha o nó (ponto)
-                                const size = node.val;
+                                // Usamos node.val diretamente. Central = 8, Outros = 4.
+                                const size = node.val || (node.isCentral ? 8 : 4);
                                 ctx.beginPath();
                                 ctx.arc(node.x, node.y, size, 0, 2 * Math.PI, false);
                                 ctx.fillStyle = node.color;
@@ -253,7 +259,7 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
                                     
                                     // Cor do texto baseada no tema
                                     if (node.opacity < 1) {
-                                        ctx.fillStyle = isDark ? `rgba(148, 163, 184, ${node.opacity})` : `rgba(71, 85, 105, ${node.opacity})`;
+                                        ctx.fillStyle = isDark ? `rgba(148, 163, 184, ${Math.max(node.opacity, 0.6)})` : `rgba(71, 85, 105, ${Math.max(node.opacity, 0.4)})`;
                                     } else {
                                         ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
                                     }
@@ -261,7 +267,12 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
                                     ctx.fillText(label, node.x, node.y + size + 2 + fontSize / 2);
                                 }
                             }}
-                            linkColor={() => isDark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(71, 85, 105, 0.1)'}
+                            linkColor={(link: any) => {
+                                if (isDark) {
+                                    return link.isSemantic ? 'rgba(96, 165, 250, 0.5)' : 'rgba(148, 163, 184, 0.35)';
+                                }
+                                return link.isSemantic ? 'rgba(37, 99, 235, 0.4)' : 'rgba(71, 85, 105, 0.25)';
+                            }}
                             linkWidth={1}
                             onNodeClick={(node: any) => {
                                 if (!node.isCentral) {
@@ -280,11 +291,11 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
 
             {/* Timelapse & View Controls Overlay */}
             <div className="absolute top-6 right-6 z-20 flex flex-col gap-3">
-                <div className="bg-slate-900/80 backdrop-blur-xl p-1.5 rounded-2xl border border-white/10 shadow-2xl flex items-center gap-1">
+                <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl p-1.5 rounded-2xl border border-slate-200 dark:border-white/10 shadow-soft flex items-center gap-1">
                     <Button
                         size="sm"
                         variant="ghost"
-                        className="text-white hover:bg-white/10 h-8 w-8 p-0"
+                        className="text-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 h-8 w-8 p-0"
                         onClick={() => setIsTimelapseActive(!isTimelapseActive)}
                     >
                         {isTimelapseActive ? <Pause size={16} /> : <Play size={16} />}
@@ -292,7 +303,7 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
                     <Button
                         size="sm"
                         variant="ghost"
-                        className="text-white hover:bg-white/10 h-8 w-8 p-0"
+                        className="text-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 h-8 w-8 p-0"
                         onClick={() => {
                             setIsTimelapseActive(false);
                             setCurrentTime(null);
@@ -300,13 +311,12 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
                     >
                         <RotateCcw size={16} />
                     </Button>
-                    <div className="h-4 w-[1px] bg-white/20 mx-1" />
+                    <div className="h-4 w-[1px] bg-slate-200 dark:bg-white/20 mx-1" />
                     <Button
                         size="sm"
                         variant="ghost"
-                        className={`h-8 w-8 p-0 ${showInterconnections ? 'text-primary-400 bg-primary-500/10' : 'text-slate-400'}`}
-                        onClick={() => setShowInterconnections(!showInterconnections)}
-                        title="Neural Mesh (Interconexões)"
+                        className={`h-8 w-8 p-0 ${showInterconnections ? 'text-blue-600 dark:text-primary-400 bg-blue-50 dark:bg-primary-500/10' : 'text-slate-400'}`}
+                        title={t('wizard.step8.neuralMesh')}
                     >
                         <Share2 size={16} />
                     </Button>
@@ -316,20 +326,20 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
             {/* Timeline Slider Overlay */}
             {allDates.length > 0 && (
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 w-[90%] max-w-2xl">
-                    <div className="bg-slate-900/80 backdrop-blur-xl px-6 py-4 rounded-3xl border border-white/10 shadow-2xl">
+                    <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl px-6 py-4 rounded-3xl border border-slate-200 dark:border-white/10 shadow-soft">
                         <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2 text-primary-400">
+                            <div className="flex items-center gap-2 text-blue-600 dark:text-primary-400">
                                 <Calendar size={14} />
                                 <span className="text-[10px] font-bold uppercase tracking-widest">
-                                    {currentTime ? new Date(currentTime).toLocaleDateString() : 'Ver Todas'}
+                                    {currentTime ? new Date(currentTime).toLocaleDateString() : t('wizard.step8.viewAll')}
                                 </span>
                             </div>
                             <div className="flex items-center gap-4">
                                 <button 
                                     onClick={() => setPlaybackSpeed(s => s === 1 ? 2 : s === 2 ? 4 : 1)}
-                                    className="text-[10px] font-bold text-slate-400 hover:text-white transition-colors"
+                                    className="text-[10px] font-bold text-slate-400 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white transition-colors"
                                 >
-                                    {playbackSpeed}x SPEED
+                                    {playbackSpeed}x {t('wizard.step8.speed')}
                                 </button>
                             </div>
                         </div>
@@ -342,7 +352,7 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
                                 const val = parseInt(e.target.value);
                                 setCurrentTime(val === allDates.length - 1 && currentTime === null ? null : allDates[val]);
                             }}
-                            className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary-500"
+                            className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600 dark:accent-primary-500"
                         />
                     </div>
                 </div>
@@ -350,7 +360,7 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
             
             {graphData.nodes.length <= 1 && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <p className="text-xs text-slate-400 italic">Central node only - Click "Search Recurrences" to expand map</p>
+                    <p className="text-xs text-slate-400 italic">{t('wizard.step8.centralNodeOnly')}</p>
                 </div>
             )}
             
