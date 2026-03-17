@@ -10,7 +10,8 @@ from agno.utils.log import logger
 from core.knowledge import get_rca_history_knowledge
 from agents.rag_validator import get_rag_validator
 from core.config import BACKEND_URL, INTERNAL_AUTH_KEY
-from api.models import RecurrenceInfo
+from api.models import RecurrenceInfo, SemanticLink
+import math
 
 # Limites padrão de busca (Alinhados com o Agente - Issue #150)
 DEFAULT_LIMIT_SUBGROUP = 20
@@ -159,6 +160,64 @@ def search_hierarchical(
                     seen_ids.add(rid)
 
     return subgroup_matches, equipment_matches, area_matches
+
+def calculate_semantic_links(candidates: List[RecurrenceInfo], threshold: float = 0.75) -> List[SemanticLink]:
+    """Calcula interconexões semânticas entre os candidatos do RAG."""
+    if not candidates or len(candidates) < 2:
+        return []
+    
+    knowledge_base = get_rca_history_knowledge()
+    # Pega o embedder já configurado (GeminiEmbedder)
+    embedder = getattr(knowledge_base.vector_db, "embedder", None)
+    if not embedder:
+        logger.warning("[calculate_semantic_links] Embedder não encontrado no VectorDB.")
+        return []
+
+    # Prepara os textos para embedding (prioriza conteúdo completo se disponível)
+    texts = []
+    for c in candidates:
+        txt = c.raw_content if (c.raw_content and len(c.raw_content) > 50) else c.title
+        texts.append(txt[:5000]) # Limite pragmático para o Gemini
+    
+    embeddings = []
+    logger.debug(f"[calculate_semantic_links] Gerando embeddings para {len(texts)} itens...")
+    
+    for i, text in enumerate(texts):
+        try:
+            emb = embedder.get_embedding(text)
+            embeddings.append(emb)
+        except Exception as e:
+            logger.warning(f"[calculate_semantic_links] Falha no embedding {i}: {e}")
+            embeddings.append(None)
+            
+    def dot_product(v1, v2):
+        return sum(x*y for x, y in zip(v1, v2))
+
+    def magnitude(v):
+        return math.sqrt(sum(x*x for x in v))
+
+    def cosine_similarity(v1, v2):
+        m1 = magnitude(v1)
+        m2 = magnitude(v2)
+        if m1 == 0 or m2 == 0: return 0.0
+        return dot_product(v1, v2) / (m1 * m2)
+
+    links = []
+    for i in range(len(candidates)):
+        for j in range(i + 1, len(candidates)):
+            v1 = embeddings[i]
+            v2 = embeddings[j]
+            if v1 and v2:
+                score = cosine_similarity(v1, v2)
+                if score >= threshold:
+                    links.append(SemanticLink(
+                        source=candidates[i].rca_id,
+                        target=candidates[j].rca_id,
+                        score=round(score, 4)
+                    ))
+    
+    logger.info(f"[calculate_semantic_links] {len(links)} conexões semânticas encontradas.")
+    return links
 
 def validate_recurrences(query_text: str, all_candidates: List[RecurrenceInfo]) -> Tuple[Dict[str, str], Dict[str, str], str]:
     """Passa os candidatos pelo RAGValidator."""
