@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import { RcaRecord } from '../types';
 import { streamAiAnalysis, StreamUpdate, fetchChatHistory, deleteChatHistory, fetchRecurrencesOnly, fetchSavedRecurrence } from '../services/aiStreamingService';
 import { useLanguage } from './LanguageDefinition';
-import { RecurrenceInfo } from '../services/aiService';
+import { RecurrenceInfo, SemanticLink } from '../services/aiService';
 
 export interface Message {
     role: 'user' | 'assistant';
@@ -15,10 +15,11 @@ export interface RecurrenceData {
     equipment: RecurrenceInfo[];
     area: RecurrenceInfo[];
     discarded: RecurrenceInfo[];
+    semantic_links?: SemanticLink[];
     lastAnalyzedAt?: string;
 }
 
-const EMPTY_RECURRENCE: RecurrenceData = { subgroup: [], equipment: [], area: [], discarded: [] };
+const EMPTY_RECURRENCE: RecurrenceData = { subgroup: [], equipment: [], area: [], discarded: [], semantic_links: [] };
 
 interface AiContextType {
     isAiOpen: boolean;
@@ -91,6 +92,7 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
                     equipment: data.equipment_matches || [],
                     area: data.area_matches || [],
                     discarded: data.discarded_matches || [],
+                    semantic_links: data.semantic_links || [],
                     lastAnalyzedAt: saved.last_analyzed_at
                 });
                 setLoadingRecurrences(false);
@@ -106,6 +108,7 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
                         equipment: data.equipment_matches || [],
                         area: data.area_matches || [],
                         discarded: data.discarded_matches || [],
+                        semantic_links: data.semantic_links || [],
                         lastAnalyzedAt: data.last_analyzed_at || new Date().toISOString()
                     });
                 }
@@ -157,7 +160,8 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
                         subgroup: update.data.subgroup || [],
                         equipment: update.data.equipment || [],
                         area: update.data.area || [],
-                        discarded: update.data.discarded || []
+                        discarded: update.data.discarded || [],
+                        semantic_links: update.data.semantic_links || []
                     });
                 } else {
                     // Fallback legado: item individual

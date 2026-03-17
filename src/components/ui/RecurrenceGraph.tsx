@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
 import ForceGraph2D, { ForceGraphMethods } from 'react-force-graph-2d';
-import { RecurrenceInfo } from '../../services/aiService';
+import { RecurrenceInfo, SemanticLink } from '../../services/aiService';
 import { RcaRecord } from '../../types';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
@@ -15,6 +15,7 @@ interface RecurrenceGraphProps {
         equipment: RecurrenceInfo[];
         area: RecurrenceInfo[];
         discarded: RecurrenceInfo[];
+        semantic_links?: SemanticLink[];
     };
     showDiscarded: boolean;
     onNodeClick: (recurrence: RecurrenceInfo) => void;
@@ -116,17 +117,28 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
         addLevel(recurrences.area, '#10b981', 'area'); 
         addLevel(recurrences.discarded, '#94a3b8', 'discarded', 0.4); 
 
-        // Interconnections logic (Brain Mesh) - Apenas entre nós visíveis
-        if (showInterconnections) {
+        // Interconnections logic (Neural Mesh) - Using Semantic Links from Backend
+        if (showInterconnections && recurrences.semantic_links && recurrences.semantic_links.length > 0) {
+            recurrences.semantic_links.forEach(link => {
+                if (nodesMap.has(link.source) && nodesMap.has(link.target)) {
+                    links.push({
+                        source: link.source,
+                        target: link.target,
+                        type: 'interconnection',
+                        value: link.score,
+                        isSemantic: true
+                    });
+                }
+            });
+        } else if (showInterconnections) {
+            // Fallback for direct text comparison (Legacy Root Causes)
             const visibleNodes = Array.from(nodesMap.values());
             for (let i = 0; i < visibleNodes.length; i++) {
                 for (let j = i + 1; j < visibleNodes.length; j++) {
                     const n1 = visibleNodes[i];
                     const n2 = visibleNodes[j];
+                    if (n1.isCentral || n2.isCentral || !n1.causes || !n2.causes) continue;
                     
-                    if (n1.isCentral || n2.isCentral) continue;
-                    
-                    // Check for shared causes
                     const sharedCauses = n1.causes.filter((c: string) => n2.causes.includes(c));
                     if (sharedCauses.length > 0) {
                         links.push({
@@ -258,7 +270,7 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
                             }}
                             cooldownTicks={100}
                             linkDirectionalParticles={2}
-                            linkDirectionalParticleSpeed={d => (d as any).isSharedRecord ? 0.002 : 0.005}
+                            linkDirectionalParticleSpeed={d => (d as any).isSemantic ? (d as any).value * 0.005 : 0.005}
                             linkDirectionalParticleWidth={1.5}
                             linkCurvature={0.15}
                         />

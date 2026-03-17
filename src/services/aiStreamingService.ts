@@ -202,7 +202,8 @@ export const streamAiAnalysis = async (
                                     subgroup: parsed.subgroup_matches || [], 
                                     equipment: parsed.equipment_matches || [], 
                                     area: parsed.area_matches || [],
-                                    discarded: parsed.discarded_matches || []
+                                    discarded: parsed.discarded_matches || [],
+                                    semantic_links: parsed.semantic_links || []
                                 } 
                             });
                         }
