@@ -31,10 +31,10 @@ jobs:
       run: npm run lint
 
     - name: Executar Auditoria de Internacionalização (i18n)
-      run: npx vitest run src/services/__tests__/i18n-audit.test.ts
+      run: npx vitest run src/__tests__/global/I18nAudit.test.ts
 
     - name: Executar Testes de Lógica (Vitest - Frontend)
-      run: npx vitest run --exclude "src/services/__tests__/i18n-audit.test.ts"
+      run: npx vitest run --exclude "src/__tests__/global/I18nAudit.test.ts"
 
     - name: Executar Testes de Lógica (Vitest - Backend)
       run: cd server && npm run test
