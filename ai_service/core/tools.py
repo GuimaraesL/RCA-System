@@ -155,6 +155,7 @@ def search_historical_rcas_tool(query: str, run_context: RunContext, subgroup_id
     from services.rag_service import (
         search_hierarchical, 
         validate_recurrences,
+        calculate_semantic_links,
         DEFAULT_LIMIT_SUBGROUP,
         DEFAULT_LIMIT_EQUIPMENT,
         DEFAULT_LIMIT_AREA
@@ -202,11 +203,21 @@ def search_historical_rcas_tool(query: str, run_context: RunContext, subgroup_id
                 d["discard_reason"] = discarded_ids[m.rca_id]
                 discarded_list.append(d)
 
+        # 3. Interconexão Semântica (Neural Mesh)
+        semantic_mesh = []
+        valid_candidates = [m for m in all_candidates if m.rca_id in valid_ids]
+        if len(valid_candidates) >= 2:
+            try:
+                semantic_mesh = calculate_semantic_links(valid_candidates)
+            except Exception as e:
+                logger.error(f"Erro ao calcular malha semântica na Tool: {e}")
+
         analysis_result = {
             "subgroup_matches": enrich_and_filter(subgroup_matches),
             "equipment_matches": enrich_and_filter(equipment_matches),
             "area_matches": enrich_and_filter(area_matches),
-            "discarded_matches": discarded_list
+            "discarded_matches": discarded_list,
+            "semantic_links": [link.model_dump() for link in semantic_mesh]
         }
         
         if current_rca_id:
