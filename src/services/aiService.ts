@@ -4,6 +4,12 @@ import { RcaRecord } from '../types';
 const AI_API_URL = '/ai/analyze';
 const INTERNAL_KEY = 'dev-key-change-it';
 
+export interface SemanticLink {
+    source: string;
+    target: string;
+    score: number;
+}
+
 export interface RecurrenceInfo {
     rca_id: string;
     similarity: number;
@@ -23,6 +29,7 @@ export interface AIAnalysisResponse {
     ai_insight: string;
     status: string;
     recurrences?: RecurrenceInfo[];
+    semantic_links?: SemanticLink[];
 }
 
 /**

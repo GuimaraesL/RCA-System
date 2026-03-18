@@ -92,8 +92,12 @@ sequenceDiagram
 ### 4.1. Sincronização de Schema em Testes
 Ao adicionar colunas no banco de dados (ex: `attachments`), é obrigatório atualizar os scripts de criação de tabelas temporárias nos arquivos `beforeEach` dos testes de integração do backend para evitar erros de `no column named`.
 
-### 4.2. Auditoria de Internacionalização
-O comando `npx vitest run src/services/__tests__/i18n-audit.test.ts` deve ser executado para garantir que nenhuma nova funcionalidade (ex: Media Manager) contenha textos hardcoded.
+### 4.2. Auditoria Global de Internacionalização (i18n)
+O projeto utiliza um auditor automatizado rigoroso: `src/__tests__/global/I18nAudit.test.ts`. 
+- **Política de Zero Tolerância:** Nenhuma nova string hardcoded em Português ou Inglês é permitida em arquivos `.tsx`.
+- **Escopo:** Varre componentes em busca de texto plano em JSX, atributos (`label`, `placeholder`, etc.) e comandos de Canvas (`fillText`).
+- **Execução:** Obrigatória antes de qualquer commit que altere a interface.
+- **Comando:** `npx vitest run src/__tests__/global/I18nAudit.test.ts`
 
 ---
 

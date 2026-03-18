@@ -6,7 +6,7 @@ from agno.agent import Agent
 from agno.models.google import Gemini
 from core.prompts import HFACS_AGENT_PROMPT
 
-def get_hfacs_agent():
+def get_hfacs_agent(language: str = "Português-BR"):
     """
     Retorna o agente especialista em Human Factors Analysis and Classification System.
     """
@@ -14,7 +14,10 @@ def get_hfacs_agent():
         name="Human_Factors_Investigator",
         role="Especialista em Psicologia Organizacional e Segurança do Trabalho",
         model=Gemini(id="gemini-2.5-flash"),
-        instructions=[HFACS_AGENT_PROMPT],
+        instructions=[
+            f"Responda SEMPRE em {language}.",
+            HFACS_AGENT_PROMPT
+        ],
         markdown=True,
         debug_mode=True,
     )

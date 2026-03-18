@@ -47,7 +47,7 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
             .map(i => i.failure_date)
             .filter(d => Boolean(d))
             .map(d => new Date(d).getTime());
-            
+
         if (validDates.length > 0) {
             // Pode retornar a data mais recente ou a mais antiga desse grupo
             const maxDate = new Date(Math.max(...validDates));
@@ -114,97 +114,95 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                                             return dateA - dateB;
                                         })
                                         .map((item) => (
-                                        <tr 
-                                            key={item.rca_id} 
-                                            className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors duration-200 cursor-pointer relative"
-                                            onClick={() => window.open(`#/rca/${item.rca_id}`, '_blank')}
-                                        >
-                                            <td className="px-6 py-4 align-top relative">
-                                                {/* THE DATE - Absolute Left Outside Table Buffer */}
-                                                <div className="absolute -left-[160px] top-1/2 -translate-y-1/2 w-28 text-right pr-4 pointer-events-none z-30">
-                                                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight whitespace-nowrap">
-                                                        {item.failure_date ? new Date(item.failure_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : t('wizard.step8.noDate')}
-                                                    </span>
-                                                </div>
+                                            <tr
+                                                key={item.rca_id}
+                                                className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors duration-200 cursor-pointer relative"
+                                                onClick={() => window.open(`#/rca/${item.rca_id}`, '_blank')}
+                                            >
+                                                <td className="px-6 py-4 align-top relative">
+                                                    {/* THE DATE - Absolute Left Outside Table Buffer */}
+                                                    <div className="absolute -left-[160px] top-1/2 -translate-y-1/2 w-28 text-right pr-4 pointer-events-none z-30">
+                                                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight whitespace-nowrap">
+                                                            {item.failure_date ? new Date(item.failure_date).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' }) : t('wizard.step8.noDate')}
+                                                        </span>
+                                                    </div>
 
-                                                {/* Small Connection Dot on Line */}
-                                                <div className="absolute -left-[47px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700 border-2 border-slate-50 dark:border-[#0f172a] z-30 group-hover:bg-primary-500 group-hover:scale-125 transition-all shadow-sm" />
+                                                    {/* Small Connection Dot on Line */}
+                                                    <div className="absolute -left-[47px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700 border-2 border-slate-50 dark:border-[#0f172a] z-30 group-hover:bg-primary-500 group-hover:scale-125 transition-all shadow-sm" />
 
-                                                <div className="flex flex-wrap gap-2">
-                                                    {(item.root_causes || '—').split('\n')
-                                                        .map((c: string) => c.replace(/^[-\*\s]+/, '').trim())
-                                                        .filter(Boolean)
-                                                        .map((cause: string, i: number) => (
-                                                            <Badge key={i} variant="danger" className="text-[10px] bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 border-red-100 dark:border-red-500/20 whitespace-normal text-left">
-                                                                <Target className="w-3 h-3 inline-block mr-1 opacity-60"/>{cause}
-                                                            </Badge>
-                                                        ))
-                                                    }
-                                                </div>
-                                                {item.validation_reason && (() => {
-                                                    // Regex robusto para detectar as tags (case-insensitive e com/sem acento)
-                                                    const isIdentica = /\[(IDÊNTICA|IDENTICA)\]/i.test(item.validation_reason);
-                                                    const isSimilar = /\[(SEMELHANTE|SIMILAR)\]/i.test(item.validation_reason);
-                                                    
-                                                    // Limpeza de todas as variações possíveis de tags no início do texto
-                                                    const cleanReason = item.validation_reason
-                                                        .replace(/\[+(IDÊNTICA|IDENTICA|SEMELHANTE|SIMILAR)\]+/gi, '')
-                                                        .trim()
-                                                        .replace(/^[:\-\s]+/, '');
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {(item.root_causes || '—').split('\n')
+                                                            .map((c: string) => c.replace(/^[-\*\s]+/, '').trim())
+                                                            .filter(Boolean)
+                                                            .map((cause: string, i: number) => (
+                                                                <Badge key={i} variant="danger" className="text-[10px] bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 border-red-100 dark:border-red-500/20 whitespace-normal text-left">
+                                                                    <Target className="w-3 h-3 inline-block mr-1 opacity-60" />{cause}
+                                                                </Badge>
+                                                            ))
+                                                        }
+                                                    </div>
+                                                    {item.validation_reason && (() => {
+                                                        // Regex robusto para detectar as tags (case-insensitive e com/sem acento)
+                                                        const isIdentica = /\[(IDÊNTICA|IDENTICA)\]/i.test(item.validation_reason);
+                                                        const isSimilar = /\[(SEMELHANTE|SIMILAR)\]/i.test(item.validation_reason);
 
-                                                    return (
-                                                        <div className={`mt-3 p-2.5 rounded-xl border transition-all duration-300 ${
-                                                            isIdentica 
-                                                                ? 'bg-rose-50/50 dark:bg-rose-500/5 border-rose-200/50 dark:border-rose-500/20' 
-                                                                : isSimilar
-                                                                    ? 'bg-amber-50/50 dark:bg-amber-500/5 border-amber-200/50 dark:border-amber-500/20'
-                                                                    : 'bg-primary-50/50 dark:bg-primary-500/5 border-primary-100/50 dark:border-primary-500/10'
-                                                        }`}>
-                                                            <div className="flex items-center justify-between mb-1.5">
-                                                                <p className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${
-                                                                    isIdentica ? 'text-rose-600 dark:text-rose-400' : 
-                                                                    isSimilar ? 'text-amber-600 dark:text-amber-400' : 
-                                                                    'text-primary-600 dark:text-primary-400'
+                                                        // Limpeza de todas as variações possíveis de tags no início do texto
+                                                        const cleanReason = item.validation_reason
+                                                            .replace(/\[+(IDÊNTICA|IDENTICA|SEMELHANTE|SIMILAR)\]+/gi, '')
+                                                            .trim()
+                                                            .replace(/^[:\-\s]+/, '');
+
+                                                        return (
+                                                            <div className={`mt-3 p-2.5 rounded-xl border transition-all duration-300 ${isIdentica
+                                                                    ? 'bg-rose-50/50 dark:bg-rose-500/5 border-rose-200/50 dark:border-rose-500/20'
+                                                                    : isSimilar
+                                                                        ? 'bg-amber-50/50 dark:bg-amber-500/5 border-amber-200/50 dark:border-amber-500/20'
+                                                                        : 'bg-primary-50/50 dark:bg-primary-500/5 border-primary-100/50 dark:border-primary-500/10'
                                                                 }`}>
-                                                                    <Activity className="w-3 h-3" /> {t('wizard.step8.aiValidation')}
+                                                                <div className="flex items-center justify-between mb-1.5">
+                                                                    <p className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${isIdentica ? 'text-rose-600 dark:text-rose-400' :
+                                                                            isSimilar ? 'text-amber-600 dark:text-amber-400' :
+                                                                                'text-primary-600 dark:text-primary-400'
+                                                                        }`}>
+                                                                        <Activity className="w-3 h-3" /> {t('wizard.step8.aiValidation')}
+                                                                    </p>
+                                                                    {isIdentica && <Badge variant="danger" size="sm" className="h-4 text-[8px] animate-pulse">{t('wizard.step8.identical')}</Badge>}
+                                                                    {isSimilar && <Badge variant="warning" size="sm" className="h-4 text-[8px]">{t('wizard.step8.similar')}</Badge>}
+                                                                </div>
+                                                                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
+                                                                    "{cleanReason}"
                                                                 </p>
-                                                                {isIdentica && <Badge variant="danger" size="sm" className="h-4 text-[8px] animate-pulse">IDÊNTICA</Badge>}
-                                                                {isSimilar && <Badge variant="warning" size="sm" className="h-4 text-[8px]">SEMELHANTE</Badge>}
                                                             </div>
-                                                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
-                                                                "{cleanReason}"
+                                                        );
+                                                    })()}
+                                                    {item.discard_reason && (
+                                                        <div className="mt-3 p-2.5 rounded-xl bg-red-50/50 dark:bg-red-500/5 border border-red-100/50 dark:border-red-500/10 opacity-70">
+                                                            <p className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                                                                <Activity className="w-3 h-3" /> {t('wizard.step8.discardReason')}
+                                                            </p>
+                                                            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed italic">
+                                                                "{item.discard_reason}"
                                                             </p>
                                                         </div>
-                                                    );
-                                                })()}
-                                                {item.discard_reason && (
-                                                    <div className="mt-3 p-2.5 rounded-xl bg-red-50/50 dark:bg-red-500/5 border border-red-100/50 dark:border-red-500/10 opacity-70">
-                                                        <p className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                                                            <Activity className="w-3 h-3" /> {t('wizard.step8.discardReason')}
-                                                        </p>
-                                                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed italic">
-                                                            "{item.discard_reason}"
-                                                        </p>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 align-top">
+                                                    <Badge variant="neutral" className="bg-slate-100 dark:bg-white/10 border-slate-200 dark:border-white/10 font-mono text-[10px] text-primary-600 dark:text-primary-300">
+                                                        {item.rca_id?.substring(0, 8)}
+                                                    </Badge>
+                                                </td>
+                                                <td className="px-6 py-4 align-top">
+                                                    <div className="text-sm font-bold text-slate-900 dark:text-white leading-tight mb-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                                        {item.title}
                                                     </div>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 align-top">
-                                                <Badge variant="neutral" className="bg-slate-100 dark:bg-white/10 border-slate-200 dark:border-white/10 font-mono text-[10px] text-primary-600 dark:text-primary-300">
-                                                    {item.rca_id?.substring(0, 8)}
-                                                </Badge>
-                                            </td>
-                                            <td className="px-6 py-4 align-top">
-                                                <div className="text-sm font-bold text-slate-900 dark:text-white leading-tight mb-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                                                    {item.title}
-                                                </div>
-                                                <div className="flex flex-wrap items-center gap-2 mt-1">
-                                                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500 bg-slate-100/50 dark:bg-white/5 w-fit px-2 py-0.5 rounded-md italic font-medium">
-                                                        <History className="w-3 h-3" /> {item.equipment_name || t('wizard.step8.noEquipment')}
+                                                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                                                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500 bg-slate-100/50 dark:bg-white/5 w-fit px-2 py-0.5 rounded-md italic font-medium">
+                                                            <History className="w-3 h-3" /> {item.equipment_name || t('wizard.step8.noEquipment')}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
+                                                </td>
+                                            </tr>
+                                        ))
                                 )}
                             </tbody>
                         </table>
@@ -247,7 +245,7 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                             className="bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10"
                             leftIcon={<Network className={`w-4 h-4 ${showGraph ? 'text-primary-500' : 'text-slate-400'}`} />}
                         >
-                            {showGraph ? 'Esconder Mapa' : 'Ver Mapa'}
+                            {showGraph ? t('wizard.step8.hideMap') : t('wizard.step8.showMap')}
                         </Button>
 
                         <Button
@@ -265,22 +263,13 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                 {/* Neural Map Integration */}
                 {showGraph && (
                     <div className="mt-10 animate-in zoom-in-95 duration-500">
-                        <RecurrenceGraph 
+                        <RecurrenceGraph
                             centralRca={data}
                             recurrences={recurrenceData}
                             showDiscarded={showDiscarded}
                             onNodeClick={(rec) => setSelectedRecurrence(rec)}
                         />
-                        
-                        <div className="mt-4 flex justify-end">
-                            <button 
-                                onClick={() => setShowDiscarded(!showDiscarded)}
-                                className="flex items-center gap-2 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hover:text-primary-500 transition-colors"
-                            >
-                                <FileSearch className="w-4 h-4" />
-                                {showDiscarded ? 'Ocultar Itens Descartados' : 'Mostrar Itens Descartados (RAG Transparency)'}
-                            </button>
-                        </div>
+
                     </div>
                 )}
             </div>
@@ -343,7 +332,7 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
 
             {/* DNA Matrix Modal */}
             {selectedRecurrence && (
-                <DnaMatrix 
+                <DnaMatrix
                     currentRca={data}
                     recurrence={selectedRecurrence}
                     onClose={() => setSelectedRecurrence(null)}

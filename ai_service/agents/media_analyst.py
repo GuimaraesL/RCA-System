@@ -6,7 +6,7 @@ from agno.agent import Agent
 from agno.models.google import Gemini
 from core.prompts import MEDIA_ANALYST_PROMPT, MEDIA_ANALYSIS_RULES
 
-def get_media_analyst_agent():
+def get_media_analyst_agent(language: str = "Português-BR"):
     """
     Retorna o agente especialista em análise de imagem e vídeo.
     Configurado para processar mídias via multimodalidade.
@@ -15,7 +15,11 @@ def get_media_analyst_agent():
         name="Media_Failure_Analyst",
         role="Perito em Engenharia e Análise Visual de Materiais",
         model=Gemini(id="gemini-2.0-flash"),
-        instructions=[MEDIA_ANALYST_PROMPT, MEDIA_ANALYSIS_RULES],
+        instructions=[
+            f"Responda SEMPRE em {language}.",
+            MEDIA_ANALYST_PROMPT, 
+            MEDIA_ANALYSIS_RULES
+        ],
         markdown=True,
         debug_mode=True,
     )

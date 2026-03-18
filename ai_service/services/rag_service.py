@@ -10,7 +10,8 @@ from agno.utils.log import logger
 from core.knowledge import get_rca_history_knowledge
 from agents.rag_validator import get_rag_validator
 from core.config import BACKEND_URL, INTERNAL_AUTH_KEY
-from api.models import RecurrenceInfo
+from api.models import RecurrenceInfo, SemanticLink
+import math
 
 # Limites padrão de busca (Alinhados com o Agente - Issue #150)
 DEFAULT_LIMIT_SUBGROUP = 20
@@ -160,12 +161,93 @@ def search_hierarchical(
 
     return subgroup_matches, equipment_matches, area_matches
 
-def validate_recurrences(query_text: str, all_candidates: List[RecurrenceInfo]) -> Tuple[Dict[str, str], Dict[str, str], str]:
+def normalize_cause(s: str) -> str:
+    """Normaliza texto para comparação determinística (igual ao frontend)."""
+    return re.sub(r'[^a-z0-9]', '', s.lower()).strip()
+
+def calculate_semantic_links(candidates: List[RecurrenceInfo], threshold: float = 0.88) -> List[SemanticLink]:
+    """
+    Calcula interconexões híbridas entre os candidatos do RAG.
+    Prioriza matches de texto exato em causas raiz e complementa com embeddings de alta confiança.
+    """
+    if not candidates or len(candidates) < 2:
+        return []
+    
+    links = []
+    seen_links = set() # (id1, id2) ordenado para evitar duplicatas
+
+    # 1. Match Determinístico por Causa Raíz (Regra de Ouro)
+    for i in range(len(candidates)):
+        for j in range(i + 1, len(candidates)):
+            c1, c2 = candidates[i], candidates[j]
+            causes1 = {normalize_cause(c) for c in (c1.root_causes or "").split("\n") if c.strip()}
+            causes2 = {normalize_cause(c) for c in (c2.root_causes or "").split("\n") if c.strip()}
+            
+            if causes1 and causes2 and causes1.intersection(causes2):
+                pair = tuple(sorted([c1.rca_id, c2.rca_id]))
+                if pair not in seen_links:
+                    links.append(SemanticLink(
+                        source=c1.rca_id,
+                        target=c2.rca_id,
+                        score=1.0 # Peso máximo para match direto
+                    ))
+                    seen_links.add(pair)
+
+    # 2. Match Semântico por Embeddings (Complemento)
+    knowledge_base = get_rca_history_knowledge()
+    embedder = getattr(knowledge_base.vector_db, "embedder", None)
+    if not embedder:
+        logger.warning("[calculate_semantic_links] Embedder não encontrado. Retornando apenas links de texto.")
+        return links
+
+    # Prepara os textos apenas para quem já não está linkado ou para reforçar
+    # (Para performance, poderíamos pular quem já tem link, mas vamos calcular tudo para ter o score real)
+    texts = []
+    for c in candidates:
+        txt = c.raw_content if (c.raw_content and len(c.raw_content) > 50) else c.title
+        texts.append(txt[:5000])
+    
+    embeddings = []
+    logger.debug(f"[calculate_semantic_links] Gerando embeddings para {len(texts)} itens...")
+    
+    for i, text in enumerate(texts):
+        try:
+            emb = embedder.get_embedding(text)
+            embeddings.append(emb)
+        except Exception as e:
+            logger.warning(f"[calculate_semantic_links] Falha no embedding {i}: {e}")
+            embeddings.append(None)
+            
+    def dot_product(v1, v2): return sum(x*y for x, y in zip(v1, v2))
+    def magnitude(v): return math.sqrt(sum(x*x for x in v))
+    def cosine_similarity(v1, v2):
+        m1, m2 = magnitude(v1), magnitude(v2)
+        return dot_product(v1, v2) / (m1 * m2) if (m1 > 0 and m2 > 0) else 0.0
+
+    for i in range(len(candidates)):
+        for j in range(i + 1, len(candidates)):
+            v1, v2 = embeddings[i], embeddings[j]
+            if v1 and v2:
+                score = cosine_similarity(v1, v2)
+                if score >= threshold:
+                    pair = tuple(sorted([candidates[i].rca_id, candidates[j].rca_id]))
+                    if pair not in seen_links:
+                        links.append(SemanticLink(
+                            source=candidates[i].rca_id,
+                            target=candidates[j].rca_id,
+                            score=round(score, 4)
+                        ))
+                        seen_links.add(pair)
+    
+    logger.info(f"[calculate_semantic_links] {len(links)} conexões híbridas encontradas (Threshold {threshold}).")
+    return links
+
+def validate_recurrences(query_text: str, all_candidates: List[RecurrenceInfo], language: str = "Português-BR") -> Tuple[Dict[str, str], Dict[str, str], str]:
     """Passa os candidatos pelo RAGValidator."""
     if not all_candidates:
         return {}, {}, ""
         
-    validator = get_rag_validator()
+    validator = get_rag_validator(language=language)
     
     candidate_texts = []
     for r in all_candidates:

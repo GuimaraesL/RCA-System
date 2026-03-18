@@ -16,6 +16,8 @@ import { Badge } from './Badge';
 import { Button } from './Button';
 import { useLanguage } from '../../context/LanguageDefinition';
 
+import { fetchRecordById } from '../../services/apiService';
+
 interface DnaMatrixProps {
     currentRca: RcaRecord;
     recurrence: RecurrenceInfo;
@@ -28,35 +30,52 @@ export const DnaMatrix: React.FC<DnaMatrixProps> = ({ currentRca, recurrence, on
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Em um sistema real, buscaríamos o record completo via API
-        // Por agora, vamos simular ou usar os dados parciais que já temos no RecurrenceInfo
-        // e tentar buscar do localStorage se disponível para enriquecer
+        const enrichRecord = (record: RcaRecord, info: RecurrenceInfo): RcaRecord => {
+            return {
+                ...record,
+                // Fallback para Título se what estiver vazio
+                what: record.what || info.title,
+                // Fallback para Hierarquia se asset_name_display estiver vazio
+                asset_name_display: record.asset_name_display || info.equipment_name || info.area_name
+            };
+        };
+
         const fetchFullData = async () => {
             setLoading(true);
             try {
-                // Tenta buscar no localStorage (que é onde o StorageService guarda)
+                // 1. Tenta buscar no localStorage (mais rápido se disponível)
                 const storedRecords = localStorage.getItem('rca_app_v1_records');
                 if (storedRecords) {
                     const records: RcaRecord[] = JSON.parse(storedRecords);
                     const found = records.find(r => r.id === recurrence.rca_id);
                     if (found) {
-                        setRecurrenceRecord(found);
+                        setRecurrenceRecord(enrichRecord(found, recurrence));
                         setLoading(false);
                         return;
                     }
                 }
                 
-                // Fallback: usar dados do RecurrenceInfo mapeados para RcaRecord parcial
+                // 2. Se não encontrou no localStorage, tenta buscar via API real do Backend
+                const apiRecord = await fetchRecordById(recurrence.rca_id);
+                if (apiRecord) {
+                    setRecurrenceRecord(enrichRecord(apiRecord, recurrence));
+                    setLoading(false);
+                    return;
+                }
+                
+                // Fallback final: usar dados do RecurrenceInfo mapeados para RcaRecord parcial
                 const partial: any = {
                     id: recurrence.rca_id,
                     what: recurrence.title,
-                    problem_description: recurrence.title, // Info limitada
+                    problem_description: recurrence.title,
                     root_causes: (recurrence.root_causes || '').split('\n').filter(Boolean).map((c, i) => ({
                         id: `rc-${i}`,
                         cause: c
                     })),
                     failure_date: recurrence.failure_date,
-                    asset_name_display: recurrence.equipment_name || recurrence.area_name
+                    asset_name_display: recurrence.equipment_name || recurrence.area_name,
+                    ishikawa: {},
+                    containment_actions: []
                 };
                 setRecurrenceRecord(partial);
             } catch (e) {
@@ -70,39 +89,64 @@ export const DnaMatrix: React.FC<DnaMatrixProps> = ({ currentRca, recurrence, on
     }, [recurrence]);
 
     const ComparisonRow = ({ label, icon: Icon, current, matched, isList = false }: any) => (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-slate-200 dark:bg-white/10 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 mb-6 last:mb-0">
-            <div className="bg-white dark:bg-slate-900 p-6 flex flex-col gap-3">
-                <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                    <Icon className="w-3.5 h-3.5" /> {label} (Atual)
+        <div className="group/row grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 last:mb-0">
+            {/* Coluna Atual - Fundo Claro/Branco */}
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-[32px] shadow-sm border border-slate-100 dark:border-white/5 flex flex-col gap-5 hover:shadow-md transition-all duration-300">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                        <Icon className="w-4 h-4 text-primary-500/50" /> {label}
+                    </div>
+                    <Badge variant="neutral" size="sm" className="text-[9px] uppercase font-bold opacity-70">{t('dnaMatrix.rcaAtual')}</Badge>
                 </div>
-                <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                <div className="text-sm text-slate-900 dark:text-slate-200 leading-relaxed font-medium">
                     {isList ? (
-                        <ul className="space-y-2">
+                        <ul className="space-y-3">
                             {current.map((item: any, i: number) => (
-                                <li key={i} className="flex gap-2 items-start">
-                                    <ArrowRight className="w-3.5 h-3.5 mt-0.5 text-primary-500 shrink-0" />
-                                    <span>{item}</span>
+                                <li key={i} className="flex gap-3 items-start animate-in slide-in-from-left duration-300" style={{ animationDelay: `${i * 100}ms` }}>
+                                    <div className="w-5 h-5 rounded-lg bg-blue-50 dark:bg-slate-800 border border-blue-100 dark:border-white/5 flex items-center justify-center shrink-0 mt-1">
+                                        <ArrowRight className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                    <span className="bg-slate-50 dark:bg-white/5 px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/5 w-full text-slate-700 dark:text-slate-300">
+                                        {item}
+                                    </span>
                                 </li>
                             ))}
                         </ul>
-                    ) : current || '—'}
+                    ) : (
+                        <div className="bg-slate-50 dark:bg-white/5 p-5 rounded-2xl border border-slate-100 dark:border-white/5 text-slate-700 dark:text-slate-300 mb-2">
+                            {current || '—'}
+                        </div>
+                    )}
                 </div>
             </div>
-            <div className="bg-slate-50 dark:bg-slate-900/50 p-6 flex flex-col gap-3">
-                <div className="flex items-center gap-2 text-[10px] font-bold text-primary-500 dark:text-primary-400 uppercase tracking-widest">
-                    <Icon className="w-3.5 h-3.5" /> {label} (Recorrência)
+            
+            {/* Coluna Recorrência - Fundo Azulado Sólido */}
+            <div className="bg-blue-50 dark:bg-slate-800 p-8 rounded-[32px] shadow-sm border border-blue-100 dark:border-white/5 flex flex-col gap-5 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-blue-600 dark:text-primary-400 uppercase tracking-widest">
+                        <Icon className="w-4 h-4" /> {label}
+                    </div>
+                    <Badge variant="primary" size="sm" className="text-[9px] uppercase font-bold">{t('dnaMatrix.dnaMatch')}</Badge>
                 </div>
-                <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                <div className="text-sm text-slate-900 dark:text-slate-100 leading-relaxed font-semibold">
                     {isList ? (
-                        <ul className="space-y-2">
+                        <ul className="space-y-3">
                             {matched.map((item: any, i: number) => (
-                                <li key={i} className="flex gap-2 items-start">
-                                    <ArrowRight className="w-3.5 h-3.5 mt-0.5 text-primary-500 shrink-0" />
-                                    <span>{item}</span>
+                                <li key={i} className="flex gap-3 items-start animate-in slide-in-from-right duration-300" style={{ animationDelay: `${i * 100}ms` }}>
+                                    <div className="w-5 h-5 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 mt-1">
+                                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                    </div>
+                                    <span className="bg-white dark:bg-slate-900 px-4 py-3 rounded-2xl border border-blue-100 dark:border-white/10 w-full text-slate-800 dark:text-slate-200 italic">
+                                        {item}
+                                    </span>
                                 </li>
                             ))}
                         </ul>
-                    ) : matched || '—'}
+                    ) : (
+                        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-blue-100 dark:border-white/10 text-slate-800 dark:text-slate-200 italic mb-2">
+                            {matched || '—'}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -112,28 +156,28 @@ export const DnaMatrix: React.FC<DnaMatrixProps> = ({ currentRca, recurrence, on
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300">
-            <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" onClick={onClose} />
+            <div className="absolute inset-0 bg-slate-900/60" onClick={onClose} />
             
             <div className="relative w-full max-w-6xl max-h-[90vh] bg-white dark:bg-slate-950 rounded-[40px] shadow-2xl border border-white/20 overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="flex items-center justify-between p-8 border-b border-slate-100 dark:border-white/5 bg-gradient-to-r from-primary-600 to-indigo-700">
+                <div className="flex items-center justify-between p-8 border-b border-slate-100 dark:border-white/5 bg-white dark:bg-slate-900">
                     <div className="flex items-center gap-5">
-                        <div className="p-4 rounded-3xl bg-white/10 shadow-inner backdrop-blur-xl">
-                            <Layers className="w-8 h-8 text-white" />
+                        <div className="p-4 rounded-2xl bg-blue-50 dark:bg-slate-800 shadow-sm border border-blue-100 dark:border-white/10">
+                            <Layers className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
                             <div className="flex items-center gap-3 mb-1">
-                                <h2 className="text-2xl font-black text-white tracking-tight">DNA Matrix</h2>
-                                <Badge className="bg-white/20 text-white border-white/10">Gap Analysis</Badge>
+                                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight font-display">{t('dnaMatrix.title')}</h2>
+                                <Badge variant="primary" size="sm">{t('dnaMatrix.gapAnalysis')}</Badge>
                             </div>
-                            <p className="text-primary-100 text-sm font-medium opacity-80">
-                                Comparação técnica detalhada entre falhas recorrentes
+                            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+                                {t('dnaMatrix.subtitle')}
                             </p>
                         </div>
                     </div>
                     <button 
                         onClick={onClose}
-                        className="p-3 rounded-2xl hover:bg-white/10 text-white transition-all transform hover:rotate-90"
+                        className="p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400 dark:text-slate-500 transition-all transform hover:rotate-90"
                     >
                         <X className="w-7 h-7" />
                     </button>
@@ -144,26 +188,39 @@ export const DnaMatrix: React.FC<DnaMatrixProps> = ({ currentRca, recurrence, on
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-4">
                             <Activity className="w-12 h-12 text-primary-500 animate-spin" />
-                            <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Mapeando DNA da Recorrência...</p>
+                            <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">{t('dnaMatrix.loading')}</p>
                         </div>
                     ) : (
                         <div className="max-w-4xl mx-auto space-y-8">
                             {/* Summary Cards */}
                             <div className="grid grid-cols-2 gap-6">
-                                <div className="p-6 rounded-3xl bg-primary-600 shadow-xl shadow-primary-600/20 text-white relative overflow-hidden group">
-                                    <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform" />
-                                    <p className="text-[10px] font-bold text-primary-200 uppercase tracking-widest mb-3">RCA ATUAL</p>
-                                    <h4 className="text-lg font-black leading-tight mb-4">{currentRca.what}</h4>
-                                    <div className="flex items-center gap-2 text-xs font-medium text-primary-100 italic">
-                                        <AlertCircle className="w-3.5 h-3.5" /> {(currentRca.asset_name_display || 'Não definido')}
+                                <div className="p-8 rounded-[32px] bg-white dark:bg-slate-900 shadow-2xl shadow-slate-200 dark:shadow-none border border-slate-100 dark:border-white/5 relative overflow-hidden group">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Badge className="bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 border-primary-100 dark:border-primary-500/20 px-3 py-1 text-[10px] font-bold tracking-widest uppercase">
+                                            {t('dnaMatrix.rcaAtual')}
+                                        </Badge>
+                                    </div>
+                                    <h4 className="text-xl font-black leading-tight mb-4 text-slate-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                        {currentRca.what}
+                                    </h4>
+                                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 italic bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-100 dark:border-white/5">
+                                        <AlertCircle className="w-3.5 h-3.5 text-primary-500" /> 
+                                        {(currentRca.asset_name_display || currentRca.subgroup_id || t('dnaMatrix.noLocation'))}
                                     </div>
                                 </div>
-                                <div className="p-6 rounded-3xl bg-slate-900 border border-white/5 shadow-xl text-white relative overflow-hidden group">
-                                    <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-primary-600/10 rounded-full blur-2xl group-hover:scale-150 transition-transform" />
-                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">RECORRÊNCIA SELECIONADA</p>
-                                    <h4 className="text-lg font-black leading-tight mb-4">{recurrenceRecord.what}</h4>
-                                    <div className="flex items-center gap-2 text-xs font-medium text-slate-400 italic">
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> {recurrenceRecord.asset_name_display || '—'}
+
+                                <div className="p-8 rounded-[32px] bg-blue-50 dark:bg-slate-800 shadow-sm border border-blue-100 dark:border-white/5 relative overflow-hidden group">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Badge variant="primary" size="sm" className="px-3 py-1 text-[10px] font-bold tracking-widest uppercase">
+                                            {t('dnaMatrix.recurrenceSelected')}
+                                        </Badge>
+                                    </div>
+                                    <h4 className="text-xl font-black leading-tight mb-4 text-slate-900 dark:text-white drop-shadow-sm">
+                                        {recurrenceRecord.what}
+                                    </h4>
+                                    <div className="flex items-center gap-2 text-xs font-semibold text-blue-700 dark:text-blue-100 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-blue-100 dark:border-white/10">
+                                        <CheckCircle2 className="w-4 h-4 text-emerald-600" /> 
+                                        {recurrenceRecord.asset_name_display || t('dnaMatrix.locationOmitted')}
                                     </div>
                                 </div>
                             </div>
@@ -171,7 +228,7 @@ export const DnaMatrix: React.FC<DnaMatrixProps> = ({ currentRca, recurrence, on
                             {/* Comparison Blocks */}
                             <div className="space-y-4">
                                 <ComparisonRow 
-                                    label="Causa Raiz" 
+                                    label={t('dnaMatrix.rootCause')}
                                     icon={Target}
                                     current={currentRca.root_causes?.map(rc => rc.cause) || []}
                                     matched={recurrenceRecord.root_causes?.map(rc => rc.cause) || []}
@@ -179,14 +236,14 @@ export const DnaMatrix: React.FC<DnaMatrixProps> = ({ currentRca, recurrence, on
                                 />
                                 
                                 <ComparisonRow 
-                                    label="Definição do Problema" 
+                                    label={t('dnaMatrix.problemDefinition')}
                                     icon={Zap}
                                     current={currentRca.problem_description}
                                     matched={recurrenceRecord.problem_description}
                                 />
 
                                 <ComparisonRow 
-                                    label="Ishikawa (Diagrama)" 
+                                    label={t('dnaMatrix.ishikawa')}
                                     icon={ClipboardList}
                                     current={
                                         Object.entries(currentRca.ishikawa || {})
@@ -202,7 +259,7 @@ export const DnaMatrix: React.FC<DnaMatrixProps> = ({ currentRca, recurrence, on
                                 />
 
                                 <ComparisonRow 
-                                    label="Ações Anteriores" 
+                                    label={t('dnaMatrix.previousActions')}
                                     icon={Activity}
                                     current={currentRca.containment_actions?.map(a => a.action) || []}
                                     matched={recurrenceRecord.containment_actions?.map(a => a.action) || []}
@@ -214,9 +271,9 @@ export const DnaMatrix: React.FC<DnaMatrixProps> = ({ currentRca, recurrence, on
                 </div>
 
                 {/* Footer Controls */}
-                <div className="p-6 bg-slate-50 dark:bg-white/5 border-t border-slate-100 dark:border-white/5 flex justify-end gap-4">
-                    <Button variant="outline" onClick={onClose} size="md">
-                        Fechar Comparação
+                <div className="p-6 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-white/5 flex justify-end gap-4 shadow-[0_-4px_12px_rgba(0,0,0,0.02)]">
+                    <Button variant="secondary" onClick={onClose} size="md">
+                        {t('dnaMatrix.close')}
                     </Button>
                     <Button 
                         variant="primary" 
@@ -224,7 +281,7 @@ export const DnaMatrix: React.FC<DnaMatrixProps> = ({ currentRca, recurrence, on
                         size="md"
                         leftIcon={<Activity className="w-4 h-4" />}
                     >
-                        Abrir RCA Completo
+                        {t('dnaMatrix.openFull')}
                     </Button>
                 </div>
             </div>

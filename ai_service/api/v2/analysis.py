@@ -17,9 +17,20 @@ from core.config import INTERNAL_AUTH_KEY, AGENT_MEMORY_PATH, BACKEND_URL
 from core.knowledge import save_recurrence_analysis
 from core.constants import TECHNICAL_KEYWORDS, THOUGHT_PATTERNS
 from api.models import AnalysisRequest, RecurrenceInfo
-from services.rag_service import search_hierarchical, validate_recurrences
+from services.rag_service import search_hierarchical, validate_recurrences, calculate_semantic_links
 
 router = APIRouter()
+
+def normalize_language(lang: str) -> str:
+    """Normaliza a string de idioma para os prompts da IA."""
+    if not lang:
+        return "Português-BR"
+    l = lang.lower()
+    if any(x in l for x in ["en", "eng", "ing"]):
+        return "English"
+    if any(x in l for x in ["pt", "port"]):
+        return "Português-BR"
+    return "Português-BR"
 
 @router.post("")
 async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(None)):
@@ -71,7 +82,7 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
 
         # Lógica de análise completa (streaming)
         recurrences = subgroup_matches + equipment_matches + area_matches
-        ui_lang = request.ui_language or "Português-BR"
+        ui_lang = normalize_language(request.ui_language)
         is_initial_analysis = not (request.user_prompt and str(request.user_prompt).strip())
 
         images = []
@@ -106,19 +117,28 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         prompt = ""
         if not is_initial_analysis:
             prompt = request.user_prompt
+            # Reforço de idioma para prompts do usuário
+            prompt += f"\n\n(IMPORTANT: Respond ALWAYS in {ui_lang})"
         else:
-            prompt = f"### MISSÃO: Realizar análise completa de causa raiz para a RCA ID: {request.rca_id}.\n"
-            prompt += "PASSO 1: Use obrigatoriamente `get_current_screen_context` para identificar o ATIVO e o PROBLEMA.\n"
-            prompt += "PASSO 2: Use `search_historical_rcas_tool` para buscar e validar recorrências no histórico.\n"
-            prompt += "PASSO 3: Gere a Causa Raiz, Ishikawa (OBRIGATORIAMENTE em sintaxe Mermaid) e 5 Porquês.\n"
+            if "Português" in ui_lang:
+                prompt = f"### MISSÃO: Realizar análise completa de causa raiz para a RCA ID: {request.rca_id}.\n"
+                prompt += "PASSO 1: Use obrigatoriamente `get_current_screen_context` para identificar o ATIVO e o PROBLEMA.\n"
+                prompt += "PASSO 2: Use `search_historical_rcas_tool` para buscar e validar recorrências no histórico.\n"
+                prompt += "PASSO 3: Gere a Causa Raiz, Ishikawa (OBRIGATORIAMENTE em sintaxe Mermaid) e 5 Porquês.\n"
+            else:
+                prompt = f"### MISSION: Perform a complete root cause analysis for RCA ID: {request.rca_id}.\n"
+                prompt += "STEP 1: You must use `get_current_screen_context` to identify the ASSET and the PROBLEM.\n"
+                prompt += "STEP 2: Use `search_historical_rcas_tool` to search for and validate recurrences in history.\n"
+                prompt += "STEP 3: Generate the Root Cause, Ishikawa (MUST be in Mermaid syntax) and 5 Whys.\n"
+                prompt += f"All technical details must be explained in {ui_lang}.\n"
         
         async def stream_output():
             logger.debug(f"📡 DEBUG: Iniciando stream ASYNC para RCA {request.rca_id}")
             
             # 1. Validação e Persistência de Recorrências (RAG Estágio 2) - Alertas Imediatos
             if recurrences and not request.user_prompt:
-                # Realiza a validação técnica (Alinhado com a Tool e o Botão)
-                valid_ids, discarded_ids, _ = validate_recurrences(query_text, recurrences)
+                # 2. Validação Técnica (RAG Estágio 2)
+                valid_ids, discarded_ids, _ = validate_recurrences(query_text, recurrences, language=ui_lang)
                 
                 def enrich_and_filter(matches):
                     enriched = []
@@ -136,11 +156,21 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                         d["discard_reason"] = discarded_ids[m.rca_id]
                         discarded_list.append(d)
 
+                # 3. Interconexão Semântica (Neural Mesh)
+                semantic_mesh = []
+                valid_candidates = [m for m in recurrences if m.rca_id in valid_ids]
+                if len(valid_candidates) >= 2:
+                    try:
+                        semantic_mesh = calculate_semantic_links(valid_candidates)
+                    except Exception as e:
+                        logger.error(f"Erro ao calcular malha semântica no stream: {e}")
+
                 analysis_result = {
                     "subgroup_matches": enrich_and_filter(subgroup_matches),
                     "equipment_matches": enrich_and_filter(equipment_matches),
                     "area_matches": enrich_and_filter(area_matches),
-                    "discarded_matches": discarded_list
+                    "discarded_matches": discarded_list,
+                    "semantic_links": [link.model_dump() for link in semantic_mesh]
                 }
 
                 # Persiste para que o Step 8 carregue os dados validados

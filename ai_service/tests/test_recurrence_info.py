@@ -1,4 +1,4 @@
-from ai_service.api.models import RecurrenceInfo
+from api.models import RecurrenceInfo
 
 def test_recurrence_info_instantiation():
     try:

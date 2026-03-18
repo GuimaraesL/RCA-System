@@ -187,17 +187,16 @@ export const AiSidebar: React.FC<AiSidebarProps> = ({ isOpen, onClose, onOpen, r
                     {messages.length > 0 && (
                         <button
                             onClick={(e) => { e.stopPropagation(); clearAi(rcaData.id); }}
-                            className="p-2 hover:bg-white/20 rounded-full transition-colors text-white/70 hover:text-white"
+                            className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-white"
                             title={t('ai.clearChat')}
                         >
                             <Trash2 size={16} />
                         </button>
                     )}
-                    <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+                    <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-white">
                         <X size={20} />
                     </button>
                 </div>
-                <div className="ai-glow"></div>
             </header>
 
             <main className="ai-sidebar-content">

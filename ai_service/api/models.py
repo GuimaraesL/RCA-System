@@ -35,10 +35,16 @@ class AnalysisRequest(BaseModel):
     metadata_only: Optional[bool] = False
     attachments: Optional[List[MediaItem]] = None
 
+class SemanticLink(BaseModel):
+    source: str
+    target: str
+    score: float
+
 class AnalysisResponse(BaseModel):
     rca_id: str
-    ai_insight: str
-    status: str
+    ai_insight: Optional[str] = None
+    status: Optional[str] = None
     recurrences: List[RecurrenceInfo] = []
+    semantic_links: List[SemanticLink] = []
 
 

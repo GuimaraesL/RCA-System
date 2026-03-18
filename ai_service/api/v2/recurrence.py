@@ -15,6 +15,7 @@ from core.knowledge import get_recurrence_analysis, save_recurrence_analysis
 from api.models import AnalysisRequest
 from services.rag_service import search_hierarchical, validate_recurrences
 from core.tools import get_current_screen_context
+from api.v2.analysis import normalize_language
 
 router = APIRouter()
 
@@ -84,7 +85,8 @@ async def _run_recurrence_analysis(request: AnalysisRequest):
         }
 
     # 4. Validação Técnica (RAG Estágio 2)
-    valid_ids, discarded_ids, _ = validate_recurrences(query_text, all_candidates)
+    ui_lang = normalize_language(request.ui_language)
+    valid_ids, discarded_ids, _ = validate_recurrences(query_text, all_candidates, language=ui_lang)
 
     def enrich_and_filter(matches):
         enriched = []
@@ -102,11 +104,28 @@ async def _run_recurrence_analysis(request: AnalysisRequest):
             d["discard_reason"] = discarded_ids[m.rca_id]
             discarded_list.append(d)
 
+    # 4.5. Interconexão Semântica (Neural Mesh)
+    # Selecionamos apenas os candidatos validados para criar a malha neural (opcional: ou todos?)
+    # Decisão: Usar apenas os candidatos validados para manter a malha limpa e relevante.
+    valid_candidates = []
+    for m in all_candidates:
+        if m.rca_id in valid_ids:
+            valid_candidates.append(m)
+    
+    semantic_mesh = []
+    if len(valid_candidates) >= 2:
+        try:
+            from services.rag_service import calculate_semantic_links
+            semantic_mesh = calculate_semantic_links(valid_candidates)
+        except Exception as e:
+            logger.error(f"Erro ao calcular malha semântica: {e}")
+
     analysis_result = {
         "subgroup_matches": enrich_and_filter(subgroup_matches),
         "equipment_matches": enrich_and_filter(equipment_matches),
         "area_matches": enrich_and_filter(area_matches),
-        "discarded_matches": discarded_list
+        "discarded_matches": discarded_list,
+        "semantic_links": [link.model_dump() for link in semantic_mesh]
     }
     
     # 5. Persistência
