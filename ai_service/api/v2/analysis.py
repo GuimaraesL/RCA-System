@@ -21,6 +21,17 @@ from services.rag_service import search_hierarchical, validate_recurrences, calc
 
 router = APIRouter()
 
+def normalize_language(lang: str) -> str:
+    """Normaliza a string de idioma para os prompts da IA."""
+    if not lang:
+        return "Português-BR"
+    l = lang.lower()
+    if any(x in l for x in ["en", "eng", "ing"]):
+        return "English"
+    if any(x in l for x in ["pt", "port"]):
+        return "Português-BR"
+    return "Português-BR"
+
 @router.post("")
 async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(None)):
     if not secrets.compare_digest(x_internal_key or '', INTERNAL_AUTH_KEY):
@@ -71,7 +82,7 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
 
         # Lógica de análise completa (streaming)
         recurrences = subgroup_matches + equipment_matches + area_matches
-        ui_lang = request.ui_language or "Português-BR"
+        ui_lang = normalize_language(request.ui_language)
         is_initial_analysis = not (request.user_prompt and str(request.user_prompt).strip())
 
         images = []
@@ -106,19 +117,28 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
         prompt = ""
         if not is_initial_analysis:
             prompt = request.user_prompt
+            # Reforço de idioma para prompts do usuário
+            prompt += f"\n\n(IMPORTANT: Respond ALWAYS in {ui_lang})"
         else:
-            prompt = f"### MISSÃO: Realizar análise completa de causa raiz para a RCA ID: {request.rca_id}.\n"
-            prompt += "PASSO 1: Use obrigatoriamente `get_current_screen_context` para identificar o ATIVO e o PROBLEMA.\n"
-            prompt += "PASSO 2: Use `search_historical_rcas_tool` para buscar e validar recorrências no histórico.\n"
-            prompt += "PASSO 3: Gere a Causa Raiz, Ishikawa (OBRIGATORIAMENTE em sintaxe Mermaid) e 5 Porquês.\n"
+            if "Português" in ui_lang:
+                prompt = f"### MISSÃO: Realizar análise completa de causa raiz para a RCA ID: {request.rca_id}.\n"
+                prompt += "PASSO 1: Use obrigatoriamente `get_current_screen_context` para identificar o ATIVO e o PROBLEMA.\n"
+                prompt += "PASSO 2: Use `search_historical_rcas_tool` para buscar e validar recorrências no histórico.\n"
+                prompt += "PASSO 3: Gere a Causa Raiz, Ishikawa (OBRIGATORIAMENTE em sintaxe Mermaid) e 5 Porquês.\n"
+            else:
+                prompt = f"### MISSION: Perform a complete root cause analysis for RCA ID: {request.rca_id}.\n"
+                prompt += "STEP 1: You must use `get_current_screen_context` to identify the ASSET and the PROBLEM.\n"
+                prompt += "STEP 2: Use `search_historical_rcas_tool` to search for and validate recurrences in history.\n"
+                prompt += "STEP 3: Generate the Root Cause, Ishikawa (MUST be in Mermaid syntax) and 5 Whys.\n"
+                prompt += f"All technical details must be explained in {ui_lang}.\n"
         
         async def stream_output():
             logger.debug(f"📡 DEBUG: Iniciando stream ASYNC para RCA {request.rca_id}")
             
             # 1. Validação e Persistência de Recorrências (RAG Estágio 2) - Alertas Imediatos
             if recurrences and not request.user_prompt:
-                # Realiza a validação técnica (Alinhado com a Tool e o Botão)
-                valid_ids, discarded_ids, _ = validate_recurrences(query_text, recurrences)
+                # 2. Validação Técnica (RAG Estágio 2)
+                valid_ids, discarded_ids, _ = validate_recurrences(query_text, recurrences, language=ui_lang)
                 
                 def enrich_and_filter(matches):
                     enriched = []

@@ -55,8 +55,9 @@ export const AiProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     const [error, setError] = useState<string | null>(null);
 
     const getFullLanguageName = (lang: string) => {
-        if (lang === 'pt') return 'Português-BR';
-        if (lang === 'en') return 'English';
+        const lowerLang = lang.toLowerCase();
+        if (lowerLang.startsWith('en')) return 'English';
+        if (lowerLang.startsWith('pt')) return 'Português-BR';
         return 'Português-BR';
     };
 

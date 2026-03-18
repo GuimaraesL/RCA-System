@@ -242,12 +242,12 @@ def calculate_semantic_links(candidates: List[RecurrenceInfo], threshold: float 
     logger.info(f"[calculate_semantic_links] {len(links)} conexões híbridas encontradas (Threshold {threshold}).")
     return links
 
-def validate_recurrences(query_text: str, all_candidates: List[RecurrenceInfo]) -> Tuple[Dict[str, str], Dict[str, str], str]:
+def validate_recurrences(query_text: str, all_candidates: List[RecurrenceInfo], language: str = "Português-BR") -> Tuple[Dict[str, str], Dict[str, str], str]:
     """Passa os candidatos pelo RAGValidator."""
     if not all_candidates:
         return {}, {}, ""
         
-    validator = get_rag_validator()
+    validator = get_rag_validator(language=language)
     
     candidate_texts = []
     for r in all_candidates:

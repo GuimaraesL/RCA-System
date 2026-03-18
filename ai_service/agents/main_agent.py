@@ -60,9 +60,9 @@ def get_rca_agent(session_id: str, language: str = "Português-BR", rca_context:
             DuckDuckGoTools()
         ] + skill_tools,
         members=[
-            get_fmea_agent(),
-            get_media_analyst_agent(),
-            get_hfacs_agent()
+            get_fmea_agent(language=language),
+            get_media_analyst_agent(language=language),
+            get_hfacs_agent(language=language)
         ],
         db=get_agent_memory(),
         read_chat_history=True,

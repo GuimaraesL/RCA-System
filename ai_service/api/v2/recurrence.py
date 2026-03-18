@@ -15,6 +15,7 @@ from core.knowledge import get_recurrence_analysis, save_recurrence_analysis
 from api.models import AnalysisRequest
 from services.rag_service import search_hierarchical, validate_recurrences
 from core.tools import get_current_screen_context
+from api.v2.analysis import normalize_language
 
 router = APIRouter()
 
@@ -84,7 +85,8 @@ async def _run_recurrence_analysis(request: AnalysisRequest):
         }
 
     # 4. Validação Técnica (RAG Estágio 2)
-    valid_ids, discarded_ids, _ = validate_recurrences(query_text, all_candidates)
+    ui_lang = normalize_language(request.ui_language)
+    valid_ids, discarded_ids, _ = validate_recurrences(query_text, all_candidates, language=ui_lang)
 
     def enrich_and_filter(matches):
         enriched = []
