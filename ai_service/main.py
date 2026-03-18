@@ -43,15 +43,26 @@ from core.memory import get_agent_memory
 storage = get_agent_memory()
 
 # 2. Instanciar Agentes/Times/Workflows para Visibilidade no Dashboard (Studio)
-# [ADR-003] Agno 2.x Limitation: Team objects are not yet supported in AgentOS.agents.
-# Para evitar erros no startup e no dashboard, deixamos a lista vazia até que o suporte seja adicionado.
-# TODO (Issue #148): Monitorar changelog da Agno (https://github.com/agno-agi/agno/releases)
-# para registrar o rca_agent quando o suporte a 'Team' for implementado no AgentOS.
+from agents.fmea_agent import get_fmea_agent
+from agents.hfacs_agent import get_hfacs_agent
+from agents.media_analyst import get_media_analyst_agent
+from agents.main_agent import get_rca_agent
+
+# Instâncias individuais para o AgentOS (Metadata & Monitoring)
+fmea_agent = get_fmea_agent()
+hfacs_agent = get_hfacs_agent()
+media_agent = get_media_analyst_agent()
+# O rca_team precisa de uma session_id para ser instanciado, usamos uma dummy para o OS registrar o schema
+rca_team = get_rca_agent(session_id="agent-os-registry")
+
+# [ADR-003] Agno 2.x Support: Registrar agents e teams para que as rotas /agents e /teams funcionem.
+# O AgentOS mapeia automaticamente as rotas baseado nessas listas.
 
 # 3. Inicializar o AgentOS (Monitoramento do Dashboard)
 agent_os = AgentOS(
     name="RCA System OS",
-    agents=[],
+    agents=[fmea_agent, hfacs_agent, media_agent],
+    teams=[rca_team],
     knowledge=[history_kb, fmea_kb], 
     db=storage,             
     tracing=True
