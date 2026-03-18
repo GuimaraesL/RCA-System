@@ -60,8 +60,8 @@ jobs:
           pytest tests/
         fi
       env:
-        GOOGLE_API_KEY: "${{ secrets.GOOGLE_API_KEY }}"
-        INTERNAL_AUTH_KEY: "${{ secrets.INTERNAL_AUTH_KEY }}"
+        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        INTERNAL_AUTH_KEY: ${{ secrets.INTERNAL_AUTH_KEY }}
         BACKEND_URL: http://localhost:3001/api
 
     - name: Build da Aplicação
