@@ -39,9 +39,23 @@ export class SqlAssetRepository {
 
     public bulkCreate(assets: Asset[]): void {
         this.db.transaction(() => {
-            for (const asset of assets) {
-                const sql = 'INSERT OR REPLACE INTO assets (id, name, type, parent_id) VALUES (?, ?, ?, ?)';
-                this.db.execute(sql, [asset.id, asset.name, asset.type, asset.parent_id || null]);
+            // Otimização: Desativa temporariamente chaves estrangeiras para acelerar inserção em massa
+            this.db.execute('PRAGMA foreign_keys = OFF');
+            
+            const stmt = this.db.prepare('INSERT OR REPLACE INTO assets (id, name, type, parent_id) VALUES (?, ?, ?, ?)');
+            
+            try {
+                for (const asset of assets) {
+                    stmt.run([
+                        asset.id, 
+                        asset.name, 
+                        asset.type, 
+                        asset.parent_id || asset.parentId || null
+                    ]);
+                }
+            } finally {
+                stmt.free();
+                this.db.execute('PRAGMA foreign_keys = ON');
             }
         });
     }

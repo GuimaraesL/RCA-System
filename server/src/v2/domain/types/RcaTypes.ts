@@ -132,6 +132,7 @@ export interface Asset {
     name: string;
     type: 'AREA' | 'EQUIPMENT' | 'SUBGROUP';
     parent_id?: string;
+    parentId?: string; // Suporte a camelCase
     children?: Asset[];
 }
 

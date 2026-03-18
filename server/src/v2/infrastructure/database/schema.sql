@@ -122,3 +122,52 @@ CREATE TABLE IF NOT EXISTS fmea_modes (
     updated_at TEXT DEFAULT (datetime('now')),
     FOREIGN KEY(asset_id) REFERENCES assets(id)
 );
+
+-- Taxonomy Relational Schema (Added in v4.0)
+CREATE TABLE IF NOT EXISTS taxonomy_specialties (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS taxonomy_failure_categories (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS taxonomy_component_types (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS taxonomy_root_causes_6m (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS taxonomy_failure_modes (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS rel_mode_specialty (
+    failure_mode_id TEXT,
+    specialty_id TEXT,
+    PRIMARY KEY (failure_mode_id, specialty_id),
+    FOREIGN KEY (failure_mode_id) REFERENCES taxonomy_failure_modes(id),
+    FOREIGN KEY (specialty_id) REFERENCES taxonomy_specialties(id)
+);
+
+CREATE TABLE IF NOT EXISTS taxonomy_analysis_types (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS taxonomy_analysis_statuses (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS taxonomy_trigger_statuses (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL
+);

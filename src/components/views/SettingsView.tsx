@@ -26,9 +26,10 @@ const ListManager: React.FC<{
   items: TaxonomyItem[];
   addItem: (field: keyof TaxonomyConfig, name: string) => void;
   removeItem: (field: keyof TaxonomyConfig, id: string) => void;
-  updateItem: (field: keyof TaxonomyConfig, id: string, name: string) => void;
+  updateItem: (field: keyof TaxonomyConfig, id: string, updates: Partial<TaxonomyItem>) => void;
   t: (key: string) => string;
-}> = ({ title, field, items, addItem, removeItem, updateItem, t }) => {
+  allSpecialties?: TaxonomyItem[]; // Lista de especialidades para vínculo
+}> = ({ title, field, items, addItem, removeItem, updateItem, t, allSpecialties }) => {
   const [newItemName, setNewItemName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -50,8 +51,15 @@ const ListManager: React.FC<{
 
   const saveEdit = (id: string) => {
     if (!editValue.trim()) return;
-    updateItem(field, id, editValue);
+    updateItem(field, id, { name: editValue.trim() });
     setEditingId(null);
+  };
+
+  const toggleSpecialty = (itemId: string, specialtyId: string, currentSpecialties: string[]) => {
+    const newSpecialties = currentSpecialties.includes(specialtyId)
+      ? currentSpecialties.filter(id => id !== specialtyId)
+      : [...currentSpecialties, specialtyId];
+    updateItem(field, itemId, { specialty_ids: newSpecialties });
   };
 
   return (
@@ -62,34 +70,61 @@ const ListManager: React.FC<{
 
       <div className="flex-1 overflow-y-auto space-y-3 p-6 custom-scrollbar">
         {safeItems.map((item) => (
-          <div key={item.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-2xl group border border-slate-100 dark:border-slate-700 shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary-100 dark:hover:border-primary-800 hover:-translate-y-0.5">
-            {editingId === item.id ? (
-              <div className="flex-1 flex gap-3 items-center">
-                <input
-                  id={`${idPrefix}-edit-${item.id}`}
-                  name={`editInput_${item.id}`}
-                  autoFocus
-                  className="flex-1 border-2 border-primary-400 rounded-xl px-4 py-2 text-sm outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm font-bold"
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && saveEdit(item.id)}
-                  onKeyDownCapture={e => e.key === 'Escape' && setEditingId(null)}
-                  aria-label={`${t('settings.editItemLabel')} - ${item.name}`}
-                />
-                <button type="button" aria-label={t('common.save')} onClick={() => saveEdit(item.id)} className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-colors shadow-sm"><Check size={18} strokeWidth={3} /></button>
-                <button type="button" aria-label={t('common.cancel')} onClick={() => setEditingId(null)} className="p-2.5 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-100 transition-colors shadow-sm"><X size={18} strokeWidth={3} /></button>
+          <div key={item.id} className="flex flex-col p-4 bg-white dark:bg-slate-800 rounded-2xl group border border-slate-100 dark:border-slate-700 shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary-100 dark:hover:border-primary-800">
+            <div className="flex items-center justify-between gap-4">
+              {editingId === item.id ? (
+                <div className="flex-1 flex gap-3 items-center">
+                  <input
+                    id={`${idPrefix}-edit-${item.id}`}
+                    name={`editInput_${item.id}`}
+                    autoFocus
+                    className="flex-1 border-2 border-primary-400 rounded-xl px-4 py-2 text-sm outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm font-bold"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && saveEdit(item.id)}
+                    onKeyDownCapture={e => e.key === 'Escape' && setEditingId(null)}
+                    aria-label={`${t('settings.editItemLabel')} - ${item.name}`}
+                  />
+                  <button type="button" aria-label={t('common.save')} onClick={() => saveEdit(item.id)} className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-colors shadow-sm"><Check size={18} strokeWidth={3} /></button>
+                  <button type="button" aria-label={t('common.cancel')} onClick={() => setEditingId(null)} className="p-2.5 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-100 transition-colors shadow-sm"><X size={18} strokeWidth={3} /></button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex flex-col flex-1">
+                    <span className="text-sm text-slate-700 dark:text-slate-200 font-bold group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors">{item.name}</span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono flex items-center gap-1.5 mt-1 font-bold"><Lock size={10} className="opacity-50" /> {item.id}</span>
+                  </div>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                    <button type="button" aria-label={`${t('common.edit')} - ${item.name}`} onClick={() => startEdit(item.id, item.name)} className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all"><Edit2 size={16} /></button>
+                    <button type="button" aria-label={`${t('common.delete')} - ${item.name}`} onClick={() => setDeleteData({ id: item.id, name: item.name })} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"><Trash2 size={16} /></button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Vínculos de Especialidade para Modos de Falha */}
+            {field === 'failureModes' && allSpecialties && (
+              <div className="mt-4 pt-3 border-t border-slate-50 dark:border-slate-700/50">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">{t('settings.linkedSpecialties') || 'Especialidades Vinculadas'}</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {allSpecialties.map(spec => {
+                    const isActive = item.specialty_ids?.includes(spec.id);
+                    return (
+                      <button
+                        key={spec.id}
+                        onClick={() => toggleSpecialty(item.id, spec.id, item.specialty_ids || [])}
+                        className={`px-2 py-1 rounded-lg text-[9px] font-bold transition-all border ${
+                          isActive 
+                            ? 'bg-primary-500 text-white border-primary-600 shadow-sm' 
+                            : 'bg-slate-50 text-slate-400 border-slate-200 hover:border-primary-300 dark:bg-slate-800 dark:border-slate-700'
+                        }`}
+                      >
+                        {spec.name}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            ) : (
-              <>
-                <div className="flex flex-col">
-                  <span className="text-sm text-slate-700 dark:text-slate-200 font-bold group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors">{item.name}</span>
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono flex items-center gap-1.5 mt-1 font-bold"><Lock size={10} className="opacity-50" /> {item.id}</span>
-                </div>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                  <button type="button" aria-label={`${t('common.edit')} - ${item.name}`} onClick={() => startEdit(item.id, item.name)} className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all"><Edit2 size={16} /></button>
-                  <button type="button" aria-label={`${t('common.delete')} - ${item.name}`} onClick={() => setDeleteData({ id: item.id, name: item.name })} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"><Trash2 size={16} /></button>
-                </div>
-              </>
             )}
           </div>
         ))}
@@ -320,7 +355,7 @@ export const SettingsView: React.FC = () => {
                     <ListManager t={t} title={t('settings.analysisTypes')} field="analysisTypes" items={taxonomy.analysisTypes} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
                     <ListManager t={t} title={t('settings.analysisStatuses')} field="analysisStatuses" items={taxonomy.analysisStatuses} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
                     <ListManager t={t} title={t('settings.specialties')} field="specialties" items={taxonomy.specialties} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
-                    <ListManager t={t} title={t('settings.failureModes')} field="failureModes" items={taxonomy.failureModes} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
+                    <ListManager t={t} title={t('settings.failureModes')} field="failureModes" items={taxonomy.failureModes} addItem={addItem} removeItem={removeItem} updateItem={updateItem} allSpecialties={taxonomy.specialties} />
                     <ListManager t={t} title={t('settings.failureCategories')} field="failureCategories" items={taxonomy.failureCategories} addItem={addItem} removeItem={removeItem} updateItem={updateItem} />
                   </>
                 )}

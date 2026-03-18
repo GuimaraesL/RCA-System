@@ -75,17 +75,17 @@ export const MigrationView: React.FC = () => {
             const reader = new FileReader();
 
             reader.onload = (e) => {
-                const content = e.target?.result as string;
-                if (content.includes('\uFFFD')) {
-                    const retryReader = new FileReader();
-                    retryReader.onload = (evt) => resolve(evt.target?.result as string);
-                    retryReader.onerror = () => reject(retryReader.error);
-                    retryReader.readAsText(file, 'windows-1252');
-                } else {
-                    resolve(content);
-                }
+                let content = (e.target?.result as string) || '';
+                
+                // Limpeza do BOM (Byte Order Mark) invisível que pode quebrar o JSON.parse
+                // Mantemos apenas esta limpeza essencial
+                content = content.replace(/^\uFEFF/, '');
+                
+                resolve(content);
             };
             reader.onerror = () => reject(reader.error);
+            // Usamos o padrão do navegador que é UTF-8 por diretiva W3C,
+            // mas sem o parâmetro fixo para permitir que o navegador use o locale se necessário.
             reader.readAsText(file);
         });
     };
