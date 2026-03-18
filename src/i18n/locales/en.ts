@@ -748,6 +748,12 @@ export const en: TranslationSchema = {
             identical: "IDENTICAL",
             similar: "SIMILAR",
             neuralMesh: "Neural Mesh (Interconnections)",
+            tooltips: {
+                play: "Start Playback",
+                pause: "Pause Playback",
+                reset: "Reset Timeline",
+                mesh: "Toggle Semantic Interconnections",
+            },
         },
         stepNames: {
             step1: { title: "General Data", subtitle: "Basic information" },

@@ -742,6 +742,12 @@ export interface TranslationSchema {
             identical: string;
             similar: string;
             neuralMesh: string;
+            tooltips: {
+                play: string;
+                pause: string;
+                reset: string;
+                mesh: string;
+            };
         };
         step1: {
             title: string;

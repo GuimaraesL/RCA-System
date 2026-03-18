@@ -270,15 +270,6 @@ export const Step8Recurrences: React.FC<Step8RecurrencesProps> = ({ data }) => {
                             onNodeClick={(rec) => setSelectedRecurrence(rec)}
                         />
 
-                        <div className="mt-4 flex justify-end">
-                            <button
-                                onClick={() => setShowDiscarded(!showDiscarded)}
-                                className="flex items-center gap-2 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hover:text-primary-500 transition-colors"
-                            >
-                                <FileSearch className="w-4 h-4" />
-                                {showDiscarded ? t('wizard.step8.hideDiscarded') : t('wizard.step8.showDiscarded')}
-                            </button>
-                        </div>
                     </div>
                 )}
             </div>

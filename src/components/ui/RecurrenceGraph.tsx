@@ -30,26 +30,43 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
     const { t } = useLanguage();
     const { isDark } = useTheme();
     const fgRef = useRef<ForceGraphMethods>(null);
+    const birthTimesRef = useRef<Map<string, number>>(new Map());
 
     // Timelapse State
     const [isTimelapseActive, setIsTimelapseActive] = useState(false);
     const [currentTime, setCurrentTime] = useState<number | null>(null);
     const [playbackSpeed, setPlaybackSpeed] = useState(1);
     const [showInterconnections, setShowInterconnections] = useState(true);
+    const [activeFilters, setActiveFilters] = useState({
+        subgroup: true,
+        equipment: true,
+        area: true,
+        discarded: showDiscarded
+    });
 
-    // Get all unique dates sorted
+
+
+    // Sincroniza filtro de descartados com prop externa (se necessário)
+    useEffect(() => {
+        setActiveFilters(prev => ({ ...prev, discarded: showDiscarded }));
+    }, [showDiscarded]);
+
+    // Get all unique dates sorted - Respecting active filters
     const allDates = useMemo(() => {
         const dates = new Set<number>();
         const extractDate = (rec: RecurrenceInfo) => {
             if (rec.failure_date) dates.add(new Date(rec.failure_date).getTime());
         };
-        recurrences.subgroup.forEach(extractDate);
-        recurrences.equipment.forEach(extractDate);
-        recurrences.area.forEach(extractDate);
-        if (showDiscarded) recurrences.discarded.forEach(extractDate);
+        
+        if (activeFilters.subgroup) recurrences.subgroup.forEach(extractDate);
+        if (activeFilters.equipment) recurrences.equipment.forEach(extractDate);
+        if (activeFilters.area) recurrences.area.forEach(extractDate);
+        if (activeFilters.discarded) recurrences.discarded.forEach(extractDate);
         
         return Array.from(dates).sort((a, b) => a - b);
-    }, [recurrences, showDiscarded]);
+    }, [recurrences, activeFilters]);
+
+    const isAtEnd = currentTime !== null && allDates.length > 0 && currentTime === allDates[allDates.length - 1];
 
     // Graph Data with Interconnections and Time Filtering
     const graphData = useMemo(() => {
@@ -75,13 +92,15 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
 
         const addLevel = (items: RecurrenceInfo[], color: string, type: string, opacity: number = 1) => {
             items.forEach(item => {
-                if (type === 'discarded' && !showDiscarded) return;
+                if (type === 'discarded' && !activeFilters.discarded) return;
+                if (type === 'subgroup' && !activeFilters.subgroup) return;
+                if (type === 'equipment' && !activeFilters.equipment) return;
+                if (type === 'area' && !activeFilters.area) return;
                 
                 const nodeTime = item.failure_date ? new Date(item.failure_date).getTime() : 0;
                 // Time filtering for Timelapse
                 const isHiddenByTime = currentTime !== null && nodeTime > currentTime;
                 
-                // CRÍTICO: Se estiver oculto pelo tempo, não adicionamos ao grafo nesta iteração
                 if (isHiddenByTime) return;
 
                 const nodeId = String(item.rca_id);
@@ -153,24 +172,37 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
             }
         }
 
-        // CRÍTICO: Deep Clone para evitar que mutações do D3 (index, x, y, vy...) 
-        // persistam entre remounts do componente (o que causava o bug de tamanho dos nós).
-        const finalNodes = Array.from(nodesMap.values()).map(node => ({ ...node }));
+        // Limpa birthTimes que não estão mais no grafo (ex: após filtro)
+        const currentBirthMap = birthTimesRef.current;
+        const newNodeIds = new Set(nodesMap.keys());
+        for (const id of currentBirthMap.keys()) {
+            if (!newNodeIds.has(id)) currentBirthMap.delete(id);
+        }
+
+        // CRÍTICO: Deep Clone para evitar que mutações do D3 
+        const finalNodes = Array.from(nodesMap.values()).map(node => {
+            if (!node.isCentral && !currentBirthMap.has(node.id)) {
+                currentBirthMap.set(node.id, performance.now());
+            }
+            return { ...node };
+        });
         const finalLinks = links.map(link => ({ ...link }));
 
         return { 
             nodes: finalNodes, 
             links: finalLinks 
         };
-    }, [centralRca, recurrences, showDiscarded, currentTime, showInterconnections]);
+    }, [centralRca, recurrences, activeFilters, currentTime, showInterconnections]);
 
-    // Timelapse Timer
     useEffect(() => {
         let interval: any;
         if (isTimelapseActive && allDates.length > 0) {
             interval = setInterval(() => {
                 setCurrentTime(prev => {
-                    if (prev === null) return allDates[0];
+                    if (prev === null) {
+                        birthTimesRef.current.clear(); // Limpa no início
+                        return allDates[0];
+                    }
                     const currentIndex = allDates.indexOf(prev);
                     if (currentIndex === -1 || currentIndex >= allDates.length - 1) {
                         setIsTimelapseActive(false);
@@ -178,7 +210,7 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
                     }
                     return allDates[currentIndex + 1];
                 });
-            }, 1000 / playbackSpeed);
+            }, 2000 / playbackSpeed);
         }
         return () => clearInterval(interval);
     }, [isTimelapseActive, allDates, playbackSpeed]);
@@ -225,17 +257,38 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
                             d3VelocityDecay={0.3}
                             backgroundColor="rgba(0,0,0,0)"
                             nodeCanvasObject={(node: any, ctx, globalScale) => {
+                                const now = performance.now();
+                                const birthTime = birthTimesRef.current.get(node.id) || now;
+                                const age = now - birthTime;
+                                const animDuration = 1200; // 1200ms de suavização
+                                const progress = Math.min(age / animDuration, 1);
+                                const easedProgress = Math.sin((progress * Math.PI) / 2); // easeOutSine
+
                                 const label = node.name;
                                 const fontSize = 12 / globalScale;
                                 ctx.font = `${node.isCentral ? 'bold' : 'normal'} ${fontSize}px Inter, system-ui, sans-serif`;
                                 
-                                // Desenha o nó (ponto)
-                                // Usamos node.val diretamente. Central = 8, Outros = 4.
-                                const size = node.val || (node.isCentral ? 8 : 4);
+                                // Desenha o nó (ponto) com escala animada
+                                const baseSize = node.val || (node.isCentral ? 8 : 4);
+                                const size = node.isCentral ? baseSize : baseSize * easedProgress;
+                                
                                 ctx.beginPath();
                                 ctx.arc(node.x, node.y, size, 0, 2 * Math.PI, false);
-                                ctx.fillStyle = node.color;
+                                
+                                // Interpolação de opacidade se não for central
+                                if (node.isCentral) {
+                                    ctx.fillStyle = node.color;
+                                } else {
+                                    const baseOpacity = node.opacity || 1;
+                                    const animatedOpacity = baseOpacity * easedProgress;
+                                    // Converte cor hex para rgba para aplicar opacidade dinâmica
+                                    // Se a cor já vier como rgba ou rgb, o canvas aceita com alpha global ou mantendo string
+                                    ctx.globalAlpha = animatedOpacity;
+                                    ctx.fillStyle = node.color;
+                                }
+                                
                                 ctx.fill();
+                                ctx.globalAlpha = 1.0; // Reset alpha
 
                                 // Glow effect para o nó central
                                 if (node.isCentral) {
@@ -267,13 +320,64 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
                                     ctx.fillText(label, node.x, node.y + size + 2 + fontSize / 2);
                                 }
                             }}
-                            linkColor={(link: any) => {
-                                if (isDark) {
-                                    return link.isSemantic ? 'rgba(96, 165, 250, 0.5)' : 'rgba(148, 163, 184, 0.35)';
-                                }
-                                return link.isSemantic ? 'rgba(37, 99, 235, 0.4)' : 'rgba(71, 85, 105, 0.25)';
+                            nodePointerAreaPaint={(node: any, color, ctx) => {
+                                ctx.fillStyle = color;
+                                const size = node.val || (node.isCentral ? 8 : 4);
+                                ctx.beginPath();
+                                ctx.arc(node.x, node.y, size, 0, 2 * Math.PI, false);
+                                ctx.fill();
                             }}
-                            linkWidth={1}
+                            linkCanvasObjectMode={() => 'replace'}
+                            linkCanvasObject={(link: any, ctx, globalScale) => {
+                                const s = link.source;
+                                const t = link.target;
+                                if (!s || !t || typeof s !== 'object' || typeof t !== 'object') return;
+
+                                const now = performance.now();
+                                const birthTime = birthTimesRef.current.get(t.id) || now;
+                                const age = now - birthTime;
+                                const animDuration = 1200;
+                                const progress = Math.min(age / animDuration, 1);
+                                const easedProgress = Math.sin((progress * Math.PI) / 2);
+
+                                // Se o nó de destino ainda não "nasceu" visivelmente, não desenha o link
+                                if (easedProgress <= 0) return;
+
+                                // Cores baseadas no tema e tipo de link
+                                let colorStr = "";
+                                if (isDark) {
+                                    colorStr = link.isSemantic ? `rgba(96, 165, 250, ${0.5 * easedProgress})` : `rgba(148, 163, 184, ${0.35 * easedProgress})`;
+                                } else {
+                                    colorStr = link.isSemantic ? `rgba(37, 99, 235, ${0.4 * easedProgress})` : `rgba(71, 85, 105, ${0.25 * easedProgress})`;
+                                }
+
+                                ctx.strokeStyle = colorStr;
+                                ctx.lineWidth = 1 / globalScale;
+
+                                // Desenha a curva
+                                ctx.beginPath();
+                                ctx.moveTo(s.x, s.y);
+
+                                const curvature = 0.15;
+                                if (!curvature) {
+                                    ctx.lineTo(t.x, t.y);
+                                } else {
+                                    const dx = t.x - s.x;
+                                    const dy = t.y - s.y;
+                                    const dist = Math.sqrt(dx * dx + dy * dy);
+                                    if (dist > 0) {
+                                        const midX = (s.x + t.x) / 2;
+                                        const midY = (s.y + t.y) / 2;
+                                        const nx = -dy / dist;
+                                        const ny = dx / dist;
+                                        const offset = dist * curvature;
+                                        ctx.quadraticCurveTo(midX + nx * offset, midY + ny * offset, t.x, t.y);
+                                    } else {
+                                        ctx.lineTo(t.x, t.y);
+                                    }
+                                }
+                                ctx.stroke();
+                            }}
                             onNodeClick={(node: any) => {
                                 if (!node.isCentral) {
                                     onNodeClick(node.data);
@@ -289,36 +393,37 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
                 }}
             />
 
-            {/* Timelapse & View Controls Overlay */}
-            <div className="absolute top-6 right-6 z-20 flex flex-col gap-3">
-                <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl p-1.5 rounded-2xl border border-slate-200 dark:border-white/10 shadow-soft flex items-center gap-1">
+            {/* Timelapse & View Controls Overlay - VERTICAL */}
+            <div className="absolute top-1/2 -right-3 -translate-y-1/2 z-20 group-hover:right-6 transition-all duration-500">
+                <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl p-2 rounded-2xl border border-slate-200 dark:border-white/10 shadow-soft flex flex-col items-center gap-2">
                     <Button
                         size="sm"
                         variant="ghost"
-                        className="text-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 h-8 w-8 p-0"
-                        onClick={() => setIsTimelapseActive(!isTimelapseActive)}
-                    >
-                        {isTimelapseActive ? <Pause size={16} /> : <Play size={16} />}
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 h-8 w-8 p-0"
+                        className="text-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 h-10 w-10 p-0 rounded-xl"
                         onClick={() => {
-                            setIsTimelapseActive(false);
-                            setCurrentTime(null);
+                            if (isAtEnd) {
+                                setCurrentTime(allDates[0]);
+                                setIsTimelapseActive(true);
+                            } else if (currentTime === null && !isTimelapseActive) {
+                                setCurrentTime(allDates[0]);
+                                setIsTimelapseActive(true);
+                            } else {
+                                setIsTimelapseActive(!isTimelapseActive);
+                            }
                         }}
+                        title={isTimelapseActive ? t('wizard.step8.tooltips.pause') : isAtEnd ? t('wizard.step8.tooltips.reset') : t('wizard.step8.tooltips.play')}
                     >
-                        <RotateCcw size={16} />
+                        {isTimelapseActive ? <Pause size={20} /> : isAtEnd ? <RotateCcw size={20} /> : <Play size={20} />}
                     </Button>
-                    <div className="h-4 w-[1px] bg-slate-200 dark:bg-white/20 mx-1" />
+                    <div className="w-6 h-[1px] bg-slate-200 dark:bg-white/20 my-1" />
                     <Button
                         size="sm"
                         variant="ghost"
-                        className={`h-8 w-8 p-0 ${showInterconnections ? 'text-blue-600 dark:text-primary-400 bg-blue-50 dark:bg-primary-500/10' : 'text-slate-400'}`}
-                        title={t('wizard.step8.neuralMesh')}
+                        className={`h-10 w-10 p-0 rounded-xl transition-all ${showInterconnections ? 'text-blue-600 dark:text-primary-400 bg-blue-50 dark:bg-primary-500/10' : 'text-slate-400'}`}
+                        onClick={() => setShowInterconnections(!showInterconnections)}
+                        title={t('wizard.step8.tooltips.mesh')}
                     >
-                        <Share2 size={16} />
+                        <Share2 size={20} />
                     </Button>
                 </div>
             </div>
@@ -364,24 +469,51 @@ export const RecurrenceGraph: React.FC<RecurrenceGraphProps> = ({
                 </div>
             )}
             
-            {/* Legend */}
-            <div className="absolute bottom-4 right-4 z-10">
-                <div className="flex flex-col gap-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-2 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tighter">
-                    <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-blue-600" /> {t('wizard.step8.recurrenceLevels.subgroup')}
+            {/* Legenda Interativa / Filtros */}
+            <div className="absolute bottom-6 right-6 z-10 flex flex-col gap-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl p-3 rounded-2xl border border-slate-200 dark:border-white/10 shadow-soft min-w-[180px]">
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1 px-1">
+                    {t('filters.title')}
+                </p>
+                
+                <button 
+                    onClick={() => setActiveFilters(prev => ({ ...prev, subgroup: !prev.subgroup }))}
+                    className={`flex items-center justify-between gap-3 p-1.5 rounded-lg transition-all ${activeFilters.subgroup ? 'bg-blue-500/10 text-slate-800 dark:text-white' : 'opacity-40 grayscale text-slate-400'}`}
+                >
+                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-tighter">
+                        <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]" /> 
+                        {t('wizard.step8.recurrenceLevels.subgroup')}
                     </div>
-                    <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-amber-500" /> {t('wizard.step8.recurrenceLevels.equipment')}
+                </button>
+
+                <button 
+                    onClick={() => setActiveFilters(prev => ({ ...prev, equipment: !prev.equipment }))}
+                    className={`flex items-center justify-between gap-3 p-1.5 rounded-lg transition-all ${activeFilters.equipment ? 'bg-amber-500/10 text-slate-800 dark:text-white' : 'opacity-40 grayscale text-slate-400'}`}
+                >
+                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-tighter">
+                        <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]" /> 
+                        {t('wizard.step8.recurrenceLevels.equipment')}
                     </div>
-                    <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500" /> {t('wizard.step8.recurrenceLevels.area')}
+                </button>
+
+                <button 
+                    onClick={() => setActiveFilters(prev => ({ ...prev, area: !prev.area }))}
+                    className={`flex items-center justify-between gap-3 p-1.5 rounded-lg transition-all ${activeFilters.area ? 'bg-emerald-500/10 text-slate-800 dark:text-white' : 'opacity-40 grayscale text-slate-400'}`}
+                >
+                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-tighter">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" /> 
+                        {t('wizard.step8.recurrenceLevels.area')}
                     </div>
-                    {showDiscarded && (
-                        <div className="flex items-center gap-2 opacity-50">
-                            <span className="w-2 h-2 rounded-full bg-slate-400 " /> {t('wizard.step8.recurrenceLevels.discarded')}
-                        </div>
-                    )}
-                </div>
+                </button>
+
+                <button 
+                    onClick={() => setActiveFilters(prev => ({ ...prev, discarded: !prev.discarded }))}
+                    className={`flex items-center justify-between gap-3 p-1.5 rounded-lg transition-all ${activeFilters.discarded ? 'bg-slate-500/10 text-slate-800 dark:text-white' : 'opacity-40 grayscale text-slate-400'}`}
+                >
+                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-tighter">
+                        <span className="w-2.5 h-2.5 rounded-full bg-slate-400" /> 
+                        {t('wizard.step8.recurrenceLevels.discarded')}
+                    </div>
+                </button>
             </div>
         </div>
     );
