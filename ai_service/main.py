@@ -20,12 +20,12 @@ async def lifespan(app: FastAPI):
     import os
     os.environ["AGNO_DEBUG"] = "True"
     print("[INFO] Iniciando RCA AI Service com AGNO_DEBUG=True...")
-    # Sincroniza RCAs históricas logo no startup
+    # Sincroniza RCAs históricas logo no startup — delegado para thread pool (Fix #159)
     try:
-        index_historical_rcas()
+        await asyncio.to_thread(index_historical_rcas)
         print("[OK] Sincronização de RCAs concluída.")
-        index_fmea_documents()
-        index_technical_documents()
+        await asyncio.to_thread(index_fmea_documents)
+        await asyncio.to_thread(index_technical_documents)
         print("[OK] Sincronização de FMEAs e Documentos Técnicos concluída.")
     except Exception as e:
         print(f"[ERROR] Falha na sincronização inicial: {e}")

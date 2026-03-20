@@ -43,6 +43,7 @@ async def analyze_recurrence_on_demand(request: AnalysisRequest, x_internal_key:
 
 async def _run_recurrence_analysis(request: AnalysisRequest):
     """Lógica de negócio interna para análise de recorrência (sem validação de chave)."""
+    import asyncio
     # 1. Extração de Dados Básicos
     area_id = request.area_id
     equipment_id = request.equipment_id
@@ -66,8 +67,9 @@ async def _run_recurrence_analysis(request: AnalysisRequest):
         raise HTTPException(status_code=400, detail="Não foi possível gerar o contexto de busca.")
 
     # 3. Busca Hierárquica (RAG Estágio 1)
-    # Usa os limites padrão agora atualizados para (15, 15, 20) na assinatura
-    subgroup_matches, equipment_matches, area_matches = search_hierarchical(
+    # Delegada para thread pool para não bloquear o event loop do FastAPI (Fix #159)
+    subgroup_matches, equipment_matches, area_matches = await asyncio.to_thread(
+        search_hierarchical,
         query_text=query_text,
         subgroup_id=subgroup_id,
         equipment_id=equipment_id,
@@ -85,8 +87,14 @@ async def _run_recurrence_analysis(request: AnalysisRequest):
         }
 
     # 4. Validação Técnica (RAG Estágio 2)
+    # Delegada para thread pool pois envolve chamada LLM síncrona (Fix #159)
     ui_lang = normalize_language(request.ui_language)
-    valid_ids, discarded_ids, _ = validate_recurrences(query_text, all_candidates, language=ui_lang)
+    valid_ids, discarded_ids, _ = await asyncio.to_thread(
+        validate_recurrences,
+        query_text,
+        all_candidates,
+        ui_lang
+    )
 
     def enrich_and_filter(matches):
         enriched = []
@@ -116,7 +124,8 @@ async def _run_recurrence_analysis(request: AnalysisRequest):
     if len(valid_candidates) >= 2:
         try:
             from services.rag_service import calculate_semantic_links
-            semantic_mesh = calculate_semantic_links(valid_candidates)
+            # Delegada para thread pool pois envolve cálculo de embeddings (Fix #159)
+            semantic_mesh = await asyncio.to_thread(calculate_semantic_links, valid_candidates)
         except Exception as e:
             logger.error(f"Erro ao calcular malha semântica: {e}")
 
