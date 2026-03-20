@@ -171,3 +171,16 @@ CREATE TABLE IF NOT EXISTS taxonomy_trigger_statuses (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL
 );
+
+-- Investigation Normalization (Added in v5.0)
+CREATE TABLE IF NOT EXISTS rca_investigations (
+    id TEXT PRIMARY KEY,
+    rca_id TEXT NOT NULL,
+    method_type TEXT NOT NULL, -- e.g., 'FIVE_WHYS', 'ISHIKAWA', 'ROOT_CAUSES', etc.
+    content TEXT NOT NULL, -- JSON string
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_investigations_rca_id ON rca_investigations(rca_id);

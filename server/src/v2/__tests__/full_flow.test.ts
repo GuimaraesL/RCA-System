@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Teste: full_flow.test.ts
  * 
  * Proposta: Validar o fluxo completo de vida de uma RCA, integrando serviço, repositório e banco de dados.
@@ -70,6 +70,12 @@ describe('V2 Full Flow Integration Test (Service + Repository + DB)', () => {
         db.run(`CREATE TABLE IF NOT EXISTS triggers (
             id TEXT PRIMARY KEY, rca_id TEXT, status TEXT,
             FOREIGN KEY(rca_id) REFERENCES rcas(id)
+        )`);
+
+        db.run(`CREATE TABLE IF NOT EXISTS rca_investigations (
+            id TEXT PRIMARY KEY, rca_id TEXT NOT NULL, 
+            method_type TEXT NOT NULL, content TEXT NOT NULL,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
         )`);
 
         repo = new SqlRcaRepository();

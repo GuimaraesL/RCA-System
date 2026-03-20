@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Teste: import_export.test.ts
  * 
  * Proposta: Validar a compatibilidade de importação de dados da Versão 17 para a arquitetura V2.
@@ -70,6 +70,12 @@ describe('Import/Export Data Validation', () => {
         db.run(`CREATE TABLE IF NOT EXISTS triggers (
             id TEXT PRIMARY KEY, rca_id TEXT, status TEXT,
             FOREIGN KEY(rca_id) REFERENCES rcas(id)
+        )`);
+
+        db.run(`CREATE TABLE IF NOT EXISTS rca_investigations (
+            id TEXT PRIMARY KEY, rca_id TEXT NOT NULL, 
+            method_type TEXT NOT NULL, content TEXT NOT NULL,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
         )`);
 
         repo = new SqlRcaRepository();

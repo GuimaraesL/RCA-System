@@ -105,7 +105,7 @@ const ListManager: React.FC<{
             {/* Vínculos de Especialidade para Modos de Falha */}
             {field === 'failureModes' && allSpecialties && (
               <div className="mt-4 pt-3 border-t border-slate-50 dark:border-slate-700/50">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">{t('settings.linkedSpecialties') || 'Especialidades Vinculadas'}</span>
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">{t('settings.linkedSpecialties')}</span>
                 <div className="flex flex-wrap gap-1.5">
                   {allSpecialties.map(spec => {
                     const isActive = item.specialty_ids?.includes(spec.id);

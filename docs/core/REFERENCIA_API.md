@@ -253,9 +253,10 @@ A integridade dos dados é garantida pela biblioteca Zod. Abaixo, os principais 
 | id | UUID | Sim | Gerado automaticamente pelo backend se omitido. |
 | analysis_date | DateString | Não | Data da análise. |
 | status | String | Sim | Enum: IN_PROGRESS, WAITING_VALIDATION, CONCLUDED. |
-| five_whys | JSON | Não | Array de objetos { why: string, answer: string }. |
-| ishikawa | JSON | Não | Objeto com arrays de strings para cada um dos 6Ms. |
-| root_causes | JSON | Não | Array de causas raízes identificadas. |
+| five_whys | JSON | Não | Armazenado na tabela `rca_investigations`. |
+| ishikawa | JSON | Não | Armazenado na tabela `rca_investigations`. |
+| root_causes | JSON | Não | Armazenado na tabela `rca_investigations`. |
+| hra | JSON | Não | Questionário HRA (Passo 9), armazenado na tabela `rca_investigations`. |
 
 ### triggerSchema
 | Campo | Tipo | Observação |

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Teste: logic_regression.test.ts
  * 
  * Proposta: Validar a integridade da lógica de negócios e evitar regressões em fluxos críticos de status.
@@ -71,6 +71,12 @@ describe('RCA Logic Regression Tests (Status Transitions)', () => {
         db.run(`CREATE TABLE IF NOT EXISTS triggers (
             id TEXT PRIMARY KEY, rca_id TEXT, status TEXT,
             FOREIGN KEY(rca_id) REFERENCES rcas(id)
+        )`);
+
+        db.run(`CREATE TABLE IF NOT EXISTS rca_investigations (
+            id TEXT PRIMARY KEY, rca_id TEXT NOT NULL, 
+            method_type TEXT NOT NULL, content TEXT NOT NULL,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
         )`);
 
         rcaRepo = new SqlRcaRepository();

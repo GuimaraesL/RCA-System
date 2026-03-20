@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Teste: benchmark.test.ts
  * 
  * Proposta: Avaliar o desempenho do sistema em cenários de alta carga de dados.
@@ -52,6 +52,12 @@ describe('Performance Benchmark (V2 Core)', () => {
             area_id TEXT, equipment_id TEXT, asset_name_display TEXT,
             potential_impacts TEXT, quality_impacts TEXT,
             general_moc_number TEXT, attachments TEXT
+        )`);
+
+        db.run(`CREATE TABLE IF NOT EXISTS rca_investigations (
+            id TEXT PRIMARY KEY, rca_id TEXT NOT NULL, 
+            method_type TEXT NOT NULL, content TEXT NOT NULL,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
         )`);
 
         repo = new SqlRcaRepository();
