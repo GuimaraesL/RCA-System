@@ -123,6 +123,7 @@ A separação em camadas garante que a lógica de negócios não dependa de deta
 O sistema utiliza **SQLite** como banco de dados relacional (RDBMS). Esta escolha prioriza a simplicidade de operação ("serverless" database), portabilidade e performance local. Atualmente, a camada de acesso a dados é específica para SQLite (ver **Issue #40** para planos de abstração).
 
 - **Abstração:** O acesso ao banco é encapsulado nos Repositórios da camada de infraestrutura.
+- **Concorrência (IA):** A persistência de análises de recorrência utiliza um mecanismo de `asyncio.Lock` por `rca_id` para garantir a integridade dos dados no SQLite durante o processamento assíncrono do Agente.
 - **Schema:** O esquema do banco reflete as entidades principais do domínio: `Triggers`, `RCAs`, `Actions` (Planos de Ação) e tabelas auxiliares.
 - **Migrações:** (Verificar ferramenta de migração utilizada, se aplicável, ou scripts SQL diretos).
 

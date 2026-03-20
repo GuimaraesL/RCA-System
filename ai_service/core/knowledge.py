@@ -1,5 +1,7 @@
-# AI Service - Base de Conhecimento (RAG)
-# Gerencia a indexação de RCAs históricas e integração com ChromaDB.
+"""
+Proposta: Gerencia a base de conhecimento (RAG), indexação de RCAs e persistência no SQLite.
+Fluxo: Recebe dados para indexação -> Gera embeddings -> Armazena no ChromaDB / SQLite.
+"""
 
 import os
 import sqlite3
@@ -92,18 +94,26 @@ def init_hash_db():
     conn.commit()
     return conn
 
-def save_recurrence_analysis(rca_id: str, analysis_data: dict):
-    """Salva o resultado da análise de recorrência no SQLite."""
+import asyncio
+_save_locks: Dict[str, asyncio.Lock] = {}
+
+async def save_recurrence_analysis(rca_id: str, analysis_data: dict):
+    """Salva o resultado da análise de recorrência no SQLite com lock para evitar race condition."""
     import json
     from datetime import datetime
-    conn = init_hash_db()
-    cursor = conn.cursor()
-    cursor.execute('''
-        INSERT OR REPLACE INTO recurrence_analysis (rca_id, analysis_data, last_analyzed_at)
-        VALUES (?, ?, ?)
-    ''', (rca_id, json.dumps(analysis_data), datetime.now().isoformat()))
-    conn.commit()
-    conn.close()
+    
+    if rca_id not in _save_locks:
+        _save_locks[rca_id] = asyncio.Lock()
+        
+    async with _save_locks[rca_id]:
+        conn = init_hash_db()
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT OR REPLACE INTO recurrence_analysis (rca_id, analysis_data, last_analyzed_at)
+            VALUES (?, ?, ?)
+        ''', (rca_id, json.dumps(analysis_data), datetime.now().isoformat()))
+        conn.commit()
+        conn.close()
 
 def get_recurrence_analysis(rca_id: str):
     """Recupera a última análise de recorrência salva para uma RCA."""

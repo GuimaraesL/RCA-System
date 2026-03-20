@@ -175,7 +175,7 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
 
                 # Persiste para que o Step 8 carregue os dados validados
                 try:
-                    save_recurrence_analysis(str(request.rca_id), analysis_result)
+                    await save_recurrence_analysis(str(request.rca_id), analysis_result)
                 except Exception as save_err:
                     logger.error(f"Erro ao salvar analise no stream de analise: {save_err}")
 
