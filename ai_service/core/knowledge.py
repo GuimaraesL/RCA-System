@@ -12,7 +12,7 @@ from agno.knowledge import Knowledge
 from agno.vectordb.chroma import ChromaDb
 from agno.knowledge.embedder.google import GeminiEmbedder
 from agno.utils.log import logger
-from ai_service.core.config import VECTOR_DB_PATH, KNOWLEDGE_DB_PATH, KNOWLEDGE_PATH, SOURCE_DB_PATH, GOOGLE_API_KEY, BACKEND_URL
+from core.config import VECTOR_DB_PATH, KNOWLEDGE_DB_PATH, KNOWLEDGE_PATH, SOURCE_DB_PATH, GOOGLE_API_KEY, BACKEND_URL
 
 # Configuração do Embedder (Google Gemini 2.0 Flash)
 embedder = GeminiEmbedder(api_key=GOOGLE_API_KEY)

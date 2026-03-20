@@ -6,7 +6,7 @@
 
 import { fromCSV, detectSeparator } from "../../utils/csvUtils";
 import { parseDateString } from "../../utils/parsingUtils";
-import { generateId } from "../utils";
+import { generateId, isStandardId, TAXONOMY_PREFIXES } from "../api/base";
 import { findAssetPath } from "../../utils/triggerHelpers";
 import { AssetNode, ActionRecord, TaxonomyItem, TriggerRecord } from "../../types";
 import { CsvContextData, CsvEntityType, CsvImportResult, REQUIRED_HEADERS, TAXONOMY_MAP } from "./types";
@@ -301,7 +301,10 @@ export const importFromCsv = (type: CsvEntityType, csvContent: string, context: 
         const taxonomyKey = TAXONOMY_MAP[type];
         if (taxonomyKey) {
             const newItems: TaxonomyItem[] = rawData.map(r => {
-                const item: TaxonomyItem = { id: r.id || generateId('TAX'), name: r.name || 'Item sem nome' };
+                const prefix = TAXONOMY_PREFIXES[taxonomyKey as keyof typeof TAXONOMY_PREFIXES] || 'TAX';
+                // Força a padronização: se o ID fornecido não for padrão, geramos um novo
+                const id = (r.id && isStandardId(r.id, prefix)) ? r.id : generateId(prefix);
+                const item: TaxonomyItem = { id, name: r.name || 'Item sem nome' };
                 if (type === 'TAXONOMY_FAILURE_MODES' && r.specialty_ids) {
                     item.specialty_ids = String(r.specialty_ids).split(/[|;]/).map(id => id.trim()).filter(id => id);
                 }
