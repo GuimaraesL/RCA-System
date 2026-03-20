@@ -14,7 +14,7 @@ import { ActionModal } from './ActionModal';
 import { useLanguage } from '../../context/LanguageDefinition';
 import { translateStatus } from '../../utils/statusUtils';
 import { ConfirmModal } from './ConfirmModal';
-import { getWizardSteps } from '../../constants/WizardSteps';
+import { getWizardSteps } from '@/constants/WizardSteps';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Card } from '../ui/Card';
@@ -67,7 +67,7 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
 
     // Atalhos de Teclado Locais do Editor
     useKeyboardShortcuts({
-        onSave: handleSave,
+        onSave: () => handleSave(t),
         onEscape: onClose
     });
 
@@ -127,20 +127,31 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
     };
 
     const isCompleted = formData.status === STATUS_IDS.CONCLUDED;
-    const stepsList = getWizardSteps(t);
+    const stepsList = getWizardSteps(t, formData.analysis_type, showHra);
     const headerId = React.useId();
 
     // Atalhos de navegação entre steps (Alt+← / Alt+→)
     const goToPrev = useCallback(() => {
-        setStep(s => {
-            if (s === 9) return 4; // Volta do HRA para Investigação (onde ele é ativado)
-            return Math.max(1, s - 1);
+        setStep(currentStep => {
+            if (currentStep === 9) return 4; // Volta do HRA para Investigação (onde ele é ativado)
+            
+            const currentIndex = stepsList.findIndex(s => s.id === currentStep);
+            if (currentIndex > 0) {
+                return stepsList[currentIndex - 1].id;
+            }
+            return Math.max(1, currentStep - 1);
         });
-    }, [setStep]);
+    }, [stepsList]);
 
     const goToNext = useCallback(() => {
-        setStep(s => Math.min(8, s + 1));
-    }, [setStep]);
+        setStep(currentStep => {
+            const currentIndex = stepsList.findIndex(s => s.id === currentStep);
+            if (currentIndex < stepsList.length - 1) {
+                return stepsList[currentIndex + 1].id;
+            }
+            return currentStep;
+        });
+    }, [stepsList]);
 
     useEffect(() => {
         const isInput = (el: EventTarget | null) => {
@@ -162,6 +173,9 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
         document.addEventListener('keydown', handleStepNav);
         return () => document.removeEventListener('keydown', handleStepNav);
     }, [goToPrev, goToNext]);
+    const currentStepIndex = stepsList.findIndex(s => s.id === step);
+    const showNext = currentStepIndex < stepsList.length - 1;
+    const showPrev = currentStepIndex > 0;
 
     return (
         <div className="flex h-full w-full gap-0 overflow-hidden transition-all duration-500">
@@ -285,7 +299,7 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                 >
                     <Button variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
                     <div className="flex gap-4">
-                        {step > 1 && (
+                        {showPrev && (
                             <Button
                                 variant="secondary"
                                 onClick={goToPrev}
@@ -296,14 +310,14 @@ const RcaEditorContent: React.FC<RcaEditorProps> = ({ existingRecord, onClose, o
                         )}
                         <Button 
                             variant="primary" 
-                            onClick={handleSave} 
+                            onClick={() => handleSave(t)} 
                             isLoading={isSaving} 
                             className="gap-2"
                             data-testid="btn-save-rca"
                         >
                             <Save size={18} /> {t('common.save')}
                         </Button>
-                        {step < 8 && (
+                        {showNext && (
                             <Button
                                 variant="primary"
                                 onClick={goToNext}

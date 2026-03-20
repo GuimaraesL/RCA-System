@@ -1,12 +1,18 @@
 # AI Service - Base de Conhecimento (RAG)
 # Gerencia a indexação de RCAs históricas e integração com ChromaDB.
 
-import hashlib
+import os
 import sqlite3
+import json
+import hashlib
+import time
+import httpx
+from typing import List, Optional, Dict
 from agno.knowledge import Knowledge
 from agno.vectordb.chroma import ChromaDb
 from agno.knowledge.embedder.google import GeminiEmbedder
-from .config import VECTOR_DB_PATH, KNOWLEDGE_DB_PATH, GOOGLE_API_KEY, BACKEND_URL
+from agno.utils.log import logger
+from core.config import VECTOR_DB_PATH, KNOWLEDGE_DB_PATH, KNOWLEDGE_PATH, SOURCE_DB_PATH, GOOGLE_API_KEY, BACKEND_URL
 
 # Configuração do Embedder (Google Gemini 2.0 Flash)
 embedder = GeminiEmbedder(api_key=GOOGLE_API_KEY)
@@ -115,13 +121,14 @@ def get_recurrence_analysis(rca_id: str):
         }
     return None
 
-def index_historical_rcas(api_url=None):
+def index_historical_rcas(force_reindex: bool = False):
     """
-    Busca RCAs concluídas no backend principal e as indexa no VectorDB.
+    Busca todas as RCAs finalizadas do backend e indexa no ChromaDB de forma otimizada.
     """
-    if api_url is None:
-        base_url = BACKEND_URL.rstrip('/')
-        api_url = f"{base_url}/api/rcas"
+    
+    logger.info("Iniciando indexação de RCAs histórico...")
+    base_url = BACKEND_URL.rstrip('/')
+    api_url = f"{base_url}/api/rcas"
     
     import httpx
     
@@ -182,13 +189,18 @@ def index_historical_rcas(api_url=None):
             content_parts = []
             if location_parts:
                 content_parts.append(f"LOCALIZAÇÃO DO ATIVO: O incidente ocorreu {', '.join(location_parts)}.")
+            # Conteúdo da RCA (Storytelling)
+            content_parts = [
+                f"ID_RCA: {rca_id}",
+                f"TÍTULO/O QUE (What): {rca.get('what', 'Sem Título')}",
+                f"QUEM (Who): {rca.get('who', 'Não Informado')}",
+                f"PROBLEMA (Why): {rca.get('problem_description', 'Sem Descrição')}",
+                f"TIPO COMPONENTE: {rca.get('component_type', 'Geral')}"
+            ]
             
-            what_desc = rca.get('what')
-            if what_desc: content_parts.append(f"RESUMO DO PROBLEMA: {what_desc}")
-            
-            problem_desc = rca.get('problem_description', rca.get('description'))
-            if problem_desc: content_parts.append(f"DESCRIÇÃO TÉCNICA (SINTOMAS): {problem_desc}")
-            
+            fail_date = rca.get('failure_date', "")
+            if fail_date: content_parts.append(f"DATA DA FALHA: {fail_date}")
+
             causes = [c.get('cause', '') for c in rca.get('root_causes', [])]
             if causes: content_parts.append(f"CAUSAS RAIZ: " + " | ".join(causes))
                 
@@ -200,7 +212,7 @@ def index_historical_rcas(api_url=None):
             
             cursor.execute("SELECT content_hash FROM indexed_rcas WHERE rca_id = ?", (rca_id,))
             row = cursor.fetchone()
-            if row and row[0] == current_hash:
+            if row and row[0] == current_hash and not force_reindex:
                 skipped_count += 1
                 continue
             
@@ -214,7 +226,8 @@ def index_historical_rcas(api_url=None):
                         "status": rca.get('status'),
                         "area_id": str(area_id or ""),
                         "equipment_id": str(equip_id or ""),
-                        "subgroup_id": str(subg_id or "")
+                        "subgroup_id": str(subg_id or ""),
+                        "failure_date": str(fail_date or "")
                     },
                     upsert=True
                 )

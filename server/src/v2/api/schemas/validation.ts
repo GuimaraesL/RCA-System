@@ -120,7 +120,8 @@ export const assetSchema = z.object({
     id: z.string().optional(),
     name: z.string().min(1, "Nome do ativo é obrigatório"),
     type: z.string().min(1, "Tipo do ativo é obrigatório"),
-    parent_id: z.string().nullish()
+    parent_id: z.string().nullish(),
+    parentId: z.string().nullish() // Suporte a camelCase
 });
 
 /**

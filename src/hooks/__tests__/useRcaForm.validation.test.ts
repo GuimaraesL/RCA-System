@@ -57,7 +57,7 @@ describe('useRcaForm - Validação de Campos (Issue #67)', () => {
         // Precisamos verificar se 'downtime_minutes' aparece nos erros
         // A função validateForm é interna, mas expõe validationErrors via estado
         await act(async () => {
-            await result.current.handleSave();
+            await result.current.handleSave(k => k);
         });
 
         expect(result.current.validationErrors.downtime_minutes).toBeUndefined();
@@ -81,7 +81,7 @@ describe('useRcaForm - Validação de Campos (Issue #67)', () => {
         });
 
         await act(async () => {
-            await result.current.handleSave();
+            await result.current.handleSave(k => k);
         });
 
         expect(result.current.validationErrors.precision_maintenance).toBe(true);
@@ -97,7 +97,7 @@ describe('useRcaForm - Validação de Campos (Issue #67)', () => {
         });
 
         await act(async () => {
-            await result.current.handleSave();
+            await result.current.handleSave(k => k);
         });
 
         expect(result.current.validationErrors.precision_maintenance).toBeUndefined();
@@ -112,7 +112,7 @@ describe('useRcaForm - Validação de Campos (Issue #67)', () => {
         });
 
         await act(async () => {
-            await result.current.handleSave();
+            await result.current.handleSave(k => k);
         });
         expect(result.current.validationErrors.lessons_learned).toBe(true);
 
@@ -122,7 +122,7 @@ describe('useRcaForm - Validação de Campos (Issue #67)', () => {
         });
 
         await act(async () => {
-            await result.current.handleSave();
+            await result.current.handleSave(k => k);
         });
         expect(result.current.validationErrors.lessons_learned).toBe(true);
 
@@ -132,7 +132,7 @@ describe('useRcaForm - Validação de Campos (Issue #67)', () => {
         });
 
         await act(async () => {
-            await result.current.handleSave();
+            await result.current.handleSave(k => k);
         });
         expect(result.current.validationErrors.lessons_learned).toBeUndefined();
     });

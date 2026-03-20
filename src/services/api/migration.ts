@@ -6,7 +6,7 @@
 
 import { TaxonomyConfig, TaxonomyItem } from "../../types";
 import { STATUS_IDS } from "../../constants/SystemConstants";
-import { API_BASE, checkResponse, generateId } from "./base";
+import { API_BASE, checkResponse, generateId, TAXONOMY_PREFIXES, isStandardId } from "./base";
 import { importAssetsToApi } from "./assets";
 import { fetchTaxonomy, saveTaxonomyToApi } from "./taxonomy";
 import { fetchRecords } from "./rcas";
@@ -116,28 +116,70 @@ export const importDataToApi = async (data: Partial<{ records: RcaRecord[], resu
             logger.info('API: Ativos processados:', assetsToImport.length);
         }
 
-        // 2. GESTÃO DE TAXONOMIA
+        // 2. GESTÃO DE TAXONOMIA (Com Auto-Correção de IDs)
         const currentTaxonomy = await fetchTaxonomy();
         const incomingTaxonomy = data.taxonomy || {};
         let taxonomyToSave: TaxonomyConfig = { ...currentTaxonomy };
+
+        const taxonomyIdMap = new Map<string, string>(); // Mapeamento oldId -> newId
 
         const keysToProcess = taxonomyFilters && taxonomyFilters.length > 0
             ? taxonomyFilters
             : Object.keys(incomingTaxonomy);
 
         keysToProcess.forEach((key: string) => {
-            if (key in incomingTaxonomy) {
+            const incomingValue = incomingTaxonomy[key as keyof TaxonomyConfig];
+            if (incomingValue && Array.isArray(incomingValue)) {
+                const prefix = TAXONOMY_PREFIXES[key as keyof typeof TAXONOMY_PREFIXES] || 'TAX';
+                const items = (incomingValue as TaxonomyItem[]).map(item => {
+                    const newItem = { ...item };
+                    // Se o ID não for padrão, geramos um novo e mapeamos
+                    if (!isStandardId(item.id, prefix)) {
+                        const newId = generateId(prefix);
+                        taxonomyIdMap.set(`${key}:${item.id}`, newId);
+                        if (item.name && typeof item.name === 'string') {
+                            taxonomyIdMap.set(`${key}:${item.name.toLowerCase()}`, newId);
+                        }
+                        newItem.id = newId;
+                        logger.info(`MIG: Corrigindo ID de taxonomia [${key}]: ${item.id} -> ${newId}`);
+                    }
+                    return newItem;
+                });
                 // @ts-ignore
-                taxonomyToSave[key as keyof TaxonomyConfig] = incomingTaxonomy[key];
+                taxonomyToSave[key as keyof TaxonomyConfig] = items;
+            } else if (key === 'mandatoryFields' && incomingValue) {
+                // @ts-ignore
+                taxonomyToSave.mandatoryFields = incomingValue;
             }
         });
 
-        const ensureTaxonomy = (listKey: keyof TaxonomyConfig, val: string) => {
+        const ensureTaxonomy = (listKey: keyof TaxonomyConfig, val: any) => {
             if (!val) return null;
+            const valStr = String(val);
+            const valLower = valStr.toLowerCase();
+            
+            // Verifica o mapa de correção primeiro
+            const mappedId = taxonomyIdMap.get(`${listKey}:${valStr}`) || taxonomyIdMap.get(`${listKey}:${valLower}`);
+            if (mappedId) return mappedId;
+
             const list = (taxonomyToSave[listKey] as TaxonomyItem[]) || [];
-            const existing = list.find(i => i.id === val || i.name.toLowerCase() === val.toLowerCase());
-            if (existing) return existing.id;
-            const newId = val.length < 15 ? val : generateId('AUTO');
+            const existing = list.find(i => i.id === valStr || (i.name && typeof i.name === 'string' && i.name.toLowerCase() === valLower));
+            
+            if (existing) {
+                const prefix = TAXONOMY_PREFIXES[listKey as keyof typeof TAXONOMY_PREFIXES] || 'TAX';
+                // Se o ID encontrado não for padrão, corrigimos on-the-fly
+                if (!isStandardId(existing.id, prefix)) {
+                    const newId = generateId(prefix);
+                    taxonomyIdMap.set(`${listKey}:${existing.id}`, newId);
+                    existing.id = newId;
+                    return newId;
+                }
+                return existing.id;
+            }
+
+            // Se não existe, cria um novo padrão
+            const prefix = TAXONOMY_PREFIXES[listKey as keyof typeof TAXONOMY_PREFIXES] || 'AUTO';
+            const newId = generateId(prefix);
             // @ts-ignore
             taxonomyToSave[listKey] = [...list, { id: newId, name: val }];
             return newId;
@@ -213,7 +255,10 @@ export const importDataToApi = async (data: Partial<{ records: RcaRecord[], resu
             const allActionsEffective = hasMainActions && mainActions.every(a => ['3', '4'].includes(String(a.status)));
 
             let currentStatus = ensureTaxonomy('analysisStatuses', newRec.status) || newRec.status;
-            const isOpenStatus = !currentStatus || currentStatus === STATUS_IDS.IN_PROGRESS || currentStatus === 'Em Andamento';
+            // Reconhece status aberto tanto por ID técnico quanto por nome legado
+            const isOpenStatus = !currentStatus || 
+                                 currentStatus === STATUS_IDS.IN_PROGRESS || 
+                                 newRec.status === 'Em Andamento';
 
             if (isOpenStatus) {
                 if (!isMandatoryComplete) {

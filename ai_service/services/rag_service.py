@@ -3,13 +3,11 @@ Proposta: Centralizar a lógica de busca hierárquica e validação de recorrên
 Fluxo: Recebe os dados de contexto, executa busca vetorial em três níveis (subgrupo, equipamento, área), e processa os resultados usando um LLM para validar falsos positivos.
 """
 import re
-import httpx
 from typing import List, Tuple, Dict, Any
 from agno.utils.log import logger
 
 from core.knowledge import get_rca_history_knowledge
 from agents.rag_validator import get_rag_validator
-from core.config import BACKEND_URL, INTERNAL_AUTH_KEY
 from api.models import RecurrenceInfo, SemanticLink
 import math
 
@@ -60,23 +58,6 @@ def extract_recurrence(doc: Any, level_name: str, rank: int) -> RecurrenceInfo:
         if match_dt:
             fail_date = match_dt.group(1).strip()
     
-    # Backup: fetch real-time from server
-    if not fail_date:
-        rca_i = doc.meta_data.get("rca_id", "unknown")
-        if rca_i != "unknown":
-            try:
-                base_url = BACKEND_URL.rstrip('/')
-                headers = {"x-internal-key": INTERNAL_AUTH_KEY}
-                # Correção Issue #149: Usa context manager para garantir fechamento e timeout agressivo
-                with httpx.Client(timeout=2.0) as client:
-                    resp = client.get(f"{base_url}/api/rcas/{rca_i}", headers=headers)
-                    if resp.status_code == 200:
-                        j_resp = resp.json()
-                        if 'failure_date' in j_resp and j_resp['failure_date']:
-                            fail_date = j_resp['failure_date']
-            except Exception as e:
-                logger.warning(f'[fetch_failure_date] rca_id={rca_i}: {e}')
-
     return RecurrenceInfo(
         rca_id=doc.meta_data.get("rca_id", "unknown"),
         similarity=0.0,

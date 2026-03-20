@@ -63,10 +63,9 @@ export const useSettingsLogic = () => {
     handleUpdate(field, currentItems.filter(i => i.id !== id));
   };
 
-  const updateItem = (field: keyof TaxonomyConfig, id: string, name: string) => {
-    if (!name.trim()) return;
+  const updateItem = (field: keyof TaxonomyConfig, id: string, updates: Partial<TaxonomyItem>) => {
     const currentItems = (taxonomy[field] as TaxonomyItem[]) || [];
-    const updated = currentItems.map(i => i.id === id ? { ...i, name: name.trim() } : i);
+    const updated = currentItems.map(i => i.id === id ? { ...i, ...updates } : i);
     handleUpdate(field, updated);
   };
 

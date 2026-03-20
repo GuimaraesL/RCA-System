@@ -17,16 +17,32 @@ erDiagram
     ASSETS ||--o{ FMEA_MODES : "possui"
     RCAS ||--o{ ACTIONS : "possui"
     RCAS ||--o{ TRIGGERS : "vincula (N:1)"
+    RCAS ||--o{ RCA_INVESTIGATIONS : "possui (normalizada)"
+    RCAS ||--o{ RCAS_ATTACHMENTS : "possui (normalizada)"
     
     RCAS {
         string id PK
         string status
         text analysis_date
         text problem_description
-        text five_whys "JSON"
-        text ishikawa "JSON"
-        text root_causes "JSON"
-        text attachments "JSON"
+    }
+
+    RCA_INVESTIGATIONS {
+        string id PK
+        string rca_id FK
+        string method_type "5WHYS, ISHIKAWA, HRA, etc"
+        text content "JSON (dados especificos do metodo)"
+        text created_at
+    }
+
+    RCAS_ATTACHMENTS {
+        string id PK
+        string rca_id FK
+        string filename
+        string storage_path
+        string file_type
+        integer size_bytes
+        text created_at
     }
 
     ACTIONS {
@@ -71,7 +87,9 @@ erDiagram
 | Tabela | Descrição | Chaves Principais |
 | :--- | :--- | :--- |
 | `assets` | Hierarquia física (Área > Equipamento > Subgrupo). Utiliza auto-relacionamento (`parent_id`). | id, parent_id |
-| `rcas` | Registros completos de investigação e análise. | id |
+| `rcas` | Registros de cabeçalho e dados gerais da RCA. | id |
+| `rca_investigations` | Blocos normalizados de investigação (5 Porquês, Ishikawa, HRA, etc). | id, rca_id (FK) |
+| `rcas_attachments` | Arquivos físicos (fotos, vídeos) vinculados a uma RCA, normalizados a partir do Issue #167. | id, rca_id (FK) |
 | `triggers` | Eventos de parada brutos importados/gerados. | id, rca_id (FK) |
 | `actions` | Planos de ação derivados de uma RCA. | id, rca_id (FK) |
 | `fmea_modes` | Modos de falha e efeitos estruturados vinculados a equipamentos específicos. | id, asset_id (FK) |

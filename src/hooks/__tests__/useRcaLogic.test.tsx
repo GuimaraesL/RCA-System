@@ -61,7 +61,7 @@ describe('useRcaLogic - Tiered Validation', () => {
 
         // Tenta salvar com 'what' vazio
         await act(async () => {
-            await result.current.handleSave();
+            await result.current.handleSave(k => k);
         });
 
         expect(onSave).not.toHaveBeenCalled();
@@ -79,7 +79,7 @@ describe('useRcaLogic - Tiered Validation', () => {
 
         // 'root_causes' é obrigatório para conclusão, mas estamos no Passo 1
         await act(async () => {
-            await result.current.handleSave();
+            await result.current.handleSave(k => k);
         });
 
         expect(onSave).toHaveBeenCalled();
@@ -102,7 +102,7 @@ describe('useRcaLogic - Tiered Validation', () => {
 
         // Agora root_causes deve ser validado
         await act(async () => {
-            await result.current.handleSave();
+            await result.current.handleSave(k => k);
         });
 
         expect(onSave).not.toHaveBeenCalled();

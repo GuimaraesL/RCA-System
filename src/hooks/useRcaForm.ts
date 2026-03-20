@@ -10,6 +10,8 @@ import { useRcaContext } from '../context/RcaContext';
 import { STATUS_IDS, ROOT_CAUSE_M_IDS } from '../constants/SystemConstants';
 import { updateDeep } from '../utils/objectUtils';
 import { useToast } from '../context/ToastContext';
+import { isComponentVisible, isStepVisible } from '@/services/TemplateService';
+import { getWizardSteps } from '@/constants/WizardSteps';
 
 export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () => void) => {
     const { assets, taxonomy, actions, addRecord, updateRecord, addAction, updateAction, deleteAction, refreshAll } = useRcaContext();
@@ -87,9 +89,16 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
      * Lógica condicional para exibição do HRA.
      * Definida ANTES dos Effects que a utilizam.
      */
-    const showHra = useMemo(() => (formData.root_causes || []).some(rc =>
-        (rc.root_cause_m_id === ROOT_CAUSE_M_IDS.MANPOWER || rc.root_cause_m_id === ROOT_CAUSE_M_IDS.METHOD) && !!rc.root_cause_m_id
-    ), [formData.root_causes]);
+    const showHra = useMemo(() => {
+        // First check if HRA is allowed by the template
+        const isAllowedByTemplate = isComponentVisible(formData.analysis_type, 'HRA');
+        if (!isAllowedByTemplate) return false;
+
+        // If allowed, check if it's triggered by Manpower/Method root causes
+        return (formData.root_causes || []).some(rc =>
+            (rc.root_cause_m_id === ROOT_CAUSE_M_IDS.MANPOWER || rc.root_cause_m_id === ROOT_CAUSE_M_IDS.METHOD) && !!rc.root_cause_m_id
+        );
+    }, [formData.root_causes, formData.analysis_type]);
 
     // Sincroniza ações vinculadas
     useEffect(() => {
@@ -164,7 +173,7 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
         return isConcluded ? (rules.rca.create.includes(field) || rules.rca.conclude.includes(field)) : rules.rca.create.includes(field);
     }, [taxonomy, formData.status]);
 
-    const validateForm = useCallback((): Record<string, boolean> => {
+    const validateForm = useCallback((t: (k: string) => string = (k) => k): Record<string, boolean> => {
         const errors: Record<string, boolean> = {};
 
         // Determina quais regras aplicar baseado no status atual (Conclusão vs Salvamento/Criação)
@@ -174,10 +183,21 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
         const isConcluded = formData.status === STATUS_IDS.CONCLUDED;
 
         // Se estiver concluindo, aplica ambas as listas (Create + Conclude)
-        // Se estiver salvando rascunho, aplica apenas Create
-        const fieldsToValidate = isConcluded
+        let fieldsToValidate = isConcluded
             ? [...new Set([...rules.rca.create, ...rules.rca.conclude])]
             : rules.rca.create;
+
+        // NOVIDADE: Filtrar apenas campos que pertencem a passos VISÍVEIS para o template
+        const visibleSteps = getWizardSteps(t, formData.analysis_type, showHra);
+        const visibleFields = new Set(visibleSteps.flatMap(s => s.fields));
+        
+        // HRA is special (step 9), check its visibility separately
+        if (isStepVisible(formData.analysis_type, 9) && showHra) {
+            // If HRA is visible, its fields should be validated if they were mandatory
+            // (HRA fields aren't usually in the mandatory list yet, but we'll be future-proof)
+        }
+
+        fieldsToValidate = fieldsToValidate.filter(field => visibleFields.has(field) || field === 'analysis_type');
 
         fieldsToValidate.forEach(field => {
             if (isFieldEmpty(field, (formData as any)[field])) {
@@ -187,13 +207,13 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
 
         setValidationErrors(errors);
         return errors;
-    }, [formData, taxonomy, isFieldEmpty]);
+    }, [formData, taxonomy, isFieldEmpty, showHra]);
 
     const toast = useToast();
 
-    const handleSave = async () => {
+    const handleSave = async (t: (k: string) => string = (k) => k) => {
         console.log('HOOK: handleSave called');
-        const errors = validateForm();
+        const errors = validateForm(t);
         if (Object.keys(errors).length > 0) {
             console.log('HOOK: Validation errors:', JSON.stringify(errors));
             toast.error('Preencha os campos obrigatórios antes de salvar.');

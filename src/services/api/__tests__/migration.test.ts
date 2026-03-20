@@ -302,4 +302,34 @@ describe('Service: Migration (importDataToApi)', () => {
         const rcaPayload = JSON.parse(rcaCall[1].body);
         expect(rcaPayload.records[0].status).toBe(STATUS_IDS.CONCLUDED);
     });
+
+    it('should perform self-healing: convert description-based IDs and update references', async () => {
+        // Arrange
+        const data = {
+            taxonomy: {
+                specialties: [{ id: 'Mecânica', name: 'Mecânica' }]
+            } as any,
+            records: [{
+                id: 'R1',
+                what: 'Problem',
+                specialty_id: 'Mecânica', // Referência pelo ID "quebrado"
+            }] as any[]
+        };
+        (taxonomy.fetchTaxonomy as any).mockResolvedValue({ specialties: [] });
+
+        // Act
+        await importDataToApi(data, 'UPDATE');
+
+        // Assert
+        const taxonomyCall = (taxonomy.saveTaxonomyToApi as any).mock.calls[0][0];
+        const newSpecId = taxonomyCall.specialties[0].id;
+        
+        // Deve ter gerado um ID técnico (SPC-...)
+        expect(newSpecId).toMatch(/^SPC-/);
+        expect(newSpecId).not.toBe('Mecânica');
+
+        const rcaCall = JSON.parse(mockFetch.mock.calls.find(call => call[0].includes('/rcas/bulk'))[1].body);
+        // O record deve usar o NOVO ID gerado, não o original 'Mecânica'
+        expect(rcaCall.records[0].specialty_id).toBe(newSpecId);
+    });
 });

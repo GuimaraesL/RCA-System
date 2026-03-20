@@ -355,6 +355,7 @@ export const pt: TranslationSchema = {
         triggerStatuses: "Status de Gatilho",
         componentTypes: "Tipos de Componente",
         specialties: "Especialidades",
+        linkedSpecialties: "Especialidades Vinculadas",
         failureModes: "Modos de Falha",
         failureCategories: "Categorias de Falha",
         rootCauseMs: "6M (Causas Raízes)",
@@ -758,7 +759,8 @@ export const pt: TranslationSchema = {
             step5: { title: "Ações", subtitle: "Plano de ação" },
             step6: { title: "Checklist", subtitle: "Manutenção" },
             step7: { title: "Info. Adicionais", subtitle: "Notas e Comentários" },
-            step8: { title: "Histórico Técnico", subtitle: "Recorrências e Lições" }
+            step8: { title: "Histórico Técnico", subtitle: "Recorrências e Lições" },
+            step9: { title: "Fator Humano", subtitle: "Confiabilidade Humana (HRA)" }
         },
         step1: {
             title: "0. Componente / Localização",

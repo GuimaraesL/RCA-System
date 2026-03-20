@@ -355,6 +355,7 @@ export const en: TranslationSchema = {
         triggerStatuses: "Trigger Statuses",
         componentTypes: "Component Types",
         specialties: "Specialties",
+        linkedSpecialties: "Linked Specialties",
         failureModes: "Failure Modes",
         failureCategories: "Failure Categories",
         rootCauseMs: "Root Cause Ms (6M)",
@@ -763,7 +764,8 @@ export const en: TranslationSchema = {
             step5: { title: "Actions", subtitle: "Action plan" },
             step6: { title: "Checklist", subtitle: "Maintenance" },
             step7: { title: "Additional Info", subtitle: "Notes and Comments" },
-            step8: { title: "Technical History", subtitle: "Recurrences & Lessons" }
+            step8: { title: "Technical History", subtitle: "Recurrences & Lessons" },
+            step9: { title: "Human Factor", subtitle: "Human Reliability (HRA)" }
         },
         step1: {
             title: "0. Component / Location",
