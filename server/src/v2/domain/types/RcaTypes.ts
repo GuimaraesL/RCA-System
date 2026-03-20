@@ -59,7 +59,7 @@ export interface Rca {
 
     // Investigação e Causas
     five_whys?: any[];
-    five_whys_chains?: any[];
+    five_whys_chains?: FiveWhysChain[];
     ishikawa?: any; // Objeto Fishbone
     root_causes?: any[];
 
@@ -72,7 +72,36 @@ export interface Rca {
     lessons_learned?: any[];
     general_moc_number?: string;
     additional_info?: any;
-    attachments?: Attachment[];
+    attachments?: RcaAttachment[];
+}
+
+export interface RcaAttachment {
+    id: string;
+    rca_id?: string;
+    filename: string;
+    storage_path?: string;
+    file_type?: string;
+    size_bytes?: number;
+    created_at?: string;
+    // Campos de compatibilidade com o frontend (mapeados em SqlRcaRepository.mapAttachmentRow)
+    url?: string;
+    type?: string;
+    size?: number;
+}
+
+export interface FiveWhysChain {
+    id?: string;
+    rca_id?: string;
+    parent_id?: string;
+    question?: string;
+    answer?: string;
+    order_index?: number;
+    created_at?: string;
+    updated_at?: string;
+    // Suporte a estrutura de árvore (chain_id, root_node, cause_effect)
+    chain_id?: string;
+    cause_effect?: string;
+    root_node?: any;
 }
 
 export interface TaxonomyConfig {

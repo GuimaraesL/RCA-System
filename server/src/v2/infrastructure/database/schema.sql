@@ -184,3 +184,17 @@ CREATE TABLE IF NOT EXISTS rca_investigations (
 );
 
 CREATE INDEX IF NOT EXISTS idx_investigations_rca_id ON rca_investigations(rca_id);
+
+-- Normalization of Attachments (Added in v6.0 - Issue #167)
+CREATE TABLE IF NOT EXISTS rcas_attachments (
+    id TEXT PRIMARY KEY,
+    rca_id TEXT NOT NULL,
+    filename TEXT NOT NULL,
+    storage_path TEXT NOT NULL,
+    file_type TEXT,
+    size_bytes INTEGER,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_attachments_rca_id ON rcas_attachments(rca_id);

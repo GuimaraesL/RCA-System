@@ -1,6 +1,9 @@
 /**
- * TemplateService: Centraliza a lógica de visibilidade de componentes e passos do wizard
- * baseado no tipo de análise (RCA, Mini RCA, CAPA, etc).
+ * Proposta: Centraliza a lógica de visibilidade de componentes e passos do wizard
+ *           baseado no tipo de análise (RCA Completo, Mini RCA, CAPA, etc).
+ * Fluxo: O tipo de análise (typeId) é passado pelos componentes da UI para as funções
+ *        `isComponentVisible` e `isStepVisible`, que consultam o template correspondente
+ *        para determinar o que deve ser exibido no wizard de edição.
  */
 
 export const ANALYSIS_TYPE_IDS = {
