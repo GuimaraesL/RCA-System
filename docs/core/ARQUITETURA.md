@@ -9,6 +9,7 @@ O **RCA System** é uma aplicação web moderna para **Gestão do Ciclo de Vida 
 - **Integridade de Dados:** Validação rigorosa em ambas as pontas (Client e Server) via Schemas compartilhados.
 - **Manutenibilidade:** Separação clara de responsabilidades (Clean Architecture no Backend, Component-Service no Frontend).
 - **Portabilidade:** Backend leve e banco de dados embarcado (SQLite) para fácil deployment e operação em ambientes industriais (Edge).
+- **IA Otimizada:** Endpoints de leitura (como histórico de chat) são otimizados para acessar diretamente o `Agno Storage`, eliminando o overhead de instanciar agentes de IA quando não há processamento necessário.
 
 ---
 
