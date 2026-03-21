@@ -60,6 +60,12 @@ graph TB
 
 O coração da inteligência reside no `main_agent.py`, que instancia o `RCA_Unified_Copilot` como um `Team`. Diferente de um agente isolado, o Time permite a delegação de tarefas complexas para sub-agentes com instruções especializadas.
 
+### Gestão de Performance e Instanciação
+Para otimizar o tempo de resposta e evitar overhead de I/O, o sistema implementa uma estratégia de **Cache de Componentes Estáticos**:
+- **Skills Cache**: As ferramentas baseadas em disco (`LocalSkills`) são carregadas uma única vez e mantidas em memória global.
+- **Fresh Team Instance**: Embora os componentes caros sejam cacheados, uma nova instância do objeto `Team` é criada a cada requisição HTTP. Isso garante que cada sessão tenha um estado de orquestração limpo, prevenindo erros de poluição de histórico ou duplicidade de mensagens (Erro Gemini 400).
+- **Persistência de Histórico**: O `session_id` e o vínculo com `SqliteDb` garantem que o Agno carregue o histórico do banco de dados automaticamente para a nova instância.
+
 ### Componentes do Time:
 - **RCA Unified Copilot:** Coordenador da investigação, responsável pelo diálogo com o usuário, extração do contexto da tela e consolidação do Plano de Ação.
 - **Media Failure Analyst:** Perito em análise visual (fotos/vídeos) focado em padrões de falha física (corrosão, fadiga, etc) usando Gemini 2.0 Flash Multimodal.

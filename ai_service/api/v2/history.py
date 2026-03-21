@@ -10,6 +10,7 @@ from agno.utils.log import logger
 
 from core.config import INTERNAL_AUTH_KEY, AGENT_MEMORY_PATH
 from core.constants import TECHNICAL_KEYWORDS, THOUGHT_PATTERNS
+from agents.main_agent import clear_rca_agent_cache
 
 router = APIRouter()
 
@@ -28,6 +29,9 @@ async def clear_chat_history(rca_id: str, x_internal_key: str = Header(None)):
     # prevenindo que callbacks do Agno toquem em outros bancos de dados durante o startup.
     # No sistema RCA, o session_id é deterministicamente igual ao rca_id.
     sid = rca_id
+    
+    # Invalida o cache do agente na aplicação para esta sessão apenas
+    clear_rca_agent_cache(sid)
     
     try:
         # Usamos a memória para deletar a sessão via API do Agno se possível,
@@ -172,7 +176,5 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
                     "role": role,
                     "content": content,
                 })
-
-    return {"messages": messages}
 
     return {"messages": messages}

@@ -59,3 +59,4 @@ docs/agno/
 server/data/media/
 server/server_log.txt
 .venv/
+log.md
