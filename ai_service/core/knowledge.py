@@ -9,6 +9,7 @@ import json
 import hashlib
 import time
 import httpx
+import threading
 from typing import List, Optional, Dict
 from agno.knowledge import Knowledge
 from agno.vectordb.chroma import ChromaDb
@@ -94,18 +95,19 @@ def init_hash_db():
     conn.commit()
     return conn
 
-import asyncio
-_save_locks: Dict[str, asyncio.Lock] = {}
+_locks_creation_lock = threading.Lock()
+_save_locks: Dict[str, threading.Lock] = {}
 
-async def save_recurrence_analysis(rca_id: str, analysis_data: dict):
+def save_recurrence_analysis(rca_id: str, analysis_data: dict):
     """Salva o resultado da análise de recorrência no SQLite com lock para evitar race condition."""
     import json
     from datetime import datetime
     
-    if rca_id not in _save_locks:
-        _save_locks[rca_id] = asyncio.Lock()
+    with _locks_creation_lock:
+        if rca_id not in _save_locks:
+            _save_locks[rca_id] = threading.Lock()
         
-    async with _save_locks[rca_id]:
+    with _save_locks[rca_id]:
         conn = init_hash_db()
         cursor = conn.cursor()
         cursor.execute('''

@@ -42,8 +42,12 @@ def test_history_delete_calls_clear(mock_clear):
     from core.config import INTERNAL_AUTH_KEY
 
     client = TestClient(app)
-    # Mock do resto do delete
-    with patch("core.memory.get_agent_memory"), patch("sqlite3.connect"):
+    # Mock do resto do delete para evitar tocar no DB real
+    with patch("core.memory.get_agent_memory"), \
+         patch("core.knowledge.get_recurrence_analysis") as mock_get_rec:
+        
+        mock_get_rec.return_value = None # Simula que não há análise prévia
+        
         client.delete(
             "/v2/analyze/history/test",
             headers={"x-internal-key": INTERNAL_AUTH_KEY}

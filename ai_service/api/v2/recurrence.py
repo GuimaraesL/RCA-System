@@ -139,7 +139,7 @@ async def _run_recurrence_analysis(request: AnalysisRequest):
     
     # 5. Persistência
     try:
-        await save_recurrence_analysis(str(request.rca_id), analysis_result)
+        save_recurrence_analysis(str(request.rca_id), analysis_result)
         analysis_result["last_analyzed_at"] = datetime.now().isoformat()
     except Exception as e:
         logger.error(f"Erro ao salvar analise de recorrencia na V2: {e}")
