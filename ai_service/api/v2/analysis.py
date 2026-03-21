@@ -32,6 +32,16 @@ def normalize_language(lang: str) -> str:
         return "Português-BR"
     return "Português-BR"
 
+def sanitize_context(context: str, max_length: int = 8000) -> str:
+    """Sanitiza o contexto do usuário para prevenir prompt injection."""
+    if not context:
+        return ""
+    # Remove tags de controle do sistema de sugestões
+    context = re.sub(r'<suggestions>.*?</suggestions>', '', context, flags=re.DOTALL)
+    # Limita tamanho para evitar context stuffing
+    context = context[:max_length]
+    return context.strip()
+
 @router.post("")
 async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(None)):
     if not secrets.compare_digest(x_internal_key or '', INTERNAL_AUTH_KEY):
@@ -47,9 +57,11 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
 
         # 2. Se for uma análise nova (não salva ainda), capturar do contexto
         query_text = ""
-        if request.context:
+        sanitized_context = sanitize_context(request.context) if request.context else ""
+
+        if sanitized_context:
             try:
-                ctx = json.loads(request.context)
+                ctx = json.loads(sanitized_context)
                 # Prioriza o asset_display do contexto se os IDs ainda forem nulos (novo RCA)
                 if asset_info == "Ativo não identificado explicitamente":
                     asset_info = ctx.get('asset_display', asset_info)
@@ -62,7 +74,7 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                 logger.warning(f"[analyze_rca] Falha ao parsear contexto JSON: {e}")
             
             # Alinhamento de Query: Usar o formato estruturado oficial
-            query_text = f"[DADOS ATUAIS DA TELA]:\nAtivo: {asset_info}\n{request.context}"
+            query_text = f"[DADOS ATUAIS DA TELA]:\nAtivo: {asset_info}\n{sanitized_context}"
 
         # Se for apenas para buscar os metadados (persistência de estado do banner) e pular o Agent
         if request.metadata_only:
@@ -106,7 +118,9 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
 
         context_block = ""
         if request.context:
-            context_block += f"Ativo: {asset_info}\n{request.context}"
+            sanitized_ctx = sanitize_context(request.context)
+            if sanitized_ctx:
+                context_block += f"Ativo: {asset_info}\n{sanitized_ctx}"
 
         if (images or videos) and is_initial_analysis:
             context_block += f"\n[EVIDÊNCIAS VISUAIS]: Existem {len(images)} imagens e {len(videos)} vídeos anexados para sua análise técnica.\n"

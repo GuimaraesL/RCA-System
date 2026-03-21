@@ -34,7 +34,7 @@ def test_rca_agent_instantiation():
         get_rca_agent("s1")
         assert mock_create.call_count == 2
 
-@patch("agents.main_agent.clear_rca_agent_cache")
+@patch("api.v2.history.clear_rca_agent_cache")
 def test_history_delete_calls_clear(mock_clear):
     """Verifica gatilho de limpeza."""
     from fastapi.testclient import TestClient

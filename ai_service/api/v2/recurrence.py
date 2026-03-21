@@ -15,7 +15,7 @@ from core.knowledge import get_recurrence_analysis, save_recurrence_analysis
 from api.models import AnalysisRequest
 from services.rag_service import search_hierarchical, validate_recurrences
 from core.tools import get_current_screen_context
-from api.v2.analysis import normalize_language
+from api.v2.analysis import normalize_language, sanitize_context
 
 router = APIRouter()
 
@@ -51,17 +51,19 @@ async def _run_recurrence_analysis(request: AnalysisRequest):
     asset_info = "Ativo não identificado explicitamente"
 
     if request.context:
-        try:
-            ctx = json.loads(request.context)
-            area_id = area_id or ctx.get('area_id')
-            equipment_id = equipment_id or ctx.get('equipment_id')
-            subgroup_id = subgroup_id or ctx.get('subgroup_id')
-            asset_info = ctx.get('asset_display', asset_info)
-        except Exception as e:
-            logger.warning(f"[_run_recurrence_analysis] Falha ao parsear contexto JSON: {e}")
+        sanitized_context = sanitize_context(request.context)
+        if sanitized_context:
+            try:
+                ctx = json.loads(sanitized_context)
+                area_id = area_id or ctx.get('area_id')
+                equipment_id = equipment_id or ctx.get('equipment_id')
+                subgroup_id = subgroup_id or ctx.get('subgroup_id')
+                asset_info = ctx.get('asset_display', asset_info)
+            except Exception as e:
+                logger.warning(f"[_run_recurrence_analysis] Falha ao parsear contexto JSON: {e}")
 
     # 2. Geração da Query Alinhada com o Chat (Referência Oficial)
-    query_text = f"[DADOS ATUAIS DA TELA]:\nAtivo: {asset_info}\n{request.context}"
+    query_text = f"[DADOS ATUAIS DA TELA]:\nAtivo: {asset_info}\n{sanitized_context if request.context else ''}"
 
     if not query_text:
         raise HTTPException(status_code=400, detail="Não foi possível gerar o contexto de busca.")
