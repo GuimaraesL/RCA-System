@@ -61,6 +61,20 @@ A obrigatoriedade dos campos é dinâmica e configurável via `TaxonomyService`.
 
 ---
 
+## Identificação e Validação de Recorrências (RAG)
+
+O sistema utiliza Inteligência Artificial para identificar se a falha atual já ocorreu anteriormente através do pipeline de RAG (Estágio 2).
+
+### 1. Critérios de Recorrência
+- **Escalabilidade Hierárquica**: A busca prioriza a mesma Área, Equipamento ou Subgrupo para garantir contexto técnico.
+- **Similarity Sharpening**: O sistema aplica uma curva de potência aos scores de similaridade para destacar padrões idênticos e atenuar ruídos semânticos.
+- **Validação Transversal**: Se o mecanismo de falha for idêntico (ex: torque insuficiente, vibração excessiva), o sistema deve validar a recorrência mesmo que o nome do componente seja diferente (ex: Motor A vs Motor B).
+
+### 2. Visibilidade de Padrões
+- **Neural Mesh**: Conexões semânticas (Similaridade > 0.75) são geradas automaticamente para alimentar o grafo de recorrências no Passo 8, evidenciando o "DNA" da falha.
+
+---
+
 ## Regras de Gatilhos (Triggers)
 
 Os gatilhos representam eventos de parada que podem ou não virar uma RCA.

@@ -94,5 +94,6 @@ O sistema gerencia coleções no VectorDB (ChromaDB):
 
 1. **Injeção de Contexto:** O endpoint captura dados da tela (`screen_context`) e os anexa à `session_state`.
 2. **Triagem (RAG Validator):** Quando ativado de forma invisível via metadados ou explicitamente, o `RAG_Recurrence_Validator` valida quais RCAs históricas são realmente recorrências do nível do Subgrupo, Equipamento ou Área.
+    - **Evolução**: Implementação de "Similarity Sharpening" para ganho de contraste e "Cross-Domain Awareness" (pensamento transversal) para correlacionar falhas mecânicas independentemente do nome do ativo.
 3. **Orquestração:** O Time de especialistas atua em conjunto. O Líder decide quando consultar o FMEA, calcular métricas ou delegar para análise visual.
 4. **Streaming SSE:** A resposta é enviada em tempo real para o Frontend, interceptando e ocultando os processos de raciocínio (ex: chamadas de ferramentas) substituindo por feedback visual (ex: "Consultando o histórico de falhas...").
