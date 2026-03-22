@@ -89,7 +89,8 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
                 subgroup_id=subgroup_id,
                 equipment_id=equipment_id,
                 area_id=area_id,
-                current_rca_id=str(request.rca_id)
+                current_rca_id=str(request.rca_id),
+                context_json=sanitized_context if request.context else None
             )
 
         # Lógica de análise completa (streaming)
@@ -296,5 +297,5 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
 
     except Exception as e:
         import traceback
-        print(traceback.format_exc())
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))

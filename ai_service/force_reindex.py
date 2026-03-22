@@ -22,10 +22,10 @@ def force_reindex():
         try:
             conn = sqlite3.connect(AGENT_MEMORY)
             cursor = conn.cursor()
-            cursor.execute("DROP TABLE IF EXISTS indexed_rcas")
+            cursor.execute("DROP TABLE IF EXISTS indexed_rcas_v2")
             conn.commit()
             conn.close()
-            print("Dropped indexed_rcas hash table")
+            print("Dropped indexed_rcas_v2 hash table")
         except Exception as e:
             print(f"Failed to drop table: {e}")
         
