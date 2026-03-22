@@ -12,6 +12,7 @@ _storage_instance = SqliteDb(
     db_file=AGENT_MEMORY_PATH,
     session_table="agno_sessions",
     memory_table="agno_memories",
+    metrics_table="agno_metrics", # CRÍTICO: Evita erros de telemetria e interrupção de stream
 )
 
 def get_agent_memory():

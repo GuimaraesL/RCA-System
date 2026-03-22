@@ -10,6 +10,7 @@ from agno.utils.log import logger
 
 from core.config import INTERNAL_AUTH_KEY, AGENT_MEMORY_PATH
 from core.constants import TECHNICAL_KEYWORDS, THOUGHT_PATTERNS
+from agents.main_agent import clear_rca_agent_cache
 
 router = APIRouter()
 
@@ -28,6 +29,9 @@ async def clear_chat_history(rca_id: str, x_internal_key: str = Header(None)):
     # prevenindo que callbacks do Agno toquem em outros bancos de dados durante o startup.
     # No sistema RCA, o session_id é deterministicamente igual ao rca_id.
     sid = rca_id
+    
+    # Invalida o cache do agente na aplicação para esta sessão apenas
+    clear_rca_agent_cache(sid)
     
     try:
         # Usamos a memória para deletar a sessão via API do Agno se possível,
@@ -84,26 +88,53 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
     if not secrets.compare_digest(x_internal_key or '', INTERNAL_AUTH_KEY):
         raise HTTPException(status_code=403, detail="Invalid Internal Key")
 
-    from agents.main_agent import get_rca_agent
-    agent = get_rca_agent(rca_id)
+    import json
+    from core.memory import get_agent_memory
+    from core.config import AGENT_MEMORY_PATH
 
     messages = []
+    session_msgs = []
+
     try:
-        session_msgs = agent.get_session_messages(rca_id)
+        # Recupera as mensagens via Agno Storage para evitar instanciar o Team completo (GH-164)
+        from core.memory import get_agent_memory
+        storage = get_agent_memory()
+        
+        # Tenta recuperar a sessão como 'team' ou 'agent'
+        session = storage.get_session(rca_id, session_type='team') or storage.get_session(rca_id, session_type='agent')
+        
+        if session and hasattr(session, 'runs') and session.runs:
+            for run in session.runs:
+                # Recupera mensagens do run (pode ser objeto ou dict)
+                msgs = getattr(run, 'messages', []) if not isinstance(run, dict) else run.get('messages', [])
+                if isinstance(msgs, list):
+                    for m in msgs:
+                        # Converte objeto Message do Agno para dict padrão {"role": "...", "content": "..."}
+                        role = getattr(m, 'role', None) or (m.get('role') if isinstance(m, dict) else None)
+                        content = getattr(m, 'content', None) or (m.get('content') if isinstance(m, dict) else None)
+                        
+                        # O Agno as vezes usa Enums para role, garantimos que seja string
+                        if role and hasattr(role, 'value'): role = role.value
+                        
+                        if role and content:
+                            session_msgs.append({"role": str(role), "content": str(content)})
     except Exception as e:
-        logger.warning(f"[get_chat_history] Falha ao recuperar histórico para {rca_id}: {e}")
+        logger.warning(f"[get_chat_history] Falha ao recuperar histórico via Agno Storage para {rca_id}: {e}")
+        # Zeramos para evitar dados parciais inconsistentes
         session_msgs = []
 
     if session_msgs:
-        for msg in session_msgs:
-            if msg.role in ['user', 'assistant']:
-                content = msg.content
+        for msg_data in session_msgs:
+            # Agno armazena mensagens como dicionários no banco
+            role = msg_data.get('role')
+            content = msg_data.get('content')
 
+            if role in ['user', 'assistant']:
                 if not content or not isinstance(content, str):
                     continue
 
                 # 1. Filtros de Comentários de Sistema
-                if msg.role == 'assistant' and ("<!-- RCA_SYSTEM_CONTEXT -->" in content or "<!-- INITIAL_ANALYSIS_REQUEST -->" in content):
+                if role == 'assistant' and ("<!-- RCA_SYSTEM_CONTEXT -->" in content or "<!-- INITIAL_ANALYSIS_REQUEST -->" in content):
                     continue
 
                 if "<!-- USER_MESSAGE -->" in content:
@@ -114,19 +145,19 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
                     content = "Dados contextuais enviados ao assistente."
 
                 # 2. Filtro do Prompt de MISSÃO (Initial Analysis)
-                if msg.role == 'user' and "### MISSÃO: Realizar análise completa" in content:
+                if role == 'user' and "### MISSÃO: Realizar análise completa" in content:
                     content = "Solicitei uma análise automática de causa raiz."
 
                 # 3. Limpeza de Tags de Sugestões (Evita vazamento de <suggestions> no histórico)
-                if msg.role == 'assistant' and "<suggestions>" in content:
+                if role == 'assistant' and "<suggestions>" in content:
                     content = re.sub(r'<suggestions>.*?</suggestions>', '', content, flags=re.DOTALL).strip()
 
                 # 4. Filtro de strings estáticas de status
                 if content.strip() in ["IO", "Analisando...", "Consultando...", "Analizando..."]:
-                    if msg.role == 'assistant': continue
+                    if role == 'assistant': continue
 
                 # 5. [ANTI-LEAK REFINADO] 
-                if msg.role == 'assistant' and len(content) < 150:
+                if role == 'assistant' and len(content) < 150:
                     is_leak = False
                     if any(kw in content for kw in TECHNICAL_KEYWORDS):
                         is_leak = True
@@ -142,7 +173,7 @@ async def get_chat_history(rca_id: str, x_internal_key: str = Header(None)):
                     continue
 
                 messages.append({
-                    "role": msg.role,
+                    "role": role,
                     "content": content,
                 })
 

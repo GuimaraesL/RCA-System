@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Teste: import_export.test.ts
  * 
  * Proposta: Validar a compatibilidade de importação de dados da Versão 17 para a arquitetura V2.
@@ -42,7 +42,11 @@ describe('Import/Export Data Validation', () => {
 
         // Recria schema para garantir isolamento e limpeza - Ordem correta de DROP
         db.run("DROP TABLE IF EXISTS actions");
+        db.run("DROP TABLE IF EXISTS triggers");
+        db.run("DROP TABLE IF EXISTS rca_investigations");
+        db.run("DROP TABLE IF EXISTS rcas_attachments");
         db.run("DROP TABLE IF EXISTS rcas");
+        
         db.run(`CREATE TABLE rcas (
             id TEXT PRIMARY KEY, what TEXT, status TEXT, 
             participants TEXT, root_causes TEXT, 
@@ -51,7 +55,8 @@ describe('Import/Export Data Validation', () => {
             specialty_id TEXT, failure_mode_id TEXT, failure_category_id TEXT,
             component_type TEXT, downtime_minutes REAL, financial_impact REAL,
             completion_date TEXT,
-            created_at TEXT, updated_at TEXT, file_path TEXT, five_whys TEXT, five_whys_chains TEXT,
+            created_at TEXT, updated_at TEXT, file_path TEXT, five_whys TEXT,
+            five_whys_chains TEXT,
             ishikawa TEXT, precision_maintenance TEXT, human_reliability TEXT,
             containment_actions TEXT, lessons_learned TEXT, additional_info TEXT,
             version INTEGER, analysis_date TEXT, analysis_duration_minutes REAL,
@@ -59,7 +64,7 @@ describe('Import/Export Data Validation', () => {
             failure_date TEXT, failure_time TEXT, os_number TEXT,
             area_id TEXT, equipment_id TEXT, asset_name_display TEXT,
             potential_impacts TEXT, quality_impacts TEXT,
-            general_moc_number TEXT, attachments TEXT
+            general_moc_number TEXT
         )`);
         
         db.run(`CREATE TABLE IF NOT EXISTS actions (
@@ -70,6 +75,23 @@ describe('Import/Export Data Validation', () => {
         db.run(`CREATE TABLE IF NOT EXISTS triggers (
             id TEXT PRIMARY KEY, rca_id TEXT, status TEXT,
             FOREIGN KEY(rca_id) REFERENCES rcas(id)
+        )`);
+
+        db.run(`CREATE TABLE IF NOT EXISTS rca_investigations (
+            id TEXT PRIMARY KEY, rca_id TEXT NOT NULL, 
+            method_type TEXT NOT NULL, content TEXT NOT NULL,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rcas_attachments (
+            id TEXT PRIMARY KEY,
+            rca_id TEXT NOT NULL,
+            filename TEXT NOT NULL,
+            storage_path TEXT NOT NULL,
+            file_type TEXT,
+            size_bytes INTEGER,
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
         )`);
 
         repo = new SqlRcaRepository();

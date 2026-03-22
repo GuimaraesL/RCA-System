@@ -51,9 +51,12 @@ export const toCSV = (data: any[], headers: string[]): string => {
  * Parser de CSV robusto capaz de lidar com campos multi-linha e aspas escapadas.
  */
 export const fromCSV = (csv: string): any[] => {
-    let firstLineEnd = csv.indexOf('\n');
-    if (firstLineEnd === -1) firstLineEnd = csv.length;
-    const firstLine = csv.substring(0, firstLineEnd);
+    // Limpeza rigorosa do BOM (Byte Order Mark) e normalização de quebras de linha
+    const cleanCsv = csv.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
+
+    let firstLineEnd = cleanCsv.indexOf('\n');
+    if (firstLineEnd === -1) firstLineEnd = cleanCsv.length;
+    const firstLine = cleanCsv.substring(0, firstLineEnd);
     const separator = detectSeparator(firstLine);
 
     const rows: string[][] = [];
@@ -61,9 +64,9 @@ export const fromCSV = (csv: string): any[] => {
     let currentVal = '';
     let insideQuote = false;
 
-    for (let i = 0; i < csv.length; i++) {
-        const char = csv[i];
-        const nextChar = csv[i + 1];
+    for (let i = 0; i < cleanCsv.length; i++) {
+        const char = cleanCsv[i];
+        const nextChar = cleanCsv[i + 1];
 
         if (char === '"') {
             if (insideQuote && nextChar === '"') {
@@ -96,7 +99,7 @@ export const fromCSV = (csv: string): any[] => {
 
     if (rows.length === 0) return [];
 
-    const headers = rows[0].map(h => h.trim().replace(/^"|"$/g, '').replace(/^\uFEFF/, '')); 
+    const headers = rows[0].map(h => h.trim().replace(/^"|"$/g, '')); 
     const dataRows = rows.slice(1);
 
     return dataRows.map(rowValues => {

@@ -356,6 +356,7 @@ export interface TranslationSchema {
         analysisTypes: string;
         analysisStatuses: string;
         triggerStatuses: string;
+        linkedSpecialties: string;
         componentTypes: string;
         specialties: string;
         failureModes: string;
@@ -701,6 +702,7 @@ export interface TranslationSchema {
             step6: { title: string; subtitle: string; };
             step7: { title: string; subtitle: string; };
             step8: { title: string; subtitle: string; };
+            step9: { title: string; subtitle: string; };
         };
         step8: {
             title: string;

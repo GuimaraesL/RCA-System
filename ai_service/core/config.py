@@ -20,6 +20,7 @@ VECTOR_DB_PATH = os.path.join(LOCAL_DATA_DIR, "vector_db")
 KNOWLEDGE_DB_PATH = os.path.join(LOCAL_DATA_DIR, "rca_knowledge.db")
 AGENT_MEMORY_PATH = os.path.join(LOCAL_DATA_DIR, "agent_memory.db")
 KNOWLEDGE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "knowledge")
+SOURCE_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "server", "data", "rca.db")
 
 if not GOOGLE_API_KEY:
     print("WARNING: GOOGLE_API_KEY not configured in .env")
