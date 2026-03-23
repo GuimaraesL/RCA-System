@@ -70,6 +70,7 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
 
     // --- Lógica de Validação para Causa Raiz ---
     const countWhysInNode = (node: any): number => {
+        if (!node) return 0;
         let count = (node.whys || []).filter((w: any) => w.answer?.trim()).length;
         if (node.children) {
             node.children.forEach((child: any) => {
@@ -286,19 +287,22 @@ const Step4InvestigationComponent: React.FC<Step4Props> = ({ data, onChange, tax
                                     {category.label}
                                 </h4>
                                 <ul className="space-y-2">
-                                    {(data.ishikawa?.[category.key as keyof IshikawaDiagram] || []).map((item, index) => (
-                                        <li key={index} className="flex items-center justify-between gap-3 text-sm bg-white dark:bg-slate-700 p-3 rounded-md border border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-md hover:border-primary-200 dark:hover:border-primary-700 transition-all group animate-in zoom-in-95 duration-200">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-primary-400 transition-colors"></div>
-                                            <span className="text-slate-700 dark:text-slate-200 break-words flex-1 leading-relaxed font-medium">{item}</span>
-                                            <button
-                                                onClick={() => removeIshikawaItem(category.key as any, index)}
-                                                className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
-                                                title={t('common.delete')}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </li>
-                                    ))}
+                                    {(data.ishikawa?.[category.key as keyof IshikawaDiagram] || []).map((item, index) => {
+                                        const text = typeof item === 'object' ? (item as any).text : item;
+                                        return (
+                                            <li key={index} className="flex items-center justify-between gap-3 text-sm bg-white dark:bg-slate-700 p-3 rounded-md border border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-md hover:border-primary-200 dark:hover:border-primary-700 transition-all group animate-in zoom-in-95 duration-200">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-primary-400 transition-colors"></div>
+                                                <span className="text-slate-700 dark:text-slate-200 break-words flex-1 leading-relaxed font-medium">{text}</span>
+                                                <button
+                                                    onClick={() => removeIshikawaItem(category.key as any, index)}
+                                                    className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
+                                                    title={t('common.delete')}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </li>
+                                        );
+                                    })}
                                     {(data.ishikawa?.[category.key as keyof IshikawaDiagram] || []).length === 0 && (
                                         <li className="text-slate-300 text-xs italic py-2 text-center border border-dashed border-slate-200 rounded">
                                             -

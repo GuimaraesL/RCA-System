@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Teste: RcaService.test.ts
  * 
  * Proposta: Validar as regras de negócio core do sistema de análise de causa raiz (RCA).
@@ -12,6 +12,7 @@ import { RcaService } from '../RcaService';
 import { SqlRcaRepository } from '../../../infrastructure/repositories/SqlRcaRepository';
 import { SqlActionRepository } from '../../../infrastructure/repositories/SqlActionRepository';
 import { SqlTriggerRepository } from '../../../infrastructure/repositories/SqlTriggerRepository';
+import { SqlAssetRepository } from '../../../infrastructure/repositories/SqlAssetRepository';
 import { TaxonomyConfig } from '../../../domain/types/RcaTypes';
 
 describe('RcaService', () => {
@@ -19,6 +20,7 @@ describe('RcaService', () => {
     let rcaRepoMock: any;
     let actionRepoMock: any;
     let triggerRepoMock: any;
+    let assetRepoMock: any;
 
     const mockTaxonomy: TaxonomyConfig = {
         analysisStatuses: [
@@ -45,7 +47,8 @@ describe('RcaService', () => {
             create: vi.fn(),
             update: vi.fn(),
             findById: vi.fn(),
-            findAll: vi.fn()
+            findAll: vi.fn(),
+            bulkCreate: vi.fn()
         };
 
         actionRepoMock = {
@@ -56,12 +59,17 @@ describe('RcaService', () => {
             findByRcaId: vi.fn().mockReturnValue(null),
             update: vi.fn()
         };
-
+ 
+        assetRepoMock = {
+            bulkCreate: vi.fn()
+        };
+ 
         // Injeta mocks
         service = new RcaService(
             rcaRepoMock as unknown as SqlRcaRepository,
             actionRepoMock as unknown as SqlActionRepository,
-            triggerRepoMock as unknown as SqlTriggerRepository
+            triggerRepoMock as unknown as SqlTriggerRepository,
+            assetRepoMock as unknown as SqlAssetRepository
         );
     });
 
@@ -150,6 +158,26 @@ describe('RcaService', () => {
         it('deve verificar STATUS-01 quando campos obrigatórios estão faltando', () => {
             const result = service.createRca({ what: 'New' }, mockTaxonomy);
             expect(result.rca.status).toBe('STATUS-01');
+        });
+    });
+
+    describe('bulkImport', () => {
+        it('deve sincronizar ativos únicos encontrados nas RCAs', () => {
+            const data = [
+                { id: '1', area_id: 'AREA1', equipment_id: 'EQ1', subgroup_id: 'SUB1' },
+                { id: '2', area_id: 'AREA1', equipment_id: 'EQ1', subgroup_id: 'SUB2' }
+            ];
+
+            service.bulkImport(data, mockTaxonomy);
+
+            expect(assetRepoMock.bulkCreate).toHaveBeenCalled();
+            const calledWith = assetRepoMock.bulkCreate.mock.calls[0][0];
+            
+            // Deve ter 4 ativos únicos: AREA1, EQ1, SUB1, SUB2
+            expect(calledWith.length).toBe(4);
+            expect(calledWith.find((a: any) => a.id === 'AREA1')).toBeDefined();
+            expect(calledWith.find((a: any) => a.id === 'EQ1')?.parent_id).toBe('AREA1');
+            expect(calledWith.find((a: any) => a.id === 'SUB2')?.parent_id).toBe('EQ1');
         });
     });
 });

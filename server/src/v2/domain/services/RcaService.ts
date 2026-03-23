@@ -3,10 +3,11 @@
  * Fluxo: Recebe dados brutos, normaliza estruturas complexas e orquestra o cálculo automático de status.
  */
 
-import { Rca, Action, TaxonomyConfig } from '../types/RcaTypes';
+import { Rca, Action, TaxonomyConfig, Asset } from '../types/RcaTypes';
 import { SqlRcaRepository } from '../../infrastructure/repositories/SqlRcaRepository';
 import { SqlActionRepository } from '../../infrastructure/repositories/SqlActionRepository';
 import { SqlTriggerRepository } from '../../infrastructure/repositories/SqlTriggerRepository';
+import { SqlAssetRepository } from '../../infrastructure/repositories/SqlAssetRepository';
 import { randomUUID } from 'crypto';
 import { STATUS_IDS, TRIGGER_STATUS_IDS } from '../constants';
 
@@ -14,15 +15,18 @@ export class RcaService {
     private rcaRepo: SqlRcaRepository;
     private actionRepo: SqlActionRepository;
     private triggerRepo: SqlTriggerRepository;
+    private assetRepo: SqlAssetRepository;
 
     constructor(
         rcaRepo?: SqlRcaRepository,
         actionRepo?: SqlActionRepository,
-        triggerRepo?: SqlTriggerRepository
+        triggerRepo?: SqlTriggerRepository,
+        assetRepo?: SqlAssetRepository
     ) {
         this.rcaRepo = rcaRepo || new SqlRcaRepository();
         this.actionRepo = actionRepo || new SqlActionRepository();
         this.triggerRepo = triggerRepo || new SqlTriggerRepository();
+        this.assetRepo = assetRepo || new SqlAssetRepository();
     }
 
     // --- Métodos Públicos de Negócio ---
@@ -118,7 +122,7 @@ export class RcaService {
             if (rcaActions.length === 0) {
                 rcaActions = this.actionRepo.findByRcaId(rca.id);
             }
-            
+
             const statusResult = this.calculateRcaStatus(rca, rcaActions, taxonomy);
 
             rca.status = statusResult.newStatus;
@@ -132,6 +136,14 @@ export class RcaService {
         // 4. Persistência em massa via transação
         this.rcaRepo.bulkCreate(processed);
 
+        // 4.5 Persistência das ações (Novo: corrigindo bug de ações sumindo na importação)
+        if (providedActions.length > 0) {
+            this.actionRepo.bulkCreate(providedActions);
+        }
+
+        // 4.6 Persistência de Ativos (Novo: garantindo que Áreas/Equipamentos apareçam no Dashboard)
+        this.syncAssetsFromRcas(processed);
+
         // 5. Sincronização de Gatilhos em massa (Issue #77)
         for (const rca of processed) {
             this.syncLinkedTrigger(rca);
@@ -141,6 +153,59 @@ export class RcaService {
     }
 
     // --- Lógica de Domínio ---
+
+    private syncAssetsFromRcas(rcas: Rca[]): void {
+        const assetsToSync = new Map<string, Asset>();
+
+        // 1. Coleta Áreas Primeiro (Top Level)
+        rcas.forEach(rca => {
+            if (rca.area_id) {
+                const key = `AREA:${rca.area_id}`;
+                if (!assetsToSync.has(key)) {
+                    assetsToSync.set(key, {
+                        id: rca.area_id,
+                        name: rca.area_id,
+                        type: 'AREA'
+                    });
+                }
+            }
+        });
+
+        // 2. Coleta Equipamentos (Filhos de Áreas)
+        rcas.forEach(rca => {
+            if (rca.area_id && rca.equipment_id) {
+                const key = `EQUIP:${rca.equipment_id}`;
+                if (!assetsToSync.has(key)) {
+                    assetsToSync.set(key, {
+                        id: rca.equipment_id,
+                        name: rca.equipment_id,
+                        type: 'EQUIPMENT',
+                        parent_id: rca.area_id
+                    });
+                }
+            }
+        });
+
+        // 3. Coleta Subgrupos (Filhos de Equipamentos)
+        rcas.forEach(rca => {
+            if (rca.equipment_id && rca.subgroup_id) {
+                const key = `SUB:${rca.subgroup_id}`;
+                if (!assetsToSync.has(key)) {
+                    assetsToSync.set(key, {
+                        id: rca.subgroup_id,
+                        name: rca.subgroup_id,
+                        type: 'SUBGROUP',
+                        parent_id: rca.equipment_id
+                    });
+                }
+            }
+        });
+
+        if (assetsToSync.size > 0) {
+            // Converte o Map para Array respeitando a ordem de inserção (Áreas -> Equips -> Subs)
+            this.assetRepo.bulkCreate(Array.from(assetsToSync.values()));
+        }
+    }
 
     /**
      * Sincroniza o status do gatilho vinculado com o estado atual da RCA.
@@ -165,7 +230,23 @@ export class RcaService {
     }
 
     public migrateRcaData(rca: any): Rca {
-        const migrated = { ...rca };
+        let migrated = { ...rca };
+
+        // 0. Achatar estruturas legadas (investigation ou analyses) para o nível raiz
+        const legacyObj = migrated.investigation || migrated.analyses;
+        if (legacyObj && typeof legacyObj === 'object') {
+            migrated = {
+                ...migrated,
+                five_whys: legacyObj.five_whys || migrated.five_whys,
+                five_whys_chains: legacyObj.five_whys_chains || migrated.five_whys_chains,
+                ishikawa: legacyObj.ishikawa || migrated.ishikawa,
+                root_causes: legacyObj.root_causes || migrated.root_causes,
+                precision_maintenance: legacyObj.precision_maintenance || migrated.precision_maintenance,
+                human_reliability: legacyObj.human_reliability || migrated.human_reliability,
+                containment_actions: legacyObj.containment_actions || migrated.containment_actions,
+                lessons_learned: legacyObj.lessons_learned || migrated.lessons_learned
+            };
+        }
 
         // 1. Garantir integridade de root_causes
         if (!migrated.root_causes) migrated.root_causes = [];
@@ -199,6 +280,138 @@ export class RcaService {
         if (!migrated.ishikawa) migrated.ishikawa = { machine: [], method: [], material: [], manpower: [], measurement: [], environment: [] };
         if (!migrated.human_reliability) migrated.human_reliability = { questions: [], conclusions: [], validation: { isValidated: '', comment: '' } };
 
+        // 5. Mapeamento de Checklists Legados (V17 com UUIDs -> V2 com IDs Técnicos)
+        const withChecklists = this.mapLegacyChecklists(migrated);
+
+        // 6. Mapeamento de Root Causes e Status (Strings -> IDs Técnicos)
+        return this.mapLegacyTaxonomy(withChecklists);
+    }
+
+    private mapLegacyTaxonomy(rca: Rca): Rca {
+        // 1. Mapeamento de Root Cause (6M)
+        if (rca.root_causes && Array.isArray(rca.root_causes)) {
+            const mMapping: Record<string, string> = {
+                'Mão de obra': 'M1', 'Mao de obra': 'M1', 'Mão de Obra': 'M1',
+                'Método': 'M2', 'Metodo': 'M2',
+                'Material': 'M3',
+                'Máquina': 'M4', 'Maquina': 'M4',
+                'Meio Ambiente': 'M5', 'Meio ambiente': 'M5',
+                'Medida': 'M6'
+            };
+            rca.root_causes = rca.root_causes.map(rc => ({
+                ...rc,
+                root_cause_m_id: mMapping[rc.root_cause_m_id] || rc.root_cause_m_id
+            }));
+        }
+
+        // 2. Mapeamento de Status
+        const statusMapping: Record<string, string> = {
+            'Concluída': 'STATUS-03', 'Concluído': 'STATUS-03', 'Concluido': 'STATUS-03', 'Concluida': 'STATUS-03',
+            'Em Andamento': 'STATUS-01', 'Em andamento': 'STATUS-01',
+            'Aguardando Verificação': 'STATUS-02', 'Ag. Verif': 'STATUS-02'
+        };
+        if (rca.status && statusMapping[rca.status]) {
+            rca.status = statusMapping[rca.status];
+        }
+
+        // 3. Mapeamento de Especialidade
+        const specMapping: Record<string, string> = {
+            'Mecânicas': 'MEC', 'Mecânica': 'MEC', 'Mecanica': 'MEC', 'Mecanicas': 'MEC',
+            'Elétrica': 'ELE', 'Eletrica': 'ELE',
+            'Instrumentação': 'INS', 'Instrumentacao': 'INS',
+            'Automação': 'AUT', 'Automacao': 'AUT',
+            'Operação': 'OPE', 'Operacao': 'OPE'
+        };
+        if (rca.specialty_id && specMapping[rca.specialty_id]) {
+            rca.specialty_id = specMapping[rca.specialty_id];
+        }
+
+        // 4. Mapeamento de Tipo de Análise
+        if (rca.analysis_type === 'RCA') rca.analysis_type = 'ANA-RCA';
+
+        // 5. Normalização de IDs de Modo de Falha e Categoria (Remover acentos e espaços para IDs técnicos aproximados)
+        const toTechId = (str: string) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/\s+/g, '_') : str;
+
+        if (rca.failure_mode_id && rca.failure_mode_id.length > 20) {
+            rca.failure_mode_id = toTechId(rca.failure_mode_id);
+        }
+        if (rca.failure_category_id && rca.failure_category_id.length > 20) {
+            rca.failure_category_id = toTechId(rca.failure_category_id);
+        }
+
+        return rca;
+    }
+
+    private mapLegacyChecklists(migrated: any): Rca {
+        // Precision Maintenance Mapping
+        if (migrated.precision_maintenance && Array.isArray(migrated.precision_maintenance)) {
+            const precisionMap: Record<string, string> = {
+                "Área está limpa e arrumada": "chk_clean",
+                "Os ajustes e tolerâncias estão corretos": "chk_tol",
+                "A lubrificação é limpa, livre de contaminantes, com a quantidade e qualidade adequadas": "chk_lube",
+                "A correia tem tensão e alinhamento correctos": "chk_belt",
+                "Cargas estão suportadas corretamento com montagens rígidas e suportes": "chk_load",
+                "Componentes (eixos, motores, redutores, bombas, rolos, …)  estão devidamente alinhados": "chk_align",
+                "Componentes rotativos estão balanceados": "chk_bal",
+                "Torques e Tensões estão correctos, utilizando torquimetros apropriados, ...": "chk_torque",
+                "Utilizados somente peças de acordo  com a especificação para o equipamento (no BOM)": "chk_parts",
+                "Teste Funcional executado": "chk_func",
+                "As modificações foram devidamente documentadas (atualização de desenhos, procedimentos, etc)": "chk_doc"
+            };
+
+            migrated.precision_maintenance = migrated.precision_maintenance.map((item: any) => {
+                const techId = precisionMap[item.activity];
+                if (techId) {
+                    return { id: techId, status: item.status, comment: item.comment || '' };
+                }
+                return item;
+            });
+        }
+
+        // Human Reliability Mapping
+        if (migrated.human_reliability && Array.isArray(migrated.human_reliability.questions)) {
+            const hraQuestionMap: Record<string, string> = {
+                "Os procedimentos são precisos e revisados?": "1.1",
+                "Os procedimentos estão alinhados com as práticas reais?": "1.3",
+                "Há comunicação apropriada e métodos de compartilhamento e escalonamento?": "1.4",
+                "Os materiais de treinamento refletem as informações e conhecimentos necessários para as competências identificadas?": "2.1",
+                "Os conhecimentos e habilidades estão sendo adquiridos e retidos?": "2.2",
+                "Há algum fator externo que possa afetar o desempenho do profissional: estresse, altos ruídos, calor/frio, vibração, atividades complexas, etc.?": "3.1",
+                "Há flexibilidade e treinamentos cruzados disponíveis para os profissionais?": "4.1",
+                "Os funcionários compreendem o valor e o impacto de seu trabalho?": "4.2",
+                "As condições de trabalho têm situações que criam dificuldades práticas para os funcionários: localização e acesso as ferramentas/equipamentos, sequência ideal de tarefas e padrões apropriados em vigor?": "5.1",
+                "Existem medidas para ajudar a identificar erros potenciais durante tarefas críticas, atividades ou eventos não rotineiros?": "6.1",
+                "Há erros que podem ter acontecido por falta de atenção?": "6.2"
+            };
+
+            migrated.human_reliability.questions = migrated.human_reliability.questions.map((q: any) => {
+                const techId = hraQuestionMap[q.question];
+                if (techId) {
+                    return { ...q, id: techId };
+                }
+                return q;
+            });
+        }
+
+        if (migrated.human_reliability && Array.isArray(migrated.human_reliability.conclusions)) {
+            const hraConclusionMap: Record<string, string> = {
+                "Procedimentos e Comunicação": "procedures",
+                "Treinamentos, materiais e sua eficiência": "training",
+                "Impactos externos (físicos e cognitivos)": "external",
+                "Trabalho rotineiro e monótono": "routine",
+                "Organização do ambiente e dos processos": "organization",
+                "Medidas contra falhas": "measures"
+            };
+
+            migrated.human_reliability.conclusions = migrated.human_reliability.conclusions.map((c: any) => {
+                const techId = hraConclusionMap[c.label];
+                if (techId) {
+                    return { ...c, id: techId };
+                }
+                return c;
+            });
+        }
+
         return migrated as Rca;
     }
 
@@ -222,7 +435,7 @@ export class RcaService {
         const missing: string[] = [];
         for (const field of mandatoryList) {
             let valid = true;
-            
+
             if (field === 'actions') {
                 valid = actions.length > 0;
             } else {
@@ -257,7 +470,7 @@ export class RcaService {
                     if (typeof value === 'string' && value.trim().length === 0) valid = false;
                 }
             }
-            
+
             if (!valid) missing.push(field);
         }
         return { valid: missing.length === 0, missing };
@@ -298,8 +511,8 @@ export class RcaService {
                 reason = 'Aguardando verificação de eficácia das ações obrigatórias';
             } else {
                 newStatus = doneStatusId;
-                reason = hasMainActions 
-                    ? (allActionsEffective ? 'Completo, ações efetivas' : 'Completo, eficácia das ações ignorada pela config') 
+                reason = hasMainActions
+                    ? (allActionsEffective ? 'Completo, ações efetivas' : 'Completo, eficácia das ações ignorada pela config')
                     : 'Completo, sem ações necessárias';
             }
         }

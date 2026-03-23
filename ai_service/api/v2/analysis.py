@@ -119,9 +119,8 @@ async def analyze_rca(request: AnalysisRequest, x_internal_key: str = Header(Non
 
         context_block = ""
         if request.context:
-            sanitized_ctx = sanitize_context(request.context)
-            if sanitized_ctx:
-                context_block += f"Ativo: {asset_info}\n{sanitized_ctx}"
+            if sanitized_context:
+                context_block += f"Ativo: {asset_info}\n{sanitized_context}"
 
         if (images or videos) and is_initial_analysis:
             context_block += f"\n[EVIDÊNCIAS VISUAIS]: Existem {len(images)} imagens e {len(videos)} vídeos anexados para sua análise técnica.\n"

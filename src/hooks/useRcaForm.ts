@@ -69,13 +69,34 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
         if (initialRecord) {
             const merged = { ...defaultRca, ...initialRecord };
 
-            // Garantir integridade de estruturas críticas
-            if (!merged.precision_maintenance || merged.precision_maintenance.length === 0) {
+            // Reidratação: Mescla dados salvos (IDs/Status) com definições padrão (Textos/Atividades)
+            if (merged.precision_maintenance && merged.precision_maintenance.length > 0) {
+                merged.precision_maintenance = defaultRca.precision_maintenance.map(std => {
+                    const saved = merged.precision_maintenance.find((s: any) => s.id === std.id);
+                    return saved ? { ...std, ...saved } : std;
+                });
+            } else {
                 merged.precision_maintenance = defaultRca.precision_maintenance;
             }
-            if (!merged.human_reliability || !merged.human_reliability.questions || merged.human_reliability.questions.length === 0) {
+
+            if (merged.human_reliability && merged.human_reliability.questions && merged.human_reliability.questions.length > 0) {
+                const savedHra = merged.human_reliability;
+                merged.human_reliability = {
+                    ...defaultRca.human_reliability,
+                    questions: defaultRca.human_reliability.questions.map(std => {
+                        const saved = savedHra.questions.find((q: any) => q.id === std.id);
+                        return saved ? { ...std, ...saved } : std;
+                    }),
+                    conclusions: defaultRca.human_reliability.conclusions.map(std => {
+                        const saved = savedHra.conclusions?.find((c: any) => c.id === std.id);
+                        return saved ? { ...std, ...saved } : std;
+                    }),
+                    validation: savedHra.validation || defaultRca.human_reliability.validation
+                };
+            } else {
                 merged.human_reliability = defaultRca.human_reliability;
             }
+
             if (!merged.ishikawa) merged.ishikawa = defaultRca.ishikawa;
             if (!merged.five_whys) merged.five_whys = defaultRca.five_whys;
             if (!merged.root_causes) merged.root_causes = defaultRca.root_causes;
@@ -223,8 +244,33 @@ export const useRcaForm = (initialRecord: RcaRecord | null, onSaveSuccess: () =>
         setIsSaving(true);
         try {
             console.log('HOOK: Calling updateRecord/addRecord');
-            if (initialRecord) await updateRecord(formData);
-            else await addRecord(formData);
+            
+            // Minimização de dados antes do envio (opcional, pois o backend também normaliza)
+            const cleanData = { ...formData };
+            if (cleanData.precision_maintenance) {
+                cleanData.precision_maintenance = cleanData.precision_maintenance.map(item => ({
+                    id: item.id,
+                    status: item.status,
+                    comment: item.comment || ''
+                } as any));
+            }
+            if (cleanData.human_reliability) {
+                cleanData.human_reliability = {
+                    questions: cleanData.human_reliability.questions.map(q => ({
+                        id: q.id,
+                        answer: q.answer,
+                        comment: q.comment || ''
+                    } as any)),
+                    conclusions: cleanData.human_reliability.conclusions?.map(c => ({
+                        id: c.id,
+                        selected: !!c.selected
+                    } as any)) || [],
+                    validation: cleanData.human_reliability.validation
+                };
+            }
+
+            if (initialRecord) await updateRecord(cleanData);
+            else await addRecord(cleanData);
             toast.success('Análise RCA salva com sucesso!');
             console.log('HOOK: Save success');
             onSaveSuccess();

@@ -33,33 +33,61 @@ describe('Performance Benchmark (V2 Core)', () => {
         await dbConn.initialize();
         const db = dbConn.getRawDatabase();
         db.run("DROP TABLE IF EXISTS actions");
-        db.run("DROP TABLE IF EXISTS rca_investigations");
+        db.run("DROP TABLE IF EXISTS triggers");
+        db.run("DROP TABLE IF EXISTS rca_five_whys");
+        db.run("DROP TABLE IF EXISTS rca_ishikawa");
+        db.run("DROP TABLE IF EXISTS rca_root_causes");
+        db.run("DROP TABLE IF EXISTS rca_precision_checklists");
+        db.run("DROP TABLE IF EXISTS rca_hra_checklists");
+        db.run("DROP TABLE IF EXISTS rca_containment");
         db.run("DROP TABLE IF EXISTS rcas_attachments");
         db.run("DROP TABLE IF EXISTS rcas");
         
         db.run(`CREATE TABLE rcas (
             id TEXT PRIMARY KEY, what TEXT, status TEXT, 
-            participants TEXT, root_causes TEXT, 
+            participants TEXT,
             analysis_type TEXT, problem_description TEXT, subgroup_id TEXT,
             who TEXT, "when" TEXT, where_description TEXT,
             specialty_id TEXT, failure_mode_id TEXT, failure_category_id TEXT,
             component_type TEXT, downtime_minutes REAL, financial_impact REAL,
             completion_date TEXT,
-            created_at TEXT, updated_at TEXT, file_path TEXT, five_whys TEXT,
-            five_whys_chains TEXT,
-            ishikawa TEXT, precision_maintenance TEXT, human_reliability TEXT,
-            containment_actions TEXT, lessons_learned TEXT, additional_info TEXT,
+            created_at TEXT, updated_at TEXT, file_path TEXT,
             version INTEGER, analysis_date TEXT, analysis_duration_minutes REAL,
             facilitator TEXT, start_date TEXT, requires_operation_support INTEGER,
             failure_date TEXT, failure_time TEXT, os_number TEXT,
             area_id TEXT, equipment_id TEXT, asset_name_display TEXT,
             potential_impacts TEXT, quality_impacts TEXT,
-            general_moc_number TEXT
+            general_moc_number TEXT, additional_info TEXT
         )`);
 
-        db.run(`CREATE TABLE IF NOT EXISTS rca_investigations (
-            id TEXT PRIMARY KEY, rca_id TEXT NOT NULL, 
-            method_type TEXT NOT NULL, content TEXT NOT NULL,
+        db.run(`CREATE TABLE rca_five_whys (
+            id TEXT PRIMARY KEY, rca_id TEXT NOT NULL, parent_id TEXT,
+            question TEXT, answer TEXT, order_index INTEGER, chain_id TEXT, cause_effect TEXT, content TEXT,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rca_ishikawa (
+            id TEXT PRIMARY KEY, rca_id TEXT NOT NULL, category TEXT NOT NULL, description TEXT NOT NULL,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rca_root_causes (
+            id TEXT PRIMARY KEY, rca_id TEXT NOT NULL, root_cause_m_id TEXT NOT NULL, cause TEXT NOT NULL,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rca_precision_checklists (
+            rca_id TEXT PRIMARY KEY, content TEXT,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rca_hra_checklists (
+            rca_id TEXT PRIMARY KEY, content TEXT,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rca_containment (
+            id TEXT PRIMARY KEY, rca_id TEXT NOT NULL, content TEXT NOT NULL,
             FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
         )`);
 

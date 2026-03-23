@@ -30,15 +30,12 @@ export class SqlTaxonomyRepository {
             
             // Busca modos de falha e suas relações com especialidades
             const modesRaw = this.db.query('SELECT id, name FROM taxonomy_failure_modes');
-            const modeRelations = this.db.query('SELECT failure_mode_id, specialty_id FROM rel_mode_specialty');
             
-            // Reconstrói a lista de modos de falha com seus IDs de especialidades
+            // Reconstrói a lista de modos de falha
             const failureModes = modesRaw.map(mode => ({
                 id: mode.id,
                 name: mode.name,
-                specialty_ids: modeRelations
-                    .filter(rel => rel.failure_mode_id === mode.id)
-                    .map(rel => rel.specialty_id)
+                specialty_ids: []
             }));
 
             // O merge com os defaults padrão nos campos vitais é feito no retorno final
@@ -77,43 +74,45 @@ export class SqlTaxonomyRepository {
                 this.db.execute('DELETE FROM taxonomy_failure_categories');
                 this.db.execute('DELETE FROM taxonomy_component_types');
                 this.db.execute('DELETE FROM taxonomy_failure_modes');
-                this.db.execute('DELETE FROM rel_mode_specialty');
                 this.db.execute('DELETE FROM taxonomy_root_causes_6m');
                 this.db.execute('DELETE FROM taxonomy_analysis_types');
                 this.db.execute('DELETE FROM taxonomy_analysis_statuses');
                 this.db.execute('DELETE FROM taxonomy_trigger_statuses');
 
-                // Insere novos dados
-                (updated.specialties ?? []).forEach((s: any) => 
-                    this.db.execute('INSERT INTO taxonomy_specialties (id, name) VALUES (?, ?)', [s.id, s.name]));
+                // Insere novos dados com deduplicação para evitar UNIQUE constraint failed
+                const dedupe = (arr: any[] | undefined) => {
+                    const seen = new Set();
+                    return (arr || []).filter(item => {
+                        if (!item.id || seen.has(item.id)) return false;
+                        seen.add(item.id);
+                        return true;
+                    });
+                };
+
+                dedupe(updated.specialties).forEach((s: any) => 
+                    this.db.execute('INSERT OR REPLACE INTO taxonomy_specialties (id, name) VALUES (?, ?)', [s.id, s.name]));
                 
-                (updated.failureCategories ?? []).forEach((c: any) => 
-                    this.db.execute('INSERT INTO taxonomy_failure_categories (id, name) VALUES (?, ?)', [c.id, c.name]));
+                dedupe(updated.failureCategories).forEach((c: any) => 
+                    this.db.execute('INSERT OR REPLACE INTO taxonomy_failure_categories (id, name) VALUES (?, ?)', [c.id, c.name]));
                 
-                (updated.componentTypes ?? []).forEach((t: any) => 
-                    this.db.execute('INSERT INTO taxonomy_component_types (id, name) VALUES (?, ?)', [t.id, t.name]));
+                dedupe(updated.componentTypes).forEach((t: any) => 
+                    this.db.execute('INSERT OR REPLACE INTO taxonomy_component_types (id, name) VALUES (?, ?)', [t.id, t.name]));
                 
-                (updated.failureModes ?? []).forEach((m: any) => {
-                    this.db.execute('INSERT INTO taxonomy_failure_modes (id, name) VALUES (?, ?)', [m.id, m.name]);
-                    m.specialty_ids?.forEach((sid: string) => 
-                        this.db.execute('INSERT INTO rel_mode_specialty (failure_mode_id, specialty_id) VALUES (?, ?)', [m.id, sid]));
+                dedupe(updated.failureModes).forEach((m: any) => {
+                    this.db.execute('INSERT OR REPLACE INTO taxonomy_failure_modes (id, name) VALUES (?, ?)', [m.id, m.name]);
                 });
 
-                (updated.rootCauseMs ?? []).forEach((m: any) => 
-                    this.db.execute('INSERT INTO taxonomy_root_causes_6m (id, name) VALUES (?, ?)', [m.id, m.name]));
+                dedupe(updated.rootCauseMs).forEach((m: any) => 
+                    this.db.execute('INSERT OR REPLACE INTO taxonomy_root_causes_6m (id, name) VALUES (?, ?)', [m.id, m.name]));
 
-                (updated.analysisTypes ?? []).forEach((t: any) => 
-                    this.db.execute('INSERT INTO taxonomy_analysis_types (id, name) VALUES (?, ?)', [t.id, t.name]));
+                dedupe(updated.analysisTypes).forEach((t: any) => 
+                    this.db.execute('INSERT OR REPLACE INTO taxonomy_analysis_types (id, name) VALUES (?, ?)', [t.id, t.name]));
 
-                (updated.analysisStatuses ?? []).forEach((s: any) => 
-                    this.db.execute('INSERT INTO taxonomy_analysis_statuses (id, name) VALUES (?, ?)', [s.id, s.name]));
+                dedupe(updated.analysisStatuses).forEach((s: any) => 
+                    this.db.execute('INSERT OR REPLACE INTO taxonomy_analysis_statuses (id, name) VALUES (?, ?)', [s.id, s.name]));
 
-                (updated.triggerStatuses ?? []).forEach((s: any) => 
-                    this.db.execute('INSERT INTO taxonomy_trigger_statuses (id, name) VALUES (?, ?)', [s.id, s.name]));
-
-                // Persiste o JSON na tabela legado 'taxonomy' para compatibilidade
-                this.db.execute('DELETE FROM taxonomy');
-                this.db.execute('INSERT INTO taxonomy (config) VALUES (?)', [JSON.stringify(updated)]);
+                dedupe(updated.triggerStatuses).forEach((s: any) => 
+                    this.db.execute('INSERT OR REPLACE INTO taxonomy_trigger_statuses (id, name) VALUES (?, ?)', [s.id, s.name]));
             });
 
             logger.info('[V2] Taxonomia relacional atualizada com sucesso via Transação.');

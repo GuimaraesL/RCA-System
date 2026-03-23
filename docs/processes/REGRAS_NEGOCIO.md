@@ -97,6 +97,7 @@ O `RcaService` implementa normalizadores (`migrateRcaData`) para garantir que da
 - **5 Porquês:** Garante array mínimo de 5 posições.
 - **Ishikawa:** Garante a estrutura dos 6M (`machine`, `method`, etc).
 - **Causa Raiz:** Converte string simples (legado) para array de objetos `root_causes`.
+- **Sincronização de Ativos:** Novos ativos detectados na importação são criados em camadas (Área -> Equipamento -> Subgrupo) para garantir que o vínculo de `parent_id` seja sempre válido.
 
 ---
 

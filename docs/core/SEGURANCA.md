@@ -40,6 +40,7 @@ A validação de permissões ocorre obrigatoriamente no Backend através de midd
 
 ### 3.3. Validação de Dados (Sanitização)
 - **Zod Schemas:** Todos os inputs de API devem ser validados e sanitizados contra SQL Injection e Cross-Site Scripting (XSS) antes do processamento.
+- **Prompt Injection Prevention:** Todo campo de texto livre (como `context`) enviado para o motor de IA deve passar pela função `sanitize_context` (remoção de tags de sistema e limite de 8000 caracteres) antes de ser interpolado em prompts.
 
 ---
 

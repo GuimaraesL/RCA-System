@@ -23,7 +23,12 @@ describe('SqlRcaRepository Normalization Reproduction', () => {
         await dbConn.initialize();
         const db = dbConn.getRawDatabase();
 
-        db.run("DROP TABLE IF EXISTS rca_investigations");
+        db.run("DROP TABLE IF EXISTS rca_five_whys");
+        db.run("DROP TABLE IF EXISTS rca_ishikawa");
+        db.run("DROP TABLE IF EXISTS rca_root_causes");
+        db.run("DROP TABLE IF EXISTS rca_precision_checklists");
+        db.run("DROP TABLE IF EXISTS rca_hra_checklists");
+        db.run("DROP TABLE IF EXISTS rca_containment");
         db.run("DROP TABLE IF EXISTS rcas_attachments");
         db.run("DROP TABLE IF EXISTS rcas");
         
@@ -62,19 +67,56 @@ describe('SqlRcaRepository Normalization Reproduction', () => {
             general_moc_number TEXT,
             additional_info TEXT,
             file_path TEXT,
-            five_whys_chains TEXT,
             created_at TEXT DEFAULT (datetime('now')),
             updated_at TEXT DEFAULT (datetime('now'))
         )`);
 
-        db.run(`CREATE TABLE rca_investigations (
+        db.run(`CREATE TABLE rca_five_whys (
             id TEXT PRIMARY KEY,
             rca_id TEXT NOT NULL,
-            method_type TEXT NOT NULL,
+            parent_id TEXT,
+            question TEXT,
+            answer TEXT,
+            order_index INTEGER,
+            chain_id TEXT,
+            cause_effect TEXT,
+            content TEXT,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rca_ishikawa (
+            id TEXT PRIMARY KEY,
+            rca_id TEXT NOT NULL,
+            category TEXT NOT NULL,
+            description TEXT NOT NULL,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rca_root_causes (
+            id TEXT PRIMARY KEY,
+            rca_id TEXT NOT NULL,
+            root_cause_m_id TEXT NOT NULL,
+            cause TEXT NOT NULL,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rca_precision_checklists (
+            rca_id TEXT PRIMARY KEY,
             content TEXT NOT NULL,
-            created_at TEXT DEFAULT (datetime('now')),
-            updated_at TEXT DEFAULT (datetime('now')),
-            FOREIGN KEY(rca_id) REFERENCES rcas(id)
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rca_hra_checklists (
+            rca_id TEXT PRIMARY KEY,
+            content TEXT NOT NULL,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rca_containment (
+            id TEXT PRIMARY KEY,
+            rca_id TEXT NOT NULL,
+            content TEXT NOT NULL,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
         )`);
 
         db.run(`CREATE TABLE rcas_attachments (

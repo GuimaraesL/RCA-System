@@ -21,6 +21,7 @@ interface RcaContextType {
   addRecord: (record: RcaRecord) => Promise<void>;
   updateRecord: (record: RcaRecord) => Promise<void>;
   deleteRecord: (id: string) => Promise<void>;
+  getRecordById: (id: string) => Promise<RcaRecord | undefined>;
 
   // Métodos de Gestão de Ativos
   updateAssets: (assets: AssetNode[]) => Promise<void>;
@@ -188,6 +189,20 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [useApi, refreshAll]);
 
+  const getRecordById = useCallback(async (id: string): Promise<RcaRecord | undefined> => {
+    try {
+      if (useApi) {
+        const fullRecord = await api.fetchRecordById(id);
+        return fullRecord || records.find(r => r.id === id);
+      } else {
+        return records.find(r => r.id === id);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar RCA completo:', error);
+      return records.find(r => r.id === id);
+    }
+  }, [useApi, records]);
+
   const addAction = useCallback(async (action: ActionRecord): Promise<void> => {
     try {
       if (useApi) await api.saveActionToApi(action, false);
@@ -292,13 +307,13 @@ export const RcaProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const contextValue = useMemo(() => ({
     records, assets, actions, triggers, taxonomy, isLoading, useApi,
-    addRecord, updateRecord, deleteRecord, updateAssets,
+    addRecord, updateRecord, deleteRecord, getRecordById, updateAssets,
     addAction, updateAction, deleteAction,
     addTrigger, updateTrigger, deleteTrigger,
     updateTaxonomy, refreshAll, setUseApi
   }), [
     records, assets, actions, triggers, taxonomy, isLoading, useApi,
-    addRecord, updateRecord, deleteRecord, updateAssets,
+    addRecord, updateRecord, deleteRecord, getRecordById, updateAssets,
     addAction, updateAction, deleteAction,
     addTrigger, updateTrigger, deleteTrigger,
     updateTaxonomy, refreshAll

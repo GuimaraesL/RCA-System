@@ -11,7 +11,12 @@ describe('SqlRcaRepository Integration Test', () => {
         await dbConn.initialize();
         const db = dbConn.getRawDatabase();
 
-        db.run("DROP TABLE IF EXISTS rca_investigations");
+        db.run("DROP TABLE IF EXISTS rca_five_whys");
+        db.run("DROP TABLE IF EXISTS rca_ishikawa");
+        db.run("DROP TABLE IF EXISTS rca_root_causes");
+        db.run("DROP TABLE IF EXISTS rca_precision_checklists");
+        db.run("DROP TABLE IF EXISTS rca_hra_checklists");
+        db.run("DROP TABLE IF EXISTS rca_containment");
         db.run("DROP TABLE IF EXISTS rcas_attachments");
         db.run("DROP TABLE IF EXISTS rcas");
         
@@ -24,7 +29,6 @@ describe('SqlRcaRepository Integration Test', () => {
             status TEXT,
             participants TEXT,
             facilitator TEXT,
-            five_whys_chains TEXT,
             start_date TEXT,
             completion_date TEXT,
             requires_operation_support INTEGER,
@@ -55,14 +59,52 @@ describe('SqlRcaRepository Integration Test', () => {
             updated_at TEXT DEFAULT (datetime('now'))
         )`);
 
-        db.run(`CREATE TABLE rca_investigations (
+        db.run(`CREATE TABLE rca_five_whys (
             id TEXT PRIMARY KEY,
             rca_id TEXT NOT NULL,
-            method_type TEXT NOT NULL,
+            parent_id TEXT,
+            question TEXT,
+            answer TEXT,
+            order_index INTEGER,
+            chain_id TEXT,
+            cause_effect TEXT,
+            content TEXT,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rca_ishikawa (
+            id TEXT PRIMARY KEY,
+            rca_id TEXT NOT NULL,
+            category TEXT NOT NULL,
+            description TEXT NOT NULL,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rca_root_causes (
+            id TEXT PRIMARY KEY,
+            rca_id TEXT NOT NULL,
+            root_cause_m_id TEXT NOT NULL,
+            cause TEXT NOT NULL,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rca_precision_checklists (
+            rca_id TEXT PRIMARY KEY,
             content TEXT NOT NULL,
-            created_at TEXT DEFAULT (datetime('now')),
-            updated_at TEXT DEFAULT (datetime('now')),
-            FOREIGN KEY(rca_id) REFERENCES rcas(id)
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rca_hra_checklists (
+            rca_id TEXT PRIMARY KEY,
+            content TEXT NOT NULL,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
+        )`);
+
+        db.run(`CREATE TABLE rca_containment (
+            id TEXT PRIMARY KEY,
+            rca_id TEXT NOT NULL,
+            content TEXT NOT NULL,
+            FOREIGN KEY(rca_id) REFERENCES rcas(id) ON DELETE CASCADE
         )`);
 
         db.run(`CREATE TABLE rcas_attachments (
@@ -90,15 +132,11 @@ describe('SqlRcaRepository Integration Test', () => {
         repo.save(rca);
 
         const db = DatabaseConnection.getInstance().getRawDatabase();
-        const invRows = db.exec("SELECT method_type, content FROM rca_investigations WHERE rca_id = 'RCA-TEST-01'");
+        const fwhysRows = db.exec("SELECT * FROM rca_five_whys WHERE rca_id = 'RCA-TEST-01'");
+        const ishiRows = db.exec("SELECT * FROM rca_ishikawa WHERE rca_id = 'RCA-TEST-01'");
         
-        expect(invRows.length).toBeGreaterThan(0);
-        const values = invRows[0].values;
-        expect(values.length).toBe(2);
-        
-        const methods = values.map(v => v[0]);
-        expect(methods).toContain('FIVE_WHYS');
-        expect(methods).toContain('ISHIKAWA');
+        expect(fwhysRows.length).toBeGreaterThan(0);
+        expect(ishiRows.length).toBeGreaterThan(0);
     });
 
     it('deve carregar um RCA completo reunindo dados de ambas as tabelas', () => {
@@ -132,8 +170,8 @@ describe('SqlRcaRepository Integration Test', () => {
         expect(repo.findById('RCA-DEL')).toBeNull();
         
         const db = DatabaseConnection.getInstance().getRawDatabase();
-        const invRows = db.exec("SELECT COUNT(*) FROM rca_investigations WHERE rca_id = 'RCA-DEL'");
-        expect(invRows[0].values[0][0]).toBe(0);
+        const rows = db.exec("SELECT COUNT(*) FROM rca_five_whys WHERE rca_id = 'RCA-DEL'");
+        expect(rows[0].values[0][0]).toBe(0);
     });
 
     it('deve persistir e recuperar anexos e 5 porquês em tabelas normalizadas', () => {
@@ -143,7 +181,7 @@ describe('SqlRcaRepository Integration Test', () => {
                 { id: 'ATT-1', rca_id: 'RCA-NORM-01', filename: 'test.png', storage_path: '/path/1', file_type: 'image/png', size_bytes: 1024 }
             ],
             five_whys_chains: [
-                { id: 'FW-1', rca_id: 'RCA-NORM-01', question: 'Q1', answer: 'A1', order_index: 0 }
+                { id: 'FW-1', rca_id: 'RCA-NORM-01', question: 'Q1', answer: 'A1', order_index: 0, chain_id: 'C-1' }
             ]
         };
 
@@ -158,12 +196,10 @@ describe('SqlRcaRepository Integration Test', () => {
         // Verifica no banco bruto se as tabelas foram preenchidas
         const db = DatabaseConnection.getInstance().getRawDatabase();
         const attRows = db.exec("SELECT * FROM rcas_attachments WHERE rca_id = 'RCA-NORM-01'");
-        const rcaRows = db.exec("SELECT five_whys_chains FROM rcas WHERE id = 'RCA-NORM-01'");
+        const fwhysRows = db.exec("SELECT * FROM rca_five_whys WHERE rca_id = 'RCA-NORM-01'");
 
         expect(attRows.length).toBeGreaterThan(0);
-        expect(rcaRows.length).toBeGreaterThan(0);
-        const chains = JSON.parse(rcaRows[0].values[0][0]);
-        expect(chains).toHaveLength(1);
+        expect(fwhysRows.length).toBeGreaterThan(0);
     });
 
     it('deve deletar em cascata anexos ao excluir RCA', () => {

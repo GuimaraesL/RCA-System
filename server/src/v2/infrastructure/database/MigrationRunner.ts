@@ -89,13 +89,6 @@ export class MigrationRunner {
                     CREATE TABLE IF NOT EXISTS taxonomy_component_types (id TEXT PRIMARY KEY, name TEXT NOT NULL);
                     CREATE TABLE IF NOT EXISTS taxonomy_root_causes_6m (id TEXT PRIMARY KEY, name TEXT NOT NULL);
                     CREATE TABLE IF NOT EXISTS taxonomy_failure_modes (id TEXT PRIMARY KEY, name TEXT NOT NULL);
-                    CREATE TABLE IF NOT EXISTS rel_mode_specialty (
-                        failure_mode_id TEXT, 
-                        specialty_id TEXT, 
-                        PRIMARY KEY (failure_mode_id, specialty_id),
-                        FOREIGN KEY (failure_mode_id) REFERENCES taxonomy_failure_modes(id),
-                        FOREIGN KEY (specialty_id) REFERENCES taxonomy_specialties(id)
-                    );
                     CREATE TABLE IF NOT EXISTS taxonomy_analysis_types (id TEXT PRIMARY KEY, name TEXT NOT NULL);
                     CREATE TABLE IF NOT EXISTS taxonomy_analysis_statuses (id TEXT PRIMARY KEY, name TEXT NOT NULL);
                     CREATE TABLE IF NOT EXISTS taxonomy_trigger_statuses (id TEXT PRIMARY KEY, name TEXT NOT NULL);
@@ -104,15 +97,60 @@ export class MigrationRunner {
             {
                 name: 'v5.0: Otimização de performance em ativos',
                 up: "CREATE INDEX IF NOT EXISTS idx_assets_parent_id ON assets(parent_id)"
+            },
+            {
+                name: 'v6.1: Garantir colunas acidentalmente omitidas na tabela rcas',
+                up: `
+                    ALTER TABLE rcas ADD COLUMN additional_info TEXT;
+                    ALTER TABLE rcas ADD COLUMN problem_description TEXT;
+                `
+            },
+            {
+                name: 'v6.2: Adicionar coluna content na tabela rca_five_whys para suporte a Hierarquia',
+                up: "ALTER TABLE rca_five_whys ADD COLUMN content TEXT;"
+            },
+            {
+                name: 'v7.0: Limpeza de schema legado',
+                up: `
+                    DROP TABLE IF EXISTS rel_mode_specialty;
+                    DROP TABLE IF EXISTS rel_mode_speciality;
+                    ALTER TABLE rcas DROP COLUMN five_whys;
+                    ALTER TABLE rcas DROP COLUMN five_whys_chains;
+                    ALTER TABLE rcas DROP COLUMN attachments;
+                `
+            },
+            {
+                name: 'v8.0: Normalizar categorias de Ishikawa para IDs M1-M6',
+                up: `
+                    UPDATE rca_ishikawa SET category = 'M1' WHERE category = 'manpower';
+                    UPDATE rca_ishikawa SET category = 'M2' WHERE category = 'method';
+                    UPDATE rca_ishikawa SET category = 'M3' WHERE category = 'material';
+                    UPDATE rca_ishikawa SET category = 'M4' WHERE category = 'machine';
+                    UPDATE rca_ishikawa SET category = 'M5' WHERE category = 'environment';
+                    UPDATE rca_ishikawa SET category = 'M6' WHERE category = 'measurement';
+                `
             }
         ];
 
         for (const migration of migrations) {
             try {
-                this.db.execute(migration.up);
+                if (migration.up.includes(';')) {
+                    const stmts = migration.up.split(';').filter(s => s.trim().length > 0);
+                    for (const stmt of stmts) {
+                        try {
+                            this.db.execute(stmt);
+                        } catch (innerE: any) {
+                            if (!innerE.message.includes("duplicate column name")) {
+                                throw innerE; // Rethrow se não for um duplicate column esperado
+                            }
+                        }
+                    }
+                } else {
+                    this.db.execute(migration.up);
+                }
             } catch (e: any) {
-                if (!e.message.includes("duplicate column")) {
-                    // Silencia erros esperados
+                if (!e.message.includes("duplicate column name")) {
+                    // logger.warn(`[V2] Falha não crítica na migração ${migration.name}:`, e.message);
                 }
             }
         }

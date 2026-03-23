@@ -76,11 +76,11 @@ export const MigrationView: React.FC = () => {
 
             reader.onload = (e) => {
                 let content = (e.target?.result as string) || '';
-                
+
                 // Limpeza do BOM (Byte Order Mark) invisível que pode quebrar o JSON.parse
                 // Mantemos apenas esta limpeza essencial
                 content = content.replace(/^\uFEFF/, '');
-                
+
                 resolve(content);
             };
             reader.onerror = () => reject(reader.error);

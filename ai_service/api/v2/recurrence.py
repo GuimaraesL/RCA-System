@@ -75,7 +75,7 @@ async def _run_recurrence_analysis(request: AnalysisRequest):
     # 2. Geração da Query Alinhada com o Chat (Referência Oficial)
     query_text = f"[DADOS ATUAIS DA TELA]:\nAtivo: {asset_info}\n{sanitized_context if request.context else ''}"
 
-    if not query_text:
+    if not query_text.strip():
         raise HTTPException(status_code=400, detail="Não foi possível gerar o contexto de busca.")
 
     import hashlib

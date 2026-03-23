@@ -172,33 +172,68 @@ def get_recurrence_analysis(rca_id: str):
     return None
 
 def _get_flattened_investigations(rca_id: str, source_cursor: sqlite3.Cursor) -> str:
-    """Busca e achata todas as investigações técnicas (5 Porquês, Ishikawa, etc) da tabela rca_investigations."""
+    """Busca e achata todas as investigações técnicas (5 Porquês, Ishikawa, etc) das novas tabelas."""
+    parts = []
     try:
-        source_cursor.execute("SELECT method_type, content FROM rca_investigations WHERE rca_id = ?", (rca_id,))
-        rows = source_cursor.fetchall()
-        if not rows: return ""
-        
-        parts = []
-        for m_type, content_json in rows:
+        # 1. Busca em rca_five_whys
+        source_cursor.execute("SELECT question, answer FROM rca_five_whys WHERE rca_id = ? ORDER BY order_index ASC", (rca_id,))
+        five_whys_rows = source_cursor.fetchall()
+        if five_whys_rows:
+            whys = [row[1] for row in five_whys_rows if row[1]]
+            if whys: parts.append(f"5 PORQUÊS: {' -> '.join(whys)}")
+
+        # 2. Busca em rca_root_causes
+        source_cursor.execute("SELECT cause FROM rca_root_causes WHERE rca_id = ?", (rca_id,))
+        root_causes_rows = source_cursor.fetchall()
+        if root_causes_rows:
+            causes = [row[0] for row in root_causes_rows if row[0]]
+            if causes: parts.append(f"CAUSAS RAIZ: {' | '.join(causes)}")
+
+        # 3. Busca em rca_ishikawa
+        source_cursor.execute("SELECT category, description FROM rca_ishikawa WHERE rca_id = ?", (rca_id,))
+        ishikawa_rows = source_cursor.fetchall()
+        if ishikawa_rows:
+            ish_dict = {}
+            for cat, desc in ishikawa_rows:
+                if cat not in ish_dict: ish_dict[cat] = []
+                if desc: ish_dict[cat].append(desc)
+            ish_text = [f"{cat}: {', '.join(items)}" for cat, items in ish_dict.items() if items]
+            if ish_text: parts.append(f"ISHIKAWA: {'; '.join(ish_text)}")
+
+        # 4. Busca em rca_precision_checklists
+        source_cursor.execute("SELECT * FROM rca_precision_checklists WHERE rca_id = ?", (rca_id,))
+        row_p = source_cursor.fetchone()
+        if row_p:
+            cols = [d[0] for d in source_cursor.description]
+            executed = []
+            for i, col in enumerate(cols):
+                if col.endswith('_status') and row_p[i] == 'EXECUTED':
+                    item_id = col.replace('_status', '')
+                    executed.append(item_id)
+            if executed:
+                parts.append(f"CHECKLIST PRECISÃO (EXECUTADOS): {', '.join(executed)}")
+
+        # 5. Busca em rca_hra_checklists
+        source_cursor.execute("SELECT is_validated, validation_comment FROM rca_hra_checklists WHERE rca_id = ?", (rca_id,))
+        row_h = source_cursor.fetchone()
+        if row_h:
+            status_hra = row_h[0] if row_h[0] else "Realizada"
+            parts.append(f"CONFIABILIDADE HUMANA (HRA): {status_hra} - {row_h[1] or ''}")
+
+        # 6. Busca em rca_containment (Containment Actions, Lessons Learned)
+        source_cursor.execute("SELECT content FROM rca_containment WHERE rca_id = ?", (rca_id,))
+        row = source_cursor.fetchone()
+        if row:
             try:
-                data = json.loads(content_json)
-                if m_type == 'FIVE_WHYS' and isinstance(data, list):
-                    whys = [item.get('why', item.get('description', '')) for item in data if isinstance(item, dict)]
-                    parts.append(f"5 PORQUÊS: {' -> '.join(filter(None, whys))}")
-                elif m_type == 'ROOT_CAUSES' and isinstance(data, list):
-                    causes = [item.get('cause', '') for item in data if isinstance(item, dict)]
-                    parts.append(f"CAUSAS RAIZ: {' | '.join(filter(None, causes))}")
-                elif m_type == 'ISHIKAWA' and isinstance(data, dict):
-                    ish_text = []
-                    for cat, items in data.items():
-                        if isinstance(items, list):
-                            items_text = ", ".join([i.get('text', '') for i in items if isinstance(i, dict)])
-                            if items_text: ish_text.append(f"{cat}: {items_text}")
-                    parts.append(f"ISHIKAWA: {'; '.join(ish_text)}")
-                elif m_type in ['LESSONS_LEARNED', 'CONTAINMENT_ACTIONS'] and isinstance(data, list):
-                    items = [str(item) for item in data if item]
-                    parts.append(f"{m_type}: {' | '.join(items)}")
-            except: continue
+                data = json.loads(row[0])
+                if 'containment_actions' in data:
+                    actions = [str(a) for a in data['containment_actions'] if a]
+                    if actions: parts.append(f"AÇÕES DE CONTENÇÃO: {' | '.join(actions)}")
+                if 'lessons_learned' in data:
+                    lessons = [str(l) for l in data['lessons_learned'] if l]
+                    if lessons: parts.append(f"LIÇÕES APRENDIDAS: {' | '.join(lessons)}")
+            except: pass
+
         return "\n".join(parts)
     except: return ""
 
