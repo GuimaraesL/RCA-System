@@ -195,6 +195,7 @@ export class DatabaseConnection {
             callback();
             this.execute('COMMIT');
             this.inTransaction = false;
+            this.save(); // Assegura a persistência no disco ao concluir transações agrupadas
         } catch (error) {
             this.inTransaction = false;
             try {

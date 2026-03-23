@@ -60,6 +60,12 @@ graph TB
 
 O coração da inteligência reside no `main_agent.py`, que instancia o `RCA_Unified_Copilot` como um `Team`. Diferente de um agente isolado, o Time permite a delegação de tarefas complexas para sub-agentes com instruções especializadas.
 
+### Gestão de Performance e Instanciação
+Para otimizar o tempo de resposta e evitar overhead de I/O, o sistema implementa uma estratégia de **Cache de Componentes Estáticos**:
+- **Skills Cache**: As ferramentas baseadas em disco (`LocalSkills`) são carregadas uma única vez e mantidas em memória global.
+- **Fresh Team Instance**: Embora os componentes caros sejam cacheados, uma nova instância do objeto `Team` é criada a cada requisição HTTP. Isso garante que cada sessão tenha um estado de orquestração limpo, prevenindo erros de poluição de histórico ou duplicidade de mensagens (Erro Gemini 400).
+- **Persistência de Histórico**: O `session_id` e o vínculo com `SqliteDb` garantem que o Agno carregue o histórico do banco de dados automaticamente para a nova instância.
+
 ### Componentes do Time:
 - **RCA Unified Copilot:** Coordenador da investigação, responsável pelo diálogo com o usuário, extração do contexto da tela e consolidação do Plano de Ação.
 - **Media Failure Analyst:** Perito em análise visual (fotos/vídeos) focado em padrões de falha física (corrosão, fadiga, etc) usando Gemini 2.0 Flash Multimodal.
@@ -88,5 +94,6 @@ O sistema gerencia coleções no VectorDB (ChromaDB):
 
 1. **Injeção de Contexto:** O endpoint captura dados da tela (`screen_context`) e os anexa à `session_state`.
 2. **Triagem (RAG Validator):** Quando ativado de forma invisível via metadados ou explicitamente, o `RAG_Recurrence_Validator` valida quais RCAs históricas são realmente recorrências do nível do Subgrupo, Equipamento ou Área.
+    - **Evolução**: Implementação de "Similarity Sharpening" para ganho de contraste e "Cross-Domain Awareness" (pensamento transversal) para correlacionar falhas mecânicas independentemente do nome do ativo.
 3. **Orquestração:** O Time de especialistas atua em conjunto. O Líder decide quando consultar o FMEA, calcular métricas ou delegar para análise visual.
 4. **Streaming SSE:** A resposta é enviada em tempo real para o Frontend, interceptando e ocultando os processos de raciocínio (ex: chamadas de ferramentas) substituindo por feedback visual (ex: "Consultando o histórico de falhas...").

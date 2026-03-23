@@ -17,6 +17,13 @@ class RecurrenceInfo(BaseModel):
     area_name: Optional[str] = None
     raw_content: Optional[str] = None
     failure_date: Optional[str] = None
+    specialty_id: Optional[str] = None
+    specialty_name: Optional[str] = None
+    failure_category_id: Optional[str] = None
+    failure_category_name: Optional[str] = None
+    failure_mode_id: Optional[str] = None
+    failure_mode_name: Optional[str] = None
+    component_type: Optional[str] = None
 
 class MediaItem(BaseModel):
     type: str # 'image', 'video'
@@ -29,6 +36,9 @@ class AnalysisRequest(BaseModel):
     area_id: Optional[str] = None
     equipment_id: Optional[str] = None
     subgroup_id: Optional[str] = None
+    specialty_id: Optional[str] = None
+    failure_category_id: Optional[str] = None
+    component_type: Optional[str] = None
     user_prompt: Optional[str] = None
     ui_language: Optional[str] = "Português-BR"
     stream: Optional[bool] = False

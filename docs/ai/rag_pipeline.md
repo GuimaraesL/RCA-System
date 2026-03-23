@@ -65,6 +65,10 @@ flowchart TD
 Uma vez que os candidatos são retornados pelo VectorDB (ChromaDB), eles são passados para um Agente Efêmero especializado: o **RAG Validator** (`get_rag_validator`). 
 Sua única função é aplicar rigor técnico, comparando o incidente da tela com os candidatos brutos, determinando quais são falsos positivos (ex: "vazamento" em bombas diferentes) e quais são **recorrências validadas**.
 
+- **Similarity Sharpening**: Aplicação de curva de potência `(1.0 - dist) ** 1.8 * 2.1` para destacar candidatos excelentes.
+- **Cross-Domain Validation**: Uso de *few-shot examples* para permitir que o validador reconheça falhas mecânicas idênticas (ex: torque, fixação) mesmo em equipamentos de nomes diferentes.
+- **Wide Angle Queries**: Extração cirúrgica de contexto com limite expandido para 2000 caracteres, evitando truncamento de sintomas complexos.
+
 ### 3. Malha Neural Semântica (Neural Mesh)
 Após a validação, o sistema realiza um terceiro estágio focado na **Interconexão**. Utilizando os mesmos embeddings do Gemini, o `rag_service` calcula a similaridade de cosseno entre todos os pares de recorrências validadas.
 

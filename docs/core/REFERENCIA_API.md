@@ -210,7 +210,7 @@ POST /v2/recurrence
     "rca_id": "uuid",
     "area_id": "string (opcional)",
     "equipment_id": "string (opcional)",
-    "context": "contexto adicional (opcional)",
+    "context": "contexto adicional (opcional, sanitizado para max 8000 chars e tags removidas)",
     "user_prompt": "prompt customizado (opcional)",
     "stream": false,
     "ui_language": "Português-BR"

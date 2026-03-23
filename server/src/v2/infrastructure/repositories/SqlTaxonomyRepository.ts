@@ -41,11 +41,9 @@ export class SqlTaxonomyRepository {
                     .map(rel => rel.specialty_id)
             }));
 
-            // Se as tabelas estiverem vazias, retorna o fallback padrão
-            if (specialties.length === 0 && failureModes.length === 0) {
-                return this.getDefaultTaxonomy();
-            }
-
+            // O merge com os defaults padrão nos campos vitais é feito no retorno final
+            // permitindo que arrays válidos porém inicialmente vazios (como specialties)
+            // também sejam transportados corretamente íntegros para o Frontend.
             return {
                 analysisTypes,
                 analysisStatuses: analysisStatuses.length > 0 ? analysisStatuses : this.getDefaultTaxonomy().analysisStatuses,

@@ -1,3 +1,7 @@
+"""
+Proposta: Define as ferramentas (tools) disponíveis para o Agente de IA.
+Fluxo: O Agente invoca ferramentas -> Processamento local ou chamadas de API -> Retorno de texto para o Agente.
+"""
 import os
 import glob
 import json
@@ -184,45 +188,9 @@ def search_historical_rcas_tool(query: str, run_context: RunContext, subgroup_id
         # ESTÁGIO 2: VALIDAÇÃO TÉCNICA
         valid_ids, discarded_ids, val_text = validate_recurrences(search_query, all_candidates)
         
-        # --- PERSISTÊNCIA (Garantir paridade com o botão) ---
-        from .knowledge import save_recurrence_analysis
-        
-        def enrich_and_filter(matches):
-            enriched = []
-            for m in matches:
-                if m.rca_id in valid_ids:
-                    d = m.model_dump()
-                    d["validation_reason"] = valid_ids[m.rca_id]
-                    enriched.append(d)
-            return enriched
-
-        discarded_list = []
-        for m in all_candidates:
-            if m.rca_id in discarded_ids:
-                d = m.model_dump()
-                d["discard_reason"] = discarded_ids[m.rca_id]
-                discarded_list.append(d)
-
-        # 3. Interconexão Semântica (Neural Mesh)
-        semantic_mesh = []
-        valid_candidates = [m for m in all_candidates if m.rca_id in valid_ids]
-        if len(valid_candidates) >= 2:
-            try:
-                semantic_mesh = calculate_semantic_links(valid_candidates)
-            except Exception as e:
-                logger.error(f"Erro ao calcular malha semântica na Tool: {e}")
-
-        analysis_result = {
-            "subgroup_matches": enrich_and_filter(subgroup_matches),
-            "equipment_matches": enrich_and_filter(equipment_matches),
-            "area_matches": enrich_and_filter(area_matches),
-            "discarded_matches": discarded_list,
-            "semantic_links": [link.model_dump() for link in semantic_mesh]
-        }
-        
-        if current_rca_id:
-            save_recurrence_analysis(str(current_rca_id), analysis_result)
-            logger.info(f"✅ Análise de recorrência da Tool persistida para RCA {current_rca_id}")
+        # --- PERSISTÊNCIA REMOVIDA (Issue #162) ---
+        # A persistência agora é de responsabilidade única do endpoint de streaming em analysis.py
+        # para evitar race conditions e garantir fonte única de verdade.
 
         return (
             f"### RECORRÊNCIAS HISTÓRICAS VALIDADAS (NA ÁREA {area_id}):\n"

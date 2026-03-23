@@ -1,3 +1,14 @@
+"""
+Teste: test_recurrence_info.py
+Proposta: Validar a instanciação da classe RecurrenceInfo.
+Ações: Cria objeto RecurrenceInfo e valida campos.
+Execução: Backend Python
+Fluxo: Import -> Instanciação -> Print campos.
+"""
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from api.models import RecurrenceInfo
 
 def test_recurrence_info_instantiation():

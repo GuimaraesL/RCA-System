@@ -15,9 +15,12 @@ from core.knowledge import get_recurrence_analysis, save_recurrence_analysis
 from api.models import AnalysisRequest
 from services.rag_service import search_hierarchical, validate_recurrences
 from core.tools import get_current_screen_context
-from api.v2.analysis import normalize_language
+from api.v2.analysis import normalize_language, sanitize_context
 
 router = APIRouter()
+
+# Cache global para evitar buscas repetidas no VectorDB em curto intervalo (5 min TTL)
+_query_cache: dict = {}
 
 @router.get("/{rca_id}")
 async def get_recurrence_endpoint(rca_id: str, x_internal_key: str = Header(None)):
@@ -43,37 +46,67 @@ async def analyze_recurrence_on_demand(request: AnalysisRequest, x_internal_key:
 
 async def _run_recurrence_analysis(request: AnalysisRequest):
     """Lógica de negócio interna para análise de recorrência (sem validação de chave)."""
+    import asyncio
     # 1. Extração de Dados Básicos
     area_id = request.area_id
     equipment_id = request.equipment_id
     subgroup_id = request.subgroup_id
+    specialty_id = request.specialty_id
+    failure_category_id = request.failure_category_id
+    component_type = request.component_type
+    
     asset_info = "Ativo não identificado explicitamente"
 
     if request.context:
-        try:
-            ctx = json.loads(request.context)
-            area_id = area_id or ctx.get('area_id')
-            equipment_id = equipment_id or ctx.get('equipment_id')
-            subgroup_id = subgroup_id or ctx.get('subgroup_id')
-            asset_info = ctx.get('asset_display', asset_info)
-        except Exception as e:
-            logger.warning(f"[_run_recurrence_analysis] Falha ao parsear contexto JSON: {e}")
+        sanitized_context = sanitize_context(request.context)
+        if sanitized_context:
+            try:
+                ctx = json.loads(sanitized_context)
+                area_id = area_id or ctx.get('area_id')
+                equipment_id = equipment_id or ctx.get('equipment_id')
+                subgroup_id = subgroup_id or ctx.get('subgroup_id')
+                specialty_id = specialty_id or ctx.get('specialty_id')
+                failure_category_id = failure_category_id or ctx.get('failure_category_id')
+                component_type = component_type or ctx.get('component_type')
+                asset_info = ctx.get('asset_display', asset_info)
+            except Exception as e:
+                logger.warning(f"[_run_recurrence_analysis] Falha ao parsear contexto JSON: {e}")
 
     # 2. Geração da Query Alinhada com o Chat (Referência Oficial)
-    query_text = f"[DADOS ATUAIS DA TELA]:\nAtivo: {asset_info}\n{request.context}"
+    query_text = f"[DADOS ATUAIS DA TELA]:\nAtivo: {asset_info}\n{sanitized_context if request.context else ''}"
 
     if not query_text:
         raise HTTPException(status_code=400, detail="Não foi possível gerar o contexto de busca.")
 
-    # 3. Busca Hierárquica (RAG Estágio 1)
-    # Usa os limites padrão agora atualizados para (15, 15, 20) na assinatura
-    subgroup_matches, equipment_matches, area_matches = search_hierarchical(
-        query_text=query_text,
-        subgroup_id=subgroup_id,
-        equipment_id=equipment_id,
-        area_id=area_id,
-        current_rca_id=str(request.rca_id)
-    )
+    import hashlib
+    import time
+    
+    cache_key = hashlib.md5(f"{query_text}_{subgroup_id}_{equipment_id}_{area_id}_{specialty_id}_{failure_category_id}_{component_type}".encode()).hexdigest()
+    current_time = time.time()
+    
+    # Cache hit (5 minutes TTL)
+    if cache_key in _query_cache and current_time - _query_cache[cache_key]['time'] < 300:
+        logger.debug("RAG: Retornando busca do cache em memoria.")
+        subgroup_matches, equipment_matches, area_matches = _query_cache[cache_key]['data']
+    else:
+        # 3. Busca Hierárquica (RAG Estágio 1)
+        # Delegada para thread pool para não bloquear o event loop do FastAPI (Fix #159)
+        subgroup_matches, equipment_matches, area_matches = await asyncio.to_thread(
+            search_hierarchical,
+            query_text=query_text,
+            subgroup_id=subgroup_id,
+            equipment_id=equipment_id,
+            area_id=area_id,
+            current_rca_id=str(request.rca_id),
+            specialty_id=specialty_id,
+            failure_category_id=failure_category_id,
+            component_type=component_type,
+            context_json=sanitized_context if request.context else None
+        )
+        _query_cache[cache_key] = {
+            'time': current_time,
+            'data': (subgroup_matches, equipment_matches, area_matches)
+        }
 
     all_candidates = subgroup_matches + equipment_matches + area_matches
     if not all_candidates:
@@ -85,8 +118,14 @@ async def _run_recurrence_analysis(request: AnalysisRequest):
         }
 
     # 4. Validação Técnica (RAG Estágio 2)
+    # Delegada para thread pool pois envolve chamada LLM síncrona (Fix #159)
     ui_lang = normalize_language(request.ui_language)
-    valid_ids, discarded_ids, _ = validate_recurrences(query_text, all_candidates, language=ui_lang)
+    valid_ids, discarded_ids, _ = await asyncio.to_thread(
+        validate_recurrences,
+        query_text,
+        all_candidates,
+        ui_lang
+    )
 
     def enrich_and_filter(matches):
         enriched = []
@@ -116,7 +155,8 @@ async def _run_recurrence_analysis(request: AnalysisRequest):
     if len(valid_candidates) >= 2:
         try:
             from services.rag_service import calculate_semantic_links
-            semantic_mesh = calculate_semantic_links(valid_candidates)
+            # Delegada para thread pool pois envolve cálculo de embeddings (Fix #159)
+            semantic_mesh = await asyncio.to_thread(calculate_semantic_links, valid_candidates)
         except Exception as e:
             logger.error(f"Erro ao calcular malha semântica: {e}")
 
