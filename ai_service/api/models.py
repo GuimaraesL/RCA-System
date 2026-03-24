@@ -1,5 +1,7 @@
-# AI Service - Modelos de Dados
-# Define as estruturas de requisição e resposta para os endpoints da API de IA.
+"""
+Proposta: Define os modelos de dados Pydantic para a API do AI Service.
+Fluxo: Define o contrato de dados entre FastAPI, Agno e Copiloto.
+"""
 
 from pydantic import BaseModel
 from typing import Optional, List
@@ -24,6 +26,7 @@ class RecurrenceInfo(BaseModel):
     failure_mode_id: Optional[str] = None
     failure_mode_name: Optional[str] = None
     component_type: Optional[str] = None
+    problem_description: Optional[str] = None
 
 class MediaItem(BaseModel):
     type: str # 'image', 'video'

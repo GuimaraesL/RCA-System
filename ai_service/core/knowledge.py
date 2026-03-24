@@ -171,71 +171,182 @@ def get_recurrence_analysis(rca_id: str):
         }
     return None
 
+# --- AUXILIARES DE TAXONOMIA ---
+def _get_taxonomy_names(rca_id: str, cursor: sqlite3.Cursor) -> Dict[str, str]:
+    """Busca nomes amigáveis para IDs de especialidade, categoria, modo de falha e componente."""
+    names = {"specialty": "", "category": "", "mode": "", "component": ""}
+    try:
+        query = """
+            SELECT 
+                ts.name as specialty,
+                tc.name as category,
+                tm.name as mode,
+                tct.name as component
+            FROM rcas r
+            LEFT JOIN taxonomy_specialties ts ON r.specialty_id = ts.id
+            LEFT JOIN taxonomy_failure_categories tc ON r.failure_category_id = tc.id
+            LEFT JOIN taxonomy_failure_modes tm ON r.failure_mode_id = tm.id
+            LEFT JOIN taxonomy_component_types tct ON r.component_type = tct.id
+            WHERE r.id = ?
+        """
+        cursor.execute(query, (rca_id,))
+        row = cursor.fetchone()
+        if row:
+            names["specialty"] = row[0] or ""
+            names["category"] = row[1] or ""
+            names["mode"] = row[2] or ""
+            names["component"] = row[3] or ""
+    except Exception as e:
+        logger.warning(f"Erro ao buscar taxonomia para {rca_id}: {e}")
+    return names
+
+def build_embedding_contents(rca_id: str, rca: dict, investigation_text: str, taxonomy: dict, hierarchy: str) -> dict:
+    """Constrói os 3 textos exatos que serão usados para os embeddings (Full, Symptoms, Causes)."""
+    
+    # Camada 1: Histórico Completo
+    full_parts = [
+        f"ID_RCA: {rca_id}",
+        f"HIERARQUIA: {hierarchy}",
+        f"TÍTULO: {rca.get('what', 'Sem Título')}",
+        f"ESPECIALIDADE: {taxonomy.get('specialty', '')}",
+        f"CATEGORIA: {taxonomy.get('category', '')}",
+        f"MODO DE FALHA: {taxonomy.get('mode', '')}",
+        f"DESCRIÇÃO DETALHADA: {rca.get('problem_description', 'Sem Descrição')}",
+        f"INVESTIGAÇÃO: {investigation_text}"
+    ]
+    full_content = "\n\n".join(full_parts).strip()
+
+    # Camada 2: Sintomas
+    ish_text = ""
+    if "ISHIKAWA:" in investigation_text:
+        ish_text = investigation_text.split("ISHIKAWA:")[1].split("\n")[0].strip()
+
+    symptom_content = "\n".join(filter(None, [
+        f"TÍTULO: {rca.get('what', '')}",
+        f"ESPECIALIDADE: {taxonomy.get('specialty', '')}",
+        f"CATEGORIA: {taxonomy.get('category', '')}",
+        f"SINTOMAS (ISHIKAWA): {ish_text}",
+        f"COMPONENTE: {taxonomy.get('component', '')}"
+    ]))
+
+    # Camada 3: Causas
+    cause_parts = []
+    if "CAUSAS RAIZ:" in investigation_text:
+        cause_parts.append(investigation_text.split("CAUSAS RAIZ:")[1].split("\n")[0].strip())
+    if "5 PORQUÊS:" in investigation_text:
+        cause_parts.append(investigation_text.split("5 PORQUÊS:")[1].split("\n")[0].strip())
+
+    actions_text = ""
+    if "AÇÕES DE CONTENÇÃO:" in investigation_text:
+        actions_text = investigation_text.split("AÇÕES DE CONTENÇÃO:")[1].split("\n")[0].strip()
+
+    cause_content = "\n".join(filter(None, [
+        f"TÍTULO: {rca.get('what', '')}",
+        f"ESPECIALIDADE: {taxonomy.get('specialty', '')}",
+        f"MODO DE FALHA: {taxonomy.get('mode', '')}",
+        f"ANÁLISE TÉCNICA: {' | '.join(cause_parts)}",
+        f"AÇÕES: {actions_text}"
+    ]))
+
+    return {
+        "full": full_content,
+        "symptoms": symptom_content,
+        "causes": cause_content
+    }
+
+def _get_asset_hierarchy(rca_id: str, source_cursor: sqlite3.Cursor) -> str:
+    """Busca os nomes amigáveis da hierarquia de ativos vinculada à RCA."""
+    try:
+        source_cursor.execute("SELECT area_id, equipment_id, subgroup_id FROM rcas WHERE id = ?", (rca_id,))
+        ids = source_cursor.fetchone()
+        if not ids: return ""
+        
+        names = []
+        for aid in ids:
+            if aid:
+                source_cursor.execute("SELECT name FROM assets WHERE id = ?", (aid,))
+                res = source_cursor.fetchone()
+                if res and res[0]: names.append(res[0])
+        return " > ".join(names)
+    except: return ""
+
 def _get_flattened_investigations(rca_id: str, source_cursor: sqlite3.Cursor) -> str:
-    """Busca e achata todas as investigações técnicas (5 Porquês, Ishikawa, etc) das novas tabelas."""
+    """Busca e achata todas as investigações técnicas (5 Porquês, Ishikawa, etc) das tabelas normalizadas v7.0."""
     parts = []
     try:
-        # 1. Busca em rca_five_whys
-        source_cursor.execute("SELECT question, answer FROM rca_five_whys WHERE rca_id = ? ORDER BY order_index ASC", (rca_id,))
-        five_whys_rows = source_cursor.fetchall()
-        if five_whys_rows:
-            whys = [row[1] for row in five_whys_rows if row[1]]
-            if whys: parts.append(f"5 PORQUÊS: {' -> '.join(whys)}")
+        # 1. 5 Porquês (Processando JSON da coluna content)
+        try:
+            source_cursor.execute("SELECT content FROM rca_five_whys WHERE rca_id = ?", (rca_id,))
+            rows = source_cursor.fetchall()
+            for (content_json,) in rows:
+                if content_json:
+                    data = json.loads(content_json)
+                    whys = [w.get('answer', '') for w in data.get('whys', [])]
+                    if whys:
+                        parts.append(f"5 PORQUÊS: {' -> '.join(filter(None, whys))}")
+        except Exception as e:
+            logger.debug(f"Erro ao extrair 5 Porquês para {rca_id}: {e}")
 
-        # 2. Busca em rca_root_causes
-        source_cursor.execute("SELECT cause FROM rca_root_causes WHERE rca_id = ?", (rca_id,))
-        root_causes_rows = source_cursor.fetchall()
-        if root_causes_rows:
-            causes = [row[0] for row in root_causes_rows if row[0]]
-            if causes: parts.append(f"CAUSAS RAIZ: {' | '.join(causes)}")
+        # 2. Ishikawa (v7.0 - Com Resolução 6M)
+        try:
+            source_cursor.execute("""
+                SELECT COALESCE(tx.name, ri.category), ri.description 
+                FROM rca_ishikawa ri
+                LEFT JOIN taxonomy_root_causes_6m tx ON ri.category = tx.id
+                WHERE ri.rca_id = ?
+            """, (rca_id,))
+            ish_rows = source_cursor.fetchall()
+            if ish_rows:
+                ish_dict = {}
+                for cat, desc in ish_rows:
+                    if cat not in ish_dict: ish_dict[cat] = []
+                    if desc: ish_dict[cat].append(desc)
+                ish_text = [f"{cat}: {', '.join(items)}" for cat, items in ish_dict.items() if items]
+                if ish_text: parts.append(f"ISHIKAWA: {'; '.join(ish_text)}")
+        except Exception as e:
+            logger.debug(f"Erro ao extrair Ishikawa para {rca_id}: {e}")
 
-        # 3. Busca em rca_ishikawa
-        source_cursor.execute("SELECT category, description FROM rca_ishikawa WHERE rca_id = ?", (rca_id,))
-        ishikawa_rows = source_cursor.fetchall()
-        if ishikawa_rows:
-            ish_dict = {}
-            for cat, desc in ishikawa_rows:
-                if cat not in ish_dict: ish_dict[cat] = []
-                if desc: ish_dict[cat].append(desc)
-            ish_text = [f"{cat}: {', '.join(items)}" for cat, items in ish_dict.items() if items]
-            if ish_text: parts.append(f"ISHIKAWA: {'; '.join(ish_text)}")
+        # 3. Causas Raiz
+        try:
+            source_cursor.execute("SELECT cause FROM rca_root_causes WHERE rca_id = ?", (rca_id,))
+            rc_rows = source_cursor.fetchall()
+            if rc_rows:
+                causes = [row[0] for row in rc_rows if row[0]]
+                if causes: parts.append(f"CAUSAS RAIZ: {' | '.join(causes)}")
+        except Exception as e:
+            logger.debug(f"Erro ao extrair Causas Raiz para {rca_id}: {e}")
 
-        # 4. Busca em rca_precision_checklists
-        source_cursor.execute("SELECT * FROM rca_precision_checklists WHERE rca_id = ?", (rca_id,))
-        row_p = source_cursor.fetchone()
-        if row_p:
-            cols = [d[0] for d in source_cursor.description]
-            executed = []
-            for i, col in enumerate(cols):
-                if col.endswith('_status') and row_p[i] == 'EXECUTED':
-                    item_id = col.replace('_status', '')
-                    executed.append(item_id)
-            if executed:
-                parts.append(f"CHECKLIST PRECISÃO (EXECUTADOS): {', '.join(executed)}")
-
-        # 5. Busca em rca_hra_checklists
-        source_cursor.execute("SELECT is_validated, validation_comment FROM rca_hra_checklists WHERE rca_id = ?", (rca_id,))
-        row_h = source_cursor.fetchone()
-        if row_h:
-            status_hra = row_h[0] if row_h[0] else "Realizada"
-            parts.append(f"CONFIABILIDADE HUMANA (HRA): {status_hra} - {row_h[1] or ''}")
-
-        # 6. Busca em rca_containment (Containment Actions, Lessons Learned)
-        source_cursor.execute("SELECT content FROM rca_containment WHERE rca_id = ?", (rca_id,))
-        row = source_cursor.fetchone()
-        if row:
-            try:
-                data = json.loads(row[0])
-                if 'containment_actions' in data:
-                    actions = [str(a) for a in data['containment_actions'] if a]
-                    if actions: parts.append(f"AÇÕES DE CONTENÇÃO: {' | '.join(actions)}")
-                if 'lessons_learned' in data:
-                    lessons = [str(l) for l in data['lessons_learned'] if l]
-                    if lessons: parts.append(f"LIÇÕES APRENDIDAS: {' | '.join(lessons)}")
-            except: pass
+        # 4. Contenção e Lições Aprendidas
+        try:
+            source_cursor.execute("SELECT content FROM rca_containment WHERE rca_id = ?", (rca_id,))
+            cont_rows = source_cursor.fetchall()
+            for (content_json,) in cont_rows:
+                if content_json:
+                    data = json.loads(content_json)
+                    if isinstance(data, dict):
+                        if 'containment_actions' in data:
+                            actions = []
+                            for a in data['containment_actions']:
+                                if isinstance(a, dict):
+                                    actions.append(a.get('action') or a.get('description') or a.get('text') or str(a))
+                                elif a: actions.append(str(a))
+                            if actions: parts.append(f"AÇÕES DE CONTENÇÃO: {' | '.join(actions)}")
+                        if 'lessons_learned' in data:
+                            lessons = []
+                            for l in data['lessons_learned']:
+                                if isinstance(l, dict):
+                                    lessons.append(l.get('text') or l.get('description') or str(l))
+                                elif l: lessons.append(str(l))
+                            if lessons: parts.append(f"LIÇÕES APRENDIDAS: {' | '.join(lessons)}")
+                    elif isinstance(data, list):
+                        parts.append(f"AÇÕES DE CONTENÇÃO: {' | '.join(data)}")
+        except Exception as e:
+            logger.debug(f"Erro ao extrair Contenção para {rca_id}: {e}")
 
         return "\n".join(parts)
-    except: return ""
+    except Exception as e:
+        logger.error(f"Error flattening investigations for {rca_id}: {e}")
+        return ""
 
 def index_historical_rcas(force_reindex: bool = False, limit: Optional[int] = None):
     """
@@ -292,17 +403,25 @@ def index_historical_rcas(force_reindex: bool = False, limit: Optional[int] = No
 
                 # Busca investigações técnicas no banco de origem (v2.4 Enrichment)
                 investigation_text = _get_flattened_investigations(rca_id, source_cursor)
+                taxonomy = _get_taxonomy_names(rca_id, source_cursor)
 
-                # Hash e Verificação (Incluindo investigações no hash para detectar mudanças)
-                content_parts = [
-                    f"ID_RCA: {rca_id}",
-                    f"TÍTULO: {rca.get('what', 'Sem Título')}",
-                    f"PROBLEMA: {rca.get('problem_description', 'Sem Descrição')}",
-                    f"ANÁLISE: {rca.get('analysis_details', '')}",
-                    f"INVESTIGAÇÃO: {investigation_text}"
-                ]
-                content = "\n\n".join(content_parts).strip()
-                current_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()
+                # Extração de nomes amigáveis de ativos
+                asset_dict = rca.get('asset', {})
+                area_name = asset_dict.get('area_name') or ""
+                equip_name = asset_dict.get('equipment_name') or ""
+                subg_name = asset_dict.get('subgroup_name') or ""
+
+                # Extração de nomes amigáveis de ativos (v2.8 - SQL Hierarchy Sync)
+                hierarchy = _get_asset_hierarchy(rca_id, source_cursor)
+
+                # Gera os 3 conteúdos exatos via helper centralizado (v2.9 Consistency)
+                contents = build_embedding_contents(rca_id, rca, investigation_text, taxonomy, hierarchy)
+                full_content = contents["full"]
+                symptom_content = contents["symptoms"]
+                cause_content = contents["causes"]
+
+                # Hash para controle de mudanças (usando o full_content como referência)
+                current_hash = hashlib.sha256(full_content.encode('utf-8')).hexdigest()
                 
                 cursor.execute("SELECT content_hash FROM indexed_rcas_v2 WHERE rca_id = ?", (rca_id,))
                 row = cursor.fetchone()
@@ -311,36 +430,12 @@ def index_historical_rcas(force_reindex: bool = False, limit: Optional[int] = No
                     continue
                 
                 try:
-                    # Preparar conteúdos especializados (Padrão @issue V2.3)
-                    symptom_content = "\n".join(filter(None, [
-                        f"TÍTULO: {rca.get('what', '')}",
-                        f"PROBLEMA/SINTOMAS: {rca.get('problem_description', '')}",
-                        f"COMPONENTE: {rca.get('component_type', '')}",
-                        f"INVESTIGAÇÃO (SINTOMAS): {investigation_text if 'ISHIKAWA' in investigation_text or '5 PORQUÊS' in investigation_text else ''}"
-                    ]))
-                    
-                    raw_causes = rca.get('root_causes', [])
-                    if not isinstance(raw_causes, list): raw_causes = []
-                    causes_text = " | ".join([str(c.get('cause', '')) for c in raw_causes if isinstance(c, dict)])
-                    analysis_details = rca.get('analysis_details', '') or ""
-                    if isinstance(analysis_details, dict):
-                        analysis_details = analysis_details.get('summary', '') or ""
-                    
-                    cause_content = "\n".join(filter(None, [
-                        f"TÍTULO: {rca.get('what', '')}",
-                        f"CAUSAS RAIZ: {causes_text}",
-                        f"INVESTIGAÇÃO TÉCNICA: {investigation_text}",
-                        f"ANÁLISE: {analysis_details}",
-                    ]))
-
-                    # Full content (History)
-                    full_content = content + "\n\n" + investigation_text
-                    
-                    # Extração de nomes amigáveis
+                    # Extração de nomes amigáveis adicionais para metadados
                     asset_dict = rca.get('asset', {})
-                    area_name = asset_dict.get('area_name') or ""
-                    equip_name = asset_dict.get('equipment_name') or ""
-                    subg_name = asset_dict.get('subgroup_name') or ""
+                    h_parts = [p.strip() for p in hierarchy.split(">")] if ">" in hierarchy else []
+                    area_name = asset_dict.get('area_name') or (h_parts[0] if len(h_parts) > 0 else "")
+                    equip_name = asset_dict.get('equipment_name') or (h_parts[1] if len(h_parts) > 1 else "")
+                    subg_name = asset_dict.get('subgroup_name') or (h_parts[2] if len(h_parts) > 2 else "")
 
                     common_meta = {
                         "rca_id": rca_id,
@@ -352,9 +447,12 @@ def index_historical_rcas(force_reindex: bool = False, limit: Optional[int] = No
                         "subgroup_id": str(rca.get('subgroup_id') or ""),
                         "subgroup_name": str(subg_name),
                         "failure_date": str(rca.get('failure_date') or ""),
-                        "component_type": str(rca.get('component_type') or ""),
+                        "component_type": taxonomy.get("component") or str(rca.get('component_type') or ""),
                         "failure_category_id": str(rca.get('failure_category_id') or ""),
+                        "failure_category_name": taxonomy["category"],
                         "failure_mode_id": str(rca.get('failure_mode_id') or ""),
+                        "failure_mode_name": taxonomy["mode"],
+                        "specialty_name": taxonomy["specialty"],
                     }
 
                     # Indexação paralela das 3 camadas
@@ -365,7 +463,7 @@ def index_historical_rcas(force_reindex: bool = False, limit: Optional[int] = No
                     f2 = executor.submit(run_idx, rca_symptoms_knowledge, f"rca_{rca_id}_symptoms", symptom_content, common_meta)
                     f3 = executor.submit(run_idx, rca_causes_knowledge, f"rca_{rca_id}_causes", cause_content, common_meta)
                     
-                    f1.result(); f2.result(); f3.result() # Wait for all
+                    f1.result(); f2.result(); f3.result() # Aguarda todas as camadas
 
                     cursor.execute("INSERT OR REPLACE INTO indexed_rcas_v2 (rca_id, content_hash) VALUES (?, ?)", (rca_id, current_hash))
                     conn.commit()

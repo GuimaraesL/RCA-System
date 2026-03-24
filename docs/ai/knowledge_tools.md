@@ -11,9 +11,21 @@ O Copiloto RCA utiliza bases de dados locais vetorizadas (ChromaDB) para fundame
 
 ### RCA History (`rca_history_knowledge`)
 *   **VectorDB:** ChromaDB (`rca_history_v1`)
-*   **Propósito:** Memória coletiva das falhas da empresa.
-*   **Conteúdo:** RCAs concluídas vindas da API backend, indexadas em chunks grandes (50k) para manter o contexto.
-*   **Uso:** Identificação de recorrências e lições aprendidas de casos reais filtrados hierarquicamente.
+*   **Propósito:** Contexto integral histórico (Full Context).
+*   **Conteúdo:** RCAs completas divididas em chunks de 50k tokens.
+*   **Uso:** Identificação de lições aprendidas e contexto geral de falhas.
+
+### RCA Symptoms (`rca_symptoms_knowledge`)
+*   **VectorDB:** ChromaDB (`rca_symptoms_v2`)
+*   **Propósito:** Busca cirúrgica por incidentes baseada em sintomas (Problem Context).
+*   **Conteúdo:** Título, Descrição do Problema e Ishikawa.
+*   **Uso:** Identificação rápida de recorrências quando o usuário reporta uma falha nova.
+
+### RCA Causes (`rca_causes_knowledge`)
+*   **VectorDB:** ChromaDB (`rca_causes_v2`)
+*   **Propósito:** Busca cirúrgica por análises técnicas similares (Analysis Context).
+*   **Conteúdo:** Investigação Técnica, 5 Porquês e Causas Raiz.
+*   **Uso:** Cruzamento de falhas por similaridade técnica de diagnóstico.
 
 ### Technical Knowledge (`technical_knowledge`)
 *   **VectorDB:** ChromaDB (`technical_knowledge_v1`)

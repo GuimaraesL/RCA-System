@@ -10,19 +10,22 @@ O módulo de busca vetorial utiliza o `ChromaDb` persistente localmente, equipad
 
 ```mermaid
 graph TD
-    subgraph Sincronizacao ["Startup / Background"]
+    subgraph Sincronizacao ["Sincronização (Knowledge v7.0)"]
         B[Backend /api/rcas] -- Fetch JSON --> E[core/knowledge.py]
-        E -- Cria Documentos 50k Chunks --> EM[GeminiEmbedder]
-        EM -- Salva Vetores --> DB[(ChromaDB: rca_history_v1)]
         
-        MD_PDF[Arquivos .md e .pdf] -- Text/PDF Reader --> EM2[GeminiEmbedder]
-        EM2 -- Salva Vetores --> DB2[(ChromaDB: technical_knowledge_v1)]
+        E -- Layer 1: Full --> DB1[(ChromaDB: rca_history_v1)]
+        E -- Layer 2: Symptoms --> DB2[(ChromaDB: rca_symptoms_v2)]
+        E -- Layer 3: Causes --> DB3[(ChromaDB: rca_causes_v2)]
+        
+        MD_PDF[Arquivos .md e .pdf] -- Tech Reader --> DB_TECH[(ChromaDB: technical_knowledge_v1)]
     end
 
     subgraph Chat_Analise ["Chat / Analise (api/routes.py)"]
         U[Usuario reporta falha] --> API[FastAPI /analyze]
-        API -- Busca de Metadados --> TL["search_historical_rcas_tool (Interna)"]
-        TL --> DB
+        API -- Busca de Metadados --> TL["search_hierarchical (rag_service.py)"]
+        TL --> DB1
+        TL --> DB2
+        TL --> DB3
         
         DB -- Candidatos Brutos --> RV[RAG Validator Agent]
         RV -- Filtro de Falsos Positivos --> V[Recorrências Validadas]
@@ -35,11 +38,28 @@ graph TD
     end
 ```
 
-## Sistema de Validação e Interconexão em 3 Estágios (3-Stage RAG)
+## Sistema de Indexação Multi-Camada (Knowledge v7.0)
 
-Para garantir máxima fidelidade na área de engenharia e uma visualização rica de padrões, as buscas não retornam simplesmente os "Top K" documentos. Há um processo de triagem e inteligência relacional.
+A partir da versão v7.0, a indexação de RCAs é dividida em três camadas para otimizar a precisão da recuperação semântica:
 
-### 1. Fallback Hierárquico de Metadados
+1.  **History (Full)**: Indexa o RCA completo (Título, Problema, Investigação, Ações). Ideal para buscas globais e contexto amplo.
+2.  **Symptoms (Incident)**: Foca exclusivamente no Título, Problema e Sintomas (Ishikawa). Otimiza a busca quando o usuário reporta apenas "o que está acontecendo".
+3.  **Causes (Analysis)**: Indexa as Causas Raiz e a Investigação Técnica. Otimiza a busca por "porquês" técnicos similares.
+
+### Campos Principais de Indexação
+Em todas as camadas, os seguintes campos são mandatórios para garantir a precisão:
+- **TÍTULO**: Resumo curto da falha (`what`).
+- **DESCRIÇÃO DETALHADA**: Contexto detalhado da ocorrência (`problem_description`).
+- **HIERARQUIA**: Localização técnica resolvida (Área > Equipamento > Subgrupo).
+- **METADADOS**: Especialidade, Categoria, Modo de Falha e Componente (IDs resolvidos para nomes amigáveis).
+
+### Resolução de Taxonomia Amigável
+Durante a ingestão, o `knowledge.py` resolve IDs técnicos para nomes legíveis, garantindo que o VectorDB contenha termos humanos:
+- **Componentes**: IDs (ex: `CMP-...`) são convertidos para nomes (ex: `Rolo Deflector`) via `taxonomy_component_types`.
+- **Ishikawa (6M)**: Categorias como `M1`, `M2` são convertidas para `Mão de Obra`, `Método`, etc., via `taxonomy_root_causes_6m`.
+
+## Estratégias de Busca e Validação
+
 O sistema busca no banco vetorial respeitando a hierarquia do ativo (Área > Equipamento > Subgrupo), para não misturar falhas de máquinas não relacionadas.
 
 ```mermaid
@@ -70,8 +90,10 @@ Sua única função é aplicar rigor técnico, comparando o incidente da tela co
 - **Wide Angle Queries**: Extração cirúrgica de contexto com limite expandido para 2000 caracteres, evitando truncamento de sintomas complexos.
 
 ### 3. Malha Neural Semântica (Neural Mesh)
-Após a validação, o sistema realiza um terceiro estágio focado na **Interconexão**. Utilizando os mesmos embeddings do Gemini, o `rag_service` calcula a similaridade de cosseno entre todos os pares de recorrências validadas.
+Após a validação, o sistema realiza um terceiro estágio focado na **Interconexão**. Utiliza o algoritmo `calculate_semantic_links` para criar uma rede híbrida de falhas relacionadas.
 
-- **Conexão Semântica**: Se a similaridade ultrapassar o threshold (0.75), um `SemanticLink` é criado.
-- **Diferencial**: Isso permite conectar falhas que possuem causas raízes descritas de forma diferente, mas que possuem o mesmo "DNA" técnico (ex: "vazamento por fadiga" e "trinca por esforço cíclico").
-- **Visualização**: Esses links alimentam a malha de partículas no Grafo Neural no Passo 8 do Wizard.
+- **Abordagem Híbrida**: 
+    1.  **Match Exato (Causas)**: Interconecta automaticamente falhas que compartilham a mesma string de causa raiz (Score 1.0).
+    2.  **Similaridade Vetorial**: Calcula o cosseno entre os embeddings para identificar falhas com o mesmo "DNA" técnico, mesmo com termos diferentes.
+- **Conexão Semântica**: Se a similaridade ultrapassar o threshold (**0.88**), um `SemanticLink` é criado.
+- **Visualização**: Esses links alimentam a malha de partículas no Grafo Neural no Passo 8 do Wizard, permitindo navegar pela árvore de conhecimento.

@@ -19,8 +19,8 @@ Localizados em: `~/.local/share/RCA-System/` (Linux/Mac) ou `%LOCALAPPDATA%\RCA-
 
 | Arquivo/Pasta | Tipo | Descrição |
 | :--- | :--- | :--- |
-| `vector_db/` | ChromaDB | Banco de dados vetorial de alto desempenho (ChromaDB) com duas coleções: `rca_history_v1` e `technical_knowledge_v1`. |
-| `rca_knowledge.db` | SQLite | Controle de hashes de indexação para economia de tokens API e salvamento de análises de recorrência estruturadas. |
+| `vector_db/` | ChromaDB | Banco de dados vetorial com coleções: `rca_history_v1`, `rca_symptoms_v2`, `rca_causes_v2` e `technical_knowledge_v1`. |
+| `rca_knowledge.db` | SQLite | Controle de hashes (`indexed_rcas_v2`, `indexed_tech_knowledge`) para economia de tokens e cache de análises (`recurrence_analysis`). |
 | `agent_memory.db` | SQLite | Persistência nativa do framework Agno OS (Histórico de chats, traces, spans e memórias extraídas da sessão). |
 
 ---
@@ -72,13 +72,15 @@ graph TD
 
 ### 3.1. Bancos Vetoriais (ChromaDB)
 Utiliza o **ChromaDB** equipado com embeddings da IA do Google.
-- **`rca_history_v1`:** Indexa relatórios de RCA usando fragmentos extensos (50.000 tokens) para manter todo o contexto operacional agrupado.
-- **`technical_knowledge_v1`:** Indexa manuais FMEA em Markdown e PDFs de fabricantes, utilizados na ferramenta `get_asset_fmea_tool`.
+- **`rca_history_v1`**: Indexa relatórios de RCA completos (50.000 tokens) para manter todo o contexto operacional agrupado (Full Context).
+- **`rca_symptoms_v2`**: Foca em sintomas e problemas operacionais (10.000 tokens), otimizando a busca por incidentes similares.
+- **`rca_causes_v2`**: Foca em investigação técnica e causas raiz (10.000 tokens), otimizando a busca por soluções técnicas.
+- **`technical_knowledge_v1`**: Indexa manuais FMEA em Markdown e PDFs técnicos de fabricantes.
 
 ### 3.2. Controle e Validação (rca_knowledge.db)
 Este banco SQLite é uma peça fundamental para a otimização da IA e persistência de cache:
-- **Tabelas `indexed_rcas` e `indexed_tech_knowledge`:** Armazenam os Hashes SHA-256 do conteúdo no momento da última indexação. Se o hash for igual na próxima varredura, a requisição cara para a API do Embedder é evitada.
-- **Tabela `recurrence_analysis`:** Salva o resultado final validado da triagem feita pelo agente `RAG_Validator`, possibilitando que a interface consulte as recorrências de forma imediata sem precisar gerar novamente pela IA.
+- **Tabelas `indexed_rcas_v2` e `indexed_tech_knowledge`**: Armazenam os Hashes SHA-256 do conteúdo no momento da última indexação. Se o hash for igual na próxima varredura, a requisição cara para a API do Embedder é evitada.
+- **Tabela `recurrence_analysis`**: Salva o resultado final validado da triagem feita pelo agente `RAG_Validator`, possibilitando que a interface consulte as recorrências de forma imediata sem precisar gerar novamente pela IA.
 
 ### 3.3. Memória de Conversação (agent_memory.db)
 Banco exclusivo do Framework Agno, onde reside as tabelas `agno_sessions` e `agno_memories`. Permite que a IA continue o raciocínio a partir de onde parou mesmo se o aplicativo for reiniciado.

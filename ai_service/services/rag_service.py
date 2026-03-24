@@ -215,6 +215,12 @@ def extract_recurrence(doc: Any, level_name: str, rank: int, vector_score: float
     title = clean_title(doc.content)
     root_causes = clean_root_causes(doc.content)
     
+    # Extração de Descrição Detalhada (Novo campo sincronizado com v7.0)
+    prob_desc = ""
+    match_prob = re.search(r'DESCRIÇÃO DETALHADA:\s*(.*?)(?=\s*\n[A-Z]{3,}:|\n\n|$)', content, flags=re.DOTALL | re.IGNORECASE)
+    if match_prob:
+        prob_desc = match_prob.group(1).strip()
+    
     # Extração robusta de data (Metadata Priority)
     f_date = doc.meta_data.get("failure_date") or ""
     if not f_date:
@@ -248,6 +254,7 @@ def extract_recurrence(doc: Any, level_name: str, rank: int, vector_score: float
         area_name=area_name,
         subgroup_name=subg_name,
         actions="N/A",
+        problem_description=prob_desc,
         raw_content=content,
         # IDs técnicos
         specialty_id=spec_id,
@@ -535,7 +542,7 @@ def _build_validator_summary(r: RecurrenceInfo) -> str:
         f"TÍTULO: {r.title}",
         f"DATA: {r.failure_date or 'N/A'}",
         f"LOCAL: {r.area_name} > {r.equipment_name} > {r.subgroup_name}",
-        f"CAUSAS: {r.root_causes if (r.root_causes and r.root_causes.strip()) else '⚠️ Não preenchido — avaliar apenas por sintoma'}",
+        f"CAUSAS: {r.root_causes if (r.root_causes and r.root_causes.strip()) else '[Não preenchido] — avaliar apenas por sintoma'}",
     ]
     if r.component_type:
         parts.append(f"COMPONENTE: {r.component_type}") # Componente já é string na UI
@@ -543,6 +550,8 @@ def _build_validator_summary(r: RecurrenceInfo) -> str:
         parts.append(f"MODO DE FALHA: {mode_label}")
     if spec_label:
         parts.append(f"ESPECIALIDADE: {spec_label}")
+    if r.problem_description:
+        parts.append(f"DESCRIÇÃO DETALHADA: {r.problem_description}")
     if cat_label:
         parts.append(f"CATEGORIA: {cat_label}")
     
