@@ -1,0 +1,422 @@
+{
+  "metadata": {
+    "systemVersion": "17.0",
+    "exportDate": "2026-03-23T15:16:56.935Z",
+    "recordCount": 1,
+    "description": "Backup Integral do Sistema"
+  },
+  "assets": [
+    {
+      "id": "AREA-MN3BPQJU-542",
+      "name": "TESTE",
+      "type": "AREA",
+      "children": [
+        {
+          "id": "EQP-MN3BPUCA-400",
+          "name": "TESTE",
+          "type": "EQUIPMENT",
+          "parent_id": "AREA-MN3BPQJU-542",
+          "children": [
+            {
+              "id": "SUB-MN3BPZUI-565",
+              "name": "TESTE",
+              "type": "SUBGROUP",
+              "parent_id": "EQP-MN3BPUCA-400",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "records": [
+    {
+      "id": "RCA-MN3BSTST-089",
+      "version": "1.0",
+      "analysis_date": "2026-03-23",
+      "analysis_duration_minutes": 120,
+      "analysis_type": "",
+      "status": "STATUS-03",
+      "participants": [
+        "Participante A",
+        "Participante B"
+      ],
+      "facilitator": "RESPONSAVEL A",
+      "start_date": "2026-03-23",
+      "completion_date": "2024-12-24",
+      "requires_operation_support": false,
+      "failure_date": "2026-03-23",
+      "failure_time": "15:11",
+      "downtime_minutes": 0,
+      "financial_impact": 0,
+      "os_number": "",
+      "area_id": "AREA-MN3BPQJU-542",
+      "equipment_id": "EQP-MN3BPUCA-400",
+      "subgroup_id": "SUB-MN3BPZUI-565",
+      "component_type": "",
+      "asset_name_display": "TESTE",
+      "specialty_id": "",
+      "failure_mode_id": "",
+      "failure_category_id": "",
+      "who": "RESPONSAVEL A",
+      "what": "Falha: RAZAO TESTE",
+      "when": "2026-03-23T15:11",
+      "where_description": "TESTE",
+      "problem_description": "Falha TESTE - RAZAO TESTE. COMENTARIO TESTE",
+      "potential_impacts": "",
+      "quality_impacts": "",
+      "five_whys": [],
+      "ishikawa": {
+        "machine": [],
+        "method": [],
+        "material": [],
+        "manpower": [],
+        "measurement": [],
+        "environment": []
+      },
+      "root_causes": [],
+      "precision_maintenance": [
+        {
+          "id": "chk_clean",
+          "activity": "checklists.precision.chk_clean",
+          "question_snapshot": "checklists.precision.chk_clean",
+          "status": "",
+          "comment": ""
+        },
+        {
+          "id": "chk_tol",
+          "activity": "checklists.precision.chk_tol",
+          "question_snapshot": "checklists.precision.chk_tol",
+          "status": "",
+          "comment": ""
+        },
+        {
+          "id": "chk_lube",
+          "activity": "checklists.precision.chk_lube",
+          "question_snapshot": "checklists.precision.chk_lube",
+          "status": "",
+          "comment": ""
+        },
+        {
+          "id": "chk_belt",
+          "activity": "checklists.precision.chk_belt",
+          "question_snapshot": "checklists.precision.chk_belt",
+          "status": "",
+          "comment": ""
+        },
+        {
+          "id": "chk_load",
+          "activity": "checklists.precision.chk_load",
+          "question_snapshot": "checklists.precision.chk_load",
+          "status": "",
+          "comment": ""
+        },
+        {
+          "id": "chk_align",
+          "activity": "checklists.precision.chk_align",
+          "question_snapshot": "checklists.precision.chk_align",
+          "status": "",
+          "comment": ""
+        },
+        {
+          "id": "chk_bal",
+          "activity": "checklists.precision.chk_bal",
+          "question_snapshot": "checklists.precision.chk_bal",
+          "status": "",
+          "comment": ""
+        },
+        {
+          "id": "chk_torque",
+          "activity": "checklists.precision.chk_torque",
+          "question_snapshot": "checklists.precision.chk_torque",
+          "status": "",
+          "comment": ""
+        },
+        {
+          "id": "chk_parts",
+          "activity": "checklists.precision.chk_parts",
+          "question_snapshot": "checklists.precision.chk_parts",
+          "status": "",
+          "comment": ""
+        },
+        {
+          "id": "chk_func",
+          "activity": "checklists.precision.chk_func",
+          "question_snapshot": "checklists.precision.chk_func",
+          "status": "",
+          "comment": ""
+        },
+        {
+          "id": "chk_doc",
+          "activity": "checklists.precision.chk_doc",
+          "question_snapshot": "checklists.precision.chk_doc",
+          "status": "",
+          "comment": ""
+        }
+      ],
+      "human_reliability": {
+        "questions": [
+          {
+            "id": "1.1",
+            "category": "hraQuestionnaire.categories.procedures",
+            "question": "hraQuestionnaire.questions.q1_1",
+            "question_snapshot": "hraQuestionnaire.questions.q1_1",
+            "answer": "",
+            "comment": ""
+          },
+          {
+            "id": "1.3",
+            "category": "hraQuestionnaire.categories.procedures",
+            "question": "hraQuestionnaire.questions.q1_3",
+            "question_snapshot": "hraQuestionnaire.questions.q1_3",
+            "answer": "",
+            "comment": ""
+          },
+          {
+            "id": "1.4",
+            "category": "hraQuestionnaire.categories.procedures",
+            "question": "hraQuestionnaire.questions.q1_4",
+            "question_snapshot": "hraQuestionnaire.questions.q1_4",
+            "answer": "",
+            "comment": ""
+          },
+          {
+            "id": "2.1",
+            "category": "hraQuestionnaire.categories.training",
+            "question": "hraQuestionnaire.questions.q2_1",
+            "question_snapshot": "hraQuestionnaire.questions.q2_1",
+            "answer": "",
+            "comment": ""
+          },
+          {
+            "id": "2.2",
+            "category": "hraQuestionnaire.categories.training",
+            "question": "hraQuestionnaire.questions.q2_2",
+            "question_snapshot": "hraQuestionnaire.questions.q2_2",
+            "answer": "",
+            "comment": ""
+          },
+          {
+            "id": "3.1",
+            "category": "hraQuestionnaire.categories.external",
+            "question": "hraQuestionnaire.questions.q3_1",
+            "question_snapshot": "hraQuestionnaire.questions.q3_1",
+            "answer": "",
+            "comment": ""
+          },
+          {
+            "id": "4.1",
+            "category": "hraQuestionnaire.categories.routine",
+            "question": "hraQuestionnaire.questions.q4_1",
+            "question_snapshot": "hraQuestionnaire.questions.q4_1",
+            "answer": "",
+            "comment": ""
+          },
+          {
+            "id": "4.2",
+            "category": "hraQuestionnaire.categories.routine",
+            "question": "hraQuestionnaire.questions.q4_2",
+            "question_snapshot": "hraQuestionnaire.questions.q4_2",
+            "answer": "",
+            "comment": ""
+          },
+          {
+            "id": "5.1",
+            "category": "hraQuestionnaire.categories.organization",
+            "question": "hraQuestionnaire.questions.q5_1",
+            "question_snapshot": "hraQuestionnaire.questions.q5_1",
+            "answer": "",
+            "comment": ""
+          },
+          {
+            "id": "6.1",
+            "category": "hraQuestionnaire.categories.measures",
+            "question": "hraQuestionnaire.questions.q6_1",
+            "question_snapshot": "hraQuestionnaire.questions.q6_1",
+            "answer": "",
+            "comment": ""
+          },
+          {
+            "id": "6.2",
+            "category": "hraQuestionnaire.categories.measures",
+            "question": "hraQuestionnaire.questions.q6_2",
+            "question_snapshot": "hraQuestionnaire.questions.q6_2",
+            "answer": "",
+            "comment": ""
+          }
+        ],
+        "conclusions": [
+          {
+            "id": "procedures",
+            "label": "hraQuestionnaire.categories.procedures",
+            "selected": false,
+            "description": ""
+          },
+          {
+            "id": "training",
+            "label": "hraQuestionnaire.categories.training",
+            "selected": false,
+            "description": ""
+          },
+          {
+            "id": "external",
+            "label": "hraQuestionnaire.categories.external",
+            "selected": false,
+            "description": ""
+          },
+          {
+            "id": "routine",
+            "label": "hraQuestionnaire.categories.routine",
+            "selected": false,
+            "description": ""
+          },
+          {
+            "id": "organization",
+            "label": "hraQuestionnaire.categories.organization",
+            "selected": false,
+            "description": ""
+          },
+          {
+            "id": "measures",
+            "label": "hraQuestionnaire.categories.measures",
+            "selected": false,
+            "description": ""
+          }
+        ],
+        "validation": {
+          "isValidated": "",
+          "comment": ""
+        }
+      },
+      "containment_actions": [
+        {
+          "id": "ACT-C-1774278974847",
+          "action": "FEITO UMA AÇÃO DE TESTE",
+          "responsible": "PARTIPANT A",
+          "date": "2026-03-05",
+          "status": "PENDING"
+        }
+      ],
+      "lessons_learned": [],
+      "general_moc_number": null,
+      "additional_info": null,
+      "file_path": null,
+      "five_whys_chains": [],
+      "attachments": [],
+      "created_at": "2026-03-23 15:16:50",
+      "updated_at": "2026-03-23 15:16:50"
+    }
+  ],
+  "actions": [
+    {
+      "id": "ACT-MN3BWREP-140",
+      "rca_id": "RCA-MN3BSTST-089",
+      "action": "DESCRIÇÃO TESTE",
+      "responsible": "PARTICIPANT B",
+      "date": "2026-03-23",
+      "status": "1",
+      "moc_number": null,
+      "created_at": null,
+      "updated_at": null
+    }
+  ],
+  "triggers": [
+    {
+      "id": "TRG-MN3BQTAR-913",
+      "area_id": "AREA-MN3BPQJU-542",
+      "equipment_id": "EQP-MN3BPUCA-400",
+      "subgroup_id": "SUB-MN3BPZUI-565",
+      "start_date": "2026-03-23T15:11",
+      "end_date": "2026-03-23T15:11",
+      "duration_minutes": 0,
+      "stop_type": "Falha TESTE",
+      "stop_reason": "RAZAO TESTE",
+      "comments": "COMENTARIO TESTE",
+      "analysis_type_id": null,
+      "status": "T-STATUS-04",
+      "responsible": "RESPONSAVEL A",
+      "rca_id": "RCA-MN3BSTST-089",
+      "file_path": null,
+      "created_at": "2026-03-23 15:12:09",
+      "updated_at": "2026-03-23 15:13:43"
+    }
+  ],
+  "taxonomy": {
+    "analysisTypes": [],
+    "analysisStatuses": [
+      {
+        "id": "STATUS-01",
+        "name": "Em Andamento"
+      },
+      {
+        "id": "STATUS-02",
+        "name": "Aguardando Verificação"
+      },
+      {
+        "id": "STATUS-03",
+        "name": "Concluída"
+      },
+      {
+        "id": "STATUS-04",
+        "name": "Cancelada"
+      }
+    ],
+    "specialties": [],
+    "failureModes": [],
+    "failureCategories": [],
+    "componentTypes": [],
+    "rootCauseMs": [
+      {
+        "id": "M1",
+        "name": "Mão de Obra"
+      },
+      {
+        "id": "M2",
+        "name": "Método"
+      },
+      {
+        "id": "M3",
+        "name": "Material"
+      },
+      {
+        "id": "M4",
+        "name": "Máquina"
+      },
+      {
+        "id": "M5",
+        "name": "Meio Ambiente"
+      },
+      {
+        "id": "M6",
+        "name": "Medida"
+      }
+    ],
+    "triggerStatuses": [
+      {
+        "id": "T-STATUS-01",
+        "name": "Novo"
+      },
+      {
+        "id": "T-STATUS-02",
+        "name": "Em Análise"
+      },
+      {
+        "id": "T-STATUS-03",
+        "name": "Convertido em RCA"
+      },
+      {
+        "id": "T-STATUS-04",
+        "name": "Arquivado"
+      }
+    ],
+    "mandatoryFields": {
+      "trigger": {
+        "save": []
+      },
+      "rca": {
+        "create": [],
+        "conclude": []
+      }
+    }
+  }
+}
